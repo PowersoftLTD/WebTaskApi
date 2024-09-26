@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <_PublishTargetUrl>D:\Amit\Project\Projects\TaskManagement\bin\Release\net8.0\publish\</_PublishTargetUrl>
+    <History>True|2024-09-21T10:08:48.2486306Z||;True|2024-09-21T15:35:57.1010827+05:30||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+  <ItemGroup>
+    <DestinationConnectionStrings Include="AuthonticatServerConnectionString">
+      <Value>Data Source=192.168.19.188%3bInitial Catalog=TaskManagement_UAT%3bMax Pool Size=250%3bConnect Timeout=190%3bPersist Security Info=True%3bUser ID=sa%3bPassword=Saipl%40456%3b</Value>
+    </DestinationConnectionStrings>
+  </ItemGroup>
+</Project>
