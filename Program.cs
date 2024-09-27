@@ -56,7 +56,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = JWTKEY.Issuer,
         ValidAudience = JWTKEY.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWTKEY.Key))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWTKEY.Key)),
+        ClockSkew = TimeSpan.Zero
     };
 });
 
