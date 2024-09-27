@@ -9,7 +9,7 @@ using TaskManagement.API.Data;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
-
+//hhjhhj
 // Configure database connection using Entity Framework Core
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AuthonticatServerConnectionString")));
