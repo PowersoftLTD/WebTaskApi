@@ -43,8 +43,9 @@ namespace TaskManagement.API.Repositories
                 parameters.Add("@TASK_NAME", tASK_RECURSIVE_HDR.TASK_NAME);
                 parameters.Add("@TASK_DESCRIPTION", tASK_RECURSIVE_HDR.TASK_DESCRIPTION);
                 parameters.Add("@TERM", tASK_RECURSIVE_HDR.TERM);
-                parameters.Add("@STARTS", tASK_RECURSIVE_HDR.STARTS);
+                parameters.Add("@START_DATE", tASK_RECURSIVE_HDR.START_DATE);
                 parameters.Add("@ENDS", tASK_RECURSIVE_HDR.ENDS);
+                parameters.Add("@END_DATE", tASK_RECURSIVE_HDR.END_DATE);
                 parameters.Add("@CREATED_BY", tASK_RECURSIVE_HDR.CREATED_BY);
                 parameters.Add("@LAST_UPDATED_BY", tASK_RECURSIVE_HDR.LAST_UPDATED_BY);
                 parameters.Add("@ATTRIBUTE1", tASK_RECURSIVE_HDR.ATTRIBUTE1);
@@ -66,8 +67,9 @@ namespace TaskManagement.API.Repositories
                 parameters.Add("@TASK_NAME", tASK_RECURSIVE_HDR.TASK_NAME);
                 parameters.Add("@TASK_DESCRIPTION", tASK_RECURSIVE_HDR.TASK_DESCRIPTION);
                 parameters.Add("@TERM", tASK_RECURSIVE_HDR.TERM);
-                parameters.Add("@STARTS", tASK_RECURSIVE_HDR.STARTS);
+                parameters.Add("@START_DATE", tASK_RECURSIVE_HDR.START_DATE);
                 parameters.Add("@ENDS", tASK_RECURSIVE_HDR.ENDS);
+                parameters.Add("@END_DATE", tASK_RECURSIVE_HDR.END_DATE);
                 parameters.Add("@CREATED_BY", tASK_RECURSIVE_HDR.CREATED_BY);
                 parameters.Add("@LAST_UPDATED_BY", tASK_RECURSIVE_HDR.LAST_UPDATED_BY);
                 parameters.Add("@ATTRIBUTE1", tASK_RECURSIVE_HDR.ATTRIBUTE1);
