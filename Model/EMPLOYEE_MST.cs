@@ -5,7 +5,6 @@ namespace TaskManagement.API.Model
 {
     public class EMPLOYEE_MST 
     {
-        
         [Required]
         [DataType(DataType.Text)]
         public string LOGIN_NAME { get; set; }

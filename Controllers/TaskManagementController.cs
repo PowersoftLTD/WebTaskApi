@@ -44,7 +44,7 @@ namespace TaskManagement.API.Controllers
         public async Task<ActionResult<TASK_RECURSIVE_HDR>> CreateTASK(TASK_RECURSIVE_HDR tASK_RECURSIVE_HDR)
         {
             int newTASKId = await _repository.CreateTASKAsync(tASK_RECURSIVE_HDR);
-            tASK_RECURSIVE_HDR.MKEY = newTASKId;
+            tASK_RECURSIVE_HDR.MKEY = Convert.ToInt32(newTASKId);
             return CreatedAtAction(nameof(GetTask), new { newTASKId }, tASK_RECURSIVE_HDR);
         }
 

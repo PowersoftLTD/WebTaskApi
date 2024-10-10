@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.OpenApi.Extensions;
 
 namespace TaskManagement.API.Repositories
 {
@@ -23,6 +24,9 @@ namespace TaskManagement.API.Repositories
             {
                 var parmeters = new DynamicParameters();
                 parmeters.Add("@MKEY", null);
+                //db.QueryAsync<TASK_RECURSIVE_HDR>("SP_SCHEDULE_RECURSIVE_TASK", commandType: CommandType.StoredProcedure);
+                //var TABLEVALUE = await db.QueryAsync<TASK_HDR>("SELECT TOP 30 MKEY,TASK_NO,TASK_NAME,TASK_DESCRIPTION,CAREGORY,START_DATE,COMPLETION_DATE,CLOSE_DATE,DUE_DATE" +
+                //    ",ASSIGNED_TO,STATUS,Recursive_Id FROM TASK_HDR WHERE Recursive_Id = 4 ORDER BY 1 DESC ");
                 return await db.QueryAsync<TASK_RECURSIVE_HDR>("SP_GET_TASK_RECURSIVE", parmeters, commandType: CommandType.StoredProcedure);
             }
         }
@@ -55,7 +59,14 @@ namespace TaskManagement.API.Repositories
                 parameters.Add("@ATTRIBUTE5", tASK_RECURSIVE_HDR.ATTRIBUTE5);
                 parameters.Add("@ATTRIBUTE6", tASK_RECURSIVE_HDR.ATTRIBUTE6);
                 parameters.Add("@ATTRIBUTE7", tASK_RECURSIVE_HDR.ATTRIBUTE7);
+                parameters.Add("@ATTRIBUTE8", tASK_RECURSIVE_HDR.ATTRIBUTE8);
+                parameters.Add("@ATTRIBUTE9", tASK_RECURSIVE_HDR.ATTRIBUTE9);
+                parameters.Add("@ATTRIBUTE10", tASK_RECURSIVE_HDR.ATTRIBUTE10);
+                parameters.Add("@ATTRIBUTE11", tASK_RECURSIVE_HDR.ATTRIBUTE11);
+                parameters.Add("@ATTRIBUTE12", tASK_RECURSIVE_HDR.ATTRIBUTE12);
+                parameters.Add("@ATTRIBUTE13", tASK_RECURSIVE_HDR.ATTRIBUTE13);
                 return await db.ExecuteScalarAsync<int>("SP_INSERT_TASK_RECURSIVE_DETAILS", parameters, commandType: CommandType.StoredProcedure);
+
             }
         }
         public async Task UpdateTASKAsync(TASK_RECURSIVE_HDR tASK_RECURSIVE_HDR)
@@ -79,6 +90,12 @@ namespace TaskManagement.API.Repositories
                 parameters.Add("@ATTRIBUTE5", tASK_RECURSIVE_HDR.ATTRIBUTE5);
                 parameters.Add("@ATTRIBUTE6", tASK_RECURSIVE_HDR.ATTRIBUTE6);
                 parameters.Add("@ATTRIBUTE7", tASK_RECURSIVE_HDR.ATTRIBUTE7);
+                parameters.Add("@ATTRIBUTE8", tASK_RECURSIVE_HDR.ATTRIBUTE8);
+                parameters.Add("@ATTRIBUTE9", tASK_RECURSIVE_HDR.ATTRIBUTE9);
+                parameters.Add("@ATTRIBUTE10", tASK_RECURSIVE_HDR.ATTRIBUTE10);
+                parameters.Add("@ATTRIBUTE11", tASK_RECURSIVE_HDR.ATTRIBUTE11);
+                parameters.Add("@ATTRIBUTE12", tASK_RECURSIVE_HDR.ATTRIBUTE12);
+                parameters.Add("@ATTRIBUTE13", tASK_RECURSIVE_HDR.ATTRIBUTE13);
                 await db.ExecuteAsync("SP_UPDATE_TASK_RECURSIVE_DETAILS", parameters, commandType: CommandType.StoredProcedure);
             }
         }
