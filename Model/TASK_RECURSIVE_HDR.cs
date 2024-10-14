@@ -32,5 +32,10 @@ namespace TaskManagement.API.Model
         
         public string? ATTRIBUTE12 { get; set; }
         public string? ATTRIBUTE13 { get; set; }
+
+        public string? ATTRIBUTE14 { get; set; }
+
+        public string? ATTRIBUTE15 { get; set; }
+        public string? ATTRIBUTE16 { get; set; }
     }
 }
