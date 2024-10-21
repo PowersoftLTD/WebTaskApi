@@ -9,7 +9,7 @@ using TaskManagement.API.Data;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
-//hhjhhj
+//sfsdfsadf
 // Configure database connection using Entity Framework Core
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AuthonticatServerConnectionString")));
@@ -97,7 +97,7 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseStaticFiles();
 // Use CORS
 app.UseCors("AllowAllOrigins");
 app.UseSwagger();

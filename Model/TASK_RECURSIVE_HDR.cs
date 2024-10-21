@@ -8,7 +8,13 @@ namespace TaskManagement.API.Model
         public int MKEY { get; set; }
         public string TASK_NAME { get; set; }
         public string TASK_DESCRIPTION { get; set; }
-        public string TERM { get; set; }
+        public int? CAREGORY { get; set; }
+        public decimal? PROJECT_ID { get; set; }
+        public decimal? SUB_PROJECT_ID { get; set; }
+        public decimal? ASSIGNED_TO { get; set; }
+        public string? TAGS { get; set; }
+        public string? TERM { get; set; }
+        public int? NO_DAYS { get; set; }
         public DateTime START_DATE { get; set; }
         public string? ENDS { get; set; }
         public DateTime? END_DATE { get; set; }
@@ -37,5 +43,11 @@ namespace TaskManagement.API.Model
 
         public string? ATTRIBUTE15 { get; set; }
         public string? ATTRIBUTE16 { get; set; }
+        public string? FILE_NAME { get; set; }
+        public string? FILE_PATH { get; set; }
+        public int? FILE_MKEY { get; set; }
+        public int? FILE_SR_NO { get; set; }
+
+        public IFormFile? files { get; set; }
     }
 }
