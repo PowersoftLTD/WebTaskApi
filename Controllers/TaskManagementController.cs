@@ -17,8 +17,8 @@ namespace TaskManagement.API.Controllers
     [ApiController]
     public class TaskManagementController : ControllerBase
     {
-        public static IWebHostEnvironment _environment;
         private readonly ITASKRepository _repository;
+        public static IWebHostEnvironment _environment;
         public TaskManagementController(ITASKRepository repository, IWebHostEnvironment environment)
         {
             _repository = repository;
@@ -38,13 +38,6 @@ namespace TaskManagement.API.Controllers
         public async Task<ActionResult<TASK_RECURSIVE_HDR>> GetTask(int id)
         {
             var TASK = await _repository.GetTaskByIdAsync(id);
-            
-            //using (FileStream filestream = System.IO.File.OpenRead(_environment.ContentRootPath + "\\Attachment\\" + "\\" + id.ToString() + "\\" + TASK.FILE_NAME.ToString();))
-            //{
-            //    //tASK_RECURSIVE_HDR.files.CopyTo(filestream);
-            //    //filestream.Flush();
-            //}
-
             if (TASK == null)
             {
                 return NotFound();
@@ -53,24 +46,10 @@ namespace TaskManagement.API.Controllers
         }
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<TASK_RECURSIVE_HDR>> CreateTASK([FromForm] TASK_RECURSIVE_HDR tASK_RECURSIVE_HDR)
+        public async Task<ActionResult<TASK_RECURSIVE_HDR>> CreateTASK(TASK_RECURSIVE_HDR tASK_RECURSIVE_HDR)
         {
             int newTASKId = await _repository.CreateTASKAsync(tASK_RECURSIVE_HDR);
             tASK_RECURSIVE_HDR.MKEY = Convert.ToInt32(newTASKId);
-
-            if (tASK_RECURSIVE_HDR.files.Length > 0)
-            {
-                if (!Directory.Exists(_environment.ContentRootPath + "\\Attachment" + "\\" + newTASKId.ToString() + "\\"))
-                {
-                    Directory.CreateDirectory(_environment.ContentRootPath + "\\Attachment\\" + "\\" + newTASKId.ToString() + "\\");
-                }
-                using (FileStream filestream = System.IO.File.Create(_environment.ContentRootPath + "\\Attachment\\" + "\\" + newTASKId.ToString() + "\\" + tASK_RECURSIVE_HDR.files.FileName.ToString()))
-                {
-                    tASK_RECURSIVE_HDR.files.CopyTo(filestream);
-                    filestream.Flush();
-                }
-            }
-
             return CreatedAtAction(nameof(GetTask), new { newTASKId }, tASK_RECURSIVE_HDR);
         }
 
@@ -90,7 +69,7 @@ namespace TaskManagement.API.Controllers
                     return BadRequest();
                 }
                 await _repository.UpdateTASKAsync(tASK_RECURSIVE_HDR);
-                TASK = null; 
+                TASK = null;
                 TASK = await _repository.GetTaskByIdAsync(MKEY);
                 if (TASK == null)
                 {
@@ -117,6 +96,6 @@ namespace TaskManagement.API.Controllers
             return NoContent();
         }
 
-       
+
     }
 }

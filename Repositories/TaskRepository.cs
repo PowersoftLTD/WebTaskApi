@@ -53,12 +53,10 @@ namespace TaskManagement.API.Repositories
                 parameters.Add("@LAST_UPDATED_BY", tASK_RECURSIVE_HDR.LAST_UPDATED_BY);
                 parameters.Add("@CAREGORY", tASK_RECURSIVE_HDR.CAREGORY);
                 parameters.Add("@PROJECT_ID", tASK_RECURSIVE_HDR.PROJECT_ID);
-                parameters.Add("@SUB_PROJECT_ID", tASK_RECURSIVE_HDR.SUB_PROJECT_ID); 
+                parameters.Add("@SUB_PROJECT_ID", tASK_RECURSIVE_HDR.SUB_PROJECT_ID);
                 parameters.Add("@NO_DAYS", tASK_RECURSIVE_HDR.NO_DAYS);
                 parameters.Add("@ASSIGNED_TO", tASK_RECURSIVE_HDR.ASSIGNED_TO);
                 parameters.Add("@TAGS", tASK_RECURSIVE_HDR.TAGS);
-                parameters.Add("@FILE_NAME", tASK_RECURSIVE_HDR.files.FileName);
-                parameters.Add("@FILE_PATH", "Attachment");
                 parameters.Add("@ATTRIBUTE1", tASK_RECURSIVE_HDR.ATTRIBUTE1);
                 parameters.Add("@ATTRIBUTE2", tASK_RECURSIVE_HDR.ATTRIBUTE2);
                 parameters.Add("@ATTRIBUTE3", tASK_RECURSIVE_HDR.ATTRIBUTE3);
@@ -76,7 +74,6 @@ namespace TaskManagement.API.Repositories
                 parameters.Add("@ATTRIBUTE15", tASK_RECURSIVE_HDR.ATTRIBUTE15);
                 parameters.Add("@ATTRIBUTE16", tASK_RECURSIVE_HDR.ATTRIBUTE16);
                 return await db.ExecuteScalarAsync<int>("SP_INSERT_TASK_RECURSIVE_DETAILS", parameters, commandType: CommandType.StoredProcedure);
-
             }
         }
         public async Task UpdateTASKAsync(TASK_RECURSIVE_HDR tASK_RECURSIVE_HDR)
@@ -97,10 +94,10 @@ namespace TaskManagement.API.Repositories
                 parameters.Add("@NO_DAYS", tASK_RECURSIVE_HDR.NO_DAYS);
                 parameters.Add("@ASSIGNED_TO", tASK_RECURSIVE_HDR.ASSIGNED_TO);
                 parameters.Add("@TAGS", tASK_RECURSIVE_HDR.TAGS);
-                parameters.Add("@FILE_NAME", tASK_RECURSIVE_HDR.FILE_NAME);
-                parameters.Add("@FILE_PATH", tASK_RECURSIVE_HDR.FILE_PATH);
-                parameters.Add("@FILE_MKEY", tASK_RECURSIVE_HDR.FILE_MKEY);
-                parameters.Add("@FILE_SR_NO", tASK_RECURSIVE_HDR.FILE_SR_NO);
+                //parameters.Add("@FILE_NAME", tASK_RECURSIVE_HDR.FILE_NAME);
+                //parameters.Add("@FILE_PATH", tASK_RECURSIVE_HDR.FILE_PATH);
+                //parameters.Add("@FILE_MKEY", tASK_RECURSIVE_HDR.FILE_MKEY);
+                //parameters.Add("@FILE_SR_NO", tASK_RECURSIVE_HDR.FILE_SR_NO);
                 parameters.Add("@CREATED_BY", tASK_RECURSIVE_HDR.CREATED_BY);
                 parameters.Add("@LAST_UPDATED_BY", tASK_RECURSIVE_HDR.LAST_UPDATED_BY);
                 parameters.Add("@ATTRIBUTE1", tASK_RECURSIVE_HDR.ATTRIBUTE1);
@@ -130,6 +127,22 @@ namespace TaskManagement.API.Repositories
                 parameters.Add("@MKEY", id);
                 parameters.Add("@LAST_UPDATED_BY", Last_update_By);
                 await db.ExecuteAsync("SP_DELETE_TASK_RECURSIVE_DETAILS", parameters, commandType: CommandType.StoredProcedure);
+            }
+        }
+        public async Task<int> TASKFileUpoadAsync(FileUploadAPI fileUploadAPI)
+        {
+            using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@MKEY", fileUploadAPI.TASK_MKEY);
+                parameters.Add("@FILE_NAME", fileUploadAPI.FILE_NAME);
+                parameters.Add("@FILE_PATH", fileUploadAPI.FILE_PATH);
+                parameters.Add("@CREATED_BY", fileUploadAPI.CREATED_BY);
+                parameters.Add("@ATTRIBUTE14", fileUploadAPI.ATTRIBUTE14);
+                parameters.Add("@ATTRIBUTE15", fileUploadAPI.ATTRIBUTE15);
+                parameters.Add("@ATTRIBUTE16", fileUploadAPI.ATTRIBUTE16);
+                return await db.ExecuteScalarAsync<int>("SP_INSERT_TASK_RECURSIVE_FILE_UPLOAD", parameters, commandType: CommandType.StoredProcedure);
+
             }
         }
     }
