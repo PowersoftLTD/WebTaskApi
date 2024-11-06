@@ -107,5 +107,36 @@ namespace TaskManagement.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("Sanctioning-Authority")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllSanctioningAuthority()
+        {
+            try
+            {
+                var classifications = await _repository.GetViewSanctioningAuthority();
+                return Ok(classifications);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
+        [HttpGet("Sanctioning-Department")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllSanctioningDepartment()
+        {
+            try
+            {
+                var classifications = await _repository.GetViewSanctioningDepartment();
+                return Ok(classifications);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }
