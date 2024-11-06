@@ -27,9 +27,12 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<IJWTConfigure, JWTConfigure>();
 builder.Services.AddScoped<ITASKRepository, TASKRepository>();
+builder.Services.AddScoped<IDoc_Temp, DocumentTemplateRepository>();
 builder.Services.AddScoped<IDapperDbConnection, DapperDbConnection>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IEmployeeMst, EmployeeMasterRepository>();
+builder.Services.AddScoped<IViewClassification, VIewClassification>();
+builder.Services.AddScoped<IApprovalTemplate, ApprovalTemplateRepository>();
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -92,7 +95,6 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddDbContext<TaskManagementAuthDbContext>();
-
 var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseAuthentication();
@@ -100,11 +102,12 @@ app.UseAuthorization();
 app.UseStaticFiles();
 // Use CORS
 app.UseCors("AllowAllOrigins");
+app.UseDeveloperExceptionPage();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
 });
 app.MapControllers();
-app.UseDeveloperExceptionPage();
+
 app.Run();

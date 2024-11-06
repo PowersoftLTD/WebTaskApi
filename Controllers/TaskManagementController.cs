@@ -29,8 +29,15 @@ namespace TaskManagement.API.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_RECURSIVE_HDR>>> GetTask()
         {
-            var Task = await _repository.GetAllTASKsAsync();
-            return Ok(Task);
+            try
+            {
+                var Task = await _repository.GetAllTASKsAsync();
+                return Ok(Task);
+            }
+            catch (Exception)
+            {
+                return new List<TASK_RECURSIVE_HDR>();
+            }
         }
 
         [HttpGet("{id}")]
@@ -44,13 +51,27 @@ namespace TaskManagement.API.Controllers
             }
             return Ok(TASK);
         }
+
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<TASK_RECURSIVE_HDR>> CreateTASK(TASK_RECURSIVE_HDR tASK_RECURSIVE_HDR)
         {
-            int newTASKId = await _repository.CreateTASKAsync(tASK_RECURSIVE_HDR);
-            tASK_RECURSIVE_HDR.MKEY = Convert.ToInt32(newTASKId);
-            return CreatedAtAction(nameof(GetTask), new { newTASKId }, tASK_RECURSIVE_HDR);
+            try
+            {
+                var model = await _repository.CreateTASKAsync(tASK_RECURSIVE_HDR);
+                if (model == null)
+                {
+                    return StatusCode(500);
+                }
+                else
+                {
+                    return model;
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpPut("{MKEY}")]
@@ -87,15 +108,17 @@ namespace TaskManagement.API.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteTASK(int id, int LastUpatedBy)
         {
-            await _repository.DeleteTASKAsync(id, LastUpatedBy);
-            var TASK = await _repository.GetTaskByIdAsync(id);
-            if (TASK == null)
+            bool deleteTask = await _repository.DeleteTASKAsync(id, LastUpatedBy);
+            if (deleteTask)
             {
-                return Ok("Row deleted");
+                var TASK = await _repository.GetTaskByIdAsync(id);
+                if (TASK == null)
+                {
+                    return Ok("Row deleted");
+                }
             }
             return NoContent();
+
         }
-
-
     }
 }
