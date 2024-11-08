@@ -26,7 +26,14 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var Task = await _repository.GetAllApprovalTemplateAsync();
-                return Ok(Task);
+                if (Task != null)
+                {
+                    return Ok(Task);
+                }
+                else
+                {
+                    return NotFound();
+                }
             }
             catch (Exception)
             {
@@ -48,7 +55,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<APPROVAL_TEMPLATE_HDR>> CreateTASK(APPROVAL_TEMPLATE_HDR aPPROVAL_TEMPLATE_HDR)
+        public async Task<ActionResult<APPROVAL_TEMPLATE_HDR>> CreateTASK([FromBody] APPROVAL_TEMPLATE_HDR aPPROVAL_TEMPLATE_HDR)
         {
             try
             {
@@ -75,7 +82,7 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var result = await _repository.CheckABBRAsync(strABBR);
-                if(result != null)
+                if (result != null)
                 {
                     return Ok(true);
                 }
@@ -83,11 +90,34 @@ namespace TaskManagement.API.Controllers
                 {
                     return Ok(false);
                 }
-                
+
             }
             catch (Exception ex)
             {
                 return BadRequest("Please enter the ABBR"); ;
+            }
+        }
+
+        [HttpGet("GetAbbrAndShortAbbr")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR>>> GetAbbrAndShortAbbr(string Building, string Standard, string Authority)
+        {
+            try
+            {
+                var result = await _repository.AbbrAndShortDescAsync(Building, Standard, Authority);
+                if (result != null)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogError(ex, "Error in GetAbbrAndShortAbbr method");
+                return BadRequest($"An error occurred: {ex.Message}");
             }
         }
     }

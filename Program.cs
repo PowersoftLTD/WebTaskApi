@@ -33,6 +33,18 @@ builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IEmployeeMst, EmployeeMasterRepository>();
 builder.Services.AddScoped<IViewClassification, VIewClassification>();
 builder.Services.AddScoped<IApprovalTemplate, ApprovalTemplateRepository>();
+builder.Services.AddScoped<IProjectDefination, ProjectDefinationRespository>();
+// Register IConfiguration to access connection strings
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+
+// Register connection string explicitly
+builder.Services.AddScoped(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    return configuration.GetConnectionString("AuthonticatServerConnectionString");
+});
+
+
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -92,6 +104,8 @@ builder.Services.AddSwaggerGen(c =>
             }, new string[] {} }
     });
 });
+
+
 
 builder.Services.AddAuthorization();
 builder.Services.AddDbContext<TaskManagementAuthDbContext>();

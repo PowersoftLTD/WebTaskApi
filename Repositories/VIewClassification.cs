@@ -12,7 +12,6 @@ namespace TaskManagement.API.Repositories
         {
             _dapperDbConnection = dapperDbConnection;
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewBuildingClassificationAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -20,7 +19,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Building_Classification");
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewDoc_TypeAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -28,7 +26,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Type");
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewStandard_TypeAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -50,7 +47,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_JOB_ROLE");
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewDepartment()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -58,7 +54,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Department");
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewSanctioningAuthority()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -66,13 +61,12 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Sanctioning_Authority");
             }
         }
-
-        public async Task<IEnumerable<V_Building_Classification>> GetViewSanctioningDepartment()
-        {
-            using (IDbConnection db = _dapperDbConnection.CreateConnection())
-            {
-                return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Sanctioning_DEPARTMENT");
-            }
-        }
+        //public async Task<IEnumerable<V_Building_Classification>> GetViewSanctioningDepartment()
+        //{
+        //    using (IDbConnection db = _dapperDbConnection.CreateConnection())
+        //    {
+        //        return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Sanctioning_DEPARTMENT");
+        //    }
+        //}
     }
 }

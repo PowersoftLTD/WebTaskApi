@@ -10,5 +10,7 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<V_Building_Classification>> GetViewStatutory_AuthAsync();
         Task<IEnumerable<V_Building_Classification>> GetViewJOB_ROLEAsync();
         Task<IEnumerable<V_Building_Classification>> GetViewDepartment();
+        Task<IEnumerable<V_Building_Classification>> GetViewSanctioningAuthority();
+        //Task<IEnumerable<V_Building_Classification>> GetViewSanctioningDepartment();
     }
 }

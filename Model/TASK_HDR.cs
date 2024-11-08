@@ -52,5 +52,7 @@ namespace TaskManagement.API.Model
         public string Status_Flag { get; set; }
         public int Recursive_Id { get; set; }
         public int Recursive_Created_For { get; set; }
+    
+
     }
 }
