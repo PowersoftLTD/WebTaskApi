@@ -89,7 +89,7 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                var ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY,pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
+                var ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY, pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
                 if (ProjectDetails == null)
                 {
                     return NotFound();
@@ -115,12 +115,12 @@ namespace TaskManagement.API.Controllers
 
         [HttpDelete("{id}/{LastUpatedBy}")]
         [Authorize]
-        public async Task<IActionResult> DeleteTASK(int id, int LastUpatedBy,string FormName,string MethodName)
+        public async Task<IActionResult> DeleteTASK(int id, int LastUpatedBy, string FormName, string MethodName)
         {
-            bool deleteTask = await _repository.DeleteProjectDefinationAsync(id, LastUpatedBy,FormName,MethodName);
+            bool deleteTask = await _repository.DeleteProjectDefinationAsync(id, LastUpatedBy, FormName, MethodName);
             if (deleteTask)
             {
-                var TASK = await _repository.GetProjectDefinationByIdAsync(id,LastUpatedBy,FormName,MethodName);
+                var TASK = await _repository.GetProjectDefinationByIdAsync(id, LastUpatedBy, FormName, MethodName);
                 if (TASK == null)
                 {
                     return Ok("Row deleted");
@@ -128,6 +128,28 @@ namespace TaskManagement.API.Controllers
             }
             return NoContent();
 
+        }
+
+        [HttpGet("{LoggedInID},{FormName}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<PROJECT_TRL_APPROVAL_ABBR_LIST>>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
+        {
+            try
+            {
+                var Task = await _repository.GetApprovalDetails(LoggedInID, BUILDING_TYPE, BUILDING_STANDARD, STATUTORY_AUTHORITY);
+                if (Task != null)
+                {
+                    return Ok(Task);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception)
+            {
+                return new List<PROJECT_TRL_APPROVAL_ABBR_LIST>();
+            }
         }
     }
 }
