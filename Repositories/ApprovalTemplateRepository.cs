@@ -43,14 +43,14 @@ namespace TaskManagement.API.Repositories
                     {
                         // Fetch the associated subtasks
                         var subtasks = await db.QueryAsync<APPROVAL_TEMPLATE_TRL_SUBTASK>(
-                            "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE APPROVAL_MKEY = @MKEY",
-                            new { MKEY = approvalTemplate.MKEY });
+                            "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY",
+                            new { HEADER_MKEY = approvalTemplate.MKEY });
 
                         approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property
 
-                       
-                        string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE APPROVAL_MKEY = @APPROVAL_MKEY";
-                        var keyValuePairs = await db.QueryAsync(sql, new { APPROVAL_MKEY = approvalTemplate.MKEY });
+
+                        string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY";
+                        var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                         // Initialize the END_RESULT_DOC_LST dictionary
                         approvalTemplate.END_RESULT_DOC_LST = new Dictionary<string, object>();
@@ -62,8 +62,8 @@ namespace TaskManagement.API.Repositories
                             approvalTemplate.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
                         }
 
-                        sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE APPROVAL_MKEY = @APPROVAL_MKEY";
-                        var keyValuePairsCheckList = await db.QueryAsync(sql, new { APPROVAL_MKEY = approvalTemplate.MKEY });
+                        sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY";
+                        var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                         // Initialize the END_RESULT_DOC_LST dictionary
                         approvalTemplate.CHECKLIST_DOC_LST = new Dictionary<string, object>();
@@ -104,13 +104,13 @@ namespace TaskManagement.API.Repositories
                     // Fetch the associated subtasks
                     // Fetch the associated Subtasks
                     var subtasks = await db.QueryAsync<APPROVAL_TEMPLATE_TRL_SUBTASK>(
-                        "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE APPROVAL_MKEY = @MKEY",
-                        new { MKEY = id });
+                        "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY",
+                        new { HEADER_MKEY = approvalTemplate.MKEY });
 
                     approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property with subtasks
-                    
-                    string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE APPROVAL_MKEY = @APPROVAL_MKEY";
-                    var keyValuePairs = await db.QueryAsync(sql, new { APPROVAL_MKEY = approvalTemplate.MKEY });
+
+                    string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY";
+                    var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                     // Initialize the END_RESULT_DOC_LST dictionary
                     approvalTemplate.END_RESULT_DOC_LST = new Dictionary<string, object>();
@@ -122,8 +122,8 @@ namespace TaskManagement.API.Repositories
                         approvalTemplate.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
                     }
 
-                    sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE APPROVAL_MKEY = @APPROVAL_MKEY";
-                    var keyValuePairsCheckList = await db.QueryAsync(sql, new { APPROVAL_MKEY = approvalTemplate.MKEY });
+                    sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY";
+                    var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                     // Initialize the END_RESULT_DOC_LST dictionary
                     approvalTemplate.CHECKLIST_DOC_LST = new Dictionary<string, object>();
@@ -152,10 +152,7 @@ namespace TaskManagement.API.Repositories
                 {
                     var OBJ_APPROVAL_TEMPLATE_HDR = aPPROVAL_TEMPLATE_HDR;
                     var parameters = new DynamicParameters();
-                    //var TEST = aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST;
                     parameters.Add("@BUILDING_TYPE", aPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
-                    //parameters.Add("@SRNO", aPPROVAL_TEMPLATE_HDR.SRNO);
-                    //parameters.Add("@SEQNO", aPPROVAL_TEMPLATE_HDR.SEQNO);
                     parameters.Add("@BUILDING_STANDARD", aPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
                     parameters.Add("@STATUTORY_AUTHORITY", aPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
                     parameters.Add("@SHORT_DESCRIPTION", aPPROVAL_TEMPLATE_HDR.SHORT_DESCRIPTION);
@@ -183,7 +180,7 @@ namespace TaskManagement.API.Repositories
                     using var connection = new SqlConnection(_connectionString);
                     await connection.OpenAsync();
 
-                    // Use BeginTransaction() (synchronously) to get a SqlTransaction
+                    // Use BeginTransaction() (synchronously) to get a SqlTransaction END_RESULT_DOC_LST
                     using var transaction = connection.BeginTransaction();
                     try
                     {
@@ -195,10 +192,10 @@ namespace TaskManagement.API.Repositories
                             throw new InvalidOperationException("Transaction is not of type SqlTransaction.");
                         }
 
-                        // Create a DataTable for bulk insert
+                        // Create a DataTable for bulk insert END_RESULT_DOC_LST
                         var dataTable = new DataTable();
                         dataTable.Columns.Add("MKEY", typeof(int));
-                        dataTable.Columns.Add("APPROVAL_MKEY", typeof(int));
+                        dataTable.Columns.Add("SR_NO", typeof(int));
                         dataTable.Columns.Add("DOCUMENT_NAME", typeof(string));
                         dataTable.Columns.Add("DOCUMENT_CATEGORY", typeof(string));
                         dataTable.Columns.Add("ATTRIBUTE1", typeof(string));
@@ -214,11 +211,14 @@ namespace TaskManagement.API.Repositories
 
                         if (OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST != null)
                         {
+                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY ", new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
                             // Populate the DataTable with product data
                             foreach (var END_DOC_LIST in OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST)
                             {
-                                dataTable.Rows.Add(null, aPPROVAL_TEMPLATE_HDR.MKEY, END_DOC_LIST.Key, END_DOC_LIST.Value, null, null, null, null, null, aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                dataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, SR_No, END_DOC_LIST.Key, END_DOC_LIST.Value, null, null, null, null, null, aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                SR_No = SR_No + 1;
                             }
+                            SR_No = 0;
 
                             // Use SqlBulkCopy for bulk insert
                             using var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction)
@@ -236,8 +236,8 @@ namespace TaskManagement.API.Repositories
                              * TO GET INSERTED VALUE IN END RESULT
                              * */
                             // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
-                            string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE APPROVAL_MKEY = @APPROVAL_MKEY";
-                            var keyValuePairs = await db.QueryAsync(sql, new { APPROVAL_MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
+                            string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY";
+                            var keyValuePairs = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
 
                             // Initialize the END_RESULT_DOC_LST dictionary
                             aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST = new Dictionary<string, object>();
@@ -264,10 +264,14 @@ namespace TaskManagement.API.Repositories
 
                         if (OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST != null)
                         {
+                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t WHERE MKEY = @MKEY ", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
+
                             foreach (var CHECK_LIST in OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST)
                             {
-                                dataTable.Rows.Add(null, aPPROVAL_TEMPLATE_HDR.MKEY, CHECK_LIST.Key, CHECK_LIST.Value, null, null, null, null, null, aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                dataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, SR_No, CHECK_LIST.Key, CHECK_LIST.Value, null, null, null, null, null, aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                SR_No = SR_No + 1;
                             }
+                            SR_No = 0;
 
                             // Use SqlBulkCopy for bulk insert
                             using var bulkCopyCheckList = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transactionCheckList)
@@ -283,8 +287,8 @@ namespace TaskManagement.API.Repositories
 
 
                             // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
-                            var sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE APPROVAL_MKEY = @APPROVAL_MKEY";
-                            var keyValuePairs = await db.QueryAsync(sql, new { APPROVAL_MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
+                            var sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY";
+                            var keyValuePairs = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
 
                             // Initialize the END_RESULT_DOC_LST dictionary
                             aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST = new Dictionary<string, object>();
@@ -304,17 +308,15 @@ namespace TaskManagement.API.Repositories
                         await transaction.RollbackAsync();
                         throw;
                     }
-                    var strSUBTASK_MKEY = await db.QueryFirstOrDefaultAsync<int>("SELECT  ISNULL(MAX(subtask_mkey),0)+1 FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE APPROVAL_MKEY = @MKEY", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY });
+                    //var strSUBTASK_MKEY = await db.QueryFirstOrDefaultAsync<int>("SELECT ISNULL(MAX(subtask_mkey),0)+1 FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE MKEY = @MKEY", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY });
 
                     using var transactionSubTask = connection.BeginTransaction();
                     try
                     {
                         // Create a DataTable for bulk insert of subtasks (SEQNO, SRNO, ABBR)
                         var subtaskDataTable = new DataTable();
-                        subtaskDataTable.Columns.Add("MKEY", typeof(int));
-                        subtaskDataTable.Columns.Add("APPROVAL_MKEY", typeof(int));
-                        subtaskDataTable.Columns.Add("SRNO", typeof(int));
-                        subtaskDataTable.Columns.Add("SEQNO", typeof(int));
+                        subtaskDataTable.Columns.Add("HEADER_MKEY", typeof(int));
+                        subtaskDataTable.Columns.Add("SEQ_NO", typeof(string));  // task_no
                         subtaskDataTable.Columns.Add("SUBTASK_ABBR", typeof(string));
                         subtaskDataTable.Columns.Add("SUBTASK_MKEY", typeof(int));
                         subtaskDataTable.Columns.Add("ATTRIBUTE1", typeof(string));
@@ -336,12 +338,7 @@ namespace TaskManagement.API.Repositories
                             // Populate the DataTable with subtasks
                             foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
                             {
-                                if (flagID != false)
-                                {
-                                    strSUBTASK_MKEY = strSUBTASK_MKEY + 1;
-                                }
-                                subtaskDataTable.Rows.Add(null, aPPROVAL_TEMPLATE_HDR.MKEY, subtask.SRNO, subtask.SEQNO, subtask.SUBTASK_ABBR, strSUBTASK_MKEY, null, null, null, null, null, null, null, null, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
-                                flagID = true;
+                                subtaskDataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY, null, null, null, null, null, null, null, null, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
                             }
 
                             // Use SqlBulkCopy to insert subtasks
@@ -356,8 +353,8 @@ namespace TaskManagement.API.Repositories
                             await transactionSubTask.CommitAsync();
 
                             // Optionally, fetch the inserted values (if necessary)
-                            string sql = "SELECT SEQNO, SRNO, SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE APPROVAL_MKEY = @APPROVAL_MKEY";
-                            var subtaskKeyValuePairs = await db.QueryAsync(sql, new { APPROVAL_MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
+                            string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY, SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY";
+                            var subtaskKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
 
                             // Assuming the model has a SUBTASK_LIST dictionary to hold these values
                             aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST = new List<APPROVAL_TEMPLATE_TRL_SUBTASK>();  // Assuming Subtask is a class for this data
@@ -366,9 +363,10 @@ namespace TaskManagement.API.Repositories
                             {
                                 aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Add(new APPROVAL_TEMPLATE_TRL_SUBTASK
                                 {
-                                    SEQNO = item.SEQNO,
-                                    SRNO = item.SRNO,
-                                    SUBTASK_ABBR = item.ABBR
+                                    HEADER_MKEY = item.HEADER_MKEY,
+                                    SEQ_NO = item.SEQ_NO,
+                                    SUBTASK_MKEY = item.SUBTASK_MKEY,
+                                    SUBTASK_ABBR = item.SUBTASK_ABBR
                                 });
                             }
                         }
@@ -397,7 +395,7 @@ namespace TaskManagement.API.Repositories
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
-                    return await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SELECT HDR.MKEY,BUILDING_TYPE,BUILDING_STANDARD,STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD,HDR.ATTRIBUTE1,HDR.ATTRIBUTE2,HDR.ATTRIBUTE3,HDR.ATTRIBUTE4,HDR.ATTRIBUTE5,HDR.CREATED_BY,HDR.CREATION_DATE,HDR.LAST_UPDATED_BY,HDR.LAST_UPDATE_DATE,SANCTION_AUTHORITY,SANCTION_DEPARTMENT,END_RESULT_DOC,CHECKLIST_DOC,HDR.DELETE_FLAG  FROM APPROVAL_TEMPLATE_HDR HDR INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL_SUB ON HDR.MKEY = TRL_SUB.APPROVAL_MKEY WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR) AND HDR.DELETE_FLAG = 'N' AND TRL_SUB.DELETE_FLAG = 'N' ", new { ABBR = ABBR });
+                    return await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SELECT HDR.MKEY,BUILDING_TYPE,BUILDING_STANDARD,STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD,HDR.ATTRIBUTE1,HDR.ATTRIBUTE2,HDR.ATTRIBUTE3,HDR.ATTRIBUTE4,HDR.ATTRIBUTE5,HDR.CREATED_BY,HDR.CREATION_DATE,HDR.LAST_UPDATED_BY,HDR.LAST_UPDATE_DATE,SANCTION_AUTHORITY,SANCTION_DEPARTMENT,END_RESULT_DOC,CHECKLIST_DOC,HDR.DELETE_FLAG  FROM APPROVAL_TEMPLATE_HDR HDR INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL_SUB ON HDR.MKEY = TRL_SUB.MKEY WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR) AND HDR.DELETE_FLAG = 'N' AND TRL_SUB.DELETE_FLAG = 'N' ", new { ABBR = ABBR });
                 }
             }
             catch (Exception ex)

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TaskManagement.API.Interfaces;
 
 namespace TaskManagement.API.Model
 {
