@@ -137,7 +137,7 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var Task = await _repository.GetApprovalDetails(LoggedInID, BUILDING_TYPE, BUILDING_STANDARD, STATUTORY_AUTHORITY);
-                if (Task != null)
+                if (Task != null & Task.Count() > 0)
                 {
                     return Ok(Task);
                 }

@@ -5,10 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using TaskManagement.API.CustomActionFilters;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using static Azure.Core.HttpHeader;
 
 namespace TaskManagement.API.Controllers
 {

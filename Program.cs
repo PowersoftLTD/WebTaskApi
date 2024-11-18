@@ -5,14 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using TaskManagement.API.Data;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
-//sfsdfsadf
 // Configure database connection using Entity Framework Core
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AuthonticatServerConnectionString")));
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("AuthonticatServerConnectionString")));
 
 // Configure CORS to allow all origins
 builder.Services.AddCors(options =>
@@ -108,7 +106,7 @@ builder.Services.AddSwaggerGen(c =>
 
 
 builder.Services.AddAuthorization();
-builder.Services.AddDbContext<TaskManagementAuthDbContext>();
+//builder.Services.AddDbContext<TaskManagementAuthDbContext>();
 var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseAuthentication();
