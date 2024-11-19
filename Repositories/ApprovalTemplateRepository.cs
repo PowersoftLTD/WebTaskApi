@@ -411,10 +411,25 @@ namespace TaskManagement.API.Repositories
         }
         public async Task<IEnumerable<APPROVAL_TEMPLATE_HDR>> AbbrAndShortDescAsync(string strBuilding, string strStandard, string strAuthority)
         {
-            using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            try
             {
-                var Abbr_List = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("SELECT MKEY,MAIN_ABBR +' '+ SHORT_DESCRIPTION AS ABBR_SHORT_DESC,BUILDING_TYPE,BUILDING_STANDARD,STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD,SANCTION_AUTHORITY FROM [dbo].[APPROVAL_TEMPLATE_hdr] WHERE BUILDING_TYPE = @strBuilding AND BUILDING_STANDARD = @strStandard AND STATUTORY_AUTHORITY = @strAuthority", new { strBuilding = strBuilding, strStandard = strStandard, strAuthority = strAuthority });
-                return Abbr_List;
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var Abbr_List = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("SELECT HDR.MKEY,MAIN_ABBR +' '+ SHORT_DESCRIPTION AS ABBR_SHORT_DESC,BUILDING_TYPE," +
+                        " BUILDING_STANDARD ,STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE," +
+                        " DAYS_REQUIERD,SANCTION_AUTHORITY  ,STUFF((SELECT DISTINCT ', ' + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))" +
+                        " FROM APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2 WHERE ENDLIST2.MKEY = HDR.MKEY FOR XML PATH('')), 1, 1, '') AS END_RESULT_DOC " +
+                        " FROM [dbo].[APPROVAL_TEMPLATE_HDR] HDR INNER JOIN APPROVAL_TEMPLATE_TRL_ENDRESULT ENDRESULT ON HDR.MKEY = ENDRESULT.MKEY " +
+                        " WHERE BUILDING_TYPE = @strBuilding AND BUILDING_STANDARD = @strStandard " +
+                        " AND STATUTORY_AUTHORITY = @strAuthority GROUP BY HDR.MKEY,MAIN_ABBR,SHORT_DESCRIPTION,BUILDING_TYPE,BUILDING_STANDARD " +
+                        ",STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD" +
+                        ",SANCTION_AUTHORITY", new { strBuilding = strBuilding, strStandard = strStandard, strAuthority = strAuthority });
+                    return Abbr_List;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
     }

@@ -31,7 +31,8 @@ builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IEmployeeMst, EmployeeMasterRepository>();
 builder.Services.AddScoped<IViewClassification, VIewClassification>();
 builder.Services.AddScoped<IApprovalTemplate, ApprovalTemplateRepository>();
-builder.Services.AddScoped<IProjectDefination, ProjectDefinationRespository>();
+builder.Services.AddScoped<IProjectDefination, ProjectDefinationRepository>();
+
 // Register IConfiguration to access connection strings
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 

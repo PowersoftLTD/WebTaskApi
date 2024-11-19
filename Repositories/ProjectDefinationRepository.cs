@@ -10,12 +10,12 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace TaskManagement.API.Repositories
 {
-    public class ProjectDefinationRespository : IProjectDefination
+    public class ProjectDefinationRepository : IProjectDefination
     {
         private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         public IDapperDbConnection _dapperDbConnection;
         private readonly string _connectionString;
-        public ProjectDefinationRespository(IDapperDbConnection dapperDbConnection, string connectionString)
+        public ProjectDefinationRepository(IDapperDbConnection dapperDbConnection, string connectionString)
         {
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
@@ -70,7 +70,8 @@ namespace TaskManagement.API.Repositories
                     // Fetch the associated subtasks
                     var pROJECT_HDRs = await db.QueryFirstOrDefaultAsync<PROJECT_HDR>("SP_GET_PROJECT_DEFINATION", parmeters, commandType: CommandType.StoredProcedure);
                     var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>(
-                             "SELECT HEADER_MKEY,SEQ_NO AS TASK_NO,APPROVAL_ABBRIVATION,APPROVAL_DESCRIPTION,DAYS_REQUIRED,DEPARTMENT,JOB_ROLE,RESPOSIBLE_EMP_MKEY,OUTPUT_DOCUMENT,TENTATIVE_START_DATE,TENTATIVE_END_DATE,STATUS FROM PROJECT_TRL_APPROVAL_ABBR WHERE HEADER_MKEY = @HEADER_MKEY",
+                             "SELECT HEADER_MKEY,SEQ_NO AS TASK_NO,APPROVAL_ABBRIVATION,APPROVAL_DESCRIPTION,DAYS_REQUIRED,DEPARTMENT,JOB_ROLE,RESPOSIBLE_EMP_MKEY" +
+                             ",OUTPUT_DOCUMENT,TENTATIVE_START_DATE,TENTATIVE_END_DATE,STATUS FROM PROJECT_TRL_APPROVAL_ABBR WHERE HEADER_MKEY = @HEADER_MKEY;",
                              new { HEADER_MKEY = pROJECT_HDRs.MKEY });
 
                     pROJECT_HDRs.APPROVALS_ABBR_LIST = approvalAbbr.ToList(); // Populate the SUBTASK_LIST property
@@ -256,16 +257,28 @@ namespace TaskManagement.API.Repositories
                 return false;
             }
         }
-        public async Task<IEnumerable<PROJECT_TRL_APPROVAL_ABBR_LIST>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
+        public async Task<IEnumerable<PROJECT_TRL_APPROVAL_ABBR_LIST>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD,
+            string STATUTORY_AUTHORITY)
         {
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
-                    string sql = "SELECT   TRL.HEADER_MKEY, SEQ_NO,MAIN_ABBR, TRL.SUBTASK_ABBR +' '+ HDR.SHORT_DESCRIPTION AS ABBR_SHORT_DESC FROM APPROVAL_TEMPLATE_HDR HDR" +
-                    " INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL ON HDR.MKEY = TRL.HEADER_MKEY WHERE BUILDING_TYPE = @BUILDING_TYPE " +
-                    " AND BUILDING_STANDARD = @BUILDING_STANDARD and STATUTORY_AUTHORITY = @STATUTORY_AUTHORITY ORDER BY TRL.HEADER_MKEY,MAIN_ABBR, SUBTASK_ABBR";
-                    var ApprovalsKeyValuePairs = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR_LIST>(sql, new { BUILDING_TYPE = BUILDING_TYPE, BUILDING_STANDARD = BUILDING_STANDARD, STATUTORY_AUTHORITY = STATUTORY_AUTHORITY });
+                    string sql = "SELECT TRL.HEADER_MKEY, SEQ_NO AS TASK_NO,MAIN_ABBR, TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION AS ABBR_SHORT_DESC,HDR2.DAYS_REQUIERD," +
+                    " HDR2.AUTHORITY_DEPARTMENT,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY,STUFF((    SELECT DISTINCT ', ' + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))    " +
+                    " FROM APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2    WHERE ENDLIST2.MKEY = TRL.HEADER_MKEY      FOR XML PATH('')), 1, 1, '') AS END_RESULT_DOC " +
+                    " FROM APPROVAL_TEMPLATE_HDR HDR2 INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL ON HDR2.MKEY = TRL.HEADER_MKEY " +
+                    " LEFT JOIN APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST1 ON ENDLIST1.MKEY = HDR2.MKEY " +
+                    " WHERE BUILDING_TYPE = @BUILDING_TYPE " +
+                    " AND BUILDING_STANDARD = @BUILDING_STANDARD and STATUTORY_AUTHORITY = @STATUTORY_AUTHORITY " +
+                    " GROUP BY  TRL.HEADER_MKEY,SEQ_NO,MAIN_ABBR, TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION,HDR2.DAYS_REQUIERD,HDR2.AUTHORITY_DEPARTMENT" +
+                    " ,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY ORDER BY TRL.HEADER_MKEY,MAIN_ABBR;";
+                    var ApprovalsKeyValuePairs = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR_LIST>(sql, new
+                    {
+                        BUILDING_TYPE = BUILDING_TYPE,
+                        BUILDING_STANDARD = BUILDING_STANDARD,
+                        STATUTORY_AUTHORITY = STATUTORY_AUTHORITY
+                    });
                     return ApprovalsKeyValuePairs;
                 }
             }
