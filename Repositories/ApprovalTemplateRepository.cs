@@ -264,11 +264,14 @@ namespace TaskManagement.API.Repositories
 
                         if (OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST != null)
                         {
-                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t WHERE MKEY = @MKEY ", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
+                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t " +
+                                "WHERE MKEY = @MKEY ", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
 
                             foreach (var CHECK_LIST in OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST)
                             {
-                                dataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, SR_No, CHECK_LIST.Key, CHECK_LIST.Value, null, null, null, null, null, aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                dataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, SR_No, CHECK_LIST.Key, CHECK_LIST.Value, null, null, null, null, null,
+                                    aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY
+                                    , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
                                 SR_No = SR_No + 1;
                             }
                             SR_No = 0;
@@ -308,7 +311,6 @@ namespace TaskManagement.API.Repositories
                         await transaction.RollbackAsync();
                         throw;
                     }
-                    //var strSUBTASK_MKEY = await db.QueryFirstOrDefaultAsync<int>("SELECT ISNULL(MAX(subtask_mkey),0)+1 FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE MKEY = @MKEY", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY });
 
                     using var transactionSubTask = connection.BeginTransaction();
                     try
@@ -319,6 +321,7 @@ namespace TaskManagement.API.Repositories
                         subtaskDataTable.Columns.Add("SEQ_NO", typeof(string));  // task_no
                         subtaskDataTable.Columns.Add("SUBTASK_ABBR", typeof(string));
                         subtaskDataTable.Columns.Add("SUBTASK_MKEY", typeof(int));
+                        subtaskDataTable.Columns.Add("SUBTASK_PARENT_ID", typeof(int));
                         subtaskDataTable.Columns.Add("ATTRIBUTE1", typeof(string));
                         subtaskDataTable.Columns.Add("ATTRIBUTE2", typeof(string));
                         subtaskDataTable.Columns.Add("ATTRIBUTE3", typeof(string));
@@ -338,7 +341,7 @@ namespace TaskManagement.API.Repositories
                             // Populate the DataTable with subtasks
                             foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
                             {
-                                subtaskDataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY, null, null, null, null, null, null, null, null, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                subtaskDataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY, aPPROVAL_TEMPLATE_HDR.MKEY, null, null, null, null, null, null, null, null, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
                             }
 
                             // Use SqlBulkCopy to insert subtasks
@@ -353,7 +356,7 @@ namespace TaskManagement.API.Repositories
                             await transactionSubTask.CommitAsync();
 
                             // Optionally, fetch the inserted values (if necessary)
-                            string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY, SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY";
+                            string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY,SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY";
                             var subtaskKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
 
                             // Assuming the model has a SUBTASK_LIST dictionary to hold these values
@@ -415,15 +418,11 @@ namespace TaskManagement.API.Repositories
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
-                    var Abbr_List = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("SELECT HDR.MKEY,MAIN_ABBR +' '+ SHORT_DESCRIPTION AS ABBR_SHORT_DESC,BUILDING_TYPE," +
-                        " BUILDING_STANDARD ,STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE," +
-                        " DAYS_REQUIERD,SANCTION_AUTHORITY  ,STUFF((SELECT DISTINCT ', ' + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))" +
-                        " FROM APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2 WHERE ENDLIST2.MKEY = HDR.MKEY FOR XML PATH('')), 1, 1, '') AS END_RESULT_DOC " +
-                        " FROM [dbo].[APPROVAL_TEMPLATE_HDR] HDR INNER JOIN APPROVAL_TEMPLATE_TRL_ENDRESULT ENDRESULT ON HDR.MKEY = ENDRESULT.MKEY " +
-                        " WHERE BUILDING_TYPE = @strBuilding AND BUILDING_STANDARD = @strStandard " +
-                        " AND STATUTORY_AUTHORITY = @strAuthority GROUP BY HDR.MKEY,MAIN_ABBR,SHORT_DESCRIPTION,BUILDING_TYPE,BUILDING_STANDARD " +
-                        ",STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD" +
-                        ",SANCTION_AUTHORITY", new { strBuilding = strBuilding, strStandard = strStandard, strAuthority = strAuthority });
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@BUILDING_TYPE", strBuilding);
+                    parmeters.Add("@BUILDING_STANDARD", strStandard);
+                    parmeters.Add("@STATUTORY_AUTHORITY", strAuthority);
+                    var Abbr_List = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("SP_GET_ABBR_AND_SHORT", parmeters, commandType: CommandType.StoredProcedure);
                     return Abbr_List;
                 }
             }

@@ -3,6 +3,7 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Reflection.Metadata;
 using System.Security.Policy;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
@@ -264,7 +265,10 @@ namespace TaskManagement.API.Repositories
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
-                    string sql = "SELECT TRL.HEADER_MKEY, SEQ_NO AS TASK_NO,MAIN_ABBR, TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION AS ABBR_SHORT_DESC,HDR2.DAYS_REQUIERD," +
+                    //var HDRaSYNCDetails = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("select * from APPROVAL_TEMPLATE_HDR", commandType: CommandType.Text);
+                    //var SUBTAsyncASKDetails = await db.QueryAsync("select * from APPROVAL_TEMPLATE_TRL_SUBTASK", commandType: CommandType.Text);
+                    string sql = "SELECT TRL.HEADER_MKEY, CONVERT(VARCHAR,TRL.HEADER_MKEY) +'.'+ SEQ_NO AS TASK_NO,MAIN_ABBR, " +
+                    " TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION AS ABBR_SHORT_DESC,HDR2.DAYS_REQUIERD," +
                     " HDR2.AUTHORITY_DEPARTMENT,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY,STUFF((    SELECT DISTINCT ', ' + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))    " +
                     " FROM APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2    WHERE ENDLIST2.MKEY = TRL.HEADER_MKEY      FOR XML PATH('')), 1, 1, '') AS END_RESULT_DOC " +
                     " FROM APPROVAL_TEMPLATE_HDR HDR2 INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL ON HDR2.MKEY = TRL.HEADER_MKEY " +
