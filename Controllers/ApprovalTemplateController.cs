@@ -4,6 +4,7 @@ using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
 using TaskManagement.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace TaskManagement.API.Controllers
 {
@@ -40,7 +41,7 @@ namespace TaskManagement.API.Controllers
                 return new List<APPROVAL_TEMPLATE_HDR>();
             }
         }
-       
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult<APPROVAL_TEMPLATE_HDR>> GetApprovalTemplate(int id)
@@ -59,6 +60,28 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
+                bool flagSeq_no = false;
+                double IndexSeq_NO = 0.0;
+                //foreach (var subLit in aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST)
+                //{
+                //    if (flagSeq_no == true)
+                //    {
+                //        if ((Convert.ToDouble(subLit.SEQ_NO) == Convert.ToDouble(IndexSeq_NO + 0.1)))
+                //        {
+                //            IndexSeq_NO = Convert.ToDouble(subLit.SEQ_NO);
+                //        }
+                //        else
+                //        {
+                //            return BadRequest("Seq No is not in Proper format");
+                //        }
+                //    }
+                //    else
+                //    {
+                //        IndexSeq_NO = Convert.ToDouble(subLit.SEQ_NO);
+                //    }
+
+                //    flagSeq_no = true;
+                //}
                 var model = await _repository.CreateApprovalTemplateAsync(aPPROVAL_TEMPLATE_HDR);
                 if (model == null)
                 {

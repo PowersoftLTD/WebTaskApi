@@ -3,6 +3,7 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Security.Policy;
 using TaskManagement.API.Interfaces;
@@ -108,7 +109,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@ATTRIBUTE2", pROJECT_HDR.ATTRIBUTE2);
                     parameters.Add("@ATTRIBUTE3", pROJECT_HDR.ATTRIBUTE3);
 
-                    pROJECT_HDR = await db.QueryFirstOrDefaultAsync<PROJECT_HDR>("SP_INSERT_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure);
+                    pROJECT_HDR = await db.QueryFirstOrDefaultAsync("SP_INSERT_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure);
 
                     using var connection = new SqlConnection(_connectionString);
                     await connection.OpenAsync();
@@ -258,37 +259,43 @@ namespace TaskManagement.API.Repositories
                 return false;
             }
         }
-        public async Task<IEnumerable<PROJECT_TRL_APPROVAL_ABBR_LIST>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD,
+        public async Task<IEnumerable<dynamic>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD,
             string STATUTORY_AUTHORITY)
         {
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@BUILDING_TYPE", BUILDING_TYPE);
+                    parmeters.Add("@BUILDING_STANDARD", BUILDING_STANDARD);
+                    parmeters.Add("@STATUTORY_AUTHORITY", STATUTORY_AUTHORITY);
+                    var pROJECT_APPROVAL_ABBR_LIST = await db.QueryAsync("SP_GET_APPROVAL_SUBTASK_TREE_VIEW_LIST", parmeters, commandType: CommandType.StoredProcedure);
                     //var HDRaSYNCDetails = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("select * from APPROVAL_TEMPLATE_HDR", commandType: CommandType.Text);
-                    //var SUBTAsyncASKDetails = await db.QueryAsync("select * from APPROVAL_TEMPLATE_TRL_SUBTASK", commandType: CommandType.Text);
-                    string sql = "SELECT TRL.HEADER_MKEY, CONVERT(VARCHAR,TRL.HEADER_MKEY) +'.'+ SEQ_NO AS TASK_NO,MAIN_ABBR, " +
-                    " TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION AS ABBR_SHORT_DESC,HDR2.DAYS_REQUIERD," +
-                    " HDR2.AUTHORITY_DEPARTMENT,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY,STUFF((    SELECT DISTINCT ', ' + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))    " +
-                    " FROM APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2    WHERE ENDLIST2.MKEY = TRL.HEADER_MKEY      FOR XML PATH('')), 1, 1, '') AS END_RESULT_DOC " +
-                    " FROM APPROVAL_TEMPLATE_HDR HDR2 INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL ON HDR2.MKEY = TRL.HEADER_MKEY " +
-                    " LEFT JOIN APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST1 ON ENDLIST1.MKEY = HDR2.MKEY " +
-                    " WHERE BUILDING_TYPE = @BUILDING_TYPE " +
-                    " AND BUILDING_STANDARD = @BUILDING_STANDARD and STATUTORY_AUTHORITY = @STATUTORY_AUTHORITY " +
-                    " GROUP BY  TRL.HEADER_MKEY,SEQ_NO,MAIN_ABBR, TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION,HDR2.DAYS_REQUIERD,HDR2.AUTHORITY_DEPARTMENT" +
-                    " ,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY ORDER BY TRL.HEADER_MKEY,MAIN_ABBR;";
-                    var ApprovalsKeyValuePairs = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR_LIST>(sql, new
-                    {
-                        BUILDING_TYPE = BUILDING_TYPE,
-                        BUILDING_STANDARD = BUILDING_STANDARD,
-                        STATUTORY_AUTHORITY = STATUTORY_AUTHORITY
-                    });
-                    return ApprovalsKeyValuePairs;
+                    //var SUBTAsyncASKDetails = await db.QueryAsync<APPROVAL_TEMPLATE_TRL_SUBTASK>("select * from APPROVAL_TEMPLATE_TRL_SUBTASK", commandType: CommandType.Text);
+                    //string sql = "SELECT TRL.HEADER_MKEY, CONVERT(VARCHAR,TRL.HEADER_MKEY) +'.'+ SEQ_NO AS TASK_NO,MAIN_ABBR, " +
+                    //" TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION AS ABBR_SHORT_DESC,HDR2.DAYS_REQUIERD," +
+                    //" HDR2.AUTHORITY_DEPARTMENT,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY,STUFF((    SELECT DISTINCT ', ' + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))    " +
+                    //" FROM APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2    WHERE ENDLIST2.MKEY = TRL.HEADER_MKEY      FOR XML PATH('')), 1, 1, '') AS END_RESULT_DOC " +
+                    //" FROM APPROVAL_TEMPLATE_HDR HDR2 INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL ON HDR2.MKEY = TRL.HEADER_MKEY " +
+                    //" LEFT JOIN APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST1 ON ENDLIST1.MKEY = HDR2.MKEY " +
+                    //" WHERE BUILDING_TYPE = @BUILDING_TYPE " +
+                    //" AND BUILDING_STANDARD = @BUILDING_STANDARD and STATUTORY_AUTHORITY = @STATUTORY_AUTHORITY " +
+                    //" GROUP BY  TRL.HEADER_MKEY,SEQ_NO,MAIN_ABBR, TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION,HDR2.DAYS_REQUIERD,HDR2.AUTHORITY_DEPARTMENT" +
+                    //" ,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY ORDER BY TRL.HEADER_MKEY,MAIN_ABBR;";
+                    //var ApprovalsKeyValuePairs = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR_LIST>(sql, new
+                    //{
+                    //    BUILDING_TYPE = BUILDING_TYPE,
+                    //    BUILDING_STANDARD = BUILDING_STANDARD,
+                    //    STATUTORY_AUTHORITY = STATUTORY_AUTHORITY
+                    //});
+                    return pROJECT_APPROVAL_ABBR_LIST;
                 }
             }
             catch //(Exception ex)
             {
-                return Enumerable.Empty<PROJECT_TRL_APPROVAL_ABBR_LIST>(); //return ApprovalsKeyValuePairs;
+                return Enumerable.Empty<dynamic>(); //return ApprovalsKeyValuePairs;
             }
 
         }

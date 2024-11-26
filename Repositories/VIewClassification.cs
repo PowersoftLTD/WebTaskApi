@@ -61,12 +61,12 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Sanctioning_Authority");
             }
         }
-        //public async Task<IEnumerable<V_Building_Classification>> GetViewSanctioningDepartment()
-        //{
-        //    using (IDbConnection db = _dapperDbConnection.CreateConnection())
-        //    {
-        //        return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Sanctioning_DEPARTMENT");
-        //    }
-        //}
+        public async Task<IEnumerable<V_Building_Classification>> GetViewDocument_Category()
+        {
+            using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            {
+                return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Category");
+            }
+        }
     }
 }

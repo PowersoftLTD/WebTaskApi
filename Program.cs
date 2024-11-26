@@ -23,6 +23,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 builder.Services.AddScoped<IJWTConfigure, JWTConfigure>();
 builder.Services.AddScoped<ITASKRepository, TASKRepository>();
 builder.Services.AddScoped<IDoc_Temp, DocumentTemplateRepository>();
@@ -31,6 +32,7 @@ builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IEmployeeMst, EmployeeMasterRepository>();
 builder.Services.AddScoped<IViewClassification, VIewClassification>();
 builder.Services.AddScoped<IApprovalTemplate, ApprovalTemplateRepository>();
+builder.Services.AddScoped<IProjectDocDepository, ProjectDocDepositoryRepository>();
 builder.Services.AddScoped<IProjectDefination, ProjectDefinationRepository>();
 
 // Register IConfiguration to access connection strings

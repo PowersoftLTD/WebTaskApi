@@ -3,6 +3,8 @@
     public class DOC_TEMPLATE_HDR
     {
         public int? MKEY { get; set; }
+        public int? DOC_CATEGORY { get; set; }
+        public string? DOC_NAME { get; set; }
         public string? DOC_ABBR { get; set; }
         public string? DOC_NUM_FIELD_NAME { get; set; }
         public string? DOC_NUM_DATE_NAME { get; set; }

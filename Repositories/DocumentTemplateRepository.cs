@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
+using System.Reflection.Metadata;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
 
@@ -14,7 +15,6 @@ namespace TaskManagement.API.Repositories
         {
             _dapperDbConnection = dapperDbConnection;
         }
-
         public async Task<IEnumerable<DOC_TEMPLATE_HDR>> GetAllDocumentTempAsync(int LoggedIN)
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -27,7 +27,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<DOC_TEMPLATE_HDR>("SP_GET_DOCUMENT_TEMPLATES", parmeters, commandType: CommandType.StoredProcedure);
             }
         }
-
         public async Task<DOC_TEMPLATE_HDR> GetDocumentTempByIdAsync(int id, int? LoggedIN)
         {
             try
@@ -54,6 +53,8 @@ namespace TaskManagement.API.Repositories
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parameters = new DynamicParameters();
+                    parameters.Add("@DOC_CATEGORY", dOC_TEMPLATE_HDR.DOC_CATEGORY);
+                    parameters.Add("@DOC_NAME", dOC_TEMPLATE_HDR.DOC_NAME);
                     parameters.Add("@DOC_ABBR", dOC_TEMPLATE_HDR.DOC_ABBR);
                     parameters.Add("@DOC_NUM_FIELD_NAME", dOC_TEMPLATE_HDR.DOC_NUM_FIELD_NAME);
                     parameters.Add("@DOC_NUM_DATE_NAME", dOC_TEMPLATE_HDR.DOC_NUM_DATE_NAME);
@@ -62,12 +63,11 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@DOC_NUM_DATE_APP_FLAG", dOC_TEMPLATE_HDR.DOC_NUM_DATE_APP_FLAG);
                     parameters.Add("@DOC_ATTACH_APP_FLAG", dOC_TEMPLATE_HDR.DOC_ATTACH_APP_FLAG);
                     parameters.Add("@CREATED_BY", dOC_TEMPLATE_HDR.CREATED_BY);
-                    parameters.Add("@LAST_UPDATED_BY", dOC_TEMPLATE_HDR.CREATED_BY);
-                    parameters.Add("@DELETE_FLAG", dOC_TEMPLATE_HDR.DELETE_FLAG);
                     parameters.Add("@ATTRIBUTE1", dOC_TEMPLATE_HDR.ATTRIBUTE1);
                     parameters.Add("@ATTRIBUTE2", dOC_TEMPLATE_HDR.ATTRIBUTE2);
 
                     dOC_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<DOC_TEMPLATE_HDR>("SP_INSERT_DOCUMENT_TEMPLATES", parameters, commandType: CommandType.StoredProcedure);
+                    //var pROJECT_APPROVAL_ABBR_LIST = await db.QueryAsync("select * FROM DOC_TEMPLATE_HDR",  commandType: CommandType.Text);
                     return dOC_TEMPLATE_HDR;
                 }
             }
@@ -88,6 +88,8 @@ namespace TaskManagement.API.Repositories
                 {
                     var parameters = new DynamicParameters();
                     parameters.Add("@MKEY", dOC_TEMPLATE_HDR.MKEY);
+                    parameters.Add("@DOC_CATEGORY", dOC_TEMPLATE_HDR.DOC_CATEGORY);
+                    parameters.Add("@DOC_NAME", dOC_TEMPLATE_HDR.DOC_NAME);
                     parameters.Add("@DOC_ABBR", dOC_TEMPLATE_HDR.DOC_ABBR);
                     parameters.Add("@DOC_NUM_FIELD_NAME", dOC_TEMPLATE_HDR.DOC_NUM_FIELD_NAME);
                     parameters.Add("@DOC_NUM_DATE_NAME", dOC_TEMPLATE_HDR.DOC_NUM_DATE_NAME);
@@ -108,7 +110,6 @@ namespace TaskManagement.API.Repositories
                 return false;
             }
         }
-
         public async Task<bool> DeleteDocumentTemplateAsync(int id, int LastUpatedBy)
         {
             try

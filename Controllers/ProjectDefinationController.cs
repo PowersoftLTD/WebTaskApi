@@ -113,7 +113,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpDelete("{id}/{LastUpatedBy}")]
+        [HttpDelete("ProjectDefination/Delete-TASK")]
         [Authorize]
         public async Task<IActionResult> DeleteTASK(int id, int LastUpatedBy, string FormName, string MethodName)
         {
@@ -130,7 +130,7 @@ namespace TaskManagement.API.Controllers
 
         }
 
-        [HttpGet("{LoggedInID},{FormName}")]
+        [HttpGet("ProjectDefination/Get-Approval-Details")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<PROJECT_TRL_APPROVAL_ABBR_LIST>>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
         {

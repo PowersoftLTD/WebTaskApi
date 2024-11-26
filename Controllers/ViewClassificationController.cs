@@ -123,19 +123,20 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        //[HttpGet("Sanctioning-Department")]
-        //[Authorize]
-        //public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllSanctioningDepartment()
-        //{
-        //    try
-        //    {
-        //        var classifications = await _repository.GetViewSanctioningDepartment();
-        //        return Ok(classifications);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return StatusCode(500, "Internal server error");
-        //    }
-        //}
+        [HttpGet("Document-Category")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllDocument_Category()
+        {
+            try
+            {
+                var classifications = await _repository.GetViewDocument_Category();
+                return Ok(classifications);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
     }
 }
