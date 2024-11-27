@@ -3,7 +3,7 @@
     public class PROJECT_HDR
     {
         public int? MKEY { get; set; }
-        public string? PROJECT_NAME { get; set; }
+        public int? PROJECT_NAME { get; set; }
         public string? PROJECT_ABBR { get; set; }
         public int? PROPERTY { get; set; }
         public string? LEGAL_ENTITY { get; set; }

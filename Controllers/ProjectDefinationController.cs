@@ -85,7 +85,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpPut("{MKEY}")]
         [Authorize]
-        public async Task<IActionResult> UpdateTASK(int MKEY, [FromBody] PROJECT_HDR pROJECT_HDR)
+        public async Task<IActionResult> UpdateTASK(int MKEY, PROJECT_HDR pROJECT_HDR)
         {
             try
             {

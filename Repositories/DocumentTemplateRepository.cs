@@ -98,7 +98,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@DOC_NUM_DATE_APP_FLAG", dOC_TEMPLATE_HDR.DOC_NUM_DATE_APP_FLAG);
                     parameters.Add("@DOC_ATTACH_APP_FLAG", dOC_TEMPLATE_HDR.DOC_ATTACH_APP_FLAG);
                     parameters.Add("@LAST_UPDATED_BY", dOC_TEMPLATE_HDR.CREATED_BY);
-                    parameters.Add("@DELETE_FLAG", dOC_TEMPLATE_HDR.DELETE_FLAG);
+                    parameters.Add("@DELETE_FLAG", "N");
                     parameters.Add("@ATTRIBUTE1", dOC_TEMPLATE_HDR.ATTRIBUTE1);
                     parameters.Add("@ATTRIBUTE2", dOC_TEMPLATE_HDR.ATTRIBUTE2);
                     await db.ExecuteAsync("SP_UPDATE_DOCUMENT_TEMPLATES", parameters, commandType: CommandType.StoredProcedure);
@@ -128,6 +128,5 @@ namespace TaskManagement.API.Repositories
                 return false;
             }
         }
-        
     }
 }

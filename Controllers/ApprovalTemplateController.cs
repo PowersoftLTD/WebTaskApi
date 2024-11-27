@@ -5,6 +5,7 @@ using TaskManagement.API.Model;
 using TaskManagement.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace TaskManagement.API.Controllers
 {
@@ -36,9 +37,9 @@ namespace TaskManagement.API.Controllers
                     return NotFound();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new List<APPROVAL_TEMPLATE_HDR>();
+                return Ok();
             }
         }
 
@@ -62,26 +63,6 @@ namespace TaskManagement.API.Controllers
             {
                 bool flagSeq_no = false;
                 double IndexSeq_NO = 0.0;
-                //foreach (var subLit in aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST)
-                //{
-                //    if (flagSeq_no == true)
-                //    {
-                //        if ((Convert.ToDouble(subLit.SEQ_NO) == Convert.ToDouble(IndexSeq_NO + 0.1)))
-                //        {
-                //            IndexSeq_NO = Convert.ToDouble(subLit.SEQ_NO);
-                //        }
-                //        else
-                //        {
-                //            return BadRequest("Seq No is not in Proper format");
-                //        }
-                //    }
-                //    else
-                //    {
-                //        IndexSeq_NO = Convert.ToDouble(subLit.SEQ_NO);
-                //    }
-
-                //    flagSeq_no = true;
-                //}
                 var model = await _repository.CreateApprovalTemplateAsync(aPPROVAL_TEMPLATE_HDR);
                 if (model == null)
                 {
@@ -113,11 +94,10 @@ namespace TaskManagement.API.Controllers
                 {
                     return Ok(false);
                 }
-
             }
             catch (Exception ex)
             {
-                return BadRequest("Please enter the ABBR"); ;
+                return BadRequest("Please enter the ABBR");
             }
         }
 

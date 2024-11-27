@@ -43,14 +43,30 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Post-Project-Document-Depsitory")]
         [Authorize]
-        public async Task<ActionResult<dynamic>> CreateProjDocDepsitory(int? BUILDING_TYPE, int? PROPERTY_TYPE, string? DOC_NAME, string? DOC_NUMBER, string? DOC_DATE, string? DOC_ATTACHMENT, string? VALIDITY_DATE, int? CREATED_BY, string? ATTRIBUTE1, string? ATTRIBUTE2, string? ATTRIBUTE3)
+        public async Task<ActionResult<dynamic>> CreateProjDocDepsitory(PROJECT_DOC_DEPOSITORY_HDR pROJECT_DOC_DEPOSITORY_HDR) 
         {
-            var ProjectDocDeository = await _repository.CreateProjectDocDeositoryAsync(BUILDING_TYPE, PROPERTY_TYPE, DOC_NAME, DOC_NUMBER, DOC_DATE, DOC_ATTACHMENT, VALIDITY_DATE, CREATED_BY, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3);
-            if (ProjectDocDeository == null)
+            try
             {
-                return NotFound();
+                int DocDeository = await _repository.GetPROJECT_DEPOSITORY_DOCUMENTAsync(pROJECT_DOC_DEPOSITORY_HDR.BUILDING_TYPE, pROJECT_DOC_DEPOSITORY_HDR.PROPERTY_TYPE, pROJECT_DOC_DEPOSITORY_HDR.DOC_NAME);
+                if (DocDeository == null || Convert.ToInt32(DocDeository) == 0)
+                {
+                    var ProjectDocDeository = await _repository.CreateProjectDocDeositoryAsync(pROJECT_DOC_DEPOSITORY_HDR); //(BUILDING_TYPE, PROPERTY_TYPE, DOC_NAME, DOC_NUMBER, DOC_DATE, DOC_ATTACHMENT, VALIDITY_DATE, CREATED_BY, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3);
+                    if (ProjectDocDeository == null)
+                    {
+                        return NotFound();
+                    }
+                    return Ok(ProjectDocDeository);
+                }
+                else
+                {
+                    return Ok(true);
+                }
             }
-            return Ok(ProjectDocDeository);
+            catch (Exception ex)
+            {
+                return BadRequest(("Failed to do stuff.", ex.Message));
+            }
+
         }
 
         [HttpGet("Get-Document-Details")]

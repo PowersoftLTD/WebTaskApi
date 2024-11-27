@@ -32,10 +32,7 @@ namespace TaskManagement.API.Model
         public string ATTRIBUTE4 { get; set; }
         public string ATTRIBUTE5 { get; set; }
         public decimal CREATED_BY { get; set; }
-        public DateTime CREATION_DATE { get; set; }
         public decimal LAST_UPDATED_BY { get; set; }
-        public DateTime LAST_UPDATE_DATE { get; set; }
-        public char DELETE_FLAG { get; set; }
         public decimal RESPOSIBLE_EMP_MKEY { get; set; }
         public char Is_Scheduled { get; set; }
         public string WBS { get; set; }
