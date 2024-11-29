@@ -79,9 +79,15 @@ namespace TaskManagement.API.Repositories
                     return approvalTemplates;
                 }
             }
+            //catch (RepositoryException ex)
+            //{
+            //    // Handle custom repository exceptions
+            //    return StatusCode(500, new { Status = "Error", Message = ex.Message });
+            //}
             catch (Exception ex)
             {
-                return null;
+                // Handle other unexpected exceptions
+                return null;// StatusCode(500, new { Status = "Error", Message = "An unexpected error occurred.", Details = ex.Message });
             }
 
         }

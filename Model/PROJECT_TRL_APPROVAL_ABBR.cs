@@ -3,6 +3,7 @@
     public class PROJECT_TRL_APPROVAL_ABBR
     {
         public int? HEADER_MKEY { get; set; }
+        public int? APPROVAL_MKEY { get; set; }  /// Seq_no is Task_no
         public string? TASK_NO { get; set; }  /// Seq_no is Task_no
         public string? APPROVAL_ABBRIVATION { get; set; }
         public string? APPROVAL_DESCRIPTION { get; set; }
@@ -20,9 +21,5 @@
         public string? ATTRIBUTE4 { get; set; }
         public string? ATTRIBUTE5 { get; set; }
         public int CREATED_BY { get; set; }
-        public DateTime? CREATION_DATE { get; set; }
-        public int? LAST_UPDATED_BY { get; set; }
-        public DateTime? LAST_UPDATE_DATE { get; set; }
-        public char? DELETE_FLAG { get; set; }
     }
 }

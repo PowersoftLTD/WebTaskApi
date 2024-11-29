@@ -6,6 +6,8 @@ using TaskManagement.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Azure;
+using Newtonsoft.Json;
 
 namespace TaskManagement.API.Controllers
 {
@@ -30,16 +32,35 @@ namespace TaskManagement.API.Controllers
                 var Task = await _repository.GetAllApprovalTemplateAsync();
                 if (Task != null)
                 {
-                    return Ok(Task);
+                    var response = new ApiResponse<IEnumerable<APPROVAL_TEMPLATE_HDR>>
+                    {
+                        Status = "OK",
+                        Message = "Approval Template details retrieved successfully.",
+                        Data = Task
+                    };
+                    return Ok(response);
                 }
                 else
                 {
-                    return NotFound();
+                    var response = new ApiResponse<IEnumerable<APPROVAL_TEMPLATE_HDR>>
+                    {
+                        Status = "Error",
+                        Message = "Not found",
+                        Data = null
+                    };
+                    return Ok(response);
+
                 }
             }
             catch (Exception ex)
             {
-                return Ok();
+                var response = new ApiResponse<IEnumerable<APPROVAL_TEMPLATE_HDR>>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
             }
         }
 

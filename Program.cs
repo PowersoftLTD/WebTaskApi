@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.Options;
+using System.ComponentModel;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 // Configure database connection using Entity Framework Core
@@ -23,7 +25,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 builder.Services.AddScoped<IJWTConfigure, JWTConfigure>();
 builder.Services.AddScoped<ITASKRepository, TASKRepository>();
 builder.Services.AddScoped<IDoc_Temp, DocumentTemplateRepository>();
@@ -34,7 +35,7 @@ builder.Services.AddScoped<IViewClassification, VIewClassification>();
 builder.Services.AddScoped<IApprovalTemplate, ApprovalTemplateRepository>();
 builder.Services.AddScoped<IProjectDocDepository, ProjectDocDepositoryRepository>();
 builder.Services.AddScoped<IProjectDefination, ProjectDefinationRepository>();
-
+builder.Services.AddScoped<IApprovalTaskInitiation, ApprovalTaskInitiationRepository>();
 // Register IConfiguration to access connection strings
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
@@ -81,7 +82,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "TM API", Version = "v1" });
-   // c.OperationFilter<OpenApiParameterIgnoreFilter>();
+    // c.OperationFilter<OpenApiParameterIgnoreFilter>();
 
     // Add security definitions for JWT
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -106,7 +107,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
+// in Preserve Property Names as They Are
+//builder.Services.AddControllers()
+//    .AddJsonOptions(options =>
+//    {
+//        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Disable camel case
+//    });
 
 builder.Services.AddAuthorization();
 //builder.Services.AddDbContext<TaskManagementAuthDbContext>();

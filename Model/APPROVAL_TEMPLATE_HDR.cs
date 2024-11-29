@@ -1,12 +1,13 @@
 ﻿namespace TaskManagement.API.Model
 {
+    
     public class APPROVAL_TEMPLATE_HDR
     {
         public int MKEY { get; set; }
-        public int BUILDING_TYPE { get; set; }
-        public int BUILDING_STANDARD { get; set; }
-        public int STATUTORY_AUTHORITY { get; set; }
-        public string MAIN_ABBR { get; set; }
+        public int? BUILDING_TYPE { get; set; }
+        public int? BUILDING_STANDARD { get; set; }
+        public int? STATUTORY_AUTHORITY { get; set; }
+        public string? MAIN_ABBR { get; set; }
         public string? SHORT_DESCRIPTION { get; set; }
         public string? LONG_DESCRIPTION { get; set; }
         public int? AUTHORITY_DEPARTMENT { get; set; }
