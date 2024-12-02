@@ -33,5 +33,8 @@ namespace TaskManagement.API.Model
         public DateTime? TENTATIVE_END_DATE { get; set; }
         [JsonPropertyName("STATUS")]
         public string? STATUS { get; set; }
+
+        public string? TRLStatus { get; set; }
+        public string? Message { get; set; }
     }
 }

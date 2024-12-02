@@ -11,6 +11,7 @@ namespace TaskManagement.API.Model
         public decimal CAREGORY { get; set; }
         public decimal PROJECT_ID { get; set; }
         public decimal SUB_PROJECT_ID { get; set; }
+        public decimal SUBPROJECT_ID { get; set; }
         public DateTime START_DATE { get; set; }
         public DateTime COMPLETION_DATE { get; set; }
         public DateTime CLOSE_DATE { get; set; }
@@ -32,6 +33,7 @@ namespace TaskManagement.API.Model
         public string ATTRIBUTE4 { get; set; }
         public string ATTRIBUTE5 { get; set; }
         public decimal CREATED_BY { get; set; }
+        public decimal CREATED_DATE { get; set; }
         public decimal LAST_UPDATED_BY { get; set; }
         public decimal RESPOSIBLE_EMP_MKEY { get; set; }
         public char Is_Scheduled { get; set; }
@@ -49,7 +51,8 @@ namespace TaskManagement.API.Model
         public string Status_Flag { get; set; }
         public int Recursive_Id { get; set; }
         public int Recursive_Created_For { get; set; }
-    
+        public string? Status { get; set; }
+        public string? Message { get; set; }
 
     }
 }

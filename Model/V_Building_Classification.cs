@@ -29,5 +29,8 @@ namespace TaskManagement.API.Model
         public decimal LAST_UPDATED_BY { get; set; }
         public DateTime LAST_UPDATE_DATE { get; set; }
         public char DELETE_FLAG { get; set; }
+
+        public string? Status { get; set; }
+        public string? Message { get; set; }
     }
 }

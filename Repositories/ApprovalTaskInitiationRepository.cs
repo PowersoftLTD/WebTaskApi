@@ -11,13 +11,14 @@ namespace TaskManagement.API.Repositories
 {
     public class ApprovalTaskInitiationRepository : IApprovalTaskInitiation
     {
+        private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         public IDapperDbConnection _dapperDbConnection;
         public ApprovalTaskInitiationRepository(IDapperDbConnection dapperDbConnection)
         {
             _dapperDbConnection = dapperDbConnection;
         }
 
-        public async Task<APPROVAL_TASK_INITIATION> GetApprovalTemplateyIdAsync(int MKEY,int APPROVAL_MKEY)
+        public async Task<APPROVAL_TASK_INITIATION> GetApprovalTemplateByIdAsync(int MKEY, int APPROVAL_MKEY)
         {
             try
             {
@@ -26,25 +27,92 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@MKEY", MKEY);
                     parmeters.Add("@APPROVAL_MKEY", APPROVAL_MKEY);
+
+                    // Fetch approval template
                     var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_GET_APPROVAL_TASK_INITIATION", parmeters, commandType: CommandType.StoredProcedure);
 
                     if (approvalTemplate == null)
                     {
-                       return null; // Return an empty list if no results
+                        approvalTemplate.ResponseStatus = "Error";
+                        approvalTemplate.Message = "An unexpected error occurred while retrieving the approval template.";
+                        return approvalTemplate; // Return null if no results
                     }
 
-                    parmeters.Add("@MKEY", MKEY);
-                    parmeters.Add("@APPROVAL_MKEY", APPROVAL_MKEY);
-                    var subtasks = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SP_GET_APPROVAL_TASK_INITIATION", parmeters, commandType: CommandType.StoredProcedure);
+                    // Fetch subtasks
+                    var subtasks = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SP_GET_APPROVAL_TASK_INITIATION_TRL_SUBTASK", parmeters, commandType: CommandType.StoredProcedure);
                     approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property with subtasks
+                    
+                    var subtasks1 = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select * from PROJECT_TRL_APPROVAL_ABBR", commandType: CommandType.Text);
+                    approvalTemplate.ResponseStatus = "Ok";
+                    approvalTemplate.Message = "Get Data Sucessuly";
                     return approvalTemplate;
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("An unexpected error occurred while retrieving the approval template.");
+                var aPPROVAL_TASK_INITIATION = new APPROVAL_TASK_INITIATION();
+                aPPROVAL_TASK_INITIATION.ResponseStatus = "Error";
+                aPPROVAL_TASK_INITIATION.Message = ex.Message;
+                return aPPROVAL_TASK_INITIATION; // Return null if no results
             }
+        }
 
+        public async Task<APPROVAL_TASK_INITIATION> CreateTaskApprovalTemplateAsync(APPROVAL_TASK_INITIATION aPPROVAL_TASK_INITIATION)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_NO", aPPROVAL_TASK_INITIATION.TASK_NO);
+                    parmeters.Add("@TASK_NAME", aPPROVAL_TASK_INITIATION.MAIN_ABBR);
+                    parmeters.Add("@TASK_DESCRIPTION", aPPROVAL_TASK_INITIATION.LONG_DESCRIPTION);
+                    parmeters.Add("@CATEGORY", aPPROVAL_TASK_INITIATION.CAREGORY);
+                    parmeters.Add("@PROJECT_ID", aPPROVAL_TASK_INITIATION.PROPERTY);
+                    parmeters.Add("@SUBPROJECT_ID", aPPROVAL_TASK_INITIATION.BUILDING_MKEY);
+                    parmeters.Add("@COMPLETION_DATE", aPPROVAL_TASK_INITIATION.COMPLITION_DATE);
+                    parmeters.Add("@ASSIGNED_TO", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY);
+                    parmeters.Add("@TAGS", aPPROVAL_TASK_INITIATION.TAGS);
+                    parmeters.Add("@ISNODE", "Y");
+                    parmeters.Add("@CLOSE_DATE", null);
+                    parmeters.Add("@DUE_DATE", aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE);
+                    parmeters.Add("@TASK_PARENT_ID", 0);
+                    parmeters.Add("@STATUS", aPPROVAL_TASK_INITIATION.STATUS);
+                    parmeters.Add("@STATUS_PERC", 0.0);
+                    parmeters.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                    parmeters.Add("@APPROVER_ID", 0);
+                    parmeters.Add("@IS_ARCHIVE", null);
+                    parmeters.Add("@ATTRIBUTE1", null);
+                    parmeters.Add("@ATTRIBUTE2", null);
+                    parmeters.Add("@ATTRIBUTE3", null);
+                    parmeters.Add("@ATTRIBUTE4", null);
+                    parmeters.Add("@ATTRIBUTE5", null);
+                    parmeters.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                    parmeters.Add("@CREATION_DATE", dateTime);
+                    parmeters.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                    parmeters.Add("@APPROVE_ACTION_DATE", dateTime);
+
+                    // Fetch approval template
+                    var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters, commandType: CommandType.StoredProcedure);
+
+                    if (approvalTemplate == null)
+                    {
+                        approvalTemplate.Message = "Error";
+                        approvalTemplate.Message = "Not Found";
+                        return approvalTemplate; // Return null if no results
+                    }
+                    return approvalTemplate;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle other unexpected exceptions
+                var approvalTemplate = new APPROVAL_TASK_INITIATION();
+                approvalTemplate.ResponseStatus = "Error";
+                approvalTemplate.Message = ex.Message;
+                return approvalTemplate;
+            }
         }
     }
 }

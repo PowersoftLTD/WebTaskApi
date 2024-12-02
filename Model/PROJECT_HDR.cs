@@ -35,5 +35,8 @@ namespace TaskManagement.API.Model
         public int LAST_UPDATED_BY { get; set; }
         
         public List<PROJECT_TRL_APPROVAL_ABBR>? APPROVALS_ABBR_LIST { get; set; }
+
+        public string? Status { get; set; }
+        public string? Message { get; set; }
     }
 }

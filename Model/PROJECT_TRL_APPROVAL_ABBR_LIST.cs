@@ -11,5 +11,7 @@
         public string JOB_ROLE { get; set; }
         public string RESPOSIBLE_EMP_MKEY { get; set; }
         public string END_RESULT_DOC { get; set; }
+        public string? Status { get; set; }
+        public string? Message { get; set; }
     }
 }

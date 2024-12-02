@@ -14,6 +14,8 @@
         public string? ATTRIBUTE2 { get; set; }
         public string? ATTRIBUTE3 { get; set; }
         public int? CREATED_BY { get; set; }
-       
+        public string? Status { get; set; }
+        public string? Message { get; set; }
+
     }
 }

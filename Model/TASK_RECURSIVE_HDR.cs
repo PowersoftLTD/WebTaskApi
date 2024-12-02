@@ -49,5 +49,7 @@ namespace TaskManagement.API.Model
         public string? FILE_NAME { get; set; }
         public string? FILE_PATH { get; set; }
         public int? FILE_MKEY { get; set; }
+        public string? Status { get; set; }
+        public string? Message { get; set; }
     }
 }

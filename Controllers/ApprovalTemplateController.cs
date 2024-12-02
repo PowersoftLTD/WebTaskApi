@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Azure;
 using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace TaskManagement.API.Controllers
 {
@@ -32,13 +33,26 @@ namespace TaskManagement.API.Controllers
                 var Task = await _repository.GetAllApprovalTemplateAsync();
                 if (Task != null)
                 {
+
                     var response = new ApiResponse<IEnumerable<APPROVAL_TEMPLATE_HDR>>
                     {
                         Status = "OK",
                         Message = "Approval Template details retrieved successfully.",
                         Data = Task
                     };
-                    return Ok(response);
+                    
+                    //response.Data. = "APPROVAL_TEMPLATE_HDR";
+                    var responseDict = new Dictionary<string, object>
+                    {
+                        { nameof(APPROVAL_TEMPLATE_HDR), response.Data }
+                    };
+                    
+                    return Ok(new
+                    {
+                        response.Status,
+                        response.Message,
+                        Data = responseDict
+                    });
                 }
                 else
                 {
@@ -48,7 +62,18 @@ namespace TaskManagement.API.Controllers
                         Message = "Not found",
                         Data = null
                     };
-                    return Ok(response);
+
+                    var responseDict = new Dictionary<string, object>
+                    {
+                        { nameof(APPROVAL_TEMPLATE_HDR), response.Data }
+                    };
+
+                    return Ok(new
+                    {
+                        response.Status,
+                        response.Message,
+                        Data = responseDict
+                    });
 
                 }
             }

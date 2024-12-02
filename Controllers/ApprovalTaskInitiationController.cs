@@ -32,6 +32,8 @@ namespace TaskManagement.API.Controllers
                         Message = "Not found",
                         Data = null
                     };
+
+                    responseApprovalTemplate.Data.PROPERTY = "APPROVAL_TEMPLATE_HDR";
                     return Ok(responseApprovalTemplate);
                 }
 
@@ -50,6 +52,47 @@ namespace TaskManagement.API.Controllers
                     Status = "Error",
                     Message = ex.Message,
                     Data = null
+                };
+                return Ok(response);
+            }
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult<APPROVAL_TASK_INITIATION>> CreateApprovalTASK([FromBody] APPROVAL_TASK_INITIATION aPPROVAL_TASK_INITIATION)
+        {
+            try
+            {
+                bool flagSeq_no = false;
+                double IndexSeq_NO = 0.0;
+
+                var model = await _repository.CreateTaskApprovalTemplateAsync(aPPROVAL_TASK_INITIATION);
+
+                if (model == null || model.ResponseStatus == "Error")
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    {
+                        Status = "Error",
+                        Message = "An error occurred",
+                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                    };
+                }
+
+                var response = new ApiResponse<APPROVAL_TASK_INITIATION>
+                {
+                    Status = "Ok",
+                    Message = "Inserted Successfully",
+                    Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<APPROVAL_TASK_INITIATION>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = aPPROVAL_TASK_INITIATION // No data in case of exception
                 };
                 return Ok(response);
             }

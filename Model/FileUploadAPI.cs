@@ -10,11 +10,9 @@
         public int? TASK_MKEY { get; set; }
         public int? CREATED_BY { get; set; }
         public string? ATTRIBUTE14 { get; set; }
-
         public string? ATTRIBUTE15 { get; set; }
         public string? ATTRIBUTE16 { get; set; }
-       
-        
-            
+        public string? Status { get; set; }
+        public string? Message { get; set; }
     }
 }

@@ -17,5 +17,7 @@ namespace TaskManagement.API.Model
         public string? ATTRIBUTE7 { get; set; }
         public string? ATTRIBUTE8 { get; set; }
         public int? CREATED_BY { get; set; }
+        public string? Status { get; set; }
+        public string? Message { get; set; }
     }
 }

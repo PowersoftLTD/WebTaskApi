@@ -19,5 +19,7 @@
         public string? ATTRIBUTE5 { get; set; }
         public int? CREATED_BY { get; set; }
         public int? LAST_UPDATED_BY { get; set; }
+        public string? Status { get; set; }
+        public string? Message { get; set; }
     }
 }

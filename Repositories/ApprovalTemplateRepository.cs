@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Owin.Security.Provider;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -35,7 +36,10 @@ namespace TaskManagement.API.Repositories
 
                     if (approvalTemplates == null || !approvalTemplates.Any())
                     {
-                        return Enumerable.Empty<APPROVAL_TEMPLATE_HDR>(); // Return an empty list if no results
+                        var approvalTemplate = new APPROVAL_TEMPLATE_HDR();
+                        approvalTemplate.Status = "Error";
+                        approvalTemplate.Message = "Not Found";
+                        return new List<APPROVAL_TEMPLATE_HDR> { approvalTemplate };
                     }
 
                     // Iterate over each approval template header to populate subtasks, end result docs, and checklist docs
@@ -74,22 +78,20 @@ namespace TaskManagement.API.Repositories
                             // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
                             approvalTemplate.CHECKLIST_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
                         }
+                        approvalTemplate.Status = "OK";
+                        approvalTemplate.Message = "Get Data Sucessuly";
                     }
-
                     return approvalTemplates;
                 }
             }
-            //catch (RepositoryException ex)
-            //{
-            //    // Handle custom repository exceptions
-            //    return StatusCode(500, new { Status = "Error", Message = ex.Message });
-            //}
             catch (Exception ex)
             {
                 // Handle other unexpected exceptions
-                return null;// StatusCode(500, new { Status = "Error", Message = "An unexpected error occurred.", Details = ex.Message });
+                var approvalTemplate = new APPROVAL_TEMPLATE_HDR();
+                approvalTemplate.Status = "Error";
+                approvalTemplate.Message = ex.Message;
+                return new List<APPROVAL_TEMPLATE_HDR> { approvalTemplate };
             }
-
         }
         public async Task<APPROVAL_TEMPLATE_HDR> GetApprovalTemplateByIdAsync(int id)
         {
