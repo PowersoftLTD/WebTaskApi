@@ -75,6 +75,7 @@ namespace TaskManagement.API.Controllers
                         Message = "An error occurred",
                         Data = aPPROVAL_TASK_INITIATION // No data in case of exception
                     };
+                    return Ok(responseStatus);
                 }
 
                 var response = new ApiResponse<APPROVAL_TASK_INITIATION>

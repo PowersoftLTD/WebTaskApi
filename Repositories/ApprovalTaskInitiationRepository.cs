@@ -13,9 +13,11 @@ namespace TaskManagement.API.Repositories
     {
         private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         public IDapperDbConnection _dapperDbConnection;
-        public ApprovalTaskInitiationRepository(IDapperDbConnection dapperDbConnection)
+        private readonly string _connectionString;
+        public ApprovalTaskInitiationRepository(IDapperDbConnection dapperDbConnection, string connectionString)
         {
             _dapperDbConnection = dapperDbConnection;
+            _connectionString = connectionString;
         }
 
         public async Task<APPROVAL_TASK_INITIATION> GetApprovalTemplateByIdAsync(int MKEY, int APPROVAL_MKEY)
@@ -42,7 +44,7 @@ namespace TaskManagement.API.Repositories
                     var subtasks = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SP_GET_APPROVAL_TASK_INITIATION_TRL_SUBTASK", parmeters, commandType: CommandType.StoredProcedure);
                     approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property with subtasks
                     
-                    var subtasks1 = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select * from PROJECT_TRL_APPROVAL_ABBR", commandType: CommandType.Text);
+                    //var subtasks1 = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select * from PROJECT_TRL_APPROVAL_ABBR", commandType: CommandType.Text);
                     approvalTemplate.ResponseStatus = "Ok";
                     approvalTemplate.Message = "Get Data Sucessuly";
                     return approvalTemplate;
@@ -81,7 +83,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@STATUS", aPPROVAL_TASK_INITIATION.STATUS);
                     parmeters.Add("@STATUS_PERC", 0.0);
                     parmeters.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
-                    parmeters.Add("@APPROVER_ID", 0);
+                    //parmeters.Add("@APPROVER_ID", 0);
                     parmeters.Add("@IS_ARCHIVE", null);
                     parmeters.Add("@ATTRIBUTE1", null);
                     parmeters.Add("@ATTRIBUTE2", null);
@@ -91,11 +93,36 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
                     parmeters.Add("@CREATION_DATE", dateTime);
                     parmeters.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
-                    parmeters.Add("@APPROVE_ACTION_DATE", dateTime);
+                    //parmeters.Add("@LAST_UPDATE_DATE", dateTime);
 
                     // Fetch approval template
                     var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters, commandType: CommandType.StoredProcedure);
 
+                    foreach(var SubTask in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
+                    {
+                        var parmetersSubtask = new DynamicParameters();
+                        parmetersSubtask.Add("@TASK_NO", SubTask.TASK_NO);
+                        parmetersSubtask.Add("@TASK_NAME", SubTask.APPROVAL_ABBRIVATION);
+                        parmetersSubtask.Add("@TASK_DESCRIPTION", SubTask.LONG_DESCRIPTION);
+                        parmetersSubtask.Add("@CATEGORY", aPPROVAL_TASK_INITIATION.CAREGORY);
+                        ////parmetersSubtask.Add("@PROJECT_ID", SubTask.);
+                        ////parmetersSubtask.Add("@SUBPROJECT_ID", SubTask.BUILDING_MKEY);
+                        parmetersSubtask.Add("@COMPLETION_DATE", SubTask.TENTATIVE_END_DATE);
+                        parmetersSubtask.Add("@ASSIGNED_TO", SubTask.RESPOSIBLE_EMP_MKEY);
+                        parmetersSubtask.Add("@TAGS", null);
+                        parmetersSubtask.Add("@ISNODE", "N");
+                        parmetersSubtask.Add("@CLOSE_DATE", null);
+                        parmetersSubtask.Add("@DUE_DATE", SubTask.TENTATIVE_END_DATE);
+                        parmetersSubtask.Add("@TASK_PARENT_ID", 0);
+                        parmetersSubtask.Add("@STATUS", SubTask.STATUS);
+                        parmetersSubtask.Add("@STATUS_PERC", 0.0);
+                        parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                        //parmetersSubtask.Add("@APPROVER_ID", 0);
+                        parmetersSubtask.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                        parmetersSubtask.Add("@CREATION_DATE", dateTime);
+                        parmetersSubtask.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                        var approvalSubTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters, commandType: CommandType.StoredProcedure);
+                    }
                     if (approvalTemplate == null)
                     {
                         approvalTemplate.Message = "Error";

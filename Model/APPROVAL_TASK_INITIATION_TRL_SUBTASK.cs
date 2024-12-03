@@ -15,18 +15,18 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("LONG_DESCRIPTION")]
         public string? LONG_DESCRIPTION { get; set; }
 
-        [JsonPropertyName("DAYS_REQUIERD")]
-        public int? DAYS_REQUIERD { get; set; }
+        [JsonPropertyName("DAYS_REQUIRED")]
+        public int? DAYS_REQUIRED { get; set; }
 
-        [JsonPropertyName("AUTHORITY_DEPARTMENT")]
-        public int? AUTHORITY_DEPARTMENT { get; set; }
+        [JsonPropertyName("DEPARTMENT")]
+        public int? DEPARTMENT { get; set; }
         [JsonPropertyName("JOB_ROLE")]
         public int? JOB_ROLE { get; set; }
         [JsonPropertyName("RESPOSIBLE_EMP_MKEY")]
         public int? RESPOSIBLE_EMP_MKEY { get; set; }
 
-        [JsonPropertyName("OUTPUT_DOC")]
-        public string? OUTPUT_DOC { get; set; }
+        [JsonPropertyName("OUTPUT_DOCUMENT")]
+        public string? OUTPUT_DOCUMENT { get; set; }
         [JsonPropertyName("TENTATIVE_START_DATE")]
         public DateTime? TENTATIVE_START_DATE { get; set; }
         [JsonPropertyName("TENTATIVE_END_DATE")]
