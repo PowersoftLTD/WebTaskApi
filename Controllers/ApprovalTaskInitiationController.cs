@@ -75,6 +75,39 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseStatus);
                 }
+                if (aPPROVAL_TASK_INITIATION.COMPLITION_DATE == null)
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    {
+                        Status = "Error",
+                        Message = "Please enter the details of Approval Task Initiation",
+                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+
+                if (aPPROVAL_TASK_INITIATION.MAIN_ABBR == null)
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    {
+                        Status = "Error",
+                        Message = "Please enter the details of Approval Task Initiation",
+                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+
+                if (aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY == null)
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    {
+                        Status = "Error",
+                        Message = "Please enter the details of Approval Task Initiation",
+                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+
                 else
                 {
                     var model = await _repository.CreateTaskApprovalTemplateAsync(aPPROVAL_TASK_INITIATION);

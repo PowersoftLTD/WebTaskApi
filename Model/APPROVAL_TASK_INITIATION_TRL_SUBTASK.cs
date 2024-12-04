@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace TaskManagement.API.Model
 {
@@ -6,6 +7,10 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
+        
+        [Column("APPROVAL_MKEY")]
+        public int? APPROVAL_MKEY { get; set; }
+
         [JsonPropertyName("TASK_NO")]
         public string TASK_NO { get; set; }  // SEQ NO
 

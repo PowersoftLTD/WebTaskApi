@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.VisualBasic;
 using System.Collections.Immutable;
 using System.Data;
 using System.Data.SqlClient;
@@ -83,13 +84,13 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@STATUS", aPPROVAL_TASK_INITIATION.STATUS);
                     parmeters.Add("@STATUS_PERC", 0.0);
                     parmeters.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
-                    //parmeters.Add("@APPROVER_ID", 0);
+                    parmeters.Add("@APPROVER_ID", 0);
                     parmeters.Add("@IS_ARCHIVE", null);
                     parmeters.Add("@ATTRIBUTE1", null);
                     parmeters.Add("@ATTRIBUTE2", null);
                     parmeters.Add("@ATTRIBUTE3", null);
-                    parmeters.Add("@ATTRIBUTE4", null);
-                    parmeters.Add("@ATTRIBUTE5", null);
+                    parmeters.Add("@ATTRIBUTE4", aPPROVAL_TASK_INITIATION.MKEY);
+                    parmeters.Add("@ATTRIBUTE5", aPPROVAL_TASK_INITIATION.HEADER_MKEY);
                     parmeters.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
                     parmeters.Add("@CREATION_DATE", dateTime);
                     parmeters.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
@@ -97,11 +98,15 @@ namespace TaskManagement.API.Repositories
 
                     // Fetch approval template
                     var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters, commandType: CommandType.StoredProcedure);
-
+                    //int ParentMkeySubtask = 0;
                     foreach (var SubTask in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
                     {
-                        //await db.QueryAsync<dynamic>("SELECT * FROM V_SUBTASK_PARENT WHERE SUBTASK_MKEY = @SUBTASK_MKEY ", commandType: CommandType.Text);
-                        var SubParentMkey = await db.QueryFirstOrDefaultAsync<dynamic>("SELECT * FROM V_SUBTASK_PARENT WHERE SUBTASK_MKEY = @SUBTASK_MKEY ", new { SUBTASK_MKEY = SubTask.MKEY });
+
+                        var SubParentMkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT MKEY FROM TASK_HDR WHERE ATTRIBUTE4 IN " +
+                            " (SELECT SUBTASK_PARENT_ID FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE SUBTASK_MKEY = @APPROVAL_MKEY AND DELETE_FLAG = 'N') " +
+                            " AND DELETE_FLAG = 'N' AND ATTRIBUTE5 IN (SELECT MKEY FROM PROJECT_HDR WHERE MKEY = @MKEY AND DELETE_FLAG = 'N') ",
+                            new { APPROVAL_MKEY = SubTask.APPROVAL_MKEY, MKEY = SubTask.MKEY });
+                        var Parent_Mkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT * FROM V_Task_Parent_ID WHERE SUBTASK_PARENT_ID = @SUBTASK_MKEY ", new { SUBTASK_MKEY = SubTask.APPROVAL_MKEY });
 
                         var parmetersSubtask = new DynamicParameters();
                         parmetersSubtask.Add("@TASK_NO", approvalTemplate.TASK_NO);
@@ -113,11 +118,9 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@COMPLETION_DATE", SubTask.TENTATIVE_END_DATE);
                         parmetersSubtask.Add("@ASSIGNED_TO", SubTask.RESPOSIBLE_EMP_MKEY);
                         parmetersSubtask.Add("@TAGS", null);
-                        parmetersSubtask.Add("@ISNODE", "N");
                         parmetersSubtask.Add("@CLOSE_DATE", null);
                         parmetersSubtask.Add("@DUE_DATE", SubTask.TENTATIVE_END_DATE);
-                        //parmetersSubtask.Add("@TASK_PARENT_ID", SubParentMkey.SUBTASK_PARENT_ID);
-                        parmetersSubtask.Add("@TASK_PARENT_NODE_ID", approvalTemplate.TASK_NO);
+                        parmetersSubtask.Add("@TASK_PARENT_NODE_ID", approvalTemplate.MKEY);
                         parmetersSubtask.Add("@TASK_PARENT_NUMBER", approvalTemplate.TASK_NO.ToString());
                         parmetersSubtask.Add("@STATUS", SubTask.STATUS);
                         parmetersSubtask.Add("@STATUS_PERC", "0.0");
@@ -127,42 +130,32 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@ATTRIBUTE1", null);
                         parmetersSubtask.Add("@ATTRIBUTE2", null);
                         parmetersSubtask.Add("@ATTRIBUTE3", null);
-                        parmetersSubtask.Add("@ATTRIBUTE4", null);
-                        parmetersSubtask.Add("@ATTRIBUTE5", null);
+                        parmetersSubtask.Add("@ATTRIBUTE4", SubTask.APPROVAL_MKEY);
+                        parmetersSubtask.Add("@ATTRIBUTE5", aPPROVAL_TASK_INITIATION.HEADER_MKEY);
                         parmetersSubtask.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
                         parmetersSubtask.Add("@CREATION_DATE", dateTime);
                         parmetersSubtask.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
                         parmetersSubtask.Add("@APPROVE_ACTION_DATE", null);
-                        parmetersSubtask.Add("@Current_Task_Mkey", approvalTemplate.TASK_NO);
+                        parmetersSubtask.Add("@ATTRIBUTE5", aPPROVAL_TASK_INITIATION.HEADER_MKEY); // PROJECT ID 
+                        parmetersSubtask.Add("@Current_Task_Mkey", approvalTemplate.MKEY);
 
-                        if (SubParentMkey == null)
+                        if (SubParentMkey != null)  // to check parent node
                         {
-                            // Handle the case where no parent task is found (optional)
-                            // You might want to return an error, log it, or set default values
-                            // For example, we can log the error and continue to the next iteration.
-                            Console.WriteLine($"No parent found for SubTask MKEY: {SubTask.MKEY}");
+                            parmetersSubtask.Add("@TASK_PARENT_ID", SubParentMkey.MKEY);
+                        }
 
-                            // Set TASK_PARENT_ID to a default value (e.g., 0 or some other meaningful value)
-                            parmetersSubtask.Add("@TASK_PARENT_ID", 0);  // You can choose a default value or skip the subtask
-
-                            // You can also set other default values or return an error if necessary
+                        if (Parent_Mkey != null) // IF THIS PARENT THEN IDNODE Y ELSE N
+                        {
+                            parmetersSubtask.Add("@ISNODE", "Y");
                         }
                         else
                         {
-                            // If SubParentMkey is not null, then proceed with your logic
-                            // Check if table and FieldNames are not null before accessing
-                            if (SubParentMkey.table != null && SubParentMkey.table.FieldNames != null)
-                            {
-                                parmetersSubtask.Add("@TASK_PARENT_ID", SubParentMkey.table.FieldNames["SUBTASK_PARENT_ID"]);
-                            }
-                            else
-                            {
-                                // Handle the case where the expected structure is missing
-                                parmetersSubtask.Add("@TASK_PARENT_ID", 0); // Use a default value if necessary
-                            }
+                            parmetersSubtask.Add("@ISNODE", "N");
                         }
 
-                        var approvalSubTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_NODE_DETAILS", parmetersSubtask, commandType: CommandType.StoredProcedure);
+                        var approvalSubTemplate = await db.QueryFirstOrDefaultAsync<TASK_HDR>("SP_INSERT_TASK_NODE_DETAILS", parmetersSubtask, commandType: CommandType.StoredProcedure);
+                        //approvalSubTemplate.MKEY 
+                        //approvalSubTemplate.TASK_NO
                     }
                     if (approvalTemplate == null)
                     {
