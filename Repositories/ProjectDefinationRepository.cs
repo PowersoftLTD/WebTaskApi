@@ -131,7 +131,8 @@ namespace TaskManagement.API.Repositories
 
                         // Add the required columns to the DataTable
                         approvalsDataTable.Columns.Add("HEADER_MKEY", typeof(int));  // Int type for HEADER_MKEY
-                        approvalsDataTable.Columns.Add("SEQ_NO", typeof(string));  // Int type for HEADER_MKEY
+                        approvalsDataTable.Columns.Add("SEQ_NO", typeof(string));  // Int type for SEQ_NO
+                        approvalsDataTable.Columns.Add("APPROVAL_MKEY", typeof(int));  // Int type for APPROVAL_MKEY
                         approvalsDataTable.Columns.Add("APPROVAL_ABBRIVATION", typeof(string));  // NVarChar for APPROVAL_ABBRIVATION
                         approvalsDataTable.Columns.Add("APPROVAL_DESCRIPTION", typeof(string));  // NVarChar for APPROVAL_DESCRIPTION
                         approvalsDataTable.Columns.Add("DAYS_REQUIRED", typeof(int));  // Int type for HEADER_MKEY
@@ -152,6 +153,7 @@ namespace TaskManagement.API.Repositories
                             var row = approvalsDataTable.NewRow();
                             row["HEADER_MKEY"] = pROJECT_HDR.MKEY;
                             row["SEQ_NO"] = approvalsList.TASK_NO;
+                            row["APPROVAL_MKEY"] = approvalsList.APPROVAL_MKEY;
                             row["APPROVAL_ABBRIVATION"] = approvalsList.APPROVAL_ABBRIVATION;
                             row["APPROVAL_DESCRIPTION"] = approvalsList.APPROVAL_DESCRIPTION;
                             row["DAYS_REQUIRED"] = approvalsList.DAYS_REQUIRED;
@@ -178,6 +180,7 @@ namespace TaskManagement.API.Repositories
                         // Map the columns from the DataTable to the SQL Server columns (only selected ones)
                         bulkCopy.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
                         bulkCopy.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
+                        bulkCopy.ColumnMappings.Add("APPROVAL_MKEY", "APPROVAL_MKEY");
                         bulkCopy.ColumnMappings.Add("APPROVAL_ABBRIVATION", "APPROVAL_ABBRIVATION");
                         bulkCopy.ColumnMappings.Add("APPROVAL_DESCRIPTION", "APPROVAL_DESCRIPTION");
                         bulkCopy.ColumnMappings.Add("DAYS_REQUIRED", "DAYS_REQUIRED");
@@ -211,6 +214,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 HEADER_MKEY = item.HEADER_MKEY,
                                 TASK_NO = item.SEQ_NO,
+                                APPROVAL_MKEY = item.APPROVAL_MKEY,
                                 APPROVAL_ABBRIVATION = item.APPROVAL_ABBRIVATION,
                                 APPROVAL_DESCRIPTION = item.APPROVAL_DESCRIPTION,
                                 DAYS_REQUIRED = item.DAYS_REQUIRED,

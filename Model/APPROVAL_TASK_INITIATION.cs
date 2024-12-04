@@ -47,7 +47,7 @@ namespace TaskManagement.API.Model
         public string? COMPLITION_DATE { get; set; }
 
         [JsonPropertyName("PROPERTY")]
-        public string? PROPERTY { get; set; }
+        public int? PROPERTY { get; set; }
 
         [JsonPropertyName("CREATED_BY")]
         public int? CREATED_BY { get; set; }

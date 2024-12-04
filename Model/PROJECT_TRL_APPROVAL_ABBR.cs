@@ -10,6 +10,9 @@ namespace TaskManagement.API.Model
         [Column("SEQ_NO")]
         public string? TASK_NO { get; set; }
 
+        [Column("APPROVAL_MKEY")]
+        public int? APPROVAL_MKEY { get; set; }
+
         [Column("APPROVAL_ABBRIVATION")]
         public string? APPROVAL_ABBRIVATION { get; set; }
 

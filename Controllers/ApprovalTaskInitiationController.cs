@@ -33,7 +33,7 @@ namespace TaskManagement.API.Controllers
                         Data = null
                     };
 
-                    responseApprovalTemplate.Data.PROPERTY = "APPROVAL_TEMPLATE_HDR";
+                    //responseApprovalTemplate.Data. = "APPROVAL_TEMPLATE_HDR";
                     return Ok(responseApprovalTemplate);
                 }
 
@@ -65,27 +65,37 @@ namespace TaskManagement.API.Controllers
                 bool flagSeq_no = false;
                 double IndexSeq_NO = 0.0;
 
-                var model = await _repository.CreateTaskApprovalTemplateAsync(aPPROVAL_TASK_INITIATION);
-
-                if (model == null || model.ResponseStatus == "Error")
+                if (aPPROVAL_TASK_INITIATION.TASK_NO == null)
                 {
                     var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
                     {
                         Status = "Error",
-                        Message = "An error occurred",
+                        Message = "Please enter the details of Approval Task Initiation",
                         Data = aPPROVAL_TASK_INITIATION // No data in case of exception
                     };
                     return Ok(responseStatus);
                 }
-
-                var response = new ApiResponse<APPROVAL_TASK_INITIATION>
+                else
                 {
-                    Status = "Ok",
-                    Message = "Inserted Successfully",
-                    Data = aPPROVAL_TASK_INITIATION // No data in case of exception
-                };
-
-                return Ok(response);
+                    var model = await _repository.CreateTaskApprovalTemplateAsync(aPPROVAL_TASK_INITIATION);
+                    if (model == null || model.ResponseStatus == "Error")
+                    {
+                        var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
+                        {
+                            Status = "Error",
+                            Message = model.Message,
+                            Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                        };
+                        return Ok(responseStatus);
+                    }
+                    var response = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    {
+                        Status = "Ok",
+                        Message = "Inserted Successfully",
+                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                    };
+                    return Ok(response);
+                }
             }
             catch (Exception ex)
             {
