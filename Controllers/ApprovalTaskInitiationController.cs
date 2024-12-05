@@ -29,7 +29,17 @@ namespace TaskManagement.API.Controllers
                     var responseApprovalTemplate = new ApiResponse<APPROVAL_TASK_INITIATION>
                     {
                         Status = "Error",
-                        Message = "Not found",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseApprovalTemplate);
+                }
+                else if (TASK.STATUS != "Ok")
+                {
+                    var responseApprovalTemplate = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    {
+                        Status = TASK.STATUS,
+                        Message = TASK.Message,
                         Data = null
                     };
 

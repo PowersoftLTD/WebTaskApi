@@ -37,13 +37,13 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@ATTRIBUT2", FormName);
                     parmeters.Add("@ATTRIBUT3", MethodName);
                     //var APPROVAL_MKEY = await db.QueryAsync<dynamic>("UPDATE PROJECT_TRL_APPROVAL_ABBR SET APPROVAL_MKEY = 32 WHERE HEADER_MKEY = 5 ", commandType: CommandType.Text);
-                    var pROJECT_HDRs123 = await db.QueryAsync<PROJECT_HDR>("SP_GET_PROJECT_DEFINATION", parmeters, commandType: CommandType.StoredProcedure);
-                    var pROJECT_HDRs = await db.QueryAsync<PROJECT_HDR>("SELECT\tMKEY ,BUILDING_MKEY AS PROJECT_NAME ,PROJECT_ABBR" +
-                        " ,PROPERTY ,LEGAL_ENTITY ,PROJECT_ADDRESS ,BUILDING_CLASSIFICATION ,BUILDING_STANDARD" +
-                        " ,STATUTORY_AUTHORITY ,ATTRIBUTE1 ,ATTRIBUTE2 ,ATTRIBUTE3 ,ATTRIBUTE4 " +
-                        ",ATTRIBUTE5 ,CREATED_BY ,CREATION_DATE ,LAST_UPDATED_BY ,LAST_UPDATE_DATE " +
-                        ",DELETE_FLAG FROM PROJECT_HDR  WHERE CREATED_BY = @ATTRIBUT1 AND DELETE_FLAG = 'N' " +
-                        "ORDER BY  MKEY;", parmeters, commandType: CommandType.Text);
+                    var pROJECT_HDRs = await db.QueryAsync<PROJECT_HDR>("SP_GET_PROJECT_DEFINATION", parmeters, commandType: CommandType.StoredProcedure);
+                    //var pROJECT_HDRs122 = await db.QueryAsync<PROJECT_HDR>("SELECT\tMKEY ,BUILDING_MKEY AS PROJECT_NAME ,PROJECT_ABBR" +
+                    //    " ,PROPERTY ,LEGAL_ENTITY ,PROJECT_ADDRESS ,BUILDING_CLASSIFICATION ,BUILDING_STANDARD" +
+                    //    " ,STATUTORY_AUTHORITY ,ATTRIBUTE1 ,ATTRIBUTE2 ,ATTRIBUTE3 ,ATTRIBUTE4 " +
+                    //    ",ATTRIBUTE5 ,CREATED_BY ,CREATION_DATE ,LAST_UPDATED_BY ,LAST_UPDATE_DATE " +
+                    //    ",DELETE_FLAG FROM PROJECT_HDR  WHERE CREATED_BY = @ATTRIBUT1 AND DELETE_FLAG = 'N' " +
+                    //    "ORDER BY  MKEY;", parmeters, commandType: CommandType.Text);
 
                     if (pROJECT_HDRs == null || !pROJECT_HDRs.Any())
                     {
@@ -100,10 +100,23 @@ namespace TaskManagement.API.Repositories
         public async Task<PROJECT_HDR> CreateProjectDefinationAsync(PROJECT_HDR pROJECT_HDR)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+                    transaction = db.BeginTransaction(); // Begin a transaction
+
                     var OBJ_PROJECT_HDR = pROJECT_HDR;
                     var parameters = new DynamicParameters();
                     parameters.Add("@BUILDING_MKEY", pROJECT_HDR.PROJECT_NAME);
@@ -120,218 +133,92 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@ATTRIBUTE2", pROJECT_HDR.ATTRIBUTE2);
                     parameters.Add("@ATTRIBUTE3", pROJECT_HDR.ATTRIBUTE3);
 
-                    pROJECT_HDR = await db.QueryFirstOrDefaultAsync<PROJECT_HDR>("SP_INSERT_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure);
-                    using var connection = new SqlConnection(_connectionString);
-                    await connection.OpenAsync();
-                    using var transactionApprovals = connection.BeginTransaction();
-                    try
+                    // Insert project definition
+                    pROJECT_HDR = await db.QueryFirstOrDefaultAsync<PROJECT_HDR>("SP_INSERT_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    // Create a DataTable for bulk insert of approval data
+                    var approvalsDataTable = new DataTable();
+                    approvalsDataTable.Columns.Add("HEADER_MKEY", typeof(int));
+                    approvalsDataTable.Columns.Add("SEQ_NO", typeof(string));
+                    approvalsDataTable.Columns.Add("APPROVAL_MKEY", typeof(int));
+                    approvalsDataTable.Columns.Add("APPROVAL_ABBRIVATION", typeof(string));
+                    approvalsDataTable.Columns.Add("APPROVAL_DESCRIPTION", typeof(string));
+                    approvalsDataTable.Columns.Add("DAYS_REQUIRED", typeof(int));
+                    approvalsDataTable.Columns.Add("RESPOSIBLE_EMP_MKEY", typeof(int));
+                    approvalsDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(DateTime));
+                    approvalsDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(DateTime));
+                    approvalsDataTable.Columns.Add("DEPARTMENT", typeof(int));
+                    approvalsDataTable.Columns.Add("JOB_ROLE", typeof(int));
+                    approvalsDataTable.Columns.Add("OUTPUT_DOCUMENT", typeof(string));
+                    approvalsDataTable.Columns.Add("STATUS", typeof(string));
+                    approvalsDataTable.Columns.Add("CREATED_BY", typeof(int));
+                    approvalsDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
+
+                    foreach (var approvalsList in OBJ_PROJECT_HDR.APPROVALS_ABBR_LIST)
                     {
-                        // Create a DataTable for bulk insert, but only with selected columns
-                        var approvalsDataTable = new DataTable();
+                        var RESPOSIBLE_EMP_MKEY = approvalsList.RESPOSIBLE_EMP_MKEY ?? 0;
+                        var row = approvalsDataTable.NewRow();
+                        row["HEADER_MKEY"] = pROJECT_HDR.MKEY;
+                        row["SEQ_NO"] = approvalsList.TASK_NO;
+                        row["APPROVAL_MKEY"] = approvalsList.APPROVAL_MKEY;
+                        row["APPROVAL_ABBRIVATION"] = approvalsList.APPROVAL_ABBRIVATION;
+                        row["APPROVAL_DESCRIPTION"] = approvalsList.APPROVAL_DESCRIPTION;
+                        row["DAYS_REQUIRED"] = approvalsList.DAYS_REQUIRED;
+                        row["RESPOSIBLE_EMP_MKEY"] = RESPOSIBLE_EMP_MKEY;
+                        row["TENTATIVE_START_DATE"] = approvalsList.TENTATIVE_START_DATE;
+                        row["TENTATIVE_END_DATE"] = approvalsList.TENTATIVE_END_DATE;
+                        row["DEPARTMENT"] = approvalsList.DEPARTMENT;
+                        row["JOB_ROLE"] = approvalsList.JOB_ROLE;
+                        row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
+                        row["STATUS"] = approvalsList.STATUS;
+                        row["CREATED_BY"] = pROJECT_HDR.CREATED_BY;
+                        row["CREATION_DATE"] = dateTime;
 
-                        // Add the required columns to the DataTable
-                        approvalsDataTable.Columns.Add("HEADER_MKEY", typeof(int));  // Int type for HEADER_MKEY
-                        approvalsDataTable.Columns.Add("SEQ_NO", typeof(string));  // Int type for SEQ_NO
-                        approvalsDataTable.Columns.Add("APPROVAL_MKEY", typeof(int));  // Int type for APPROVAL_MKEY
-                        approvalsDataTable.Columns.Add("APPROVAL_ABBRIVATION", typeof(string));  // NVarChar for APPROVAL_ABBRIVATION
-                        approvalsDataTable.Columns.Add("APPROVAL_DESCRIPTION", typeof(string));  // NVarChar for APPROVAL_DESCRIPTION
-                        approvalsDataTable.Columns.Add("DAYS_REQUIRED", typeof(int));  // Int type for HEADER_MKEY
-                        approvalsDataTable.Columns.Add("RESPOSIBLE_EMP_MKEY", typeof(int));  // NVarChar for APPROVAL_ABBRIVATION
-                        approvalsDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(DateTime));  // NVarChar for APPROVAL_DESCRIPTION
-                        approvalsDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(DateTime));  // Int type for HEADER_MKEY
-                        approvalsDataTable.Columns.Add("DEPARTMENT", typeof(int));  // NVarChar for APPROVAL_ABBRIVATION
-                        approvalsDataTable.Columns.Add("JOB_ROLE", typeof(int));  // NVarChar for APPROVAL_DESCRIPTION
-                        approvalsDataTable.Columns.Add("OUTPUT_DOCUMENT", typeof(string));  // NVarChar for APPROVAL_DESCRIPTION
-                        approvalsDataTable.Columns.Add("STATUS", typeof(string));  // NVarChar for APPROVAL_DESCRIPTION
-                        approvalsDataTable.Columns.Add("CREATED_BY", typeof(int));
-                        approvalsDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
-
-                        // Populate the DataTable with data (only selected columns)
-                        foreach (var approvalsList in OBJ_PROJECT_HDR.APPROVALS_ABBR_LIST)
-                        {
-                            var RESPOSIBLE_EMP_MKEY = approvalsList.RESPOSIBLE_EMP_MKEY ?? 0;
-                            var row = approvalsDataTable.NewRow();
-                            row["HEADER_MKEY"] = pROJECT_HDR.MKEY;
-                            row["SEQ_NO"] = approvalsList.TASK_NO;
-                            row["APPROVAL_MKEY"] = approvalsList.APPROVAL_MKEY;
-                            row["APPROVAL_ABBRIVATION"] = approvalsList.APPROVAL_ABBRIVATION;
-                            row["APPROVAL_DESCRIPTION"] = approvalsList.APPROVAL_DESCRIPTION;
-                            row["DAYS_REQUIRED"] = approvalsList.DAYS_REQUIRED;
-                            row["RESPOSIBLE_EMP_MKEY"] = RESPOSIBLE_EMP_MKEY;
-                            row["TENTATIVE_START_DATE"] = approvalsList.TENTATIVE_START_DATE;
-                            row["TENTATIVE_END_DATE"] = approvalsList.TENTATIVE_END_DATE;
-                            row["DEPARTMENT"] = approvalsList.DEPARTMENT;
-                            row["JOB_ROLE"] = approvalsList.JOB_ROLE;
-                            row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
-                            row["STATUS"] = approvalsList.STATUS;
-                            row["CREATED_BY"] = pROJECT_HDR.CREATED_BY;
-                            row["CREATION_DATE"] = dateTime;
-
-                            // Add the row to the DataTable
-                            approvalsDataTable.Rows.Add(row);
-                        }
-
-                        // Use SqlBulkCopy to insert the data into the database
-                        using var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transactionApprovals)
-                        {
-                            DestinationTableName = "PROJECT_TRL_APPROVAL_ABBR"  // Ensure this matches your table name
-                        };
-
-                        // Map the columns from the DataTable to the SQL Server columns (only selected ones)
-                        bulkCopy.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
-                        bulkCopy.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
-                        bulkCopy.ColumnMappings.Add("APPROVAL_MKEY", "APPROVAL_MKEY");
-                        bulkCopy.ColumnMappings.Add("APPROVAL_ABBRIVATION", "APPROVAL_ABBRIVATION");
-                        bulkCopy.ColumnMappings.Add("APPROVAL_DESCRIPTION", "APPROVAL_DESCRIPTION");
-                        bulkCopy.ColumnMappings.Add("DAYS_REQUIRED", "DAYS_REQUIRED");
-                        bulkCopy.ColumnMappings.Add("RESPOSIBLE_EMP_MKEY", "RESPOSIBLE_EMP_MKEY");
-                        bulkCopy.ColumnMappings.Add("TENTATIVE_START_DATE", "TENTATIVE_START_DATE");
-                        bulkCopy.ColumnMappings.Add("TENTATIVE_END_DATE", "TENTATIVE_END_DATE");
-                        bulkCopy.ColumnMappings.Add("DEPARTMENT", "DEPARTMENT");
-                        bulkCopy.ColumnMappings.Add("JOB_ROLE", "JOB_ROLE");
-                        bulkCopy.ColumnMappings.Add("OUTPUT_DOCUMENT", "OUTPUT_DOCUMENT");
-                        bulkCopy.ColumnMappings.Add("STATUS", "STATUS");
-                        bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
-                        bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
-
-                        // Perform the bulk insert
-                        await bulkCopy.WriteToServerAsync(approvalsDataTable);
-
-                        // Commit the transaction
-                        await transactionApprovals.CommitAsync();
-
-                        // Optionally, fetch the inserted values (if necessary)
-                        string sql = "SELECT HEADER_MKEY, APPROVAL_MKEY, SEQ_NO, APPROVAL_ABBRIVATION, APPROVAL_DESCRIPTION, " +
-                                     "DAYS_REQUIRED, DEPARTMENT, JOB_ROLE, RESPOSIBLE_EMP_MKEY, OUTPUT_DOCUMENT, TENTATIVE_START_DATE, " +
-                                     "TENTATIVE_END_DATE, STATUS, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3, ATTRIBUTE4, ATTRIBUTE5, CREATED_BY, " +
-                                     "CREATION_DATE, LAST_UPDATED_BY, LAST_UPDATE_DATE, DELETE_FLAG FROM PROJECT_TRL_APPROVAL_ABBR WHERE HEADER_MKEY = @HEADER_MKEY";
-                        var ApprovalsKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = pROJECT_HDR.MKEY });
-
-                        pROJECT_HDR.APPROVALS_ABBR_LIST = new List<PROJECT_TRL_APPROVAL_ABBR>();
-                        foreach (var item in ApprovalsKeyValuePairs)
-                        {
-                            pROJECT_HDR.APPROVALS_ABBR_LIST.Add(new PROJECT_TRL_APPROVAL_ABBR
-                            {
-                                HEADER_MKEY = item.HEADER_MKEY,
-                                TASK_NO = item.SEQ_NO,
-                                APPROVAL_MKEY = item.APPROVAL_MKEY,
-                                APPROVAL_ABBRIVATION = item.APPROVAL_ABBRIVATION,
-                                APPROVAL_DESCRIPTION = item.APPROVAL_DESCRIPTION,
-                                DAYS_REQUIRED = item.DAYS_REQUIRED,
-                                DEPARTMENT = item.DEPARTMENT,
-                                JOB_ROLE = item.JOB_ROLE,
-                                RESPOSIBLE_EMP_MKEY = item.RESPOSIBLE_EMP_MKEY,
-                                OUTPUT_DOCUMENT = item.OUTPUT_DOCUMENT,
-                                TENTATIVE_START_DATE = item.TENTATIVE_START_DATE,
-                                TENTATIVE_END_DATE = item.TENTATIVE_END_DATE,
-                                STATUS = item.STATUS
-                            });
-                        }
+                        approvalsDataTable.Rows.Add(row);
                     }
-                    catch (Exception ex)
+
+                    // Use SqlBulkCopy to insert the approval data into the database
+                    using var bulkCopy = new SqlBulkCopy((SqlConnection)db, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
                     {
-                        await transactionApprovals.RollbackAsync();
-                        throw;
-                    }
-                    /*  //try
-                      //{
-                      //    // Create a DataTable for bulk insert of subtasks (SEQNO, SRNO, ABBR)
-                      //    var approvalsDataTable = new DataTable();
-                      //    var properties = typeof(PROJECT_TRL_APPROVAL_ABBR).GetProperties();
+                        DestinationTableName = "PROJECT_TRL_APPROVAL_ABBR"
+                    };
 
-                      //    foreach (var property in properties)
-                      //    {
-                      //        // Add columns dynamically to DataTable
-                      //        approvalsDataTable.Columns.Add(property.Name, Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType);
-                      //    }
+                    // Map columns from DataTable to database columns
+                    bulkCopy.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
+                    bulkCopy.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
+                    bulkCopy.ColumnMappings.Add("APPROVAL_MKEY", "APPROVAL_MKEY");
+                    bulkCopy.ColumnMappings.Add("APPROVAL_ABBRIVATION", "APPROVAL_ABBRIVATION");
+                    bulkCopy.ColumnMappings.Add("APPROVAL_DESCRIPTION", "APPROVAL_DESCRIPTION");
+                    bulkCopy.ColumnMappings.Add("DAYS_REQUIRED", "DAYS_REQUIRED");
+                    bulkCopy.ColumnMappings.Add("RESPOSIBLE_EMP_MKEY", "RESPOSIBLE_EMP_MKEY");
+                    bulkCopy.ColumnMappings.Add("TENTATIVE_START_DATE", "TENTATIVE_START_DATE");
+                    bulkCopy.ColumnMappings.Add("TENTATIVE_END_DATE", "TENTATIVE_END_DATE");
+                    bulkCopy.ColumnMappings.Add("DEPARTMENT", "DEPARTMENT");
+                    bulkCopy.ColumnMappings.Add("JOB_ROLE", "JOB_ROLE");
+                    bulkCopy.ColumnMappings.Add("OUTPUT_DOCUMENT", "OUTPUT_DOCUMENT");
+                    bulkCopy.ColumnMappings.Add("STATUS", "STATUS");
+                    bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
+                    bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
 
-                      //    if (OBJ_PROJECT_HDR.APPROVALS_ABBR_LIST != null)
-                      //    {
-                      //        // Populate the DataTable with subtasks
-                      //        foreach (var approvalsList in OBJ_PROJECT_HDR.APPROVALS_ABBR_LIST)
-                      //        {
-                      //            approvalsList.HEADER_MKEY = pROJECT_HDR.MKEY;
-                      //            //approvalsList.CREATED_BY = Convert.ToInt32(pROJECT_HDR.CREATED_BY);
-                      //            var createdBy = pROJECT_HDR.CREATED_BY ?? 0;
+                    await bulkCopy.WriteToServerAsync(approvalsDataTable);
 
-                      //            var row = approvalsDataTable.NewRow();
-                      //            foreach (var property in properties)
-                      //            {
-                      //                var value = property.GetValue(approvalsList);
-                      //                // Handle nullable properties and convert them to DBNull.Value if they are null
-                      //                row[property.Name] = value ?? DBNull.Value;
-                      //            }
-                      //            row["CREATED_BY"] = createdBy;
-                      //            // Add row to the DataTable
-                      //            approvalsDataTable.Rows.Add(row);
-                      //        }
-
-                      //        // Use SqlBulkCopy to insert subtasks
-                      //        using var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transactionApprovals)
-                      //        {
-                      //            DestinationTableName = "PROJECT_TRL_APPROVAL_ABBR"  // Ensure this matches your table name
-                      //        };
-
-                      //        if (!pROJECT_HDR.CREATED_BY.HasValue)
-                      //        {
-                      //            // Log or throw an error if CREATED_BY is null
-                      //            Console.WriteLine("CREATED_BY is null. This will cause an insert failure.");
-                      //        }
-
-
-                      //        await bulkCopy.WriteToServerAsync(approvalsDataTable);
-
-                      //        // Commit the transactionApprovals
-                      //        await transactionApprovals.CommitAsync();
-
-                      //        // Optionally, fetch the inserted values (if necessary)
-                      //        string sql = "SELECT HEADER_MKEY, APPROVAL_MKEY, SEQ_NO, APPROVAL_ABBRIVATION, APPROVAL_DESCRIPTION, " +
-                      //            "DAYS_REQUIRED, DEPARTMENT, JOB_ROLE, RESPOSIBLE_EMP_MKEY, OUTPUT_DOCUMENT, TENTATIVE_START_DATE, " +
-                      //            "TENTATIVE_END_DATE, STATUS, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3, ATTRIBUTE4, ATTRIBUTE5, CREATED_BY, " +
-                      //            "CREATION_DATE, LAST_UPDATED_BY, LAST_UPDATE_DATE, DELETE_FLAG FROM PROJECT_TRL_APPROVAL_ABBR WHERE HEADER_MKEY = @HEADER_MKEY";
-                      //        var ApprovalsKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = pROJECT_HDR.MKEY });
-
-                      //        // Assuming the model has a SUBTASK_LIST dictionary to hold these values
-                      //        pROJECT_HDR.APPROVALS_ABBR_LIST = new List<PROJECT_TRL_APPROVAL_ABBR>();  // Assuming Subtask is a class for this data
-
-                      //        foreach (var item in ApprovalsKeyValuePairs)
-                      //        {
-                      //            pROJECT_HDR.APPROVALS_ABBR_LIST.Add(new PROJECT_TRL_APPROVAL_ABBR
-                      //            {
-                      //                HEADER_MKEY = item.HEADER_MKEY,
-                      //                TASK_NO = item.SEQ_NO,
-                      //                APPROVAL_ABBRIVATION = item.APPROVAL_ABBRIVATION,
-                      //                APPROVAL_DESCRIPTION = item.APPROVAL_DESCRIPTION,
-                      //                DAYS_REQUIRED = item.DAYS_REQUIRED,
-                      //                DEPARTMENT = item.DEPARTMENT,
-                      //                JOB_ROLE = item.JOB_ROLE,
-                      //                RESPOSIBLE_EMP_MKEY = item.RESPOSIBLE_EMP_MKEY,
-                      //                OUTPUT_DOCUMENT = item.OUTPUT_DOCUMENT,
-                      //                TENTATIVE_START_DATE = item.TENTATIVE_START_DATE,
-                      //                TENTATIVE_END_DATE = item.TENTATIVE_END_DATE,
-                      //                STATUS = item.STATUS
-                      //            });
-                      //        }
-                      //    }
-                      //}
-                      //catch (Exception ex)
-                      //{
-                      //    await transactionApprovals.RollbackAsync();
-                      //    throw;
-                      //}*/
-
+                    // Commit both transactions
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
                     return pROJECT_HDR;
                 }
             }
-            catch (SqlException ex)
-            {
-                return pROJECT_HDR;
-            }
             catch (Exception ex)
             {
-                return pROJECT_HDR;
+                if (transaction != null)
+                {
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.RollbackAsync(); // Rollback transaction if an exception occurs
+                }
+                throw new InvalidOperationException("Error while processing the transaction", ex);
             }
         }
+
         public async Task<bool> UpdateProjectDefinationAsync(PROJECT_HDR pROJECT_HDR)
         {
             try

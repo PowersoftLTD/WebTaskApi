@@ -4,9 +4,11 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Transactions;
 using TaskManagement.API.DapperDbConnections;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace TaskManagement.API.Repositories
 {
@@ -20,7 +22,6 @@ namespace TaskManagement.API.Repositories
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
         }
-
         public async Task<APPROVAL_TASK_INITIATION> GetApprovalTemplateByIdAsync(int MKEY, int APPROVAL_MKEY)
         {
             try
@@ -36,9 +37,10 @@ namespace TaskManagement.API.Repositories
 
                     if (approvalTemplate == null)
                     {
-                        approvalTemplate.ResponseStatus = "Error";
-                        approvalTemplate.Message = "An unexpected error occurred while retrieving the approval template.";
-                        return approvalTemplate; // Return null if no results
+                        var aPPROVAL_TASK_INITIATION = new APPROVAL_TASK_INITIATION();
+                        aPPROVAL_TASK_INITIATION.ResponseStatus = "Error";
+                        aPPROVAL_TASK_INITIATION.Message = "An unexpected error occurred while retrieving the approval template.";
+                        return aPPROVAL_TASK_INITIATION; // Return null if no results
                     }
 
                     // Fetch subtasks
@@ -46,7 +48,7 @@ namespace TaskManagement.API.Repositories
                     approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property with subtasks
 
                     //var subtasks1 = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select * from PROJECT_TRL_APPROVAL_ABBR", commandType: CommandType.Text);
-                    approvalTemplate.ResponseStatus = "Ok";
+                    approvalTemplate.STATUS = "Ok";
                     approvalTemplate.Message = "Get Data Sucessuly";
                     return approvalTemplate;
                 }
@@ -59,14 +61,30 @@ namespace TaskManagement.API.Repositories
                 return aPPROVAL_TASK_INITIATION; // Return null if no results
             }
         }
-
         public async Task<APPROVAL_TASK_INITIATION> CreateTaskApprovalTemplateAsync(APPROVAL_TASK_INITIATION aPPROVAL_TASK_INITIATION)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@TASK_NO", aPPROVAL_TASK_INITIATION.TASK_NO);
                     parmeters.Add("@TASK_NAME", aPPROVAL_TASK_INITIATION.MAIN_ABBR);
@@ -94,19 +112,49 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
                     parmeters.Add("@CREATION_DATE", dateTime);
                     parmeters.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
-                    //parmeters.Add("@LAST_UPDATE_DATE", dateTime);
 
-                    // Fetch approval template
-                    var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters, commandType: CommandType.StoredProcedure);
-                    //int ParentMkeySubtask = 0;
+                    var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (approvalTemplate == null)
+                    {
+                        // Handle other unexpected exceptions
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                              
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                //TranError.Message = ex.Message;
+                                //return TranError;
+                            }
+                        }
+
+                        var TemplateError = new APPROVAL_TASK_INITIATION();
+                        TemplateError.ResponseStatus = "Error";
+                        TemplateError.Message = "Error Occurd";
+                        return TemplateError;
+                    }
+
+                    var parmetersTaskNo = new DynamicParameters();
+                    parmetersTaskNo.Add("@MKEY", aPPROVAL_TASK_INITIATION.HEADER_MKEY);
+                    parmetersTaskNo.Add("@APPROVAL_MKEY", aPPROVAL_TASK_INITIATION.MKEY);
+                    parmetersTaskNo.Add("@TASK_NO_MKEY", approvalTemplate.MKEY);
+
+                    var UpadteTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
+
                     foreach (var SubTask in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
                     {
-
                         var SubParentMkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT MKEY FROM TASK_HDR WHERE ATTRIBUTE4 IN " +
                             " (SELECT SUBTASK_PARENT_ID FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE SUBTASK_MKEY = @APPROVAL_MKEY AND DELETE_FLAG = 'N') " +
                             " AND DELETE_FLAG = 'N' AND ATTRIBUTE5 IN (SELECT MKEY FROM PROJECT_HDR WHERE MKEY = @MKEY AND DELETE_FLAG = 'N') ",
-                            new { APPROVAL_MKEY = SubTask.APPROVAL_MKEY, MKEY = SubTask.MKEY });
-                        var Parent_Mkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT * FROM V_Task_Parent_ID WHERE SUBTASK_PARENT_ID = @SUBTASK_MKEY ", new { SUBTASK_MKEY = SubTask.APPROVAL_MKEY });
+                            new { APPROVAL_MKEY = SubTask.APPROVAL_MKEY, MKEY = SubTask.MKEY }, transaction: transaction);
+                        var Parent_Mkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT * FROM V_Task_Parent_ID " +
+                            "WHERE SUBTASK_PARENT_ID = @SUBTASK_MKEY ", new { SUBTASK_MKEY = SubTask.APPROVAL_MKEY }, transaction: transaction);
 
                         var parmetersSubtask = new DynamicParameters();
                         parmetersSubtask.Add("@TASK_NO", approvalTemplate.TASK_NO);
@@ -152,28 +200,58 @@ namespace TaskManagement.API.Repositories
                         {
                             parmetersSubtask.Add("@ISNODE", "N");
                         }
+                        var approvalSubTemplate = await db.QueryFirstOrDefaultAsync<TASK_HDR>("SP_INSERT_TASK_NODE_DETAILS", parmetersSubtask, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                        var approvalSubTemplate = await db.QueryFirstOrDefaultAsync<TASK_HDR>("SP_INSERT_TASK_NODE_DETAILS", parmetersSubtask, commandType: CommandType.StoredProcedure);
+                        var parmetersSubTaskNo = new DynamicParameters();
+                        parmetersSubTaskNo.Add("@MKEY", approvalSubTemplate.MKEY);
+                        parmetersSubTaskNo.Add("@APPROVAL_MKEY", SubTask.APPROVAL_MKEY);
+                        parmetersSubTaskNo.Add("@TASK_NO_MKEY", approvalSubTemplate.TASK_NO);
+                        parmetersSubtask.Add("@COMPLETION_DATE", SubTask.TENTATIVE_END_DATE);
+                        parmetersSubtask.Add("@TENTATIVE_START_DATE", SubTask.TENTATIVE_START_DATE);
+                        parmetersSubtask.Add("@TENTATIVE_END_DATE", SubTask.TENTATIVE_END_DATE);
+                        parmetersSubtask.Add("@TENTATIVE_END_DATE", SubTask.LONG_DESCRIPTION);
+                        var UpadteSubTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersSubTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
                         //approvalSubTemplate.MKEY 
                         //approvalSubTemplate.TASK_NO
                     }
-                    if (approvalTemplate == null)
-                    {
-                        approvalTemplate.Message = "Error";
-                        approvalTemplate.Message = "Not Found";
-                        return approvalTemplate; // Return null if no results
-                    }
+
+
+                    // Commit the transaction if everything is successful
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;  // Mark the transaction as completed
+
                     return approvalTemplate;
                 }
             }
             catch (Exception ex)
             {
                 // Handle other unexpected exceptions
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        //var TranError = new APPROVAL_TASK_INITIATION();
+                        //TranError.ResponseStatus = "Error";
+                        //TranError.Message = ex.Message;
+                        //return TranError;
+                    }
+                }
+
                 var approvalTemplate = new APPROVAL_TASK_INITIATION();
                 approvalTemplate.ResponseStatus = "Error";
                 approvalTemplate.Message = ex.Message;
                 return approvalTemplate;
             }
         }
+
     }
 }

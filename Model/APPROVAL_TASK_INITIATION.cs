@@ -10,7 +10,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("HEADER_MKEY")]
         public int HEADER_MKEY { get; set; }
 
-
         [JsonPropertyName("TASK_NO")]
         public string? TASK_NO { get; set; }  // SEQ NO
         [JsonPropertyName("BUILDING_MKEY")]
