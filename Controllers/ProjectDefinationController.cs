@@ -67,6 +67,51 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
+                if (pROJECT_HDR.PROJECT_ABBR == null)
+                {
+                    return StatusCode(400, "Please insert remaining details");
+                }
+                if (pROJECT_HDR.PROPERTY == null)
+                {
+                    return StatusCode(400, "Please insert remaining details");
+                }
+                if (pROJECT_HDR.BUILDING_CLASSIFICATION == null)
+                {
+                    return StatusCode(400, "Please insert remaining details");
+                }
+                if (pROJECT_HDR.PROJECT_NAME == null)
+                {
+                    return StatusCode(400, "Please insert remaining details");
+                }
+
+                if (pROJECT_HDR.BUILDING_STANDARD == null)
+                {
+                    return StatusCode(400, "Please insert remaining details");
+                }
+                if (pROJECT_HDR.STATUTORY_AUTHORITY == null)
+                {
+                    return StatusCode(400, "Please insert remaining details");
+                }
+
+                foreach (var subtaskdetails in pROJECT_HDR.APPROVALS_ABBR_LIST)
+                {
+                    if (subtaskdetails.TENTATIVE_START_DATE == null)
+                    {
+                        return StatusCode(400, "Please insert remaining details");
+                    }
+                    if (subtaskdetails.TENTATIVE_END_DATE == null)
+                    {
+                        return StatusCode(400, "Please insert remaining details");
+                    }
+                    if (subtaskdetails.STATUS == null)
+                    {
+                        return StatusCode(400, "Please insert remaining details");
+                    }
+                    if (subtaskdetails.DAYS_REQUIRED == null)
+                    {
+                        return StatusCode(400, "Please insert remaining details");
+                    }
+                }
                 var model = await _repository.CreateProjectDefinationAsync(pROJECT_HDR);
                 if (model == null)
                 {
@@ -79,7 +124,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(400, ex.Message);
             }
         }
 

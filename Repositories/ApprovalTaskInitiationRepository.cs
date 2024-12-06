@@ -145,10 +145,22 @@ namespace TaskManagement.API.Repositories
                     parmetersTaskNo.Add("@APPROVAL_MKEY", aPPROVAL_TASK_INITIATION.MKEY);
                     parmetersTaskNo.Add("@TASK_NO_MKEY", approvalTemplate.MKEY);
 
+
                     var UpadteTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    
 
                     foreach (var SubTask in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
                     {
+                        if (sqlConnection.State != ConnectionState.Open)
+                        {
+                            await sqlConnection.OpenAsync();  // Ensure the connection is open
+                        }
+
+                        if (sqlConnection.State == ConnectionState.Open && transaction == null)
+                        {
+                            transaction = sqlConnection.BeginTransaction(); // Start a new transaction
+                        }
+
                         var SubParentMkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT MKEY FROM TASK_HDR WHERE ATTRIBUTE4 IN " +
                             " (SELECT SUBTASK_PARENT_ID FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE SUBTASK_MKEY = @APPROVAL_MKEY AND DELETE_FLAG = 'N') " +
                             " AND DELETE_FLAG = 'N' AND ATTRIBUTE5 IN (SELECT MKEY FROM PROJECT_HDR WHERE MKEY = @MKEY AND DELETE_FLAG = 'N') ",
@@ -191,6 +203,10 @@ namespace TaskManagement.API.Repositories
                         {
                             parmetersSubtask.Add("@TASK_PARENT_ID", SubParentMkey.MKEY);
                         }
+                        else
+                        {
+                            parmetersSubtask.Add("@TASK_PARENT_ID", approvalTemplate.MKEY);
+                        }
 
                         if (Parent_Mkey != null) // IF THIS PARENT THEN IDNODE Y ELSE N
                         {
@@ -203,13 +219,13 @@ namespace TaskManagement.API.Repositories
                         var approvalSubTemplate = await db.QueryFirstOrDefaultAsync<TASK_HDR>("SP_INSERT_TASK_NODE_DETAILS", parmetersSubtask, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         var parmetersSubTaskNo = new DynamicParameters();
-                        parmetersSubTaskNo.Add("@MKEY", approvalSubTemplate.MKEY);
+                        parmetersSubTaskNo.Add("@MKEY", SubTask.MKEY);
                         parmetersSubTaskNo.Add("@APPROVAL_MKEY", SubTask.APPROVAL_MKEY);
-                        parmetersSubTaskNo.Add("@TASK_NO_MKEY", approvalSubTemplate.TASK_NO);
+                        parmetersSubTaskNo.Add("@TASK_NO_MKEY", approvalSubTemplate.MKEY);
                         parmetersSubtask.Add("@COMPLETION_DATE", SubTask.TENTATIVE_END_DATE);
                         parmetersSubtask.Add("@TENTATIVE_START_DATE", SubTask.TENTATIVE_START_DATE);
                         parmetersSubtask.Add("@TENTATIVE_END_DATE", SubTask.TENTATIVE_END_DATE);
-                        parmetersSubtask.Add("@TENTATIVE_END_DATE", SubTask.LONG_DESCRIPTION);
+                        parmetersSubtask.Add("@DAYS_REQUIRED", SubTask.DAYS_REQUIRED);
                         var UpadteSubTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersSubTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
                         //approvalSubTemplate.MKEY 
                         //approvalSubTemplate.TASK_NO
@@ -252,6 +268,5 @@ namespace TaskManagement.API.Repositories
                 return approvalTemplate;
             }
         }
-
     }
 }

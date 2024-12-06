@@ -23,6 +23,7 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
+
                 var TASK = await _repository.GetApprovalTemplateByIdAsync(MKEY, APPROVAL_MKEY);
                 if (TASK == null)
                 {
@@ -75,6 +76,11 @@ namespace TaskManagement.API.Controllers
                 bool flagSeq_no = false;
                 double IndexSeq_NO = 0.0;
 
+                foreach (var ChkDate in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
+                {
+                    //if (ChkDate.TENTATIVE_START_DATE == )
+                }
+
                 if (aPPROVAL_TASK_INITIATION.TASK_NO == null)
                 {
                     var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
@@ -117,6 +123,7 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseStatus);
                 }
+                
 
                 else
                 {
