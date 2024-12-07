@@ -14,11 +14,17 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("TASK_NO")]
         public string TASK_NO { get; set; }  // SEQ NO
 
+        [JsonPropertyName("TAGS")]
+        public string TAGS { get; set; }  // SEQ NO
+
         [JsonPropertyName("APPROVAL_ABBRIVATION")]
         public string? APPROVAL_ABBRIVATION { get; set; }
 
         [JsonPropertyName("LONG_DESCRIPTION")]
         public string? LONG_DESCRIPTION { get; set; }
+
+        [JsonPropertyName("SHORT_DESCRIPTION")]
+        public string? SHORT_DESCRIPTION { get; set; }
 
         [JsonPropertyName("DAYS_REQUIRED")]
         public int? DAYS_REQUIRED { get; set; }
@@ -36,6 +42,8 @@ namespace TaskManagement.API.Model
         public DateTime? TENTATIVE_START_DATE { get; set; }
         [JsonPropertyName("TENTATIVE_END_DATE")]
         public DateTime? TENTATIVE_END_DATE { get; set; }
+        [JsonPropertyName("COMPLITION_DATE")]
+        public string? COMPLITION_DATE { get; set; }
         [JsonPropertyName("STATUS")]
         public string? STATUS { get; set; }
 

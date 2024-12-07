@@ -63,6 +63,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("SUBTASK_LIST")]
         public List<APPROVAL_TASK_INITIATION_TRL_SUBTASK>? SUBTASK_LIST { get; set; } = new List<APPROVAL_TASK_INITIATION_TRL_SUBTASK>();
 
+        [JsonPropertyName("INITIATOR")]
+        public int INITIATOR { get; set; }
+
         public string? ResponseStatus { get; set; }
         public string? Message { get; set; }
     }

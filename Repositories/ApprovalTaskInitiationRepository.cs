@@ -96,12 +96,12 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@ASSIGNED_TO", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY);
                     parmeters.Add("@TAGS", aPPROVAL_TASK_INITIATION.TAGS);
                     parmeters.Add("@ISNODE", "Y");
-                    parmeters.Add("@CLOSE_DATE", null);
+                    parmeters.Add("@CLOSE_DATE", aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE);
                     parmeters.Add("@DUE_DATE", aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE);
                     parmeters.Add("@TASK_PARENT_ID", 0);
                     parmeters.Add("@STATUS", aPPROVAL_TASK_INITIATION.STATUS);
                     parmeters.Add("@STATUS_PERC", 0.0);
-                    parmeters.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                    parmeters.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.INITIATOR);
                     parmeters.Add("@APPROVER_ID", 0);
                     parmeters.Add("@IS_ARCHIVE", null);
                     parmeters.Add("@ATTRIBUTE1", null);
@@ -127,7 +127,7 @@ namespace TaskManagement.API.Repositories
                             }
                             catch (InvalidOperationException rollbackEx)
                             {
-                              
+
                                 Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
                                 //TranError.Message = ex.Message;
                                 //return TranError;
@@ -144,10 +144,10 @@ namespace TaskManagement.API.Repositories
                     parmetersTaskNo.Add("@MKEY", aPPROVAL_TASK_INITIATION.HEADER_MKEY);
                     parmetersTaskNo.Add("@APPROVAL_MKEY", aPPROVAL_TASK_INITIATION.MKEY);
                     parmetersTaskNo.Add("@TASK_NO_MKEY", approvalTemplate.MKEY);
-
+                    parmetersTaskNo.Add("@TENTATIVE_START_DATE", aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE);
 
                     var UpadteTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
-                    
+
 
                     foreach (var SubTask in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
                     {
@@ -175,16 +175,16 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@CATEGORY", aPPROVAL_TASK_INITIATION.CAREGORY);
                         parmetersSubtask.Add("@PROJECT_ID", aPPROVAL_TASK_INITIATION.PROPERTY);
                         parmetersSubtask.Add("@SUBPROJECT_ID", aPPROVAL_TASK_INITIATION.BUILDING_MKEY);
-                        parmetersSubtask.Add("@COMPLETION_DATE", SubTask.TENTATIVE_END_DATE);
+                        parmetersSubtask.Add("@COMPLETION_DATE", SubTask.COMPLITION_DATE);
                         parmetersSubtask.Add("@ASSIGNED_TO", SubTask.RESPOSIBLE_EMP_MKEY);
-                        parmetersSubtask.Add("@TAGS", null);
-                        parmetersSubtask.Add("@CLOSE_DATE", null);
+                        parmetersSubtask.Add("@TAGS", SubTask.TAGS);
+                        parmetersSubtask.Add("@CLOSE_DATE", SubTask.TENTATIVE_END_DATE);
                         parmetersSubtask.Add("@DUE_DATE", SubTask.TENTATIVE_END_DATE);
                         parmetersSubtask.Add("@TASK_PARENT_NODE_ID", approvalTemplate.MKEY);
                         parmetersSubtask.Add("@TASK_PARENT_NUMBER", approvalTemplate.TASK_NO.ToString());
                         parmetersSubtask.Add("@STATUS", SubTask.STATUS);
                         parmetersSubtask.Add("@STATUS_PERC", "0.0");
-                        parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                        parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.INITIATOR);
                         parmetersSubtask.Add("@APPROVER_ID", 0);
                         parmetersSubtask.Add("@IS_ARCHIVE", 'N');
                         parmetersSubtask.Add("@ATTRIBUTE1", null);
@@ -217,26 +217,22 @@ namespace TaskManagement.API.Repositories
                             parmetersSubtask.Add("@ISNODE", "N");
                         }
                         var approvalSubTemplate = await db.QueryFirstOrDefaultAsync<TASK_HDR>("SP_INSERT_TASK_NODE_DETAILS", parmetersSubtask, commandType: CommandType.StoredProcedure, transaction: transaction);
-
                         var parmetersSubTaskNo = new DynamicParameters();
                         parmetersSubTaskNo.Add("@MKEY", SubTask.MKEY);
                         parmetersSubTaskNo.Add("@APPROVAL_MKEY", SubTask.APPROVAL_MKEY);
                         parmetersSubTaskNo.Add("@TASK_NO_MKEY", approvalSubTemplate.MKEY);
-                        parmetersSubtask.Add("@COMPLETION_DATE", SubTask.TENTATIVE_END_DATE);
-                        parmetersSubtask.Add("@TENTATIVE_START_DATE", SubTask.TENTATIVE_START_DATE);
-                        parmetersSubtask.Add("@TENTATIVE_END_DATE", SubTask.TENTATIVE_END_DATE);
-                        parmetersSubtask.Add("@DAYS_REQUIRED", SubTask.DAYS_REQUIRED);
+                        parmetersSubTaskNo.Add("@COMPLETION_DATE", SubTask.TENTATIVE_END_DATE);
+                        parmetersSubTaskNo.Add("@TENTATIVE_START_DATE", SubTask.TENTATIVE_START_DATE);
+                        parmetersSubTaskNo.Add("@TENTATIVE_END_DATE", SubTask.TENTATIVE_END_DATE);
+                        parmetersSubTaskNo.Add("@DAYS_REQUIRED", SubTask.DAYS_REQUIRED);
                         var UpadteSubTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersSubTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
                         //approvalSubTemplate.MKEY 
                         //approvalSubTemplate.TASK_NO
                     }
-
-
                     // Commit the transaction if everything is successful
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;  // Mark the transaction as completed
-
                     return approvalTemplate;
                 }
             }
