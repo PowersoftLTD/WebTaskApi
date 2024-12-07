@@ -15,7 +15,7 @@ namespace TaskManagement.API.Model
         public string TASK_NO { get; set; }  // SEQ NO
 
         [JsonPropertyName("TAGS")]
-        public string TAGS { get; set; }  // SEQ NO
+        public string? TAGS { get; set; }  // SEQ NO
 
         [JsonPropertyName("APPROVAL_ABBRIVATION")]
         public string? APPROVAL_ABBRIVATION { get; set; }

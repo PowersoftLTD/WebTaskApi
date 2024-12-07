@@ -165,8 +165,11 @@ namespace TaskManagement.API.Repositories
                             " (SELECT SUBTASK_PARENT_ID FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE SUBTASK_MKEY = @APPROVAL_MKEY AND DELETE_FLAG = 'N') " +
                             " AND DELETE_FLAG = 'N' AND ATTRIBUTE5 IN (SELECT MKEY FROM PROJECT_HDR WHERE MKEY = @MKEY AND DELETE_FLAG = 'N') ",
                             new { APPROVAL_MKEY = SubTask.APPROVAL_MKEY, MKEY = SubTask.MKEY }, transaction: transaction);
+
+                        var ParentTask_no = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select CONVERT(VARCHAR(50),TASK_NO)AS TASK_NO from TASK_HDR WITH (NOLOCK)  WHERE MKEY = @MKEY",
+                            new { MKEY = SubParentMkey.MKEY }, transaction: transaction);
                         var Parent_Mkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT * FROM V_Task_Parent_ID " +
-                            "WHERE SUBTASK_PARENT_ID = @SUBTASK_MKEY ", new { SUBTASK_MKEY = SubTask.APPROVAL_MKEY }, transaction: transaction);
+                            " WHERE SUBTASK_PARENT_ID = @SUBTASK_MKEY ", new { SUBTASK_MKEY = SubTask.APPROVAL_MKEY }, transaction: transaction);
 
                         var parmetersSubtask = new DynamicParameters();
                         parmetersSubtask.Add("@TASK_NO", approvalTemplate.TASK_NO);
@@ -180,8 +183,8 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@TAGS", SubTask.TAGS);
                         parmetersSubtask.Add("@CLOSE_DATE", SubTask.TENTATIVE_END_DATE);
                         parmetersSubtask.Add("@DUE_DATE", SubTask.TENTATIVE_END_DATE);
-                        parmetersSubtask.Add("@TASK_PARENT_NODE_ID", approvalTemplate.MKEY);
-                        parmetersSubtask.Add("@TASK_PARENT_NUMBER", approvalTemplate.TASK_NO.ToString());
+                        parmetersSubtask.Add("@TASK_PARENT_NODE_ID", SubParentMkey.MKEY); // approvalTemplate.MKEY);
+                        parmetersSubtask.Add("@TASK_PARENT_NUMBER", ParentTask_no.TASK_NO.ToString()); // ParentTask_no
                         parmetersSubtask.Add("@STATUS", SubTask.STATUS);
                         parmetersSubtask.Add("@STATUS_PERC", "0.0");
                         parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.INITIATOR);
@@ -226,6 +229,7 @@ namespace TaskManagement.API.Repositories
                         parmetersSubTaskNo.Add("@TENTATIVE_END_DATE", SubTask.TENTATIVE_END_DATE);
                         parmetersSubTaskNo.Add("@DAYS_REQUIRED", SubTask.DAYS_REQUIRED);
                         var UpadteSubTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersSubTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        //transaction.Rollback();
                         //approvalSubTemplate.MKEY 
                         //approvalSubTemplate.TASK_NO
                     }
@@ -233,7 +237,34 @@ namespace TaskManagement.API.Repositories
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;  // Mark the transaction as completed
-                    return approvalTemplate;
+
+                    using (IDbConnection db_Approval = _dapperDbConnection.CreateConnection())
+                    {
+                        var parmetersApproval = new DynamicParameters();
+                        parmetersApproval.Add("@MKEY", aPPROVAL_TASK_INITIATION.HEADER_MKEY);
+                        parmetersApproval.Add("@APPROVAL_MKEY", aPPROVAL_TASK_INITIATION.MKEY);
+
+                        // Fetch approval template
+                        var AllApprovalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_GET_APPROVAL_TASK_INITIATION", parmetersApproval, commandType: CommandType.StoredProcedure);
+
+                        if (AllApprovalTemplate == null)
+                        {
+                            var TASK_INITIATION = new APPROVAL_TASK_INITIATION();
+                            TASK_INITIATION.ResponseStatus = "Error";
+                            TASK_INITIATION.Message = "An unexpected error occurred while retrieving the approval template.";
+                            return TASK_INITIATION; // Return null if no results
+                        }
+
+                        // Fetch subtasks
+                        var subtasks = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SP_GET_APPROVAL_TASK_INITIATION_TRL_SUBTASK", parmeters, commandType: CommandType.StoredProcedure);
+                        approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property with subtasks
+
+                        //var subtasks1 = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select * from PROJECT_TRL_APPROVAL_ABBR", commandType: CommandType.Text);
+                        AllApprovalTemplate.STATUS = "Ok";
+                        AllApprovalTemplate.Message = "Get Data Sucessuly";
+                        return AllApprovalTemplate;
+                    }
+                    // return approvalTemplate;
                 }
             }
             catch (Exception ex)
