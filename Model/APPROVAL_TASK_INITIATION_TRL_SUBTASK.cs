@@ -7,12 +7,12 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
-        
+
         [Column("APPROVAL_MKEY")]
         public int? APPROVAL_MKEY { get; set; }
 
         [JsonPropertyName("TASK_NO")]
-        public string TASK_NO { get; set; }  // SEQ NO
+        public string? TASK_NO { get; set; }  // SEQ NO
 
         [JsonPropertyName("TAGS")]
         public string? TAGS { get; set; }  // SEQ NO
@@ -46,7 +46,10 @@ namespace TaskManagement.API.Model
         public string? COMPLITION_DATE { get; set; }
         [JsonPropertyName("STATUS")]
         public string? STATUS { get; set; }
-
+        [JsonPropertyName("DELETE_FLAG")]
+        public char? DELETE_FLAG { get; set; }
+        [JsonPropertyName("LAST_UPDATED_BY")]
+        public int? LAST_UPDATED_BY { get; set; }
         public string? TRLStatus { get; set; }
         public string? Message { get; set; }
     }

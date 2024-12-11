@@ -1,6 +1,6 @@
 ﻿namespace TaskManagement.API.Model
 {
-    
+
     public class APPROVAL_TEMPLATE_HDR
     {
         public int MKEY { get; set; }
@@ -31,5 +31,6 @@
         public List<APPROVAL_TEMPLATE_TRL_SUBTASK>? SUBTASK_LIST { get; set; } = new List<APPROVAL_TEMPLATE_TRL_SUBTASK>();
         public string? Status { get; set; }
         public string? Message { get; set; }
+        public Char? DELETE_FLAG { get; set; }
     }
 }

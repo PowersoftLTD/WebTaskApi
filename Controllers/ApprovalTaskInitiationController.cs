@@ -23,7 +23,6 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-
                 var TASK = await _repository.GetApprovalTemplateByIdAsync(MKEY, APPROVAL_MKEY);
                 if (TASK == null)
                 {
@@ -77,11 +76,11 @@ namespace TaskManagement.API.Controllers
                 double IndexSeq_NO = 0.0;
                 string RequiredColumn = string.Empty;
 
-                if (aPPROVAL_TASK_INITIATION.TASK_NO == null)
-                {
-                    flagRequired = true;
-                    RequiredColumn = RequiredColumn + " ,TASK_NO ";
-                }
+                //if (aPPROVAL_TASK_INITIATION.TASK_NO == null)
+                //{
+                //    flagRequired = true;
+                //    RequiredColumn = RequiredColumn + " ,TASK_NO ";
+                //}
                 if (aPPROVAL_TASK_INITIATION.BUILDING_MKEY == null)
                 {
                     flagRequired = true;
@@ -154,11 +153,11 @@ namespace TaskManagement.API.Controllers
                 {
                     if (ChkDate != null)
                     {
-                        if (ChkDate.TASK_NO == null)
-                        {
-                            flagRequired = true;
-                            RequiredColumn = RequiredColumn + " ,TASK_NO ";
-                        }
+                        //if (ChkDate.TASK_NO == null)
+                        //{
+                        //    flagRequired = true;
+                        //    RequiredColumn = RequiredColumn + " ,TASK_NO ";
+                        //}
                         if (ChkDate.APPROVAL_ABBRIVATION == null)
                         {
                             flagRequired = true;
@@ -238,6 +237,71 @@ namespace TaskManagement.API.Controllers
                     Status = "Error",
                     Message = ex.Message,
                     Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPut("Put-Approval-Template-Subtask")]
+        [Authorize]
+        public async Task<IActionResult> UpdateApprovalSubtask(APPROVAL_TASK_INITIATION_TRL_SUBTASK aPPROVAL_TASK_INITIATION_TRL_SUBTASK)
+        {
+            try
+            {
+                bool flagSeq_no = false, flagRequired = false;
+                double IndexSeq_NO = 0.0;
+                string RequiredColumn = string.Empty;
+
+                if (aPPROVAL_TASK_INITIATION_TRL_SUBTASK == null)
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                    {
+                        Status = "Error",
+                        Message = "Please enter the details of Approval Task Initiation " + RequiredColumn,
+                        Data = null // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+                else
+                {
+                    var model = await _repository.UpdateApprovalSubtask(aPPROVAL_TASK_INITIATION_TRL_SUBTASK);
+                    if (model == null)
+                    {
+                        var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                        {
+                            Status = "Error",
+                            Message = model.Message,
+                            Data = null // No data in case of exception
+                        };
+                        return Ok(responseStatus);
+                    }
+                    else if (model.TRLStatus.ToString().ToLower() != "Ok".ToString().ToLower())
+                    {
+                        var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                        {
+                            Status = "Error",
+                            Message = model.Message,
+                            Data = null // No data in case of exception
+                        };
+                        return Ok(responseStatus);
+                    }
+                    
+                    var response = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                    {
+                        Status = "Ok",
+                        Message = "Update Successfully",
+                        Data = model // No data in case of exception
+                    };
+                    return Ok(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = aPPROVAL_TASK_INITIATION_TRL_SUBTASK // No data in case of exception
                 };
                 return Ok(response);
             }

@@ -64,9 +64,10 @@ namespace TaskManagement.API.Repositories
                     {
                         await sqlConnection.OpenAsync();  // Ensure the connection is open
                     }
+
+                    // Start the transaction
                     transaction = db.BeginTransaction();
                     transactionCompleted = false;  // Reset transaction state
-
 
                     var parameters = new DynamicParameters();
                     parameters.Add("@DOC_CATEGORY", dOC_TEMPLATE_HDR.DOC_CATEGORY);
@@ -82,70 +83,67 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@ATTRIBUTE1", dOC_TEMPLATE_HDR.ATTRIBUTE1);
                     parameters.Add("@ATTRIBUTE2", dOC_TEMPLATE_HDR.ATTRIBUTE2);
 
-                    dOC_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<DOC_TEMPLATE_HDR>("SP_INSERT_DOCUMENT_TEMPLATES", parameters, commandType: CommandType.StoredProcedure);
-                    //var pROJECT_APPROVAL_ABBR_LIST = await db.QueryAsync("select * FROM DOC_TEMPLATE_HDR",  commandType: CommandType.Text);
+                    // Ensure the transaction is passed to the query
+                    dOC_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<DOC_TEMPLATE_HDR>(
+                        "SP_INSERT_DOCUMENT_TEMPLATES",
+                        parameters,
+                        transaction: transaction,  // Pass the transaction here
+                        commandType: CommandType.StoredProcedure
+                    );
 
                     if (dOC_TEMPLATE_HDR == null)
                     {
-                        // Handle other unexpected exceptions
+                        // Handle error: rollback if necessary
                         if (transaction != null && !transactionCompleted)
                         {
                             try
                             {
-                                // Rollback only if the transaction is not yet completed
                                 transaction.Rollback();
                             }
                             catch (InvalidOperationException rollbackEx)
                             {
-
                                 Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                //TranError.Message = ex.Message;
-                                //return TranError;
                             }
                         }
 
                         var TemplateError = new DOC_TEMPLATE_HDR();
                         TemplateError.Status = "Error";
-                        TemplateError.Message = "Error Occurd";
-
-                        return dOC_TEMPLATE_HDR;
+                        TemplateError.Message = "Error Occurred";
+                        return TemplateError;
                     }
+
+                    // Commit the transaction if everything succeeded
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
 
-                    var TemplateSuccess = new DOC_TEMPLATE_HDR();
-                    TemplateSuccess.Status = "Ok";
-                    TemplateSuccess.Message = "Data save successfully";
+                    dOC_TEMPLATE_HDR.Status = "Ok";
+                    dOC_TEMPLATE_HDR.Message = "Data saved successfully";
                     return dOC_TEMPLATE_HDR;
                 }
             }
             catch (Exception ex)
             {
+                // Handle the exception and rollback the transaction if necessary
                 if (transaction != null && !transactionCompleted)
                 {
                     try
                     {
-                        // Rollback only if the transaction is not yet completed
                         transaction.Rollback();
                     }
                     catch (InvalidOperationException rollbackEx)
                     {
-                        // Handle rollback exception (may occur if transaction is already completed)
-                        // Log or handle the rollback failure if needed
                         Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                        //var TranError = new APPROVAL_TASK_INITIATION();
-                        //TranError.ResponseStatus = "Error";
-                        //TranError.Message = ex.Message;
-                        //return TranError;
                     }
                 }
+
                 var doc_insert = new DOC_TEMPLATE_HDR();
                 doc_insert.Status = "Error";
                 doc_insert.Message = ex.Message;
                 return doc_insert;
             }
         }
+
         public async Task<bool> UpdateDocumentTemplateAsync(DOC_TEMPLATE_HDR dOC_TEMPLATE_HDR)
         {
             IDbTransaction transaction = null;

@@ -36,7 +36,8 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@ATTRIBUT1", LoggedIN);
                     parmeters.Add("@ATTRIBUT2", FormName);
                     parmeters.Add("@ATTRIBUT3", MethodName);
-                    //var APPROVAL_MKEY = await db.QueryAsync<dynamic>("UPDATE PROJECT_TRL_APPROVAL_ABBR SET APPROVAL_MKEY = 32 WHERE HEADER_MKEY = 5 ", commandType: CommandType.Text);
+                    //var APPROVAL_MKEY = await db.QueryAsync<dynamic>("UPDATE PROJECT_TRL_APPROVAL_ABBR SET APPROVAL_MKEY = 32 WHERE HEADER_MKEY = 5 ",
+                    //commandType: CommandType.Text);
                     var pROJECT_HDRs = await db.QueryAsync<PROJECT_HDR>("SP_GET_PROJECT_DEFINATION", parmeters, commandType: CommandType.StoredProcedure);
                     //var pROJECT_HDRs122 = await db.QueryAsync<PROJECT_HDR>("SELECT\tMKEY ,BUILDING_MKEY AS PROJECT_NAME ,PROJECT_ABBR" +
                     //    " ,PROPERTY ,LEGAL_ENTITY ,PROJECT_ADDRESS ,BUILDING_CLASSIFICATION ,BUILDING_STANDARD" +
@@ -55,7 +56,9 @@ namespace TaskManagement.API.Repositories
                     {
                         // Fetch the associated subtasks
                         var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>(
-                                 "SELECT HEADER_MKEY,SEQ_NO AS TASK_NO,APPROVAL_MKEY, APPROVAL_ABBRIVATION,APPROVAL_DESCRIPTION,DAYS_REQUIRED,DEPARTMENT,JOB_ROLE,RESPOSIBLE_EMP_MKEY,OUTPUT_DOCUMENT,TENTATIVE_START_DATE,TENTATIVE_END_DATE,STATUS FROM PROJECT_TRL_APPROVAL_ABBR WHERE HEADER_MKEY = @HEADER_MKEY",
+                                 " SELECT HEADER_MKEY,SEQ_NO AS TASK_NO,APPROVAL_MKEY, APPROVAL_ABBRIVATION,APPROVAL_DESCRIPTION,DAYS_REQUIRED,DEPARTMENT " +
+                                 ",JOB_ROLE,RESPOSIBLE_EMP_MKEY,OUTPUT_DOCUMENT,TENTATIVE_START_DATE,TENTATIVE_END_DATE,STATUS FROM PROJECT_TRL_APPROVAL_ABBR " +
+                                 " WHERE HEADER_MKEY = @HEADER_MKEY",
                                  new { HEADER_MKEY = apprvalProject.MKEY });
                         apprvalProject.APPROVALS_ABBR_LIST = approvalAbbr.ToList(); // Populate the SUBTASK_LIST property
                     }
@@ -82,10 +85,7 @@ namespace TaskManagement.API.Repositories
 
                     // Fetch the associated subtasks
                     var pROJECT_HDRs = await db.QueryFirstOrDefaultAsync<PROJECT_HDR>("SP_GET_PROJECT_DEFINATION", parmeters, commandType: CommandType.StoredProcedure);
-                    var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>(
-                             "SELECT HEADER_MKEY,SEQ_NO AS TASK_NO,APPROVAL_MKEY,APPROVAL_ABBRIVATION,APPROVAL_DESCRIPTION,DAYS_REQUIRED,DEPARTMENT,JOB_ROLE" +
-                             ",RESPOSIBLE_EMP_MKEY" +
-                             ",OUTPUT_DOCUMENT,TENTATIVE_START_DATE,TENTATIVE_END_DATE,STATUS FROM PROJECT_TRL_APPROVAL_ABBR WHERE HEADER_MKEY = @HEADER_MKEY;",
+                    var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>( "SELECT * FROM  V_APPROVAL_SUBTASK_DETAILS WHERE HEADER_MKEY = @HEADER_MKEY;",
                              new { HEADER_MKEY = pROJECT_HDRs.MKEY });
 
                     pROJECT_HDRs.APPROVALS_ABBR_LIST = approvalAbbr.ToList(); // Populate the SUBTASK_LIST property
@@ -170,7 +170,7 @@ namespace TaskManagement.API.Repositories
                         row["DEPARTMENT"] = approvalsList.DEPARTMENT;
                         row["JOB_ROLE"] = approvalsList.JOB_ROLE;
                         row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
-                        row["STATUS"] = approvalsList.STATUS;
+                        row["STATUS"] = "Ready to Initiate";//approvalsList.STATUS;
                         row["CREATED_BY"] = pROJECT_HDR.CREATED_BY;
                         row["CREATION_DATE"] = dateTime;
 
@@ -218,7 +218,6 @@ namespace TaskManagement.API.Repositories
                 throw new InvalidOperationException("Error while processing the transaction", ex);
             }
         }
-
         public async Task<bool> UpdateProjectDefinationAsync(PROJECT_HDR pROJECT_HDR)
         {
             try
