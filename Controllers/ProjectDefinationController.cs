@@ -69,47 +69,44 @@ namespace TaskManagement.API.Controllers
             {
                 if (pROJECT_HDR.PROJECT_ABBR == null)
                 {
-                    return StatusCode(400, "Please insert remaining details");
+                    return StatusCode(400, "Please insert details of " + pROJECT_HDR.PROJECT_ABBR);
                 }
                 if (pROJECT_HDR.PROPERTY == null)
                 {
-                    return StatusCode(400, "Please insert remaining details");
+                    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.PROPERTY);
                 }
                 if (pROJECT_HDR.BUILDING_CLASSIFICATION == null)
                 {
-                    return StatusCode(400, "Please insert remaining details");
+                    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.BUILDING_CLASSIFICATION);
                 }
                 if (pROJECT_HDR.PROJECT_NAME == null)
                 {
-                    return StatusCode(400, "Please insert remaining details");
+                    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.PROJECT_NAME);
                 }
 
                 if (pROJECT_HDR.BUILDING_STANDARD == null)
                 {
-                    return StatusCode(400, "Please insert remaining details");
+                    return StatusCode(400, "Please insert details of "+ pROJECT_HDR.BUILDING_STANDARD);
                 }
                 if (pROJECT_HDR.STATUTORY_AUTHORITY == null)
                 {
-                    return StatusCode(400, "Please insert remaining details");
+                    return StatusCode(400, "Please insert details of  "+ pROJECT_HDR.STATUTORY_AUTHORITY);
                 }
 
                 foreach (var subtaskdetails in pROJECT_HDR.APPROVALS_ABBR_LIST)
                 {
                     if (subtaskdetails.TENTATIVE_START_DATE == null)
                     {
-                        return StatusCode(400, "Please insert remaining details");
+                        return StatusCode(400, "Please insert details of  " + subtaskdetails.TENTATIVE_START_DATE);
                     }
                     if (subtaskdetails.TENTATIVE_END_DATE == null)
                     {
-                        return StatusCode(400, "Please insert remaining details");
+                        return StatusCode(400, "Please insert details of  " + subtaskdetails.TENTATIVE_END_DATE);
                     }
-                    if (subtaskdetails.STATUS == null)
-                    {
-                        return StatusCode(400, "Please insert remaining details");
-                    }
+                    
                     if (subtaskdetails.DAYS_REQUIRED == null)
                     {
-                        return StatusCode(400, "Please insert remaining details");
+                        return StatusCode(400, "Please insert details of  " + subtaskdetails.DAYS_REQUIRED);
                     }
                 }
                 var model = await _repository.CreateProjectDefinationAsync(pROJECT_HDR);

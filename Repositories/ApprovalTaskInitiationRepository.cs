@@ -35,6 +35,8 @@ namespace TaskManagement.API.Repositories
                     // Fetch approval template
                     var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_GET_APPROVAL_TASK_INITIATION", parmeters, commandType: CommandType.StoredProcedure);
 
+
+
                     if (approvalTemplate == null)
                     {
                         var aPPROVAL_TASK_INITIATION = new APPROVAL_TASK_INITIATION();
@@ -42,7 +44,6 @@ namespace TaskManagement.API.Repositories
                         aPPROVAL_TASK_INITIATION.Message = "An unexpected error occurred while retrieving the approval template.";
                         return aPPROVAL_TASK_INITIATION; // Return null if no results
                     }
-
                     // Fetch subtasks
                     var subtasks = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SP_GET_APPROVAL_TASK_INITIATION_TRL_SUBTASK", parmeters, commandType: CommandType.StoredProcedure);
                     approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property with subtasks

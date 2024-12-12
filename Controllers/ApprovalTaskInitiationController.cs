@@ -153,12 +153,8 @@ namespace TaskManagement.API.Controllers
                 {
                     if (ChkDate != null)
                     {
-                        //if (ChkDate.TASK_NO == null)
-                        //{
-                        //    flagRequired = true;
-                        //    RequiredColumn = RequiredColumn + " ,TASK_NO ";
-                        //}
-                        if (ChkDate.APPROVAL_ABBRIVATION == null)
+                        
+                            if (ChkDate.APPROVAL_ABBRIVATION == null)
                         {
                             flagRequired = true;
                             RequiredColumn = RequiredColumn + " ,APPROVAL_ABBRIVATION ";
@@ -187,6 +183,17 @@ namespace TaskManagement.API.Controllers
                         }
 
                         if (ChkDate.TENTATIVE_END_DATE == null)
+                        {
+                            flagRequired = true;
+                            RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";
+                        }
+
+                        if (aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE <= ChkDate.TENTATIVE_START_DATE)
+                        {
+                            flagRequired = true;
+                            RequiredColumn = RequiredColumn + " ,TENTATIVE_START_DATE ";
+                        }
+                        if (aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE >= ChkDate.TENTATIVE_END_DATE)
                         {
                             flagRequired = true;
                             RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";
@@ -285,7 +292,7 @@ namespace TaskManagement.API.Controllers
                         };
                         return Ok(responseStatus);
                     }
-                    
+
                     var response = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
                     {
                         Status = "Ok",
