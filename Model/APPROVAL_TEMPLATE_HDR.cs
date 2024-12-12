@@ -13,6 +13,7 @@
         public int? AUTHORITY_DEPARTMENT { get; set; }
         public int? RESPOSIBLE_EMP_MKEY { get; set; }
         public int? JOB_ROLE { get; set; }
+        public string? TAGS { get; set; }
         public int? DAYS_REQUIERD { get; set; }
         public string? ATTRIBUTE1 { get; set; }
         public string? ATTRIBUTE2 { get; set; }

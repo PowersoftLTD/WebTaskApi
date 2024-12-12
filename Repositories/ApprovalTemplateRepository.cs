@@ -182,6 +182,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@SANCTION_DEPARTMENT", aPPROVAL_TEMPLATE_HDR.SANCTION_DEPARTMENT);
                     parameters.Add("@END_RESULT_DOC", aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC);
                     parameters.Add("@CHECKLIST_DOC", aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC);
+                    parameters.Add("@TAGS", aPPROVAL_TEMPLATE_HDR.TAGS);
                     parameters.Add("@ATTRIBUTE1", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE1);
                     parameters.Add("@ATTRIBUTE2", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE2);
                     parameters.Add("@ATTRIBUTE3", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE3);
@@ -189,6 +190,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@ATTRIBUTE5", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE5);
                     parameters.Add("@CREATED_BY", aPPROVAL_TEMPLATE_HDR.CREATED_BY);
                     parameters.Add("@LAST_UPDATED_BY", aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY);
+                    parameters.Add("@TAGS", aPPROVAL_TEMPLATE_HDR.TAGS);
                     aPPROVAL_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SP_INSERT_APPROVAL_TEMPLATE", parameters, commandType: CommandType.StoredProcedure);
 
                     DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -200,7 +202,6 @@ namespace TaskManagement.API.Repositories
                     using var transaction = connection.BeginTransaction();
                     try
                     {
-
                         var sqlTransaction = transaction as SqlTransaction;
 
                         if (sqlTransaction == null)
@@ -460,7 +461,10 @@ namespace TaskManagement.API.Repositories
                     var sqlConnection = db as SqlConnection;
                     if (sqlConnection == null)
                     {
-                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                        var approvalTemplate = new APPROVAL_TEMPLATE_HDR();
+                        approvalTemplate.Status = "Error";
+                        approvalTemplate.Message = "The connection must be a SqlConnection to use OpenAsync.";
+                        return approvalTemplate;
                     }
 
                     if (sqlConnection.State != ConnectionState.Open)
@@ -472,6 +476,7 @@ namespace TaskManagement.API.Repositories
                     transactionCompleted = false;  // Reset transaction state
 
                     var parameters = new DynamicParameters();
+                    parameters.Add("@MKEY", aPPROVAL_TEMPLATE_HDR.MKEY);
                     parameters.Add("@BUILDING_TYPE", aPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
                     parameters.Add("@BUILDING_STANDARD", aPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
                     parameters.Add("@STATUTORY_AUTHORITY", aPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
@@ -484,27 +489,49 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@NO_DAYS_REQUIRED", aPPROVAL_TEMPLATE_HDR.DAYS_REQUIERD);
                     parameters.Add("@SANCTION_AUTHORITY", aPPROVAL_TEMPLATE_HDR.SANCTION_AUTHORITY);
                     parameters.Add("@SANCTION_DEPARTMENT", aPPROVAL_TEMPLATE_HDR.SANCTION_DEPARTMENT);
-                    parameters.Add("@END_RESULT_DOC", aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC);
-                    parameters.Add("@CHECKLIST_DOC", aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC);
+                    
+                    //parameters.Add("@CHECKLIST_DOC", aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC);
+                    parameters.Add("@TAGS", aPPROVAL_TEMPLATE_HDR.TAGS);
                     parameters.Add("@ATTRIBUTE1", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE1);
                     parameters.Add("@ATTRIBUTE2", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE2);
-                    parameters.Add("@ATTRIBUTE3", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE3);
-                    parameters.Add("@ATTRIBUTE4", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE4);
-                    parameters.Add("@ATTRIBUTE5", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE5);
-                    parameters.Add("@CREATED_BY", aPPROVAL_TEMPLATE_HDR.CREATED_BY);
                     parameters.Add("@LAST_UPDATED_BY", aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY);
 
                     // Execute stored procedure to insert into APPROVAL_TEMPLATE_HDR
-                    aPPROVAL_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SP_UPDATE_APPROVAL_TEMPLATE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                   var  Updated_APPROVAL_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SP_UPDATE_APPROVAL_TEMPLATE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                    if (aPPROVAL_TEMPLATE_HDR == null)
+                    if (Updated_APPROVAL_TEMPLATE_HDR == null)
                     {
-                        throw new InvalidOperationException("Failed to insert APPROVAL_TEMPLATE_HDR.");
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                                // Handle rollback exception (may occur if transaction is already completed)
+                                // Log or handle the rollback failure if needed
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            }
+                        }
+
+                        var approvalTemplate = new APPROVAL_TEMPLATE_HDR();
+                        approvalTemplate.Status = "Error";
+                        approvalTemplate.Message = "Failed to insert APPROVAL_TEMPLATE_HDR.";
+                        return approvalTemplate;
                     }
 
                     DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
 
                     #region Insert END_RESULT_DOC_LST
+                    var parametersTRL = new DynamicParameters();
+                    parametersTRL.Add("@MKEY", aPPROVAL_TEMPLATE_HDR.MKEY);
+                    parametersTRL.Add("@LOGGED_IN", aPPROVAL_TEMPLATE_HDR.CREATED_BY);
+                    parametersTRL.Add("@STATUS", aPPROVAL_TEMPLATE_HDR.Status);
+                    var DeleteApprovalTrl = await db.QueryFirstOrDefaultAsync<dynamic>("SP_DELETE_APPROVAL_TEMPLATE_TRL", parametersTRL, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                   
                     if (aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST != null)
                     {
                         var dataTable = new DataTable();
@@ -585,9 +612,6 @@ namespace TaskManagement.API.Repositories
                     #endregion
 
                     #region Insert SUBTASK_LIST
-
-
-
                     if (aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null)
                     {
                         var subtaskDataTable = new DataTable();
@@ -637,286 +661,296 @@ namespace TaskManagement.API.Repositories
             }
             catch (Exception ex)
             {
-                if (transaction != null)
+                // Handle other unexpected exceptions
+                if (transaction != null && !transactionCompleted)
                 {
-                    // Cast IDbTransaction to SqlTransaction for rollback
-                    var sqlTransaction = transaction as SqlTransaction;
-                    if (sqlTransaction != null)
+                    try
                     {
-                        await sqlTransaction.RollbackAsync();  // Rollback the entire transaction on error
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
                     }
                 }
-                throw;
+
+                var approvalTemplate = new APPROVAL_TEMPLATE_HDR();
+                approvalTemplate.Status = "Error";
+                approvalTemplate.Message = ex.Message;
+                return approvalTemplate;
             }
         }
 
 
-    ////public async Task<APPROVAL_TEMPLATE_HDR> UpdateApprovalTemplateAsync(APPROVAL_TEMPLATE_HDR aPPROVAL_TEMPLATE_HDR)
-    ////{
-    ////    IDbTransaction transaction = null;
-    ////    bool transactionCompleted = false;
-    ////    try
-    ////    {
+        ////public async Task<APPROVAL_TEMPLATE_HDR> UpdateApprovalTemplateAsync(APPROVAL_TEMPLATE_HDR aPPROVAL_TEMPLATE_HDR)
+        ////{
+        ////    IDbTransaction transaction = null;
+        ////    bool transactionCompleted = false;
+        ////    try
+        ////    {
 
-    ////        using (IDbConnection db = _dapperDbConnection.CreateConnection())
-    ////        {
-    ////            var sqlConnection = db as SqlConnection;
-    ////            if (sqlConnection == null)
-    ////            {
-    ////                throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
-    ////            }
+        ////        using (IDbConnection db = _dapperDbConnection.CreateConnection())
+        ////        {
+        ////            var sqlConnection = db as SqlConnection;
+        ////            if (sqlConnection == null)
+        ////            {
+        ////                throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+        ////            }
 
-    ////            if (sqlConnection.State != ConnectionState.Open)
-    ////            {
-    ////                await sqlConnection.OpenAsync();  // Ensure the connection is open
-    ////            }
+        ////            if (sqlConnection.State != ConnectionState.Open)
+        ////            {
+        ////                await sqlConnection.OpenAsync();  // Ensure the connection is open
+        ////            }
 
-    ////            transaction = db.BeginTransaction();
-    ////            transactionCompleted = false;  // Reset transaction state
+        ////            transaction = db.BeginTransaction();
+        ////            transactionCompleted = false;  // Reset transaction state
 
-    ////            var OBJ_APPROVAL_TEMPLATE_HDR = aPPROVAL_TEMPLATE_HDR;
-    ////            var parameters = new DynamicParameters();
-    ////            parameters.Add("@BUILDING_TYPE", aPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
-    ////            parameters.Add("@BUILDING_STANDARD", aPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
-    ////            parameters.Add("@STATUTORY_AUTHORITY", aPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
-    ////            parameters.Add("@SHORT_DESCRIPTION", aPPROVAL_TEMPLATE_HDR.SHORT_DESCRIPTION);
-    ////            parameters.Add("@LONG_DESCRIPTION", aPPROVAL_TEMPLATE_HDR.LONG_DESCRIPTION);
-    ////            parameters.Add("@ABBR", aPPROVAL_TEMPLATE_HDR.MAIN_ABBR);
-    ////            parameters.Add("@APPROVAL_DEPARTMENT", aPPROVAL_TEMPLATE_HDR.AUTHORITY_DEPARTMENT);
-    ////            parameters.Add("@RESPOSIBLE_EMP_MKEY", aPPROVAL_TEMPLATE_HDR.RESPOSIBLE_EMP_MKEY);
-    ////            parameters.Add("@JOB_ROLE", aPPROVAL_TEMPLATE_HDR.JOB_ROLE);
-    ////            parameters.Add("@NO_DAYS_REQUIRED", aPPROVAL_TEMPLATE_HDR.DAYS_REQUIERD);
-    ////            parameters.Add("@SANCTION_AUTHORITY", aPPROVAL_TEMPLATE_HDR.SANCTION_AUTHORITY);
-    ////            parameters.Add("@SANCTION_DEPARTMENT", aPPROVAL_TEMPLATE_HDR.SANCTION_DEPARTMENT);
-    ////            parameters.Add("@END_RESULT_DOC", aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC);
-    ////            parameters.Add("@CHECKLIST_DOC", aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC);
-    ////            parameters.Add("@ATTRIBUTE1", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE1);
-    ////            parameters.Add("@ATTRIBUTE2", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE2);
-    ////            parameters.Add("@ATTRIBUTE3", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE3);
-    ////            parameters.Add("@ATTRIBUTE4", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE4);
-    ////            parameters.Add("@ATTRIBUTE5", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE5);
-    ////            parameters.Add("@CREATED_BY", aPPROVAL_TEMPLATE_HDR.CREATED_BY);
-    ////            parameters.Add("@LAST_UPDATED_BY", aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY);
-    ////            aPPROVAL_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SP_INSERT_APPROVAL_TEMPLATE", parameters, commandType: CommandType.StoredProcedure);
+        ////            var OBJ_APPROVAL_TEMPLATE_HDR = aPPROVAL_TEMPLATE_HDR;
+        ////            var parameters = new DynamicParameters();
+        ////            parameters.Add("@BUILDING_TYPE", aPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
+        ////            parameters.Add("@BUILDING_STANDARD", aPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
+        ////            parameters.Add("@STATUTORY_AUTHORITY", aPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
+        ////            parameters.Add("@SHORT_DESCRIPTION", aPPROVAL_TEMPLATE_HDR.SHORT_DESCRIPTION);
+        ////            parameters.Add("@LONG_DESCRIPTION", aPPROVAL_TEMPLATE_HDR.LONG_DESCRIPTION);
+        ////            parameters.Add("@ABBR", aPPROVAL_TEMPLATE_HDR.MAIN_ABBR);
+        ////            parameters.Add("@APPROVAL_DEPARTMENT", aPPROVAL_TEMPLATE_HDR.AUTHORITY_DEPARTMENT);
+        ////            parameters.Add("@RESPOSIBLE_EMP_MKEY", aPPROVAL_TEMPLATE_HDR.RESPOSIBLE_EMP_MKEY);
+        ////            parameters.Add("@JOB_ROLE", aPPROVAL_TEMPLATE_HDR.JOB_ROLE);
+        ////            parameters.Add("@NO_DAYS_REQUIRED", aPPROVAL_TEMPLATE_HDR.DAYS_REQUIERD);
+        ////            parameters.Add("@SANCTION_AUTHORITY", aPPROVAL_TEMPLATE_HDR.SANCTION_AUTHORITY);
+        ////            parameters.Add("@SANCTION_DEPARTMENT", aPPROVAL_TEMPLATE_HDR.SANCTION_DEPARTMENT);
+        ////            parameters.Add("@END_RESULT_DOC", aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC);
+        ////            parameters.Add("@CHECKLIST_DOC", aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC);
+        ////            parameters.Add("@ATTRIBUTE1", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE1);
+        ////            parameters.Add("@ATTRIBUTE2", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE2);
+        ////            parameters.Add("@ATTRIBUTE3", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE3);
+        ////            parameters.Add("@ATTRIBUTE4", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE4);
+        ////            parameters.Add("@ATTRIBUTE5", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE5);
+        ////            parameters.Add("@CREATED_BY", aPPROVAL_TEMPLATE_HDR.CREATED_BY);
+        ////            parameters.Add("@LAST_UPDATED_BY", aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY);
+        ////            aPPROVAL_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SP_INSERT_APPROVAL_TEMPLATE", parameters, commandType: CommandType.StoredProcedure);
 
-    ////            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+        ////            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
 
-    ////            // using var connection = new SqlConnection(_connectionString);
-    ////            //await connection.OpenAsync();
+        ////            // using var connection = new SqlConnection(_connectionString);
+        ////            //await connection.OpenAsync();
 
-    ////            // Use BeginTransaction() (synchronously) to get a SqlTransaction END_RESULT_DOC_LST
-    ////            // using var transaction = connection.BeginTransaction();
-    ////            try
-    ////            {
+        ////            // Use BeginTransaction() (synchronously) to get a SqlTransaction END_RESULT_DOC_LST
+        ////            // using var transaction = connection.BeginTransaction();
+        ////            try
+        ////            {
 
-    ////                var sqlTransaction = transaction as SqlTransaction;
+        ////                var sqlTransaction = transaction as SqlTransaction;
 
-    ////                if (sqlTransaction == null)
-    ////                {
-    ////                    throw new InvalidOperationException("Transaction is not of type SqlTransaction.");
-    ////                }
+        ////                if (sqlTransaction == null)
+        ////                {
+        ////                    throw new InvalidOperationException("Transaction is not of type SqlTransaction.");
+        ////                }
 
-    ////                // Create a DataTable for bulk insert END_RESULT_DOC_LST
-    ////                var dataTable = new DataTable();
-    ////                dataTable.Columns.Add("MKEY", typeof(int));
-    ////                dataTable.Columns.Add("SR_NO", typeof(int));
-    ////                dataTable.Columns.Add("DOCUMENT_NAME", typeof(string));
-    ////                dataTable.Columns.Add("DOCUMENT_CATEGORY", typeof(string));
-    ////                dataTable.Columns.Add("ATTRIBUTE1", typeof(string));
-    ////                dataTable.Columns.Add("ATTRIBUTE2", typeof(string));
-    ////                dataTable.Columns.Add("ATTRIBUTE3", typeof(string));
-    ////                dataTable.Columns.Add("ATTRIBUTE4", typeof(string));
-    ////                dataTable.Columns.Add("ATTRIBUTE5", typeof(string));
-    ////                dataTable.Columns.Add("CREATED_BY", typeof(int));
-    ////                dataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
-    ////                dataTable.Columns.Add("LAST_UPDATED_BY", typeof(int));
-    ////                dataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
-    ////                dataTable.Columns.Add("DELETE_FLAG", typeof(char));
+        ////                // Create a DataTable for bulk insert END_RESULT_DOC_LST
+        ////                var dataTable = new DataTable();
+        ////                dataTable.Columns.Add("MKEY", typeof(int));
+        ////                dataTable.Columns.Add("SR_NO", typeof(int));
+        ////                dataTable.Columns.Add("DOCUMENT_NAME", typeof(string));
+        ////                dataTable.Columns.Add("DOCUMENT_CATEGORY", typeof(string));
+        ////                dataTable.Columns.Add("ATTRIBUTE1", typeof(string));
+        ////                dataTable.Columns.Add("ATTRIBUTE2", typeof(string));
+        ////                dataTable.Columns.Add("ATTRIBUTE3", typeof(string));
+        ////                dataTable.Columns.Add("ATTRIBUTE4", typeof(string));
+        ////                dataTable.Columns.Add("ATTRIBUTE5", typeof(string));
+        ////                dataTable.Columns.Add("CREATED_BY", typeof(int));
+        ////                dataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
+        ////                dataTable.Columns.Add("LAST_UPDATED_BY", typeof(int));
+        ////                dataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
+        ////                dataTable.Columns.Add("DELETE_FLAG", typeof(char));
 
-    ////                if (OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST != null)
-    ////                {
-    ////                    var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY ", new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
-    ////                    // Populate the DataTable with product data
-    ////                    foreach (var END_DOC_LIST in OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST)
-    ////                    {
-    ////                        dataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, SR_No, END_DOC_LIST.Key, END_DOC_LIST.Value, null, null, null, null, null, aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
-    ////                        SR_No = SR_No + 1;
-    ////                    }
-    ////                    SR_No = 0;
+        ////                if (OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST != null)
+        ////                {
+        ////                    var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY ", new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
+        ////                    // Populate the DataTable with product data
+        ////                    foreach (var END_DOC_LIST in OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST)
+        ////                    {
+        ////                        dataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, SR_No, END_DOC_LIST.Key, END_DOC_LIST.Value, null, null, null, null, null, aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+        ////                        SR_No = SR_No + 1;
+        ////                    }
+        ////                    SR_No = 0;
 
-    ////                    // Use SqlBulkCopy for bulk insert
-    ////                    using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, transaction)
-    ////                    {
-    ////                        DestinationTableName = "APPROVAL_TEMPLATE_TRL_ENDRESULT"
-    ////                    };
+        ////                    // Use SqlBulkCopy for bulk insert
+        ////                    using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, transaction)
+        ////                    {
+        ////                        DestinationTableName = "APPROVAL_TEMPLATE_TRL_ENDRESULT"
+        ////                    };
 
-    ////                    // Execute the bulk copy
-    ////                    await bulkCopy.WriteToServerAsync(dataTable);
+        ////                    // Execute the bulk copy
+        ////                    await bulkCopy.WriteToServerAsync(dataTable);
 
-    ////                    // Commit transaction
-    ////                    await transaction.CommitAsync();
+        ////                    // Commit transaction
+        ////                    await transaction.CommitAsync();
 
-    ////                    /*
-    ////                     * TO GET INSERTED VALUE IN END RESULT
-    ////                     * */
-    ////                    // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
-    ////                    string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY";
-    ////                    var keyValuePairs = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
+        ////                    /*
+        ////                     * TO GET INSERTED VALUE IN END RESULT
+        ////                     * */
+        ////                    // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
+        ////                    string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY";
+        ////                    var keyValuePairs = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
 
-    ////                    // Initialize the END_RESULT_DOC_LST dictionary
-    ////                    aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST = new Dictionary<string, object>();
+        ////                    // Initialize the END_RESULT_DOC_LST dictionary
+        ////                    aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST = new Dictionary<string, object>();
 
-    ////                    // Populate the dictionary with the key-value pairs
-    ////                    foreach (var item in keyValuePairs)
-    ////                    {
-    ////                        // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-    ////                        aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-    ////                    }
-    ////                }
-    ////                /*-------------------------------------------------------------------------------------------------------------------
-    ////                TO INSERT END RESULT LIST
-    ////                */
-
-
-    ////                //-------------------------------------------------------------------------------------------------------------------
-    ////                /*-------------------------------------------------------------------------------------------------------------------
-    ////               TO INSERT CHECK LIST
-    ////               */
-    ////                // Populate the DataTable with product data
-    ////                dataTable.Rows.Clear();
-    ////                using var transactionCheckList = sqlConnection.BeginTransaction();
-
-    ////                if (OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST != null)
-    ////                {
-    ////                    var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t " +
-    ////                        "WHERE MKEY = @MKEY ", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
-
-    ////                    foreach (var CHECK_LIST in OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST)
-    ////                    {
-    ////                        dataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, SR_No, CHECK_LIST.Key, CHECK_LIST.Value, null, null, null, null, null,
-    ////                            aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY
-    ////                            , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
-    ////                        SR_No = SR_No + 1;
-    ////                    }
-    ////                    SR_No = 0;
-
-    ////                    // Use SqlBulkCopy for bulk insert
-    ////                    using var bulkCopyCheckList = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transactionCheckList)
-    ////                    {
-    ////                        DestinationTableName = "APPROVAL_TEMPLATE_TRL_CHECKLIST"
-    ////                    };
-
-    ////                    // Execute the bulk copy
-    ////                    await bulkCopyCheckList.WriteToServerAsync(dataTable);
-
-    ////                    // Commit transaction
-    ////                    await transactionCheckList.CommitAsync();
+        ////                    // Populate the dictionary with the key-value pairs
+        ////                    foreach (var item in keyValuePairs)
+        ////                    {
+        ////                        // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+        ////                        aPPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+        ////                    }
+        ////                }
+        ////                /*-------------------------------------------------------------------------------------------------------------------
+        ////                TO INSERT END RESULT LIST
+        ////                */
 
 
-    ////                    // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
-    ////                    var sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY";
-    ////                    var keyValuePairs = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
+        ////                //-------------------------------------------------------------------------------------------------------------------
+        ////                /*-------------------------------------------------------------------------------------------------------------------
+        ////               TO INSERT CHECK LIST
+        ////               */
+        ////                // Populate the DataTable with product data
+        ////                dataTable.Rows.Clear();
+        ////                using var transactionCheckList = sqlConnection.BeginTransaction();
 
-    ////                    // Initialize the END_RESULT_DOC_LST dictionary
-    ////                    aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST = new Dictionary<string, object>();
+        ////                if (OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST != null)
+        ////                {
+        ////                    var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t " +
+        ////                        "WHERE MKEY = @MKEY ", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
 
-    ////                    // Populate the dictionary with the key-value pairs
-    ////                    foreach (var item in keyValuePairs)
-    ////                    {
-    ////                        // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-    ////                        aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-    ////                    }
-    ////                }
+        ////                    foreach (var CHECK_LIST in OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST)
+        ////                    {
+        ////                        dataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, SR_No, CHECK_LIST.Key, CHECK_LIST.Value, null, null, null, null, null,
+        ////                            aPPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), aPPROVAL_TEMPLATE_HDR.LAST_UPDATED_BY
+        ////                            , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+        ////                        SR_No = SR_No + 1;
+        ////                    }
+        ////                    SR_No = 0;
 
-    ////                //------------------------------------------------------------------------------------------------------------------------------
-    ////            }
-    ////            catch
-    ////            {
-    ////                await transaction.RollbackAsync();
-    ////                throw;
-    ////            }
+        ////                    // Use SqlBulkCopy for bulk insert
+        ////                    using var bulkCopyCheckList = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transactionCheckList)
+        ////                    {
+        ////                        DestinationTableName = "APPROVAL_TEMPLATE_TRL_CHECKLIST"
+        ////                    };
 
-    ////            using var transactionSubTask = sqlConnection.BeginTransaction();
-    ////            try
-    ////            {
-    ////                // Create a DataTable for bulk insert of subtasks (SEQNO, SRNO, ABBR)
-    ////                var subtaskDataTable = new DataTable();
-    ////                subtaskDataTable.Columns.Add("HEADER_MKEY", typeof(int));
-    ////                subtaskDataTable.Columns.Add("SEQ_NO", typeof(string));  // task_no
-    ////                subtaskDataTable.Columns.Add("SUBTASK_ABBR", typeof(string));
-    ////                subtaskDataTable.Columns.Add("SUBTASK_MKEY", typeof(int));
-    ////                subtaskDataTable.Columns.Add("SUBTASK_PARENT_ID", typeof(int));
-    ////                subtaskDataTable.Columns.Add("ATTRIBUTE1", typeof(string));
-    ////                subtaskDataTable.Columns.Add("ATTRIBUTE2", typeof(string));
-    ////                subtaskDataTable.Columns.Add("ATTRIBUTE3", typeof(string));
-    ////                subtaskDataTable.Columns.Add("ATTRIBUTE4", typeof(string));
-    ////                subtaskDataTable.Columns.Add("ATTRIBUTE5", typeof(string));
-    ////                subtaskDataTable.Columns.Add("ATTRIBUTE6", typeof(string));
-    ////                subtaskDataTable.Columns.Add("ATTRIBUTE7", typeof(string));
-    ////                subtaskDataTable.Columns.Add("ATTRIBUTE8", typeof(string));
-    ////                subtaskDataTable.Columns.Add("CREATED_BY", typeof(int));
-    ////                subtaskDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
-    ////                subtaskDataTable.Columns.Add("LAST_UPDATED_BY", typeof(int));
-    ////                subtaskDataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
-    ////                subtaskDataTable.Columns.Add("DELETE_FLAG", typeof(char));
-    ////                bool flagID = false;
-    ////                if (OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null)
-    ////                {
-    ////                    // Populate the DataTable with subtasks
-    ////                    foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
-    ////                    {
-    ////                        subtaskDataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY, aPPROVAL_TEMPLATE_HDR.MKEY, null, null, null, null, null, null, null, null, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
-    ////                    }
+        ////                    // Execute the bulk copy
+        ////                    await bulkCopyCheckList.WriteToServerAsync(dataTable);
 
-    ////                    // Use SqlBulkCopy to insert subtasks
-    ////                    using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, transactionSubTask)
-    ////                    {
-    ////                        DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"  // Ensure this matches your table name
-    ////                    };
-
-    ////                    await bulkCopy.WriteToServerAsync(subtaskDataTable);
-
-    ////                    // Commit the transactionSubTask
-    ////                    await transactionSubTask.CommitAsync();
-
-    ////                    // Optionally, fetch the inserted values (if necessary)
-    ////                    string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY,SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY";
-    ////                    var subtaskKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
-
-    ////                    // Assuming the model has a SUBTASK_LIST dictionary to hold these values
-    ////                    aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST = new List<APPROVAL_TEMPLATE_TRL_SUBTASK>();  // Assuming Subtask is a class for this data
-
-    ////                    foreach (var item in subtaskKeyValuePairs)
-    ////                    {
-    ////                        aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Add(new APPROVAL_TEMPLATE_TRL_SUBTASK
-    ////                        {
-    ////                            HEADER_MKEY = item.HEADER_MKEY,
-    ////                            SEQ_NO = item.SEQ_NO,
-    ////                            SUBTASK_MKEY = item.SUBTASK_MKEY,
-    ////                            SUBTASK_ABBR = item.SUBTASK_ABBR
-    ////                        });
-    ////                    }
-    ////                }
-    ////                return aPPROVAL_TEMPLATE_HDR;
-    ////            }
-    ////            catch (Exception ex)
-    ////            {
-    ////                await transaction.RollbackAsync();
-    ////                throw;
-    ////            }
-    ////            return aPPROVAL_TEMPLATE_HDR;
-    ////        }
-    ////    }
-    ////    catch (SqlException ex)
-    ////    {
-    ////        return aPPROVAL_TEMPLATE_HDR;
-    ////    }
-    ////    catch (Exception ex)
-    ////    {
-    ////        return aPPROVAL_TEMPLATE_HDR;
-    ////    }
-    ////}
+        ////                    // Commit transaction
+        ////                    await transactionCheckList.CommitAsync();
 
 
-}
+        ////                    // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
+        ////                    var sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY";
+        ////                    var keyValuePairs = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
+
+        ////                    // Initialize the END_RESULT_DOC_LST dictionary
+        ////                    aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST = new Dictionary<string, object>();
+
+        ////                    // Populate the dictionary with the key-value pairs
+        ////                    foreach (var item in keyValuePairs)
+        ////                    {
+        ////                        // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+        ////                        aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+        ////                    }
+        ////                }
+
+        ////                //------------------------------------------------------------------------------------------------------------------------------
+        ////            }
+        ////            catch
+        ////            {
+        ////                await transaction.RollbackAsync();
+        ////                throw;
+        ////            }
+
+        ////            using var transactionSubTask = sqlConnection.BeginTransaction();
+        ////            try
+        ////            {
+        ////                // Create a DataTable for bulk insert of subtasks (SEQNO, SRNO, ABBR)
+        ////                var subtaskDataTable = new DataTable();
+        ////                subtaskDataTable.Columns.Add("HEADER_MKEY", typeof(int));
+        ////                subtaskDataTable.Columns.Add("SEQ_NO", typeof(string));  // task_no
+        ////                subtaskDataTable.Columns.Add("SUBTASK_ABBR", typeof(string));
+        ////                subtaskDataTable.Columns.Add("SUBTASK_MKEY", typeof(int));
+        ////                subtaskDataTable.Columns.Add("SUBTASK_PARENT_ID", typeof(int));
+        ////                subtaskDataTable.Columns.Add("ATTRIBUTE1", typeof(string));
+        ////                subtaskDataTable.Columns.Add("ATTRIBUTE2", typeof(string));
+        ////                subtaskDataTable.Columns.Add("ATTRIBUTE3", typeof(string));
+        ////                subtaskDataTable.Columns.Add("ATTRIBUTE4", typeof(string));
+        ////                subtaskDataTable.Columns.Add("ATTRIBUTE5", typeof(string));
+        ////                subtaskDataTable.Columns.Add("ATTRIBUTE6", typeof(string));
+        ////                subtaskDataTable.Columns.Add("ATTRIBUTE7", typeof(string));
+        ////                subtaskDataTable.Columns.Add("ATTRIBUTE8", typeof(string));
+        ////                subtaskDataTable.Columns.Add("CREATED_BY", typeof(int));
+        ////                subtaskDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
+        ////                subtaskDataTable.Columns.Add("LAST_UPDATED_BY", typeof(int));
+        ////                subtaskDataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
+        ////                subtaskDataTable.Columns.Add("DELETE_FLAG", typeof(char));
+        ////                bool flagID = false;
+        ////                if (OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null)
+        ////                {
+        ////                    // Populate the DataTable with subtasks
+        ////                    foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
+        ////                    {
+        ////                        subtaskDataTable.Rows.Add(aPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY, aPPROVAL_TEMPLATE_HDR.MKEY, null, null, null, null, null, null, null, null, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+        ////                    }
+
+        ////                    // Use SqlBulkCopy to insert subtasks
+        ////                    using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, transactionSubTask)
+        ////                    {
+        ////                        DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"  // Ensure this matches your table name
+        ////                    };
+
+        ////                    await bulkCopy.WriteToServerAsync(subtaskDataTable);
+
+        ////                    // Commit the transactionSubTask
+        ////                    await transactionSubTask.CommitAsync();
+
+        ////                    // Optionally, fetch the inserted values (if necessary)
+        ////                    string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY,SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY";
+        ////                    var subtaskKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
+
+        ////                    // Assuming the model has a SUBTASK_LIST dictionary to hold these values
+        ////                    aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST = new List<APPROVAL_TEMPLATE_TRL_SUBTASK>();  // Assuming Subtask is a class for this data
+
+        ////                    foreach (var item in subtaskKeyValuePairs)
+        ////                    {
+        ////                        aPPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Add(new APPROVAL_TEMPLATE_TRL_SUBTASK
+        ////                        {
+        ////                            HEADER_MKEY = item.HEADER_MKEY,
+        ////                            SEQ_NO = item.SEQ_NO,
+        ////                            SUBTASK_MKEY = item.SUBTASK_MKEY,
+        ////                            SUBTASK_ABBR = item.SUBTASK_ABBR
+        ////                        });
+        ////                    }
+        ////                }
+        ////                return aPPROVAL_TEMPLATE_HDR;
+        ////            }
+        ////            catch (Exception ex)
+        ////            {
+        ////                await transaction.RollbackAsync();
+        ////                throw;
+        ////            }
+        ////            return aPPROVAL_TEMPLATE_HDR;
+        ////        }
+        ////    }
+        ////    catch (SqlException ex)
+        ////    {
+        ////        return aPPROVAL_TEMPLATE_HDR;
+        ////    }
+        ////    catch (Exception ex)
+        ////    {
+        ////        return aPPROVAL_TEMPLATE_HDR;
+        ////    }
+        ////}
+
+
+    }
 }

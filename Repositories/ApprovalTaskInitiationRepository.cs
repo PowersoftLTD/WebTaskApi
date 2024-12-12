@@ -154,7 +154,6 @@ namespace TaskManagement.API.Repositories
 
                     foreach (var SubTask in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
                     {
-                        //transaction.Rollback();
                         if (SubTask.APPROVAL_MKEY == aPPROVAL_TASK_INITIATION.MKEY)
                         {
                             continue;
@@ -174,9 +173,6 @@ namespace TaskManagement.API.Repositories
                             " AND DELETE_FLAG = 'N' AND ATTRIBUTE5 IN (SELECT MKEY FROM PROJECT_HDR WHERE MKEY = @MKEY AND DELETE_FLAG = 'N') ",
                             new { APPROVAL_MKEY = SubTask.APPROVAL_MKEY, MKEY = SubTask.MKEY }, transaction: transaction);
                         string TaskPrentNo = string.Empty;
-
-                        //var tsting = await db.QueryFirstOrDefaultAsync<PROJECT_TRL_APPROVAL_ABBR>("select TASK_NO_MKEY as TASK_NO  from  PROJECT_TRL_APPROVAL_ABBR where  HEADER_MKEY = 67 AND APPROVAL_MKEY = 11 ", transaction: transaction);
-                        //var tstingTASK = await db.QueryFirstOrDefaultAsync<PROJECT_TRL_APPROVAL_ABBR>("select * from TASK_HDR where mkey = 9345 ", transaction: transaction);
 
                         if (SubParentMkey != null)
                         {
@@ -253,9 +249,6 @@ namespace TaskManagement.API.Repositories
                         parmetersSubTaskNo.Add("@TAGS", SubTask.TAGS);
 
                         var UpadteSubTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersSubTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
-                        //transaction.Rollback();
-                        //approvalSubTemplate.MKEY 
-                        //approvalSubTemplate.TASK_NO
 
                     }
                     // Commit the transaction if everything is successful
@@ -289,7 +282,6 @@ namespace TaskManagement.API.Repositories
                         AllApprovalTemplate.Message = "Data save successfully";
                         return AllApprovalTemplate;
                     }
-                    // return approvalTemplate;
                 }
             }
             catch (Exception ex)
@@ -420,10 +412,6 @@ namespace TaskManagement.API.Repositories
                         // Handle rollback exception (may occur if transaction is already completed)
                         // Log or handle the rollback failure if needed
                         Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                        //var TranError = new aPPROVAL_TEMPLATE_HDR();
-                        //TranError.ResponseStatus = "Error";
-                        //TranError.Message = ex.Message;
-                        //return TranError;
                     }
                 }
 

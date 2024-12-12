@@ -55,14 +55,10 @@ namespace TaskManagement.API.Repositories
                     foreach (var apprvalProject in pROJECT_HDRs)
                     {
                         // Fetch the associated subtasks
-                        var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>(
-                                 " SELECT HEADER_MKEY,SEQ_NO AS TASK_NO,APPROVAL_MKEY, APPROVAL_ABBRIVATION,APPROVAL_DESCRIPTION,DAYS_REQUIRED,DEPARTMENT " +
-                                 ",JOB_ROLE,RESPOSIBLE_EMP_MKEY,OUTPUT_DOCUMENT,TENTATIVE_START_DATE,TENTATIVE_END_DATE,STATUS FROM PROJECT_TRL_APPROVAL_ABBR " +
-                                 " WHERE HEADER_MKEY = @HEADER_MKEY",
+                        var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>("SELECT * FROM  V_APPROVAL_SUBTASK_DETAILS WHERE HEADER_MKEY = @HEADER_MKEY;",
                                  new { HEADER_MKEY = apprvalProject.MKEY });
                         apprvalProject.APPROVALS_ABBR_LIST = approvalAbbr.ToList(); // Populate the SUBTASK_LIST property
                     }
-
                     return pROJECT_HDRs;
                 }
             }
