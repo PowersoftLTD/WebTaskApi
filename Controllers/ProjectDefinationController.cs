@@ -86,11 +86,11 @@ namespace TaskManagement.API.Controllers
 
                 if (pROJECT_HDR.BUILDING_STANDARD == null)
                 {
-                    return StatusCode(400, "Please insert details of "+ pROJECT_HDR.BUILDING_STANDARD);
+                    return StatusCode(400, "Please insert details of " + pROJECT_HDR.BUILDING_STANDARD);
                 }
                 if (pROJECT_HDR.STATUTORY_AUTHORITY == null)
                 {
-                    return StatusCode(400, "Please insert details of  "+ pROJECT_HDR.STATUTORY_AUTHORITY);
+                    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.STATUTORY_AUTHORITY);
                 }
 
                 foreach (var subtaskdetails in pROJECT_HDR.APPROVALS_ABBR_LIST)
@@ -103,7 +103,7 @@ namespace TaskManagement.API.Controllers
                     {
                         return StatusCode(400, "Please insert details of  " + subtaskdetails.TENTATIVE_END_DATE);
                     }
-                    
+
                     if (subtaskdetails.DAYS_REQUIRED == null)
                     {
                         return StatusCode(400, "Please insert details of  " + subtaskdetails.DAYS_REQUIRED);
@@ -169,7 +169,6 @@ namespace TaskManagement.API.Controllers
                 }
             }
             return NoContent();
-
         }
 
         [HttpGet("ProjectDefination/Get-Approval-Details")]

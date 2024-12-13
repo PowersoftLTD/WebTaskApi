@@ -684,6 +684,67 @@ namespace TaskManagement.API.Repositories
             }
         }
 
+        public async Task<bool> DeleteApprovalTemplateAsync(int MKEY, int LAST_UPDATED_BY)
+        {
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        return true;
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = sqlConnection.BeginTransaction();  // Begin a SqlTransaction
+                    transactionCompleted = false;  // Reset transaction state
+
+                    DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+
+                    var parametersTRL = new DynamicParameters();
+                    parametersTRL.Add("@MKEY", MKEY);
+                    parametersTRL.Add("@LAST_UPDATED_BY", LAST_UPDATED_BY);
+                    var DeleteApprovalTrl = await db.QueryFirstOrDefaultAsync<dynamic>("SP_DELETE_APPROVAL_HDR_TRL_SUBTASK", parametersTRL, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    
+                    var sqlTransaction = transaction as SqlTransaction;
+                    if (sqlTransaction != null)
+                    {
+                        await sqlTransaction.CommitAsync();  // Commit the entire transaction
+                    }
+
+                    transactionCompleted = true;
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle other unexpected exceptions
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+               return false;
+            }
+        }
+
 
         ////public async Task<APPROVAL_TEMPLATE_HDR> UpdateApprovalTemplateAsync(APPROVAL_TEMPLATE_HDR aPPROVAL_TEMPLATE_HDR)
         ////{

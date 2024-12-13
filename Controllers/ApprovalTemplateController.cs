@@ -224,6 +224,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseStatus);
                 }
+                if (model.Status.ToLower() != "Ok".ToString().ToLower())
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    {
+                        Status = "Error",
+                        Message = model.Message,
+                        Data = aPPROVAL_TEMPLATE_HDR // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
                 else
                 {
                     model.Status = "Ok";
@@ -243,5 +253,73 @@ namespace TaskManagement.API.Controllers
                 return Ok(responseStatus);
             }
         }
+
+        [HttpDelete("ApprovalTemplate/Delete-Task")]
+        [Authorize]
+        public async Task<IActionResult> DeleteApprovalTemplate(int MKEY,int LAST_UPDATED_BY)
+        {
+            try
+            {
+                // Check if the template exists
+                var ApprovaleTemplateDetails = await _repository.GetApprovalTemplateByIdAsync(MKEY, Convert.ToInt32(LAST_UPDATED_BY));
+                if (ApprovaleTemplateDetails == null)
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Mkey not found",
+                        Data = null // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+
+                // If MKEY doesn't match the found template's MKEY
+                if (MKEY != ApprovaleTemplateDetails.MKEY)
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Data not match",
+                        Data = null // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+
+                // Attempt to delete the approval template
+                var Deletemodel = await _repository.DeleteApprovalTemplateAsync(MKEY, LAST_UPDATED_BY);
+                if (Deletemodel)
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    {
+                        Status = "Ok",
+                        Message = "Row Deleted",
+                        Data = null // No data in case of exception
+                    };
+                    return Ok(responseStatus); // Ensure returning response when deletion is successful
+                }
+                else
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Error occurred",
+                        Data = null // No data in case of exception
+                    };
+                    return Ok(responseStatus); // Ensure returning response in case of failure
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle unexpected exceptions
+                var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null // No data in case of exception
+                };
+                return Ok(responseStatus);
+            }
+        }
+
     }
 }
