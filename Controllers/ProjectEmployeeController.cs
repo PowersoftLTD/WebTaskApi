@@ -356,6 +356,37 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpGet("Task-Management/GET-TASK_TREE")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> GET_TASK_TREE(TASK_DASHBOARD tASK_DASHBOARD)
+        {
+            try
+            {
+                var TaskTree = await _repository.GetTaskTreeAsync(tASK_DASHBOARD.TASK_MKEY);
+                if (TaskTree == null)
+                {
+                    var responseTaskAction = new ApiResponse<TASK_DASHBOARD>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseTaskAction);
+                }
+                return Ok(TaskTree);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_DASHBOARD>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = tASK_DASHBOARD
+                };
+                return Ok(response);
+            }
+        }
+
 
         [HttpGet("Task-Management/Add-Task")]
         [Authorize]

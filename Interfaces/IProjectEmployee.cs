@@ -16,7 +16,7 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<TASK_DETAILS_BY_MKEY>> GetTaskDetailsByMkeyAsync(string Mkey);
         Task<IEnumerable<TASK_DASHBOARD>> GetTaskNestedGridAsync(string Mkey);
         Task<IEnumerable<TASK_ACTION_TRL>> GetActionsAsync(int TASK_MKEY, int CURRENT_EMP_MKEY, string CURR_ACTION);
-
+        Task<IEnumerable<TASK_DASHBOARD>> GetTaskTreeAsync(string TASK_MKEY);
         Task<TASK_HDR> AddTaskAsync(TASK_HDR tASK_HDR);
         Task<TASK_HDR> UpdateTaskAsync(TASK_HDR tASK_HDR);
     }

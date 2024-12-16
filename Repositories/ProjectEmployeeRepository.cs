@@ -303,5 +303,33 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<IEnumerable<TASK_DASHBOARD>> GetTaskTreeAsync(string Mkey)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_MKEY", Mkey);
+                    parmeters.Add("@Completed", null);
+                    var TaskTreeDetails = (await db.QueryAsync<TASK_DASHBOARD>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    return TaskTreeDetails;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_DASHBOARD>
+                    {
+                        new TASK_DASHBOARD
+                        {
+                            RESPONE_STATUS = "Error",
+                            RESPONSE_MESSAGE = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
     }
 }
