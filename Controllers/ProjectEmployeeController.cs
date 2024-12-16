@@ -197,46 +197,169 @@ namespace TaskManagement.API.Controllers
                 };
                 return Ok(response);
             }
-
-            try
-            {
-                using (IDbConnection db = _dapperDbConnection.CreateConnection())
-                {
-                    var parmeters = new DynamicParameters();
-                    parmeters.Add("@term", AssignNameLike);
-                    var ProjectDetails = db.Query("SP_AssignedTo", parmeters, commandType: CommandType.StoredProcedure).ToList();
-                    return Ok(ProjectDetails);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Internal server error: " + ex.Message);
-            }
         }
 
         [HttpGet("Task-Management/EMP_TAGS")]
         [Authorize]
-        public ActionResult<IEnumerable<dynamic>> EMP_TAGS(string EMP_TAGS)
+        public async Task<ActionResult<IEnumerable<EMPLOYEE_TAGS>>> EMP_TAGS(string EMP_TAGS)
         {
             try
             {
-                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                var classifications = await _repository.GetEmpTagsAsync(EMP_TAGS);
+                if (classifications == null)
                 {
-                    var parmeters = new DynamicParameters();
-                    parmeters.Add("@EMP_MKEY", EMP_TAGS);
-                    var ewmployeeMkey = db.Query("sp_EMP_TAGS", parmeters, commandType: CommandType.StoredProcedure).ToList();
-                    return Ok(ewmployeeMkey);
+                    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseApprovalTemplate);
                 }
+                return Ok(classifications);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                var response = new ApiResponse<EmployeeCompanyMST>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
             }
         }
 
+
+        [HttpGet("Task-Management/TASK-DASHBOARD")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Task_Details(EmployeeCompanyMST employeeCompanyMST)
+        {
+            try
+            {
+                var TaskDash = await _repository.GetTaskDetailsAsync(employeeCompanyMST.CURRENT_EMP_MKEY, employeeCompanyMST.FILTER);
+                if (TaskDash == null)
+                {
+                    var responseApprovalTemplate = new ApiResponse<TASK_DASHBOARD>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseApprovalTemplate);
+                }
+                return Ok(TaskDash);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_DASHBOARD>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+
+        [HttpGet("Task-Management/TASK-DETAILS_BY_MKEY")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_DETAILS_BY_MKEY>>> TASK_DETAILS_BY_MKEY(TASK_DETAILS_BY_MKEY tASK_DETAILS_BY_MKEY)
+        {
+            try
+            {
+                var TaskDash = await _repository.GetTaskDetailsByMkeyAsync(tASK_DETAILS_BY_MKEY.MKEY);
+                if (TaskDash == null)
+                {
+                    var responseApprovalTemplate = new ApiResponse<TASK_DASHBOARD>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseApprovalTemplate);
+                }
+                return Ok(TaskDash);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_DASHBOARD>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Task-Management/TASK-NESTED-GRID")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TASK_NESTED_GRID(TASK_DASHBOARD tASK_DASHBOARD)
+        {
+            try
+            {
+                var TaskDash = await _repository.GetTaskNestedGridAsync(tASK_DASHBOARD.MKEY);
+                if (TaskDash == null)
+                {
+                    var responseTaskTree = new ApiResponse<TASK_DASHBOARD>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseTaskTree);
+                }
+                return Ok(TaskDash);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_DASHBOARD>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Task-Management/GET-ACTIONS")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_ACTION_TRL>>> GET_ACTIONS(TASK_ACTION_TRL tASK_ACTION_TRL)
+        {
+            try
+            {
+                var TaskAction = await _repository.GetActionsAsync(Convert.ToInt32(tASK_ACTION_TRL.TASK_MKEY), Convert.ToInt32(tASK_ACTION_TRL.CURRENT_EMP_MKEY), tASK_ACTION_TRL.CURR_ACTION);
+                if (TaskAction == null)
+                {
+                    var responseTaskAction = new ApiResponse<TASK_ACTION_TRL>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = tASK_ACTION_TRL
+                    };
+                    return Ok(responseTaskAction);
+                }
+                return Ok(TaskAction);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_ACTION_TRL>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = tASK_ACTION_TRL
+                };
+                return Ok(response);
+            }
+        }
+
+
         [HttpGet("Task-Management/Add-Task")]
         [Authorize]
-        public ActionResult<IEnumerable<TASK_HDR>> Add_Task([FromBody] TASK_HDR tASK_HDR)
+        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Add_Task([FromBody] TASK_HDR tASK_HDR)
         {
             try
             {

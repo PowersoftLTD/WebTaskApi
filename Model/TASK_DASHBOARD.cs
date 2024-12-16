@@ -1,0 +1,59 @@
+﻿using System.Text.Json.Serialization;
+
+namespace TaskManagement.API.Model
+{
+    public class TASK_DASHBOARD
+    {
+        [JsonPropertyName("MKEY")]
+        public string MKEY { get; set; }
+        [JsonPropertyName("CATEGORY")]
+        public string? CATEGORY { get; set; }
+        [JsonPropertyName("TASK_NO")]
+        public string TASK_NO { get; set; }
+        [JsonPropertyName("CREATOR")]
+        public string? CREATOR { get; set; }
+
+        [JsonPropertyName("ACTIONABLE")]
+        public string? ACTIONABLE { get; set; }
+        [JsonPropertyName("CREATION_DATE")]
+        public DateTime? CREATION_DATE { get; set; }
+        [JsonPropertyName("COMPLETION_DATE")]
+        public DateTime? COMPLETION_DATE { get; set; }
+        [JsonPropertyName("TASK_NAME")]
+        public string? TASK_NAME { get; set; }
+        [JsonPropertyName("TASK_DESCRIPTION")]
+        public string? TASK_DESCRIPTION { get; set; }
+        [JsonPropertyName("TAGS")]
+        public string? TAGS { get; set; }
+        [JsonPropertyName("STATUS")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("RESPONSIBLE_TAG")]
+        public string? RESPONSIBLE_TAG { get; set; }
+        [JsonPropertyName("PROJECT_NAME")]
+        public string? PROJECT_NAME { get; set; }
+        [JsonPropertyName("TASK_HISTORY")]
+        public int TASK_HISTORY { get; set; }
+        [JsonPropertyName("unique_id")]
+        public int unique_id { get; set; }
+        [JsonPropertyName("TASK_PARENT_ID")]
+        public int TASK_PARENT_ID { get; set; }
+        [JsonPropertyName("assigned_to")]
+        public int assigned_to { get; set; }
+        [JsonPropertyName("resposible_emp_mkey")]
+        public int resposible_emp_mkey { get; set; }
+        [JsonPropertyName("status_perc")]
+        public decimal status_perc { get; set; }
+        [JsonPropertyName("RESPONSIBLE")]
+        public string? RESPONSIBLE { get; set; }
+        [JsonPropertyName("END_DATE")]
+        public DateTime? END_DATE { get; set; }
+        [JsonPropertyName("START_DATE")]
+        public DateTime? START_DATE { get; set; }
+        [JsonPropertyName("ACTUAL_COMPLETION_DATE")]
+        public DateTime? ACTUAL_COMPLETION_DATE { get; set; }
+        [JsonPropertyName("RESPONE_STATUS")]
+        public string? RESPONE_STATUS { get; set; }
+        [JsonPropertyName("RESPONSE_MESSAGE")]
+        public string? RESPONSE_MESSAGE { get; set; }
+    }
+}

@@ -8,8 +8,11 @@ namespace TaskManagement.API.Model
         public string TASK_NO { get; set; }
         public string TASK_NAME { get; set; }
         public string TASK_DESCRIPTION { get; set; }
-        public decimal CAREGORY { get; set; }
-        public decimal PROJECT_ID { get; set; }
+        public decimal? CAREGORY { get; set; }
+        public int? CATEGORY_MKEY { get; set; }
+        public decimal? PROJECT_ID { get; set; }
+        public string? PROJECT { get; set; }
+        public string? Sub_PROJECT { get; set; }
         public decimal SUB_PROJECT_ID { get; set; }
         public decimal SUBPROJECT_ID { get; set; }
         public DateTime START_DATE { get; set; }

@@ -11,6 +11,12 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<V_Building_Classification>> GetSubProjectAsync(string Project_Mkey);
         Task<IEnumerable<EmployeeCompanyMST>> GetEmpAsync(int CURRENT_EMP_MKEY, string FILTER);
         Task<IEnumerable<EmployeeCompanyMST>> GetAssignedToAsync(string AssignNameLike);
+        Task<IEnumerable<EmployeeCompanyMST>> GetEmpTagsAsync(string EMP_TAGS);
+        Task<IEnumerable<TASK_DASHBOARD>> GetTaskDetailsAsync(int CURRENT_EMP_MKEY, string FILTER);
+        Task<IEnumerable<TASK_DETAILS_BY_MKEY>> GetTaskDetailsByMkeyAsync(string Mkey);
+        Task<IEnumerable<TASK_DASHBOARD>> GetTaskNestedGridAsync(string Mkey);
+        Task<IEnumerable<TASK_ACTION_TRL>> GetActionsAsync(int TASK_MKEY, int CURRENT_EMP_MKEY, string CURR_ACTION);
+
         Task<TASK_HDR> AddTaskAsync(TASK_HDR tASK_HDR);
         Task<TASK_HDR> UpdateTaskAsync(TASK_HDR tASK_HDR);
     }

@@ -170,5 +170,138 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<IEnumerable<EmployeeCompanyMST>> GetEmpTagsAsync(string EMP_TAGS)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@EMP_MKEY", EMP_TAGS);
+                    var AssignToDetails = (await db.QueryAsync<EmployeeCompanyMST>("sp_EMP_TAGS", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    return AssignToDetails;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<EmployeeCompanyMST>
+                    {
+                        new EmployeeCompanyMST
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<IEnumerable<TASK_DASHBOARD>> GetTaskDetailsAsync(int CURRENT_EMP_MKEY, string FILTER)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
+                    parmeters.Add("@FILTER", FILTER);
+                    var TaskDashDetails = (await db.QueryAsync<TASK_DASHBOARD>("SP_TASK_DASHBOARD", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    return TaskDashDetails;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_DASHBOARD>
+                    {
+                        new TASK_DASHBOARD
+                        {
+                            RESPONE_STATUS = "Error",
+                            RESPONSE_MESSAGE = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<IEnumerable<TASK_DETAILS_BY_MKEY>> GetTaskDetailsByMkeyAsync(string Mkey)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@HDR_MKEY", Mkey);
+                    var TaskDashDetails = (await db.QueryAsync<TASK_DETAILS_BY_MKEY>("SP_TASK_DETAILS_BY_MKEY", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    return TaskDashDetails;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_DETAILS_BY_MKEY>
+                    {
+                        new TASK_DETAILS_BY_MKEY
+                        {
+                            RESPONSE_STATUS = "Error",
+                            RESPONSE_MESSAGE = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
+        public async Task<IEnumerable<TASK_DASHBOARD>> GetTaskNestedGridAsync(string Mkey)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_MKEY", Mkey);
+                    parmeters.Add("@Completed", null);
+                    var TaskTreeDetails = (await db.QueryAsync<TASK_DASHBOARD>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    return TaskTreeDetails;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_DASHBOARD>
+                    {
+                        new TASK_DASHBOARD
+                        {
+                            RESPONE_STATUS = "Error",
+                            RESPONSE_MESSAGE = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<IEnumerable<TASK_ACTION_TRL>> GetActionsAsync(int TASK_MKEY, int CURRENT_EMP_MKEY, string CURR_ACTION)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_MKEY", TASK_MKEY);
+                    parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
+                    parmeters.Add("@CURR_ACTION", CURR_ACTION);
+                    var TaskTreeDetails = (await db.QueryAsync<TASK_ACTION_TRL>("SP_GET_ACTIONS", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    return TaskTreeDetails;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_ACTION_TRL>
+                    {
+                        new TASK_ACTION_TRL
+                        {
+                           RESPONSE_STATUS = "Error",
+                            RESPONSE_MESSAGE = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
     }
 }
