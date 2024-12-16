@@ -94,6 +94,16 @@ namespace TaskManagement.API.Controllers
                     });
                 }
 
+                if (ApprovalBYID.Status.ToString().ToLower() != "Ok".ToString().ToLower())
+                {
+                    return Ok(new
+                    {
+                        Status = "Error",
+                        Message = "An error occurred",
+                        Data = ApprovalBYID
+                    });
+                }
+
                 return Ok(new
                 {
                     Status = "Ok",

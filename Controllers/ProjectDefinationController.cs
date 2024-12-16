@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Interfaces;
@@ -125,33 +126,86 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPut("{MKEY}")]
+        [HttpPut("ProjectDefination/Update-Project-Defination")]
         [Authorize]
-        public async Task<IActionResult> UpdateTASK(int MKEY, PROJECT_HDR pROJECT_HDR)
+        public async Task<IActionResult> UpdateProjectDefination(int MKEY, PROJECT_HDR pROJECT_HDR)
         {
             try
             {
                 var ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY, pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
+
                 if (ProjectDetails == null)
                 {
-                    return NotFound();
+                    var ErrorDoc = new PROJECT_HDR();
+                    var response = new ApiResponse<PROJECT_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Error occured",
+                        Data = ErrorDoc // No data in case of exception
+                    };
+                    return Ok(response);
                 }
                 if (MKEY != pROJECT_HDR.MKEY)
                 {
-                    return BadRequest();
+                    var ErrorDoc = new PROJECT_HDR();
+                    var response = new ApiResponse<PROJECT_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Not found",
+                        Data = ErrorDoc // No data in case of exception
+                    };
+                    return Ok(response);
                 }
-                await _repository.UpdateProjectDefinationAsync(pROJECT_HDR);
-                ProjectDetails = null;
-                ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY, pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
-                if (ProjectDetails == null)
+
+                var UpadateProjectDefiniation = await _repository.UpdateProjectDefinationAsync(pROJECT_HDR);
+                if (UpadateProjectDefiniation != null)
                 {
-                    return NotFound();
+                    ProjectDetails = null;
+                    ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY, pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
+                    if (ProjectDetails == null)
+                    {
+                        var ErrorDoc = new PROJECT_HDR();
+                        var response = new ApiResponse<PROJECT_HDR>
+                        {
+                            Status = "Error",
+                            Message = "Error occured",
+                            Data = ErrorDoc // No data in case of exception
+                        };
+                        return Ok(response);
+                    }
+                    else
+                    {
+                        var response = new ApiResponse<PROJECT_HDR>
+                        {
+                            Status = "Ok",
+                            Message = "Data Updated",
+                            Data = ProjectDetails // No data in case of exception
+                        };
+                        return Ok(response);
+                    }
                 }
-                return Ok(ProjectDetails);
+                else
+                {
+                    var ErrorDoc = new PROJECT_HDR();
+                    var response = new ApiResponse<PROJECT_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Not found",
+                        Data = ErrorDoc // No data in case of exception
+                    };
+                    return Ok(response);
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                var ErrorDoc = new PROJECT_HDR();
+                var response = new ApiResponse<PROJECT_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = ErrorDoc // No data in case of exception
+                };
+                return Ok(response);
             }
         }
 
@@ -159,16 +213,69 @@ namespace TaskManagement.API.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteTASK(int id, int LastUpatedBy, string FormName, string MethodName)
         {
-            bool deleteTask = await _repository.DeleteProjectDefinationAsync(id, LastUpatedBy, FormName, MethodName);
-            if (deleteTask)
+            try
             {
-                var TASK = await _repository.GetProjectDefinationByIdAsync(id, LastUpatedBy, FormName, MethodName);
-                if (TASK == null)
+                var FindTask = await _repository.GetProjectDefinationByIdAsync(id, LastUpatedBy, FormName, MethodName);
+                if (FindTask == null)
                 {
-                    return Ok("Row deleted");
+                    var response = new ApiResponse<PROJECT_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Data not found",
+                        Data = null // No data in case of exception
+                    };
+                    return Ok(response);
                 }
+                else
+                {
+                    bool deleteTask = await _repository.DeleteProjectDefinationAsync(id, LastUpatedBy, FormName, MethodName);
+                    if (deleteTask)
+                    {
+                        var DeletedTask = await _repository.GetProjectDefinationByIdAsync(id, LastUpatedBy, FormName, MethodName);
+                        if (DeletedTask == null)
+                        {
+                            var ErrorDoc = new PROJECT_HDR();
+                            var response = new ApiResponse<PROJECT_HDR>
+                            {
+                                Status = "Ok",
+                                Message = "Row Deleted",
+                                Data = ErrorDoc // No data in case of exception
+                            };
+                            return Ok(response);
+                        }
+                    }
+                    else
+                    {
+                        // Add return for failed deletion
+                        var response = new ApiResponse<PROJECT_HDR>
+                        {
+                            Status = "Error",
+                            Message = "An error occurred during deletion",
+                            Data = null // No data in case of exception
+                        };
+                        return Ok(response); // Ensure that a response is returned
+                    }
+                }
+
+                // In case of success, ensure that a response is returned
+                var successResponse = new ApiResponse<PROJECT_HDR>
+                {
+                    Status = "Error",
+                    Message = "Task deletion unsuccessful.",
+                    Data = null
+                };
+                return Ok(successResponse);
             }
-            return NoContent();
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<PROJECT_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null // No data in case of exception
+                };
+                return Ok(response);
+            }
         }
 
         [HttpGet("ProjectDefination/Get-Approval-Details")]

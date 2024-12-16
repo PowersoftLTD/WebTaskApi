@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
+using System.Globalization;
 using System.Transactions;
 using System.Xml.Linq;
 using TaskManagement.API.DapperDbConnections;
@@ -27,6 +28,7 @@ namespace TaskManagement.API.Repositories
         }
         public async Task<IEnumerable<APPROVAL_TEMPLATE_HDR>> GetAllApprovalTemplateAsync(int LoggedIN)
         {
+            int strMKEY;
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -43,10 +45,11 @@ namespace TaskManagement.API.Repositories
                         approvalTemplate.Message = "Not Found";
                         return new List<APPROVAL_TEMPLATE_HDR> { approvalTemplate };
                     }
-
+                    
                     // Iterate over each approval template header to populate subtasks, end result docs, and checklist docs
                     foreach (var approvalTemplate in approvalTemplates)
                     {
+                        strMKEY = approvalTemplate.MKEY;
                         // Fetch the associated subtasks
                         var subtasks = await db.QueryAsync<APPROVAL_TEMPLATE_TRL_SUBTASK>(
                             "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY",
@@ -88,6 +91,7 @@ namespace TaskManagement.API.Repositories
             }
             catch (Exception ex)
             {
+                
                 // Handle other unexpected exceptions
                 var approvalTemplate = new APPROVAL_TEMPLATE_HDR();
                 approvalTemplate.Status = "Error";
@@ -683,7 +687,6 @@ namespace TaskManagement.API.Repositories
                 return approvalTemplate;
             }
         }
-
         public async Task<bool> DeleteApprovalTemplateAsync(int MKEY, int LAST_UPDATED_BY)
         {
             IDbTransaction transaction = null;
@@ -740,11 +743,9 @@ namespace TaskManagement.API.Repositories
                         Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
                     }
                 }
-
                return false;
             }
         }
-
 
         ////public async Task<APPROVAL_TEMPLATE_HDR> UpdateApprovalTemplateAsync(APPROVAL_TEMPLATE_HDR aPPROVAL_TEMPLATE_HDR)
         ////{

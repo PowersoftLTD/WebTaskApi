@@ -26,9 +26,9 @@ namespace TaskManagement.API.Controllers
                 var classifications = await _repository.GetViewBuildingClassificationAsync();
                 return Ok(classifications);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(400, ex.Message);
             }
         }
 
@@ -41,9 +41,9 @@ namespace TaskManagement.API.Controllers
                 var classifications = await _repository.GetViewDoc_TypeAsync();
                 return Ok(classifications);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(400, ex.Message);
             }
         }
 
@@ -57,9 +57,9 @@ namespace TaskManagement.API.Controllers
                 var classifications = await _repository.GetViewStandard_TypeAsync();
                 return Ok(classifications);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(400, ex.Message);
             }
         }
 
@@ -72,9 +72,9 @@ namespace TaskManagement.API.Controllers
                 var classifications = await _repository.GetViewStatutory_AuthAsync();
                 return Ok(classifications);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(400, ex.Message);
             }
         }
 
@@ -87,9 +87,9 @@ namespace TaskManagement.API.Controllers
                 var classifications = await _repository.GetViewJOB_ROLEAsync();
                 return Ok(classifications);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(400, ex.Message);
             }
         }
 
@@ -102,9 +102,9 @@ namespace TaskManagement.API.Controllers
                 var classifications = await _repository.GetViewDepartment();
                 return Ok(classifications);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(400, ex.Message);
             }
         }
 
@@ -117,9 +117,9 @@ namespace TaskManagement.API.Controllers
                 var classifications = await _repository.GetViewSanctioningAuthority();
                 return Ok(classifications);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(400, ex.Message);
             }
         }
 
@@ -132,9 +132,9 @@ namespace TaskManagement.API.Controllers
                 var classifications = await _repository.GetViewDocument_Category();
                 return Ok(classifications);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(400, ex.Message);
             }
         }
 

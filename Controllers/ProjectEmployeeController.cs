@@ -23,73 +23,181 @@ namespace TaskManagement.API.Controllers
             _repository = repository;
         }
 
-        [HttpGet("Task-Management/Get-Option")]
-        [Authorize]
-        public ActionResult<IEnumerable<dynamic>> Get_Project(string TYPE_CODE, string MASTER_MKEY)
+        [HttpGet("Task-Management/Login")]
+        public async Task<ActionResult<EmployeeCompanyMST>> Login_Validate(EmployeeCompanyMST employeeCompanyMST)
         {
             try
             {
-                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                var LoginValidate = await _repository.Login_Validate(employeeCompanyMST.Login_ID, employeeCompanyMST.LOGIN_PASSWORD);
+                if (LoginValidate == null)
                 {
-                    var parmeters = new DynamicParameters();
-                    parmeters.Add("@TYPE_CODE", TYPE_CODE);
-                    parmeters.Add("@MASTER_MKEY", MASTER_MKEY);
-                    var ProjectDetails = db.Query("SP_GET_PROJECT", parmeters, commandType: CommandType.StoredProcedure).ToList();
-
-                    return Ok(ProjectDetails);
+                    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseApprovalTemplate);
                 }
+                else if (LoginValidate.STATUS != "Ok")
+                {
+                    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
+                    {
+                        Status = LoginValidate.STATUS,
+                        Message = LoginValidate.MESSAGE,
+                        Data = null
+                    };
+
+                    return Ok(responseApprovalTemplate);
+                }
+
+                var response = new ApiResponse<EmployeeCompanyMST>
+                {
+                    Status = "OK",
+                    Message = "Login details",
+                    Data = LoginValidate
+                };
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                var response = new ApiResponse<EmployeeCompanyMST>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
             }
         }
 
-        [HttpGet("Task-Management/Get-Sub_Project")]
+        [HttpGet("Task-Management/Get-Option")]
         [Authorize]
-        public ActionResult<IEnumerable<dynamic>> Get_Sub_Project(string Project_Mkey)
+        public async Task<ActionResult<ApiResponse<V_Building_Classification>>> Get_Project(V_Building_Classification v_Building_Classification)
         {
             try
             {
-                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                var classifications = await _repository.GetProjectAsync(v_Building_Classification.TYPE_CODE, v_Building_Classification.MASTER_MKEY);
+                if (classifications == null)
                 {
-                    var parmeters = new DynamicParameters();
-                    parmeters.Add("@PROJECT_MKEY", Project_Mkey);
-                    var ProjectDetails = db.Query("SP_GET_SUBPROJECT", parmeters, commandType: CommandType.StoredProcedure).ToList();
-                    return Ok(ProjectDetails);
+                    var responseApprovalTemplate = new ApiResponse<V_Building_Classification>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseApprovalTemplate);
                 }
+
+                return Ok(classifications);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                var response = new ApiResponse<V_Building_Classification>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Task - Management / Get - Sub_Project")]
+        [Authorize]
+        public async Task<ActionResult<ApiResponse<V_Building_Classification>>> Get_Sub_Project(EmployeeCompanyMST employeeCompanyMST)
+        {
+            try
+            {
+                var classifications = await _repository.GetSubProjectAsync(employeeCompanyMST.PROJECT_ID);
+                if (classifications == null)
+                {
+                    var ErrorResponse = new ApiResponse<V_Building_Classification>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(ErrorResponse);
+                }
+
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<V_Building_Classification>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
             }
         }
 
         [HttpGet("Task-Management/Get-Emp")]
         [Authorize]
-        public ActionResult<IEnumerable<dynamic>> Get_Emp(string CURRENT_EMP_MKEY, string FILTER)
+        public async Task<ActionResult<IEnumerable<EmployeeCompanyMST>>> Get_Emp(EmployeeCompanyMST employeeCompanyMST)
         {
             try
             {
-                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                var classifications = await _repository.GetEmpAsync(employeeCompanyMST.CURRENT_EMP_MKEY, employeeCompanyMST.FILTER);
+                if (classifications == null)
                 {
-                    var parmeters = new DynamicParameters();
-                    parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
-                    parmeters.Add("@FILTER", FILTER);
-                    var ProjectDetails = db.Query("SP_GET_EMP", parmeters, commandType: CommandType.StoredProcedure).ToList();
-                    return Ok(ProjectDetails);
+                    var responseApprovalTemplate = new ApiResponse<V_Building_Classification>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseApprovalTemplate);
                 }
+
+                return Ok(classifications);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                var response = new ApiResponse<V_Building_Classification>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
             }
         }
 
         [HttpGet("Task-Management/Assigned_To")]
         [Authorize]
-        public ActionResult<IEnumerable<dynamic>> AssignedTo(string AssignNameLike)
+        public async Task<ActionResult<IEnumerable<EmployeeCompanyMST>>> AssignedTo(EmployeeCompanyMST employeeCompanyMST)
         {
+            try
+            {
+                var classifications = await _repository.GetAssignedToAsync(employeeCompanyMST.AssignNameLike);
+                if (classifications == null)
+                {
+                    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseApprovalTemplate);
+                }
+
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<EmployeeCompanyMST>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -129,12 +237,6 @@ namespace TaskManagement.API.Controllers
         [HttpGet("Task-Management/Add-Task")]
         [Authorize]
         public ActionResult<IEnumerable<TASK_HDR>> Add_Task([FromBody] TASK_HDR tASK_HDR)
-        //(string TASK_NO, string TASK_NAME, string TASK_DESCRIPTION,
-        //string CATEGORY, string PROJECT_ID, string SUBPROJECT_ID, string COMPLETION_DATE, string ASSIGNED_TO,
-        //string TAGS, string ISNODE, string START_DATE, string CLOSE_DATE, string DUE_DATE, string TASK_PARENT_ID,
-        //string STATUS, string STATUS_PERC, string TASK_CREATED_BY, string APPROVER_ID, string IS_ARCHIVE, string ATTRIBUTE1,
-        //string ATTRIBUTE2, string ATTRIBUTE3, string ATTRIBUTE4, string ATTRIBUTE5, string CREATED_BY, string CREATION_DATE,
-        //string LAST_UPDATED_BY, string APPROVE_ACTION_DATE)
         {
             try
             {
