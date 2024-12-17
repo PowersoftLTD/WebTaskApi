@@ -12,8 +12,9 @@
         public string? FILTER { get; set; }
         public string? ROLE_ID { get; set; }
         public string? PROJECT_ID { get; set; }
-
+        public string? Date_of_birth { get; set; }
         public string? AssignNameLike { get; set; }
+        public string? CURR_ACTION { get; set; }
         
         public int? DESIGNATION_ID { get; set; }
         public int? DEPARTMENT_ID { get; set; }
@@ -47,8 +48,11 @@
         public string? BUSINESS_GROUPS_NAME { get; set; }
         public string? COMPANY_NAME { get; set; }
         public char? RESSET_FLAG { get; set; }
-        public string? STATUS { get; set }
-        public string? MESSAGE { get; set }
+        public string? LoginName { get; set; }
+        public string? Old_Password { get; set; }
+        public string? New_Password { get; set; }
+        public string? STATUS { get; set; }
+        public string? MESSAGE { get; set; }
 
     }
 }

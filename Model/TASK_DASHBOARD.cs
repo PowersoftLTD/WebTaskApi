@@ -17,6 +17,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("CREATOR")]
         public string? CREATOR { get; set; }
 
+        [JsonPropertyName("StatusVal")]
+        public string? StatusVal { get; set; }
+        
         [JsonPropertyName("ACTIONABLE")]
         public string? ACTIONABLE { get; set; }
         [JsonPropertyName("CREATION_DATE")]

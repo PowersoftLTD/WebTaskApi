@@ -387,6 +387,166 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPut("Task-Management/Change_Password")]
+        [Authorize]
+        public async Task<ActionResult<EmployeeCompanyMST>> ChangePassword(EmployeeCompanyMST employeeCompanyMST)
+        {
+            try
+            {
+                var ChangePass = await _repository.PutChangePasswordAsync(employeeCompanyMST.LoginName, employeeCompanyMST.Old_Password, employeeCompanyMST.New_Password);
+
+                if (ChangePass == null)
+                {
+                    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = employeeCompanyMST
+                    };
+                    return Ok(responseTaskAction);
+                }
+                return Ok(ChangePass);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<EmployeeCompanyMST>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Task-Management/Forgot_Password")]
+        [Authorize]
+        public async Task<ActionResult<EmployeeCompanyMST>> ForgotPassword(EmployeeCompanyMST employeeCompanyMST)
+        {
+            try
+            {
+                var ForgotPass = await _repository.GetForgotPasswordAsync(employeeCompanyMST.LoginName);
+
+                if (ForgotPass == null)
+                {
+                    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = employeeCompanyMST
+                    };
+                    return Ok(responseTaskAction);
+                }
+
+
+                var ResetPass = await _repository.GetResetPasswordAsync(ForgotPass.TEMPPASSWORD, employeeCompanyMST.LoginName);
+
+                if (ResetPass == null)
+                {
+                    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = employeeCompanyMST
+                    };
+                    return Ok(responseTaskAction);
+                }
+
+                return Ok(ResetPass);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<EmployeeCompanyMST>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        public static string GetMailBody(string User_Name, string Temp_Password, string SiteURL)
+        {
+            string messageBody = "<html>";
+            messageBody += "<body>";
+            messageBody += "<table>";
+            messageBody += "<tr><td>Dear <strong>" + User_Name + ",</strong></td></tr>";
+            messageBody += "<tr><td>The password for your Task Management account has been reset,your temporary password is <strong>" + Temp_Password + "</strong></td></tr>";
+            messageBody += "<tr><td>Please click on <a href=" + SiteURL + ">Login</a> to reset your pasword</td></tr>";
+            messageBody += "<tr><td></td></tr><tr><td></td></tr><tr><td></td></tr><tr><td>Thank  you</td></tr><tr><td>The Powersoft Team</td></tr>";
+            messageBody += "</table>";
+            messageBody += "</body></html>";
+            return messageBody;
+        }
+
+        [HttpGet("Task-Management/Validate_Email")]
+        [Authorize]
+        public async Task<ActionResult<EmployeeCompanyMST>> ValidateEmail(EmployeeCompanyMST employeeCompanyMST)
+        {
+            try
+            {
+                var ValidateEmailVar = await _repository.GetValidateEmailAsync(employeeCompanyMST.Login_ID);
+
+                if (ValidateEmailVar == null)
+                {
+                    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = employeeCompanyMST
+                    };
+                    return Ok(responseTaskAction);
+                }
+                return Ok(ValidateEmailVar);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<EmployeeCompanyMST>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Task-Management/TASK-DASHBOARD_DETAILS")]
+        [Authorize]
+        public async Task<ActionResult<TASK_DASHBOARD>> Task_Dashboard_Details(EmployeeCompanyMST employeeCompanyMST)
+        {
+            try
+            {
+                var TaskDashboardDetails = await _repository.GetTaskDashboardDetailsAsync(Convert.ToString(employeeCompanyMST.CURRENT_EMP_MKEY), employeeCompanyMST.CURR_ACTION);
+
+                if (TaskDashboardDetails == null)
+                {
+                    var responseTaskAction = new ApiResponse<TASK_DASHBOARD>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseTaskAction);
+                }
+                return Ok(TaskDashboardDetails);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_DASHBOARD>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+
+
+
 
         [HttpGet("Task-Management/Add-Task")]
         [Authorize]

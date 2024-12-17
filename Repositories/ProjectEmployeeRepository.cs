@@ -331,5 +331,128 @@ namespace TaskManagement.API.Repositories
             }
         }
 
+        public async Task<EmployeeCompanyMST> PutChangePasswordAsync(string LoginName, string Old_Password, string New_Password)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@LoginName", LoginName);
+                    parmeters.Add("@Old_LOGIN_PASSWORD", Old_Password);
+                    parmeters.Add("@New_LOGIN_PASSWORD", New_Password);
+                    var ChangePass = await db.QueryFirstOrDefaultAsync<EmployeeCompanyMST>("Sp_USER_ChangeLOGIN_PASSWORD", parmeters, commandType: CommandType.StoredProcedure);
+                    return ChangePass;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new EmployeeCompanyMST
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message
+                };
+                return errorResult;
+            }
+        }
+
+        public async Task<EmployeeCompanyMST> GetForgotPasswordAsync(string LoginName)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@LoginName", LoginName);
+                    var ForgotPass = await db.QueryFirstOrDefaultAsync<EmployeeCompanyMST>("Sp_USER_ForgotPassword", parmeters, commandType: CommandType.StoredProcedure);
+                    return ForgotPass;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new EmployeeCompanyMST
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message
+                };
+                return errorResult;
+            }
+        }
+
+
+        public async Task<EmployeeCompanyMST> GetResetPasswordAsync(string TEMPPASSWORD, string LoginName)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TEMPPASSWORD", TEMPPASSWORD);
+                    parmeters.Add("@LoginName", LoginName);
+                    var ResetPass = await db.QueryFirstOrDefaultAsync<EmployeeCompanyMST>("sp_reset_password", parmeters, commandType: CommandType.StoredProcedure);
+                    return ResetPass;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new EmployeeCompanyMST
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message
+                };
+                return errorResult;
+            }
+        }
+
+        public async Task<EmployeeCompanyMST> GetValidateEmailAsync(string Login_ID)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@LoginName", Login_ID);
+                    var ValidateEmail = await db.QueryFirstOrDefaultAsync<EmployeeCompanyMST>("Sp_validate_login", parmeters, commandType: CommandType.StoredProcedure);
+                    return ValidateEmail;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new EmployeeCompanyMST
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message
+                };
+                return errorResult;
+            }
+        }
+
+        public async Task<IEnumerable<TASK_DASHBOARD>> GetTaskDashboardDetailsAsync(string CURRENT_EMP_MKEY, string CURR_ACTION)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
+                    parmeters.Add("@CURR_ACTION", CURR_ACTION);
+                    var ValidateEmail = (await db.QueryAsync<TASK_DASHBOARD>("SP_Get_Overall_DB", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    return ValidateEmail;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_DASHBOARD>
+                    {
+                        new TASK_DASHBOARD
+                        {
+                            RESPONE_STATUS = "Error",
+                            RESPONSE_MESSAGE = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
     }
 }
