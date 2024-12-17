@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Data;
@@ -759,7 +760,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@CREATION_DATE", tASK_HDR.CREATED_DATE);
                     parmeters.Add("@LAST_UPDATED_BY", tASK_HDR.LAST_UPDATED_BY);
                     parmeters.Add("@APPROVE_ACTION_DATE", tASK_HDR.APPROVE_ACTION_DATE);
-                    parmeters.Add("@Current_Task_Mkey", tASK_HDR.Current_task_mkey); 
+                    parmeters.Add("@Current_Task_Mkey", tASK_HDR.Current_task_mkey);
 
                     var InsertTaskDetails = await db.QueryFirstOrDefaultAsync<TASK_HDR>("SP_INSERT_TASK_NODE_DETAILS", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
@@ -806,5 +807,201 @@ namespace TaskManagement.API.Repositories
             }
         }
 
+        public async Task<int> TASKFileUpoadAsync(string srNo, string taskMkey, string taskParentId, string fileName, string filePath, string createdBy, string deleteFlag, string taskMainNodeId)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+            int SR_NO = 0;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@SR_NO", srNo);
+                    parameters.Add("@TASK_MKEY", taskMkey);
+                    parameters.Add("@TASK_PARENT_ID", taskParentId);
+                    parameters.Add("@FILE_NAME", fileName);
+                    parameters.Add("@FILE_PATH", filePath);
+                    parameters.Add("@CREATED_BY", createdBy);
+                    parameters.Add("@ATTRIBUTE1", null);
+                    parameters.Add("@ATTRIBUTE2", null);
+                    parameters.Add("@ATTRIBUTE3", null);
+                    parameters.Add("@ATTRIBUTE4", null);
+                    parameters.Add("@ATTRIBUTE5", null);
+                    parameters.Add("@LAST_UPDATED_BY", createdBy);
+                    parameters.Add("@LAST_UPDATE_DATE", null);
+                    parameters.Add("@DELETE_FLAG", deleteFlag);
+                    parameters.Add("@TASK_MAIN_NODE_ID", taskMainNodeId);
+
+                    var TaskFile = await db.ExecuteAsync("sp_insert_attcahment", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (TaskFile == null)
+                    {
+                        // Handle other unexpected exceptions
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                //TranError.Message = ex.Message;
+                                //return TranError;
+                            }
+                        }
+
+                        var TemplateError = new TASK_FILE_UPLOAD();
+                        TemplateError.STATUS = "Error";
+                        TemplateError.MESSAGE = "Error Occurd";
+                        return 0;
+                    }
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+                    return 1;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        //var TranError = new APPROVAL_TASK_INITIATION();
+                        //TranError.ResponseStatus = "Error";
+                        //TranError.Message = ex.Message;
+                        //return TranError;
+                    }
+                }
+
+                var ErrorFileDetails = new TASK_FILE_UPLOAD();
+                ErrorFileDetails.STATUS = "Error";
+                ErrorFileDetails.MESSAGE = ex.Message;
+                return 1;
+            }
+        }
+
+        //Task<TASK_FILE_UPLOAD> IProjectEmployee.TASKFileUpoadAsync(string srNo, string taskMkey, string taskParentId, string fileName, string filePath, string createdBy, string deleteFlag, string taskMainNodeId)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        public async Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@TASK_MKEY", taskMkey);
+                    parameters.Add("@DELETE_FLAG", deleteFlag);
+
+                    var TaskFile = await db.ExecuteAsync("SP_DEL_ATTCAHMENT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (TaskFile == null)
+                    {
+                        // Handle other unexpected exceptions
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                //TranError.Message = ex.Message;
+                                //return TranError;
+                            }
+                        }
+
+                        var TemplateError = new TASK_FILE_UPLOAD();
+                        TemplateError.STATUS = "Error";
+                        TemplateError.MESSAGE = "Error Occurd";
+                        return 0;
+                    }
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        //var TranError = new APPROVAL_TASK_INITIATION();
+                        //TranError.ResponseStatus = "Error";
+                        //TranError.Message = ex.Message;
+                        //return TranError;
+                    }
+                }
+
+                var ErrorFileDetails = new TASK_FILE_UPLOAD();
+                ErrorFileDetails.STATUS = "Error";
+                ErrorFileDetails.MESSAGE = ex.Message;
+                return 1;
+            }
+        }
     }
 }

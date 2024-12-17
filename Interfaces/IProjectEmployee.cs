@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Model;
 
 namespace TaskManagement.API.Interfaces
@@ -27,9 +28,12 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<TASK_HDR>> GetProjectDetailsWithSubProjectAsync(string ProjectID, string SubProjectID);
         Task<IEnumerable<TASK_HDR>> GetTaskTreeExportAsync(string Task_Mkey);
         Task<TASK_HDR> CreateAddTaskAsync(TASK_HDR tASK_HDR);
-        Task<TASK_HDR> CreateAddSubTaskAsync(TASK_HDR tASK_HDR); 
-
+        Task<TASK_HDR> CreateAddSubTaskAsync(TASK_HDR tASK_HDR);
+        Task<int> TASKFileUpoadAsync(string srNo, string taskMkey, string taskParentId, string fileName, string filePath, string createdBy, string deleteFlag, string taskMainNodeId);
         Task<TASK_HDR> AddTaskAsync(TASK_HDR tASK_HDR);
         Task<TASK_HDR> UpdateTaskAsync(TASK_HDR tASK_HDR);
+
+        Task<int> UpdateTASKFileUpoadAsync(string taskMkey,string deleteFlag);
+        
     }
 }

@@ -17,11 +17,13 @@ namespace TaskManagement.API.Controllers
     [Authorize]
     public class ProjectEmployeeController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
         private readonly IProjectEmployee _repository;
         public IDapperDbConnection _dapperDbConnection;
-        public ProjectEmployeeController(IProjectEmployee repository)
+        public ProjectEmployeeController(IProjectEmployee repository, IConfiguration configuration)
         {
             _repository = repository;
+            _configuration = configuration;
         }
 
         [HttpGet("Task-Management/Login")]
@@ -924,5 +926,78 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+
+        [Authorize]
+        [HttpPost("Task-Management/FileUpload"), DisableRequestSizeLimit]
+        public async Task<IActionResult> Post([FromForm] IFormCollection form)
+        {
+            try
+            {
+                string uploadFilePath = _configuration["UploadFile_Path"];
+                var files = form.Files;
+                string taskMkey = form["Mkey"];
+                string createdBy = form["CREATED_BY"];
+                string deleteFlag = form["DELETE_FLAG"];
+                string taskParentId = form["TASK_PARENT_ID"];
+                string taskMainNodeId = form["TASK_MAIN_NODE_ID"];
+                int srNo = 0;
+                var uploadedFiles = new List<string>();
+                string fileName, filePath;
+
+                if (files.Count > 0)
+                {
+                    foreach (var file in files)
+                    {
+                        srNo++;
+                        fileName = file.FileName;
+                        string fileDirectory = Path.Combine(uploadFilePath, taskMainNodeId);
+
+                        if (!Directory.Exists(fileDirectory))
+                        {
+                            Directory.CreateDirectory(fileDirectory);
+                        }
+
+                        // Generate new file name with timestamp
+                        string newFileName = DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + fileName;
+                        filePath = Path.Combine(fileDirectory, newFileName);
+
+                        // Save the file
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(fileStream);
+                        }
+
+                        uploadedFiles.Add(filePath);
+
+                        string fileRelativePath = Path.Combine(_configuration["Refer_UploadFile_Path"], taskMainNodeId, newFileName);
+
+                        if (file.Length > 0)
+                        {
+                            // Perform the database insertion or other operations
+                            await _repository.TASKFileUpoadAsync(srNo.ToString(), taskMkey, taskParentId, fileName, filePath, createdBy, deleteFlag, taskMainNodeId);
+                        }
+                    }
+
+                    // Return the response
+                    return Ok(new { Status = "Success", Files = uploadedFiles });  // You can return a custom response
+                }
+                else
+                {
+                    if (taskMkey != "0000")
+                    {
+                        await _repository.UpdateTASKFileUpoadAsync(taskMkey, deleteFlag);
+                    }
+                }
+
+                return BadRequest("No files were uploaded.");
+            }
+            catch (Exception ex)
+            {
+                // Handle exception (could be logging or returning an error response)
+                return StatusCode(400, new { Message = "An error occurred", Error = ex.Message });
+            }
+        }
+
     }
 }
