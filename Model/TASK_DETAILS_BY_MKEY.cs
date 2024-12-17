@@ -1,7 +1,10 @@
-﻿namespace TaskManagement.API.Model
+﻿using System.Text.Json.Serialization;
+
+namespace TaskManagement.API.Model
 {
     public class TASK_DETAILS_BY_MKEY
     {
+        [JsonPropertyName("MKEY")]
         public string? MKEY { get; set; }
         public string TASK_NO { get; set; }
         public string TASK_NAME { get; set; }

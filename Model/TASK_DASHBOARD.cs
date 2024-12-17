@@ -19,7 +19,7 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("StatusVal")]
         public string? StatusVal { get; set; }
-        
+
         [JsonPropertyName("ACTIONABLE")]
         public string? ACTIONABLE { get; set; }
         [JsonPropertyName("CREATION_DATE")]
@@ -36,10 +36,27 @@ namespace TaskManagement.API.Model
         public string? STATUS { get; set; }
         [JsonPropertyName("RESPONSIBLE_TAG")]
         public string? RESPONSIBLE_TAG { get; set; }
+
+        [JsonPropertyName("ASSIGNEE")]
+        public string? ASSIGNEE { get; set; }
+
+        [JsonPropertyName("ASSIGNEE_DEPARTMENT_ID")]
+        public int? ASSIGNEE_DEPARTMENT_ID { get; set; }
+
         [JsonPropertyName("PROJECT_NAME")]
         public string? PROJECT_NAME { get; set; }
         [JsonPropertyName("TASK_HISTORY")]
         public int TASK_HISTORY { get; set; }
+        [JsonPropertyName("CURRENT_EMP_MKEY")]
+        public string? CURRENT_EMP_MKEY { get; set; }
+        [JsonPropertyName("TASKTYPE")]
+        public string? TASKTYPE { get; set; }
+        [JsonPropertyName("TASKTYPE_DESC")]
+        public string? TASKTYPE_DESC { get; set; }
+        [JsonPropertyName("mKEY")]
+        public string? mKEY { get; set; }
+
+
         [JsonPropertyName("unique_id")]
         public int unique_id { get; set; }
         [JsonPropertyName("TASK_PARENT_ID")]

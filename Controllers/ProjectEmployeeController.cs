@@ -8,6 +8,7 @@ using TaskManagement.API.Model;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using Microsoft.AspNetCore.Authorization;
 using System;
+using OfficeOpenXml;
 
 namespace TaskManagement.API.Controllers
 {
@@ -103,7 +104,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task - Management / Get - Sub_Project")]
+        [HttpGet("Task-Management/Get-Sub_Project")]
         [Authorize]
         public async Task<ActionResult<ApiResponse<V_Building_Classification>>> Get_Sub_Project(EmployeeCompanyMST employeeCompanyMST)
         {
@@ -514,7 +515,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/TASK-DASHBOARD_DETAILS")]
         [Authorize]
-        public async Task<ActionResult<TASK_DASHBOARD>> Task_Dashboard_Details(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Task_Dashboard_Details(EmployeeCompanyMST employeeCompanyMST)
         {
             try
             {
@@ -544,128 +545,383 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
-
-
-
-        [HttpGet("Task-Management/Add-Task")]
+        [HttpGet("Task-Management/TeamTask")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Add_Task([FromBody] TASK_HDR tASK_HDR)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TeamTask(EmployeeCompanyMST employeeCompanyMST)
         {
             try
             {
-                if (tASK_HDR.TASK_NO == "0000")
-                {
-                    using (IDbConnection db = _dapperDbConnection.CreateConnection())
-                    {
-                        var parmeters = new DynamicParameters();
-                        parmeters.Add("@TASK_NO", tASK_HDR.TASK_NO);
-                        parmeters.Add("@TASK_NAME", tASK_HDR.TASK_NAME);
-                        parmeters.Add("@TASK_DESCRIPTION", tASK_HDR.TASK_DESCRIPTION);
-                        parmeters.Add("@CATEGORY", tASK_HDR.CAREGORY);
-                        parmeters.Add("@PROJECT_ID", tASK_HDR.PROJECT_ID);
-                        parmeters.Add("@SUBPROJECT_ID", tASK_HDR.SUBPROJECT_ID);
-                        parmeters.Add("@COMPLETION_DATE", tASK_HDR.COMPLETION_DATE);
-                        parmeters.Add("@ASSIGNED_TO", tASK_HDR.ASSIGNED_TO);
-                        parmeters.Add("@TAGS", tASK_HDR.TAGS);
-                        parmeters.Add("@ISNODE", tASK_HDR.ISNODE);
-                        parmeters.Add("@CLOSE_DATE", tASK_HDR.CLOSE_DATE);
-                        parmeters.Add("@DUE_DATE", tASK_HDR.DUE_DATE);
-                        parmeters.Add("@TASK_PARENT_ID", tASK_HDR.TASK_PARENT_ID);
-                        parmeters.Add("@STATUS", tASK_HDR.STATUS);
-                        parmeters.Add("@STATUS_PERC", tASK_HDR.STATUS_PERC);
-                        parmeters.Add("@TASK_CREATED_BY", tASK_HDR.TASK_CREATED_BY);
-                        parmeters.Add("@APPROVER_ID", tASK_HDR.APPROVER_ID);
-                        parmeters.Add("@IS_ARCHIVE", tASK_HDR.IS_ARCHIVE);
-                        parmeters.Add("@ATTRIBUTE1", tASK_HDR.ATTRIBUTE1);
-                        parmeters.Add("@ATTRIBUTE2", tASK_HDR.ATTRIBUTE2);
-                        parmeters.Add("@ATTRIBUTE3", tASK_HDR.ATTRIBUTE3);
-                        parmeters.Add("@ATTRIBUTE4", tASK_HDR.ATTRIBUTE4);
-                        parmeters.Add("@ATTRIBUTE5", tASK_HDR.ATTRIBUTE5);
-                        parmeters.Add("@CREATED_BY", tASK_HDR.CREATED_BY);
-                        parmeters.Add("@CREATION_DATE", tASK_HDR.CREATED_DATE);
-                        parmeters.Add("@LAST_UPDATED_BY", tASK_HDR.LAST_UPDATED_BY);
-                        parmeters.Add("@APPROVE_ACTION_DATE", tASK_HDR.APPROVE_ACTION_DATE);
-                        var ewmployeeMkey = db.Query("Sp_insert_task_details", parmeters, commandType: CommandType.StoredProcedure).ToList();
-                        return Ok(ewmployeeMkey);
-                    }
-                }
-                else
-                {
-                    using (IDbConnection db = _dapperDbConnection.CreateConnection())
-                    {
-                        var parmeters = new DynamicParameters();
-                        parmeters.Add("@EMP_MKEY", EMP_TAGS);
-                        var ewmployeeMkey = db.Query("sp_EMP_TAGS", parmeters, commandType: CommandType.StoredProcedure).ToList();
-                        return Ok(ewmployeeMkey);
-                    }
-                }
+                var TaskTeamTask = await _repository.GetTeamTaskAsync(employeeCompanyMST.CURRENT_EMP_MKEY);
 
+                if (TaskTeamTask == null)
+                {
+                    var responseTeamTask = new ApiResponse<TASK_DASHBOARD>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseTeamTask);
+                }
+                return Ok(TaskTeamTask);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                var response = new ApiResponse<TASK_DASHBOARD>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
             }
         }
 
-
-        [HttpGet("Task-Management/Add-Sub-Task")]
+        [HttpGet("Task-Management/Team_Task_Details")]
         [Authorize]
-        public ActionResult<IEnumerable<dynamic>> Add_Sub_Task(string TASK_NO, string TASK_NAME, string TASK_DESCRIPTION, string CATEGORY, string PROJECT_ID, string SUBPROJECT_ID, string COMPLETION_DATE, string ASSIGNED_TO, string TAGS, string ISNODE, string START_DATE, string CLOSE_DATE, string DUE_DATE, string TASK_PARENT_ID, string TASK_PARENT_NODE_ID, string TASK_PARENT_NUMBER, string STATUS, string STATUS_PERC, string TASK_CREATED_BY, string APPROVER_ID, string IS_ARCHIVE, string ATTRIBUTE1, string ATTRIBUTE2, string ATTRIBUTE3, string ATTRIBUTE4, string ATTRIBUTE5, string CREATED_BY, string CREATION_DATE, string LAST_UPDATED_BY, string APPROVE_ACTION_DATE, string Current_task_mkey)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Team_Task_Details(TASK_DASHBOARD tASK_DASHBOARD)
         {
             try
             {
-                if (TASK_NO == "0000")
+                DataTable Temptable = new DataTable();
+                var TaskTeamTask = await _repository.GetTeamTaskDetailsAsync(tASK_DASHBOARD.CURRENT_EMP_MKEY);
+
+                if (TaskTeamTask == null)
                 {
-                    using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                    var responseTeamTask = new ApiResponse<TASK_DASHBOARD>
                     {
-                        var parmeters = new DynamicParameters();
-                        parmeters.Add("@TASK_NO", TASK_NO);
-                        parmeters.Add("@TASK_NAME", TASK_NAME);
-                        parmeters.Add("@TASK_DESCRIPTION", TASK_DESCRIPTION);
-                        parmeters.Add("@CATEGORY", CATEGORY);
-                        parmeters.Add("@PROJECT_ID", PROJECT_ID);
-                        parmeters.Add("@SUBPROJECT_ID", SUBPROJECT_ID);
-                        parmeters.Add("@COMPLETION_DATE", COMPLETION_DATE);
-                        parmeters.Add("@ASSIGNED_TO", ASSIGNED_TO);
-                        parmeters.Add("@TAGS", TAGS);
-                        parmeters.Add("@ISNODE", ISNODE);
-                        parmeters.Add("@CLOSE_DATE", CLOSE_DATE);
-                        parmeters.Add("@DUE_DATE", DUE_DATE);
-                        parmeters.Add("@TASK_PARENT_ID", TASK_PARENT_ID);
-                        parmeters.Add("@STATUS", STATUS);
-                        parmeters.Add("@STATUS_PERC", STATUS_PERC);
-                        parmeters.Add("@TASK_CREATED_BY", TASK_CREATED_BY);
-                        parmeters.Add("@APPROVER_ID", APPROVER_ID);
-                        parmeters.Add("@IS_ARCHIVE", IS_ARCHIVE);
-                        parmeters.Add("@ATTRIBUTE1", ATTRIBUTE1);
-                        parmeters.Add("@ATTRIBUTE2", ATTRIBUTE2);
-                        parmeters.Add("@ATTRIBUTE3", ATTRIBUTE3);
-                        parmeters.Add("@ATTRIBUTE4", ATTRIBUTE4);
-                        parmeters.Add("@ATTRIBUTE5", ATTRIBUTE5);
-                        parmeters.Add("@CREATED_BY", CREATED_BY);
-                        parmeters.Add("@CREATION_DATE", CREATION_DATE);
-                        parmeters.Add("@LAST_UPDATED_BY", LAST_UPDATED_BY);
-                        parmeters.Add("@APPROVE_ACTION_DATE", APPROVE_ACTION_DATE);
-                        var ewmployeeMkey = db.Query("Sp_insert_task_details", parmeters, commandType: CommandType.StoredProcedure).ToList();
-                        return Ok(ewmployeeMkey);
-                    }
-                }
-                else
-                {
-                    using (IDbConnection db = _dapperDbConnection.CreateConnection())
-                    {
-                        var parmeters = new DynamicParameters();
-                        parmeters.Add("@EMP_MKEY", EMP_TAGS);
-                        var ewmployeeMkey = db.Query("sp_EMP_TAGS", parmeters, commandType: CommandType.StoredProcedure).ToList();
-                        return Ok(ewmployeeMkey);
-                    }
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseTeamTask);
                 }
 
+                DataTable TeamTaskDT = new DataTable();
+
+                TeamTaskDT.Columns.Add("TASKTYPE", typeof(string));
+                TeamTaskDT.Columns.Add("TASKTYPE_DESC", typeof(string));
+                TeamTaskDT.Columns.Add("CURRENT_EMP_MKEY", typeof(string)); // Adjust types as necessary
+
+                // Populate DataTable with the List<TASK_DASHBOARD>
+                foreach (var task in TaskTeamTask)
+                {
+                    DataRow row = TeamTaskDT.NewRow();
+                    row["TASKTYPE"] = task.TASKTYPE;
+                    row["TASKTYPE_DESC"] = task.TASKTYPE_DESC;
+                    row["CURRENT_EMP_MKEY"] = task.CURRENT_EMP_MKEY;
+                    TeamTaskDT.Rows.Add(row);
+                }
+
+                var searchStr = tASK_DASHBOARD.TASKTYPE.ToString().Trim() + " " + tASK_DASHBOARD.TASKTYPE_DESC.ToString().Trim() + " " + tASK_DASHBOARD.mKEY;
+                var splitSearchString = searchStr.Split(' ');
+                var columnNameStr = "TASKTYPE TASKTYPE_DESC CURRENT_EMP_MKEY";
+                var splitcolumnNameStr = columnNameStr.Split(' ');
+                var expression = new List<string>();
+                DataTable table = new DataTable();
+
+                int iCnt = 0;
+                foreach (var searchElement in splitSearchString)
+                {
+                    expression.Add(
+                        string.Format("[{0}] = '{1}'", splitcolumnNameStr[iCnt], searchElement));
+                    iCnt++;
+                }
+                var searchExpressionString = string.Join(" and ", expression.ToArray());
+                DataRow[] rows = TeamTaskDT.Select(searchExpressionString);
+
+                Temptable = TeamTaskDT.Clone();
+                for (int i = 0; i < rows.Length; i++)
+                    Temptable.Rows.Add(rows[i].ItemArray);
+
+                return Ok(Temptable);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                var response = new ApiResponse<TASK_DASHBOARD>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Task-Management/Get_Project_Details")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Get_Project_DetailsWithSubproject(TASK_HDR tASK_HDR)
+        {
+            try
+            {
+                var TaskTeamTask = await _repository.GetProjectDetailsWithSubProjectAsync(tASK_HDR.ProjectID, tASK_HDR.SubProjectID);
+
+                if (TaskTeamTask == null)
+                {
+                    var responseTeamTask = new ApiResponse<TASK_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseTeamTask);
+                }
+                return Ok(TaskTeamTask);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Task-Management/GET-TASK_TREEExport")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_HDR>>> GET_TASK_TREEExport(TASK_HDR tASK_HDR)
+        {
+            try
+            {
+                DataTable dsTaskTree = new DataTable();
+                var TaskTreeExport = await _repository.GetTaskTreeExportAsync(tASK_HDR.TASK_MKEY.ToString());
+
+                if (TaskTreeExport == null)
+                {
+                    var responseTeamTask = new ApiResponse<TASK_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseTeamTask);
+                }
+
+                dsTaskTree = ConvertToDataTable(TaskTreeExport);
+
+                var fileName = $"Task_Details_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
+
+                // Create a MemoryStream to hold the Excel file in memory
+                using (var memoryStream = new MemoryStream())
+                {
+                    // Create an Excel package (ExcelPackage is the class from EPPlus)
+                    using (var package = new ExcelPackage(memoryStream))
+                    {
+                        // Create a new worksheet in the Excel file
+                        var worksheet = package.Workbook.Worksheets.Add("TaskDetails");
+
+                        // Add headers to the worksheet
+                        for (int col = 1; col <= dsTaskTree.Columns.Count; col++)
+                        {
+                            worksheet.Cells[1, col].Value = dsTaskTree.Columns[col - 1].ColumnName;
+                        }
+
+                        // Add data to the worksheet
+                        for (int row = 0; row < dsTaskTree.Rows.Count; row++)
+                        {
+                            for (int col = 0; col < dsTaskTree.Columns.Count; col++)
+                            {
+                                worksheet.Cells[row + 2, col + 1].Value = dsTaskTree.Rows[row][col].ToString();
+                            }
+                        }
+
+                        // Save the Excel file to the memory stream
+                        package.Save();
+                    }
+
+                    // Set the memory stream position to the beginning before returning the file
+                    memoryStream.Position = 0;
+
+                    // Return the file as an Excel file
+                    return File(memoryStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+
+                return Ok(dsTaskTree);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+        private DataTable ConvertToDataTable(IEnumerable<dynamic> result)
+        {
+            var table = new DataTable();
+            var firstRow = result.FirstOrDefault();
+
+            if (firstRow != null)
+            {
+                foreach (var property in firstRow)
+                {
+                    table.Columns.Add(property.Key);
+                }
+
+                foreach (var row in result)
+                {
+                    var dataRow = table.NewRow();
+                    foreach (var property in row)
+                    {
+                        dataRow[property.Key] = property.Value;
+                    }
+                    table.Rows.Add(dataRow);
+                }
+            }
+
+            return table;
+        }
+
+        [HttpGet("Task-Management/Get_ExportProject_DetailsWithSubproject")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Get_ExportProject_DetailsWithSubproject(TASK_HDR tASK_HDR)
+        {
+            try
+            {
+                DataTable dsTaskTree = new DataTable();
+                var ProjectTask = await _repository.GetProjectDetailsWithSubProjectAsync(tASK_HDR.ProjectID, tASK_HDR.SubProjectID);
+
+                if (ProjectTask == null)
+                {
+                    var responseTeamTask = new ApiResponse<TASK_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(responseTeamTask);
+                }
+                dsTaskTree = ConvertToDataTable(ProjectTask);
+
+                var fileName = $"Task_Details_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
+
+                // Create a MemoryStream to hold the Excel file in memory
+                using (var memoryStream = new MemoryStream())
+                {
+                    // Create an Excel package (ExcelPackage is the class from EPPlus)
+                    using (var package = new ExcelPackage(memoryStream))
+                    {
+                        // Create a new worksheet in the Excel file
+                        var worksheet = package.Workbook.Worksheets.Add("TaskDetails");
+
+                        // Add headers to the worksheet
+                        for (int col = 1; col <= dsTaskTree.Columns.Count; col++)
+                        {
+                            worksheet.Cells[1, col].Value = dsTaskTree.Columns[col - 1].ColumnName;
+                        }
+
+                        // Add data to the worksheet
+                        for (int row = 0; row < dsTaskTree.Rows.Count; row++)
+                        {
+                            for (int col = 0; col < dsTaskTree.Columns.Count; col++)
+                            {
+                                worksheet.Cells[row + 2, col + 1].Value = dsTaskTree.Rows[row][col].ToString();
+                            }
+                        }
+
+                        // Save the Excel file to the memory stream
+                        package.Save();
+                    }
+
+                    // Set the memory stream position to the beginning before returning the file
+                    memoryStream.Position = 0;
+
+                    // Return the file as an Excel file
+                    return File(memoryStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+
+                return Ok(dsTaskTree);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Add-Task")]
+        [Authorize]
+        public async Task<ActionResult<TASK_HDR>> Add_Task([FromBody] TASK_HDR tASK_HDR)
+        {
+            try
+            {
+                var modelTask = await _repository.CreateAddTaskAsync(tASK_HDR);
+                if (modelTask == null)
+                {
+                    var responseStatus = new ApiResponse<TASK_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+                var response = new ApiResponse<TASK_HDR>
+                {
+                    Status = "Ok",
+                    Message = "Inserted Successfully",
+                    Data = modelTask // No data in case of exception
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Task-Management/Add-Sub-Task")]
+        [Authorize]
+        public async Task<ActionResult<TASK_HDR>> Add_Sub_Task([FromBody] TASK_HDR tASK_HDR)
+        {
+            //(string TASK_NO, string TASK_NAME, string TASK_DESCRIPTION, string CATEGORY, string PROJECT_ID, string SUBPROJECT_ID, string COMPLETION_DATE, string ASSIGNED_TO, string TAGS, string ISNODE, string START_DATE, string CLOSE_DATE, string DUE_DATE, string TASK_PARENT_ID, string TASK_PARENT_NODE_ID, string TASK_PARENT_NUMBER, string STATUS, string STATUS_PERC, string TASK_CREATED_BY, string APPROVER_ID, string IS_ARCHIVE, string ATTRIBUTE1, string ATTRIBUTE2, string ATTRIBUTE3, string ATTRIBUTE4, string ATTRIBUTE5, string CREATED_BY, string CREATION_DATE, string LAST_UPDATED_BY, string APPROVE_ACTION_DATE, string Current_task_mkey)
+            try
+            {
+                var modelTask = await _repository.CreateAddSubTaskAsync(tASK_HDR);
+                if (modelTask == null)
+                {
+                    var responseStatus = new ApiResponse<TASK_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+                var response = new ApiResponse<TASK_HDR>
+                {
+                    Status = "Ok",
+                    Message = "Inserted Successfully",
+                    Data = modelTask // No data in case of exception
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<TASK_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
             }
         }
     }
