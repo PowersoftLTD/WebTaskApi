@@ -37,7 +37,8 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@MKEY", null);
                     parmeters.Add("@ATTRIBUTE1", LoggedIN.ToString());
                     var approvalTemplates = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("SP_GET_APPROVAL_TEMPLATE", parmeters, commandType: CommandType.StoredProcedure);
-
+                    //var approvalTemplates1 = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("select MKEY, DOCUMENT_NAME, count(DOCUMENT_NAME) from APPROVAL_TEMPLATE_TRL_ENDRESULT group by MKEY,DOCUMENT_NAME having count(DOCUMENT_NAME) > 1;", CommandType.Text);
+                    
                     if (approvalTemplates == null || !approvalTemplates.Any())
                     {
                         var approvalTemplate = new APPROVAL_TEMPLATE_HDR();
@@ -52,13 +53,13 @@ namespace TaskManagement.API.Repositories
                         strMKEY = approvalTemplate.MKEY;
                         // Fetch the associated subtasks
                         var subtasks = await db.QueryAsync<APPROVAL_TEMPLATE_TRL_SUBTASK>(
-                            "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY",
+                            "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
                             new { HEADER_MKEY = approvalTemplate.MKEY });
 
                         approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property
 
 
-                        string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY";
+                        string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N'; ";
                         var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                         // Initialize the END_RESULT_DOC_LST dictionary
@@ -71,7 +72,7 @@ namespace TaskManagement.API.Repositories
                             approvalTemplate.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
                         }
 
-                        sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY";
+                        sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
                         var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                         // Initialize the END_RESULT_DOC_LST dictionary
@@ -122,12 +123,12 @@ namespace TaskManagement.API.Repositories
                     // Fetch the associated subtasks
                     // Fetch the associated Subtasks
                     var subtasks = await db.QueryAsync<APPROVAL_TEMPLATE_TRL_SUBTASK>(
-                        "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY",
+                        "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
                         new { HEADER_MKEY = approvalTemplate.MKEY });
 
                     approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property with subtasks
 
-                    string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY";
+                    string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
                     var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                     // Initialize the END_RESULT_DOC_LST dictionary
@@ -140,7 +141,7 @@ namespace TaskManagement.API.Repositories
                         approvalTemplate.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
                     }
 
-                    sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY";
+                    sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
                     var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                     // Initialize the END_RESULT_DOC_LST dictionary
@@ -232,7 +233,7 @@ namespace TaskManagement.API.Repositories
 
                         if (OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST != null)
                         {
-                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY ", new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
+                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';", new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
                             // Populate the DataTable with product data
                             foreach (var END_DOC_LIST in OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST)
                             {
@@ -257,7 +258,7 @@ namespace TaskManagement.API.Repositories
                              * TO GET INSERTED VALUE IN END RESULT
                              * */
                             // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
-                            string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY";
+                            string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
                             var keyValuePairs = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
 
                             // Initialize the END_RESULT_DOC_LST dictionary
@@ -286,7 +287,7 @@ namespace TaskManagement.API.Repositories
                         if (OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST != null)
                         {
                             var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t " +
-                                "WHERE MKEY = @MKEY ", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
+                                "WHERE MKEY = @MKEY AND DELETE_FLAG = 'N'", new { MKEY = OBJ_APPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
 
                             foreach (var CHECK_LIST in OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST)
                             {
@@ -311,7 +312,7 @@ namespace TaskManagement.API.Repositories
 
 
                             // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
-                            var sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY";
+                            var sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
                             var keyValuePairs = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
 
                             // Initialize the END_RESULT_DOC_LST dictionary
@@ -379,7 +380,7 @@ namespace TaskManagement.API.Repositories
                             await transactionSubTask.CommitAsync();
 
                             // Optionally, fetch the inserted values (if necessary)
-                            string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY,SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY";
+                            string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY,SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';";
                             var subtaskKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = aPPROVAL_TEMPLATE_HDR.MKEY });
 
                             // Assuming the model has a SUBTASK_LIST dictionary to hold these values
@@ -425,7 +426,7 @@ namespace TaskManagement.API.Repositories
                         "SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD,HDR.ATTRIBUTE1,HDR.ATTRIBUTE2," +
                         "HDR.ATTRIBUTE3,HDR.ATTRIBUTE4,HDR.ATTRIBUTE5,HDR.CREATED_BY,HDR.CREATION_DATE,HDR.LAST_UPDATED_BY,HDR.LAST_UPDATE_DATE,SANCTION_AUTHORITY," +
                         "SANCTION_DEPARTMENT,END_RESULT_DOC,CHECKLIST_DOC,HDR.DELETE_FLAG  FROM APPROVAL_TEMPLATE_HDR HDR INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL_SUB " +
-                        "ON HDR.MKEY = TRL_SUB.HEADER_MKEY WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR) AND HDR.DELETE_FLAG = 'N' " +
+                        "ON HDR.MKEY = TRL_SUB.HEADER_MKEY WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR) AND HDR.DELETE_FLAG = 'N'; " +
                         "AND TRL_SUB.DELETE_FLAG = 'N' ", new { ABBR = ABBR });
                 }
             }
@@ -554,7 +555,7 @@ namespace TaskManagement.API.Repositories
                         dataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
                         dataTable.Columns.Add("DELETE_FLAG", typeof(char));
 
-                        var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO), 0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY",
+                        var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO), 0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';",
                                                                    new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY },
                                                                    commandType: CommandType.Text,
                                                                    transaction: transaction);
@@ -594,7 +595,7 @@ namespace TaskManagement.API.Repositories
                         dataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
                         dataTable.Columns.Add("DELETE_FLAG", typeof(char));
 
-                        var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO), 0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t WHERE MKEY = @MKEY",
+                        var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO), 0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';",
                                                                    new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY },
                                                                    commandType: CommandType.Text,
                                                                    transaction: transaction);

@@ -12,11 +12,11 @@ namespace TaskManagement.API.Model
         [Required]
         [DataType(DataType.Password)]
         public string LOGIN_PASSWORD { get; set; }
-        [JsonIgnore]  // Prevent serialization of the property
-        //[ApiExplorerSettings(IgnoreApi = true)]
-        public string? Status { get; set; }
-        [JsonIgnore]  // Prevent serialization of the property
-        //[ApiExplorerSettings(IgnoreApi = true)]
-        public string? Message { get; set; }
+        //[JsonIgnore]  // Prevent serialization of the property
+        ////[ApiExplorerSettings(IgnoreApi = true)]
+        //public string? Status { get; set; }
+        //[JsonIgnore]  // Prevent serialization of the property
+        ////[ApiExplorerSettings(IgnoreApi = true)]
+        //public string? Message { get; set; }
     }
 }

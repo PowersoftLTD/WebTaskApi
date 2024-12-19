@@ -9,62 +9,37 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using OfficeOpenXml;
+using TaskManagement.API.Repositories;
+using Newtonsoft.Json;
+using Azure;
 
 namespace TaskManagement.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class ProjectEmployeeController : ControllerBase
+    public class CommonApiController : ControllerBase
     {
         private readonly IConfiguration _configuration;
         private readonly IProjectEmployee _repository;
         public IDapperDbConnection _dapperDbConnection;
-        public ProjectEmployeeController(IProjectEmployee repository, IConfiguration configuration)
+        public CommonApiController(IProjectEmployee repository, IConfiguration configuration)
         {
             _repository = repository;
             _configuration = configuration;
         }
 
-        [HttpGet("Task-Management/Login")]
-        public async Task<ActionResult<EmployeeCompanyMST>> Login_Validate(EmployeeCompanyMST employeeCompanyMST)
+        [HttpPost("Task-Management/Login")]
+        public async Task<ActionResult<EmployeeLoginOutput_LIST>> Login_Validate([FromBody] EmployeeCompanyMSTInput employeeCompanyMSTInput)
         {
             try
             {
-                var LoginValidate = await _repository.Login_Validate(employeeCompanyMST.Login_ID, employeeCompanyMST.LOGIN_PASSWORD);
-                if (LoginValidate == null)
-                {
-                    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseApprovalTemplate);
-                }
-                else if (LoginValidate.STATUS != "Ok")
-                {
-                    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
-                    {
-                        Status = LoginValidate.STATUS,
-                        Message = LoginValidate.MESSAGE,
-                        Data = null
-                    };
-
-                    return Ok(responseApprovalTemplate);
-                }
-
-                var response = new ApiResponse<EmployeeCompanyMST>
-                {
-                    Status = "OK",
-                    Message = "Login details",
-                    Data = LoginValidate
-                };
-                return Ok(response);
+                var LoginValidate = await _repository.Login_Validate(employeeCompanyMSTInput.Login_ID, employeeCompanyMSTInput.Login_Password);
+                return Ok(LoginValidate);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<EmployeeCompanyMST>
+                var response = new EmployeeLoginOutput_LIST
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -74,29 +49,37 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/Get-Option")]
+        [HttpPost("Task-Management/Get-Option")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<V_Building_Classification>>> Get_Project(V_Building_Classification v_Building_Classification)
+        public async Task<ActionResult<V_Building_Classification_new>> Get_Project([FromBody] BuildingClassInput v_Building_Classification)
         {
             try
             {
-                var classifications = await _repository.GetProjectAsync(v_Building_Classification.TYPE_CODE, v_Building_Classification.MASTER_MKEY);
-                if (classifications == null)
-                {
-                    var responseApprovalTemplate = new ApiResponse<V_Building_Classification>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseApprovalTemplate);
-                }
+                // Get the project classifications (a collection)
+                var classifications = await _repository.GetProjectAsync(v_Building_Classification.Type_Code, v_Building_Classification.Master_mkey);
 
+                //if (classifications == null || !classifications.Any()) // Check if the result is null or empty
+                //{
+                //    //var responseApprovalTemplate = new ApiResponse<IEnumerable<V_Building_Classification_new>>
+                //    //{
+                //    //    Status = "Error",
+                //    //    Message = "Error Occurred or No Data Found",
+                //    //    Data = classifications
+                //    //};
+                //    return Ok(classifications);
+                //}
+
+                //var responseProject = new ApiResponse<IEnumerable<V_Building_Classification_new>>
+                //{
+                //    Status = "Ok",
+                //    Message = "Data Retrieved Successfully",
+                //    Data = classifications
+                //};
                 return Ok(classifications);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<V_Building_Classification>
+                var response = new V_Building_Classification_new
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -106,13 +89,13 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/Get-Sub_Project")]
+        [HttpPost("Task-Management/Get-Sub_Project")]
         [Authorize]
-        public async Task<ActionResult<ApiResponse<V_Building_Classification>>> Get_Sub_Project(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<V_Building_Classification_new>> Get_Sub_Project([FromBody] GetSubProjectInput getSubProjectInput)
         {
             try
             {
-                var classifications = await _repository.GetSubProjectAsync(employeeCompanyMST.PROJECT_ID);
+                var classifications = await _repository.GetSubProjectAsync(getSubProjectInput.Project_Mkey);
                 if (classifications == null)
                 {
                     var ErrorResponse = new ApiResponse<V_Building_Classification>
@@ -128,7 +111,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<V_Building_Classification>
+                var response = new V_Building_Classification_new
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -138,29 +121,29 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/Get-Emp")]
+        [HttpPost("Task-Management/Get-Emp")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<EmployeeCompanyMST>>> Get_Emp(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<EmployeeLoginOutput_LIST>> Get_Emp([FromBody] Get_EmpInput get_EmpInput)
         {
             try
             {
-                var classifications = await _repository.GetEmpAsync(employeeCompanyMST.CURRENT_EMP_MKEY, employeeCompanyMST.FILTER);
-                if (classifications == null)
-                {
-                    var responseApprovalTemplate = new ApiResponse<V_Building_Classification>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseApprovalTemplate);
-                }
+                var classifications = await _repository.GetEmpAsync(get_EmpInput.CURRENT_EMP_MKEY, get_EmpInput.FILTER);
+                //if (classifications == null)
+                //{
+                //    var responseApprovalTemplate = new ApiResponse<V_Building_Classification>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(classifications);
+                //}
 
                 return Ok(classifications);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<V_Building_Classification>
+                var response = new V_Building_Classification_new
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -170,29 +153,29 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/Assigned_To")]
+        [HttpPost("Task-Management/Assigned_To")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<EmployeeCompanyMST>>> AssignedTo(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<EmployeeCompanyMST>> AssignedTo([FromBody] AssignedToInput assignedToInput)
         {
             try
             {
-                var classifications = await _repository.GetAssignedToAsync(employeeCompanyMST.AssignNameLike);
-                if (classifications == null)
-                {
-                    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseApprovalTemplate);
-                }
+                var classifications = await _repository.GetAssignedToAsync(assignedToInput.AssignNameLike);
+                //if (classifications == null)
+                //{
+                //    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseApprovalTemplate);
+                //}
 
                 return Ok(classifications);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<EmployeeCompanyMST>
+                var response = new V_Building_Classification_new
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -202,28 +185,28 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/EMP_TAGS")]
+        [HttpPost("Task-Management/EMP_TAGS")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<EMPLOYEE_TAGS>>> EMP_TAGS(string EMP_TAGS)
+        public async Task<ActionResult<IEnumerable<EmployeeLoginOutput_LIST>>> EMP_TAGS([FromBody] EMP_TAGSInput eMP_TAGSInput)
         {
             try
             {
-                var classifications = await _repository.GetEmpTagsAsync(EMP_TAGS);
-                if (classifications == null)
-                {
-                    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseApprovalTemplate);
-                }
+                var classifications = await _repository.GetEmpTagsAsync(eMP_TAGSInput.EMP_TAGS);
+                //if (classifications == null)
+                //{
+                //    var responseApprovalTemplate = new ApiResponse<EmployeeCompanyMST>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseApprovalTemplate);
+                //}
                 return Ok(classifications);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<EmployeeCompanyMST>
+                var response = new EmployeeLoginOutput_LIST
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -234,28 +217,28 @@ namespace TaskManagement.API.Controllers
         }
 
 
-        [HttpGet("Task-Management/TASK-DASHBOARD")]
+        [HttpPost("Task-Management/TASK-DASHBOARD")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Task_Details(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<IEnumerable<Task_DetailsOutPut_List>>> Task_Details([FromBody] Task_DetailsInput task_DetailsInput)
         {
             try
             {
-                var TaskDash = await _repository.GetTaskDetailsAsync(employeeCompanyMST.CURRENT_EMP_MKEY, employeeCompanyMST.FILTER);
-                if (TaskDash == null)
-                {
-                    var responseApprovalTemplate = new ApiResponse<TASK_DASHBOARD>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseApprovalTemplate);
-                }
+                var TaskDash = await _repository.GetTaskDetailsAsync(task_DetailsInput.CURRENT_EMP_MKEY, task_DetailsInput.FILTER);
+                //if (TaskDash == null)
+                //{
+                //    var responseApprovalTemplate = new ApiResponse<TASK_DASHBOARD>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseApprovalTemplate);
+                //}
                 return Ok(TaskDash);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_DASHBOARD>
+                var response = new ApiResponse<Task_DetailsOutPut_List>
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -266,28 +249,28 @@ namespace TaskManagement.API.Controllers
         }
 
 
-        [HttpGet("Task-Management/TASK-DETAILS_BY_MKEY")]
+        [HttpPost("Task-Management/TASK-DETAILS_BY_MKEY")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DETAILS_BY_MKEY>>> TASK_DETAILS_BY_MKEY(TASK_DETAILS_BY_MKEY tASK_DETAILS_BY_MKEY)
+        public async Task<ActionResult<IEnumerable<TASK_DETAILS_BY_MKEY_list>>> TASK_DETAILS_BY_MKEY([FromBody] TASK_DETAILS_BY_MKEYInput tASK_DETAILS_BY_MKEYInput)
         {
             try
             {
-                var TaskDash = await _repository.GetTaskDetailsByMkeyAsync(tASK_DETAILS_BY_MKEY.MKEY);
-                if (TaskDash == null)
-                {
-                    var responseApprovalTemplate = new ApiResponse<TASK_DASHBOARD>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseApprovalTemplate);
-                }
+                var TaskDash = await _repository.GetTaskDetailsByMkeyAsync(tASK_DETAILS_BY_MKEYInput.Mkey);
+                ////if (TaskDash == null)
+                ////{
+                ////    var responseApprovalTemplate = new ApiResponse<TASK_DASHBOARD>
+                ////    {
+                ////        Status = "Error",
+                ////        Message = "Error Occurd",
+                ////        Data = null
+                ////    };
+                ////    return Ok(responseApprovalTemplate);
+                ////}
                 return Ok(TaskDash);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_DASHBOARD>
+                var response = new ApiResponse<TASK_DETAILS_BY_MKEY_list>
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -297,28 +280,28 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/TASK-NESTED-GRID")]
+        [HttpPost("Task-Management/TASK-NESTED-GRID")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TASK_NESTED_GRID(TASK_DASHBOARD tASK_DASHBOARD)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TASK_NESTED_GRID([FromQuery] TASK_NESTED_GRIDInput tASK_NESTED_GRIDInput)
         {
             try
             {
-                var TaskDash = await _repository.GetTaskNestedGridAsync(tASK_DASHBOARD.MKEY);
-                if (TaskDash == null)
-                {
-                    var responseTaskTree = new ApiResponse<TASK_DASHBOARD>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTaskTree);
-                }
+                var TaskDash = await _repository.GetTaskNestedGridAsync(tASK_NESTED_GRIDInput.Mkey);
+                //if (TaskDash == null)
+                //{
+                //    var responseTaskTree = new ApiResponse<TASK_DASHBOARD>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTaskTree);
+                //}
                 return Ok(TaskDash);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_DASHBOARD>
+                var response = new ApiResponse<TASK_NESTED_GRIDOutPut_List>
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -328,20 +311,20 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/GET-ACTIONS")]
+        [HttpPost("Task-Management/GET-ACTIONS")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_ACTION_TRL>>> GET_ACTIONS(TASK_ACTION_TRL tASK_ACTION_TRL)
+        public async Task<ActionResult<IEnumerable<TASK_ACTION_TRL>>> GET_ACTIONS([FromQuery] GET_ACTIONSInput gET_ACTIONSInput)
         {
             try
             {
-                var TaskAction = await _repository.GetActionsAsync(Convert.ToInt32(tASK_ACTION_TRL.TASK_MKEY), Convert.ToInt32(tASK_ACTION_TRL.CURRENT_EMP_MKEY), tASK_ACTION_TRL.CURR_ACTION);
+                var TaskAction = await _repository.GetActionsAsync(Convert.ToInt32(gET_ACTIONSInput.TASK_MKEY), Convert.ToInt32(gET_ACTIONSInput.CURRENT_EMP_MKEY), gET_ACTIONSInput.CURR_ACTION);
                 if (TaskAction == null)
                 {
                     var responseTaskAction = new ApiResponse<TASK_ACTION_TRL>
                     {
                         Status = "Error",
                         Message = "Error Occurd",
-                        Data = tASK_ACTION_TRL
+                        Data = null
                     };
                     return Ok(responseTaskAction);
                 }
@@ -353,7 +336,7 @@ namespace TaskManagement.API.Controllers
                 {
                     Status = "Error",
                     Message = ex.Message,
-                    Data = tASK_ACTION_TRL
+                    Data = null
                 };
                 return Ok(response);
             }
@@ -361,11 +344,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/GET-TASK_TREE")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> GET_TASK_TREE(TASK_DASHBOARD tASK_DASHBOARD)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> GET_TASK_TREE([FromQuery] GET_TASK_TREEInput gET_TASK_TREEInput)
         {
             try
             {
-                var TaskTree = await _repository.GetTaskTreeAsync(tASK_DASHBOARD.TASK_MKEY);
+                var TaskTree = await _repository.GetTaskTreeAsync(gET_TASK_TREEInput.TASK_MKEY);
                 if (TaskTree == null)
                 {
                     var responseTaskAction = new ApiResponse<TASK_DASHBOARD>
@@ -384,7 +367,7 @@ namespace TaskManagement.API.Controllers
                 {
                     Status = "Error",
                     Message = ex.Message,
-                    Data = tASK_DASHBOARD
+                    Data = null
                 };
                 return Ok(response);
             }
@@ -392,11 +375,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpPut("Task-Management/Change_Password")]
         [Authorize]
-        public async Task<ActionResult<EmployeeCompanyMST>> ChangePassword(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<EmployeeCompanyMST>> ChangePassword([FromQuery] ChangePasswordInput changePasswordInput)
         {
             try
             {
-                var ChangePass = await _repository.PutChangePasswordAsync(employeeCompanyMST.LoginName, employeeCompanyMST.Old_Password, employeeCompanyMST.New_Password);
+                var ChangePass = await _repository.PutChangePasswordAsync(changePasswordInput.LoginName, changePasswordInput.Old_Password, changePasswordInput.New_Password);
 
                 if (ChangePass == null)
                 {
@@ -404,7 +387,7 @@ namespace TaskManagement.API.Controllers
                     {
                         Status = "Error",
                         Message = "Error Occurd",
-                        Data = employeeCompanyMST
+                        Data = null
                     };
                     return Ok(responseTaskAction);
                 }
@@ -424,11 +407,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/Forgot_Password")]
         [Authorize]
-        public async Task<ActionResult<EmployeeCompanyMST>> ForgotPassword(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<EmployeeCompanyMST>> ForgotPassword([FromQuery] ForgotPasswordInput forgotPasswordInput)
         {
             try
             {
-                var ForgotPass = await _repository.GetForgotPasswordAsync(employeeCompanyMST.LoginName);
+                var ForgotPass = await _repository.GetForgotPasswordAsync(forgotPasswordInput.LoginName);
 
                 if (ForgotPass == null)
                 {
@@ -436,13 +419,13 @@ namespace TaskManagement.API.Controllers
                     {
                         Status = "Error",
                         Message = "Error Occurd",
-                        Data = employeeCompanyMST
+                        Data = null
                     };
                     return Ok(responseTaskAction);
                 }
 
 
-                var ResetPass = await _repository.GetResetPasswordAsync(ForgotPass.TEMPPASSWORD, employeeCompanyMST.LoginName);
+                var ResetPass = await _repository.GetResetPasswordAsync(ForgotPass.TEMPPASSWORD, forgotPasswordInput.LoginName);
 
                 if (ResetPass == null)
                 {
@@ -450,7 +433,7 @@ namespace TaskManagement.API.Controllers
                     {
                         Status = "Error",
                         Message = "Error Occurd",
-                        Data = employeeCompanyMST
+                        Data = null
                     };
                     return Ok(responseTaskAction);
                 }
@@ -485,11 +468,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/Validate_Email")]
         [Authorize]
-        public async Task<ActionResult<EmployeeCompanyMST>> ValidateEmail(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<EmployeeCompanyMST>> ValidateEmail([FromQuery] ValidateEmailInput validateEmailInput)
         {
             try
             {
-                var ValidateEmailVar = await _repository.GetValidateEmailAsync(employeeCompanyMST.Login_ID);
+                var ValidateEmailVar = await _repository.GetValidateEmailAsync(validateEmailInput.Login_ID);
 
                 if (ValidateEmailVar == null)
                 {
@@ -497,7 +480,7 @@ namespace TaskManagement.API.Controllers
                     {
                         Status = "Error",
                         Message = "Error Occurd",
-                        Data = employeeCompanyMST
+                        Data = null
                     };
                     return Ok(responseTaskAction);
                 }
@@ -517,11 +500,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/TASK-DASHBOARD_DETAILS")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Task_Dashboard_Details(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Task_Dashboard_Details([FromQuery] Task_Dashboard_DetailsInput task_Dashboard_DetailsInput)
         {
             try
             {
-                var TaskDashboardDetails = await _repository.GetTaskDashboardDetailsAsync(Convert.ToString(employeeCompanyMST.CURRENT_EMP_MKEY), employeeCompanyMST.CURR_ACTION);
+                var TaskDashboardDetails = await _repository.GetTaskDashboardDetailsAsync(Convert.ToString(task_Dashboard_DetailsInput.CURRENT_EMP_MKEY), task_Dashboard_DetailsInput.CURR_ACTION);
 
                 if (TaskDashboardDetails == null)
                 {
@@ -549,11 +532,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/TeamTask")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TeamTask(EmployeeCompanyMST employeeCompanyMST)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TeamTask([FromQuery] TeamTaskInput teamTaskInput)
         {
             try
             {
-                var TaskTeamTask = await _repository.GetTeamTaskAsync(employeeCompanyMST.CURRENT_EMP_MKEY);
+                var TaskTeamTask = await _repository.GetTeamTaskAsync(teamTaskInput.CURRENT_EMP_MKEY);
 
                 if (TaskTeamTask == null)
                 {
@@ -581,12 +564,12 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/Team_Task_Details")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Team_Task_Details(TASK_DASHBOARD tASK_DASHBOARD)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Team_Task_Details([FromQuery] Team_Task_DetailsInput team_Task_DetailsInput)
         {
             try
             {
                 DataTable Temptable = new DataTable();
-                var TaskTeamTask = await _repository.GetTeamTaskDetailsAsync(tASK_DASHBOARD.CURRENT_EMP_MKEY);
+                var TaskTeamTask = await _repository.GetTeamTaskDetailsAsync(team_Task_DetailsInput.CURRENT_EMP_MKEY);
 
                 if (TaskTeamTask == null)
                 {
@@ -615,7 +598,7 @@ namespace TaskManagement.API.Controllers
                     TeamTaskDT.Rows.Add(row);
                 }
 
-                var searchStr = tASK_DASHBOARD.TASKTYPE.ToString().Trim() + " " + tASK_DASHBOARD.TASKTYPE_DESC.ToString().Trim() + " " + tASK_DASHBOARD.mKEY;
+                var searchStr = team_Task_DetailsInput.TASKTYPE.ToString().Trim() + " " + team_Task_DetailsInput.TASKTYPE_DESC.ToString().Trim() + " " + team_Task_DetailsInput.mKEY;
                 var splitSearchString = searchStr.Split(' ');
                 var columnNameStr = "TASKTYPE TASKTYPE_DESC CURRENT_EMP_MKEY";
                 var splitcolumnNameStr = columnNameStr.Split(' ');
@@ -652,11 +635,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/Get_Project_Details")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Get_Project_DetailsWithSubproject(TASK_HDR tASK_HDR)
+        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Get_Project_DetailsWithSubproject([FromQuery] Get_Project_DetailsWithSubprojectInput get_Project_DetailsWithSubprojectInput)
         {
             try
             {
-                var TaskTeamTask = await _repository.GetProjectDetailsWithSubProjectAsync(tASK_HDR.ProjectID, tASK_HDR.SubProjectID);
+                var TaskTeamTask = await _repository.GetProjectDetailsWithSubProjectAsync(get_Project_DetailsWithSubprojectInput.ProjectID, get_Project_DetailsWithSubprojectInput.SubProjectID);
 
                 if (TaskTeamTask == null)
                 {
@@ -684,12 +667,12 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/GET-TASK_TREEExport")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_HDR>>> GET_TASK_TREEExport(TASK_HDR tASK_HDR)
+        public async Task<ActionResult<IEnumerable<TASK_HDR>>> GET_TASK_TREEExport([FromQuery] GET_TASK_TREEExportInput gET_TASK_TREEExportInput)
         {
             try
             {
                 DataTable dsTaskTree = new DataTable();
-                var TaskTreeExport = await _repository.GetTaskTreeExportAsync(tASK_HDR.TASK_MKEY.ToString());
+                var TaskTreeExport = await _repository.GetTaskTreeExportAsync(gET_TASK_TREEExportInput.TASK_MKEY.ToString());
 
                 if (TaskTreeExport == null)
                 {
@@ -782,12 +765,12 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/Get_ExportProject_DetailsWithSubproject")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Get_ExportProject_DetailsWithSubproject(TASK_HDR tASK_HDR)
+        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Get_ExportProject_DetailsWithSubproject([FromQuery] Get_ExportProject_DetailsWithSubprojectInput get_ExportProject_DetailsWithSubprojectInput)
         {
             try
             {
                 DataTable dsTaskTree = new DataTable();
-                var ProjectTask = await _repository.GetProjectDetailsWithSubProjectAsync(tASK_HDR.ProjectID, tASK_HDR.SubProjectID);
+                var ProjectTask = await _repository.GetProjectDetailsWithSubProjectAsync(get_ExportProject_DetailsWithSubprojectInput.ProjectID, get_ExportProject_DetailsWithSubprojectInput.SubProjectID);
 
                 if (ProjectTask == null)
                 {
@@ -854,11 +837,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/Add-Task")]
         [Authorize]
-        public async Task<ActionResult<TASK_HDR>> Add_Task([FromBody] TASK_HDR tASK_HDR)
+        public async Task<ActionResult<TASK_HDR>> Add_Task([FromBody] Add_TaskInput add_TaskInput)
         {
             try
             {
-                var modelTask = await _repository.CreateAddTaskAsync(tASK_HDR);
+                var modelTask = await _repository.CreateAddTaskAsync(add_TaskInput);
                 if (modelTask == null)
                 {
                     var responseStatus = new ApiResponse<TASK_HDR>
@@ -891,12 +874,12 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Task-Management/Add-Sub-Task")]
         [Authorize]
-        public async Task<ActionResult<TASK_HDR>> Add_Sub_Task([FromBody] TASK_HDR tASK_HDR)
+        public async Task<ActionResult<TASK_HDR>> Add_Sub_Task([FromBody] Add_Sub_TaskInput add_Sub_TaskInput)
         {
             //(string TASK_NO, string TASK_NAME, string TASK_DESCRIPTION, string CATEGORY, string PROJECT_ID, string SUBPROJECT_ID, string COMPLETION_DATE, string ASSIGNED_TO, string TAGS, string ISNODE, string START_DATE, string CLOSE_DATE, string DUE_DATE, string TASK_PARENT_ID, string TASK_PARENT_NODE_ID, string TASK_PARENT_NUMBER, string STATUS, string STATUS_PERC, string TASK_CREATED_BY, string APPROVER_ID, string IS_ARCHIVE, string ATTRIBUTE1, string ATTRIBUTE2, string ATTRIBUTE3, string ATTRIBUTE4, string ATTRIBUTE5, string CREATED_BY, string CREATION_DATE, string LAST_UPDATED_BY, string APPROVE_ACTION_DATE, string Current_task_mkey)
             try
             {
-                var modelTask = await _repository.CreateAddSubTaskAsync(tASK_HDR);
+                var modelTask = await _repository.CreateAddSubTaskAsync(add_Sub_TaskInput);
                 if (modelTask == null)
                 {
                     var responseStatus = new ApiResponse<TASK_HDR>
@@ -926,7 +909,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
 
         [Authorize]
         [HttpPost("Task-Management/FileUpload"), DisableRequestSizeLimit]
@@ -989,6 +971,77 @@ namespace TaskManagement.API.Controllers
                         await _repository.UpdateTASKFileUpoadAsync(taskMkey, deleteFlag);
                     }
                 }
+
+                return BadRequest("No files were uploaded.");
+            }
+            catch (Exception ex)
+            {
+                // Handle exception (could be logging or returning an error response)
+                return StatusCode(400, new { Message = "An error occurred", Error = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
+        public async Task<IActionResult> Post_TASK_ACTION([FromForm] IFormCollection form)
+        {
+            try
+            {
+                string uploadFilePath = _configuration["UploadFile_Path"];
+                var files = form.Files;
+                string Mkey = form["Mkey"];
+                string TASK_MKEY = form["TASK_MKEY"];
+                string TASK_PARENT_ID = form["TASK_PARENT_ID"];
+                string ACTION_TYPE = form["ACTION_TYPE"];
+                string DESCRIPTION_COMMENT = form["DESCRIPTION_COMMENT"];
+                string PROGRESS_PERC = form["PROGRESS_PERC"];
+                string STATUS = form["STATUS"];
+                string CREATED_BY = form["CREATED_BY"];
+                string TASK_MAIN_NODE_ID = form["TASK_MAIN_NODE_ID"];
+
+
+                int srNo = 0;
+                var uploadedFiles = new List<string>();
+                string fileName, filePath;
+
+                if (files.Count > 0)
+                {
+                    foreach (var file in files)
+                    {
+                        srNo++;
+                        fileName = file.FileName;
+                        string fileDirectory = Path.Combine(uploadFilePath, TASK_MAIN_NODE_ID);
+
+                        if (!Directory.Exists(fileDirectory))
+                        {
+                            Directory.CreateDirectory(fileDirectory);
+                        }
+
+                        // Generate new file name with timestamp
+                        string newFileName = DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + fileName;
+                        filePath = Path.Combine(fileDirectory, newFileName);
+
+                        // Save the file
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(fileStream);
+                        }
+
+                        uploadedFiles.Add(filePath);
+
+                        string fileRelativePath = Path.Combine(_configuration["Refer_UploadFile_Path"], TASK_MAIN_NODE_ID, newFileName);
+
+                        if (file.Length > 0)
+                        {
+                            // Perform the database insertion or other operations
+                            await _repository.GetPostTaskActionAsync(Mkey, TASK_MKEY, TASK_PARENT_ID, ACTION_TYPE, DESCRIPTION_COMMENT, PROGRESS_PERC, STATUS, CREATED_BY, TASK_MAIN_NODE_ID, fileName, filePath);
+                        }
+                    }
+
+                    // Return the response
+                    return Ok(new { Status = "Success", Files = uploadedFiles });  // You can return a custom response
+                }
+
 
                 return BadRequest("No files were uploaded.");
             }

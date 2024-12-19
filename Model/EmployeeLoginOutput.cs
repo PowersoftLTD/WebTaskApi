@@ -2,8 +2,19 @@
 
 namespace TaskManagement.API.Model
 {
-    public class EmployeeCompanyMST
+    public class EmployeeLoginOutput_LIST
     {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message ")]
+        public string? Message { get; set; }
+
+        public IEnumerable<EmployeeLoginOutput> Data { get; set; }
+    }
+
+    public class EmployeeLoginOutput
+    {
+
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
         [JsonPropertyName("COMPANY_ID")]
@@ -16,21 +27,10 @@ namespace TaskManagement.API.Model
         public string? FIRST_NAME { get; set; }
         [JsonPropertyName("LAST_NAME")]
         public string? LAST_NAME { get; set; }
-        [JsonPropertyName("CURRENT_EMP_MKEY")]
-        public string CURRENT_EMP_MKEY { get; set; }
-        [JsonPropertyName("FILTER")]
-        public string? FILTER { get; set; }
         [JsonPropertyName("ROLE_ID")]
         public string? ROLE_ID { get; set; }
         [JsonPropertyName("PROJECT_ID")]
         public string? PROJECT_ID { get; set; }
-        [JsonPropertyName("Date_of_birth")]
-        public string? Date_of_birth { get; set; }
-        [JsonPropertyName("AssignNameLike")]
-        public string? AssignNameLike { get; set; }
-        [JsonPropertyName("CURR_ACTION")]
-        public string? CURR_ACTION { get; set; }
-        
         [JsonPropertyName("DESIGNATION_ID")]
         public int? DESIGNATION_ID { get; set; }
         [JsonPropertyName("DEPARTMENT_ID")]
@@ -41,8 +41,6 @@ namespace TaskManagement.API.Model
         public string? EMAIL_ID_OFFICIAL { get; set; }
         [JsonPropertyName("EMAIL_ID_PERSONAL")]
         public string? EMAIL_ID_PERSONAL { get; set; }
-        [JsonPropertyName("Login_ID")]
-        public string? Login_ID { get; set; }
         [JsonPropertyName("LOGIN_NAME")]
         public string? LOGIN_NAME { get; set; }
         [JsonPropertyName("LOGIN_PASSWORD")]
@@ -95,16 +93,6 @@ namespace TaskManagement.API.Model
         public string? COMPANY_NAME { get; set; }
         [JsonPropertyName("RESSET_FLAG")]
         public char? RESSET_FLAG { get; set; }
-        [JsonPropertyName("LoginName")]
-        public string? LoginName { get; set; }
-        [JsonPropertyName("Old_Password")]
-        public string? Old_Password { get; set; }
-        [JsonPropertyName("New_Password")]
-        public string? New_Password { get; set; }
-        [JsonPropertyName("STATUS")]
-        public string? STATUS { get; set; }
-        [JsonPropertyName("MESSAGE")]
-        public string? MESSAGE { get; set; }
 
     }
 }
