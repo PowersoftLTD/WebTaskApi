@@ -2,18 +2,18 @@
 
 namespace TaskManagement.API.Model
 {
-    public class EmployeeTagsOutPut_list
+    public class ForgotPasswordOutPut_List
     {
         [JsonPropertyName("Status")]
         public string? Status { get; set; }
         [JsonPropertyName("Message ")]
         public string? Message { get; set; }
 
-        public IEnumerable<EmployeeTagsOutPut> Data { get; set; }
+        public IEnumerable<ForgotPasswordOutPut> Data { get; set; }
     }
-    public class EmployeeTagsOutPut
+    public class ForgotPasswordOutPut
     {
-        [JsonPropertyName("name")]
-        public string name { get; set; }
+        [JsonPropertyName("MessageText")]
+        public string? MessageText { get; set; }
     }
 }

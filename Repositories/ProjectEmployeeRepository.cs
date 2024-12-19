@@ -190,16 +190,6 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        Task<TASK_HDR> IProjectEmployee.AddTaskAsync(TASK_HDR tASK_HDR)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<TASK_HDR> IProjectEmployee.UpdateTaskAsync(TASK_HDR tASK_HDR)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<IEnumerable<EmployeeLoginOutput_LIST>> GetAssignedToAsync(string AssignNameLike)
         {
             try
@@ -290,19 +280,25 @@ namespace TaskManagement.API.Repositories
         {
             try
             {
+                DataSet dsTaskDash = new DataSet();
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
                     parmeters.Add("@FILTER", FILTER);
-                    var TaskDashDetails = await db.QueryAsync<Task_DetailsOutPut>("SP_TASK_DASHBOARD", parmeters, commandType: CommandType.StoredProcedure);
+                    var result = await db.QueryMultipleAsync("SP_TASK_DASHBOARD", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var data = result.Read<Task_DetailsOutPut>().ToList();
+                    var data1 = result.Read<TaskDashboardCount>().ToList();
+
                     var successsResult = new List<Task_DetailsOutPut_List>
                     {
                         new Task_DetailsOutPut_List
                         {
                             Status = "Ok",
                             Message = "Message",
-                            Data= TaskDashDetails
+                            Data= data,
+                            Data1 = data1
 
                         }
                     };
@@ -317,7 +313,8 @@ namespace TaskManagement.API.Repositories
                         {
                             Status = "Error",
                             Message = ex.Message,
-                            Data = null
+                            Data = null,
+                            Data1 = null
                         }
                     };
                 return errorResult;
@@ -396,7 +393,7 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        public async Task<IEnumerable<TASK_ACTION_TRL>> GetActionsAsync(int TASK_MKEY, int CURRENT_EMP_MKEY, string CURR_ACTION)
+        public async Task<IEnumerable<GET_ACTIONSOutPut_List>> GetActionsAsync(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION)
         {
             try
             {
@@ -406,25 +403,35 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@TASK_MKEY", TASK_MKEY);
                     parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
                     parmeters.Add("@CURR_ACTION", CURR_ACTION);
-                    var TaskTreeDetails = (await db.QueryAsync<TASK_ACTION_TRL>("SP_GET_ACTIONS", parmeters, commandType: CommandType.StoredProcedure)).ToList();
-                    return TaskTreeDetails;
+                    var TaskTreeDetails = await db.QueryAsync<GET_ACTIONSOutPut>("SP_GET_ACTIONS", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<GET_ACTIONSOutPut_List>
+                    {
+                        new GET_ACTIONSOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= TaskTreeDetails
+
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new List<TASK_ACTION_TRL>
+                var errorResult = new List<GET_ACTIONSOutPut_List>
                     {
-                        new TASK_ACTION_TRL
+                        new GET_ACTIONSOutPut_List
                         {
-                           RESPONSE_STATUS = "Error",
-                            RESPONSE_MESSAGE = ex.Message
+                           Status = "Error",
+                            Message= ex.Message
                         }
                     };
                 return errorResult;
             }
         }
 
-        public async Task<IEnumerable<TASK_DASHBOARD>> GetTaskTreeAsync(string Mkey)
+        public async Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskTreeAsync(string Mkey)
         {
             try
             {
@@ -433,25 +440,35 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@TASK_MKEY", Mkey);
                     parmeters.Add("@Completed", null);
-                    var TaskTreeDetails = (await db.QueryAsync<TASK_DASHBOARD>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
-                    return TaskTreeDetails;
+                    var TaskTreeDetails = (await db.QueryAsync<GET_TASK_TREEOutPut>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    var successsResult = new List<GET_TASK_TREEOutPut_List>
+                    {
+                        new GET_TASK_TREEOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= TaskTreeDetails
+
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new List<TASK_DASHBOARD>
+                var errorResult = new List<GET_TASK_TREEOutPut_List>
                     {
-                        new TASK_DASHBOARD
+                        new GET_TASK_TREEOutPut_List
                         {
-                            RESPONE_STATUS = "Error",
-                            RESPONSE_MESSAGE = ex.Message
+                           Status = "Error",
+                            Message= ex.Message
                         }
                     };
                 return errorResult;
             }
         }
 
-        public async Task<EmployeeCompanyMST> PutChangePasswordAsync(string LoginName, string Old_Password, string New_Password)
+        public async Task<IEnumerable<PutChangePasswordOutPut_List>> PutChangePasswordAsync(string LoginName, string Old_Password, string New_Password)
         {
             try
             {
@@ -461,22 +478,35 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@LoginName", LoginName);
                     parmeters.Add("@Old_LOGIN_PASSWORD", Old_Password);
                     parmeters.Add("@New_LOGIN_PASSWORD", New_Password);
-                    var ChangePass = await db.QueryFirstOrDefaultAsync<EmployeeCompanyMST>("Sp_USER_ChangeLOGIN_PASSWORD", parmeters, commandType: CommandType.StoredProcedure);
-                    return ChangePass;
+                    var ChangePass = await db.QueryAsync<PutChangePasswordOutPut>("Sp_USER_ChangeLOGIN_PASSWORD", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<PutChangePasswordOutPut_List>
+                    {
+                        new PutChangePasswordOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= ChangePass
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new EmployeeCompanyMST
-                {
-                    STATUS = "Error",
-                    MESSAGE = ex.Message
-                };
+                var errorResult = new List<PutChangePasswordOutPut_List>
+                    {
+                        new PutChangePasswordOutPut_List
+                        {
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
+                        }
+                    };
                 return errorResult;
             }
         }
 
-        public async Task<EmployeeCompanyMST> GetForgotPasswordAsync(string LoginName)
+        public async Task<IEnumerable<ForgotPasswordOutPut_List>> GetForgotPasswordAsync(string LoginName)
         {
             try
             {
@@ -484,23 +514,36 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@LoginName", LoginName);
-                    var ForgotPass = await db.QueryFirstOrDefaultAsync<EmployeeCompanyMST>("Sp_USER_ForgotPassword", parmeters, commandType: CommandType.StoredProcedure);
-                    return ForgotPass;
+                    var ForgotPass = await db.QueryAsync<ForgotPasswordOutPut>("Sp_USER_ForgotPassword", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<ForgotPasswordOutPut_List>
+                    {
+                        new ForgotPasswordOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= ForgotPass
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new EmployeeCompanyMST
-                {
-                    STATUS = "Error",
-                    MESSAGE = ex.Message
-                };
+                var errorResult = new List<ForgotPasswordOutPut_List>
+                    {
+                        new ForgotPasswordOutPut_List
+                        {
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
+                        }
+                    };
                 return errorResult;
             }
         }
 
 
-        public async Task<EmployeeCompanyMST> GetResetPasswordAsync(string TEMPPASSWORD, string LoginName)
+        public async Task<IEnumerable<ResetPasswordOutPut_List>> GetResetPasswordAsync(string TEMPPASSWORD, string LoginName)
         {
             try
             {
@@ -509,22 +552,35 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@TEMPPASSWORD", TEMPPASSWORD);
                     parmeters.Add("@LoginName", LoginName);
-                    var ResetPass = await db.QueryFirstOrDefaultAsync<EmployeeCompanyMST>("sp_reset_password", parmeters, commandType: CommandType.StoredProcedure);
-                    return ResetPass;
+                    var ResetPass = await db.QueryAsync<ResetPasswordOutPut>("sp_reset_password", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<ResetPasswordOutPut_List>
+                    {
+                        new ResetPasswordOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= ResetPass
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new EmployeeCompanyMST
-                {
-                    STATUS = "Error",
-                    MESSAGE = ex.Message
-                };
+                var errorResult = new List<ResetPasswordOutPut_List>
+                    {
+                        new ResetPasswordOutPut_List
+                        {
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
+                        }
+                    };
                 return errorResult;
             }
         }
 
-        public async Task<EmployeeCompanyMST> GetValidateEmailAsync(string Login_ID)
+        public async Task<IEnumerable<ChangePasswordOutPut_List>> GetValidateEmailAsync(string Login_ID)
         {
             try
             {
@@ -532,22 +588,35 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@LoginName", Login_ID);
-                    var ValidateEmail = await db.QueryFirstOrDefaultAsync<EmployeeCompanyMST>("Sp_validate_login", parmeters, commandType: CommandType.StoredProcedure);
-                    return ValidateEmail;
+                    var ValidateEmail = await db.QueryAsync<ChangePasswordOutPut>("Sp_validate_login", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<ChangePasswordOutPut_List>
+                    {
+                        new ChangePasswordOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= ValidateEmail
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new EmployeeCompanyMST
-                {
-                    STATUS = "Error",
-                    MESSAGE = ex.Message
-                };
+                var errorResult = new List<ChangePasswordOutPut_List>
+                    {
+                        new ChangePasswordOutPut_List
+                        {
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
+                        }
+                    };
                 return errorResult;
             }
         }
 
-        public async Task<IEnumerable<TASK_DASHBOARD>> GetTaskDashboardDetailsAsync(string CURRENT_EMP_MKEY, string CURR_ACTION)
+        public async Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskDashboardDetailsAsync(string CURRENT_EMP_MKEY, string CURR_ACTION)
         {
             try
             {
@@ -556,24 +625,34 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
                     parmeters.Add("@CURR_ACTION", CURR_ACTION);
-                    var ValidateEmail = (await db.QueryAsync<TASK_DASHBOARD>("SP_Get_Overall_DB", parmeters, commandType: CommandType.StoredProcedure)).ToList();
-                    return ValidateEmail;
+                    var ValidateEmail = (await db.QueryAsync<GET_TASK_TREEOutPut>("SP_Get_Overall_DB", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    var successsResult = new List<GET_TASK_TREEOutPut_List>
+                    {
+                        new GET_TASK_TREEOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= ValidateEmail
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new List<TASK_DASHBOARD>
+                var errorResult = new List<GET_TASK_TREEOutPut_List>
                     {
-                        new TASK_DASHBOARD
+                        new GET_TASK_TREEOutPut_List
                         {
-                            RESPONE_STATUS = "Error",
-                            RESPONSE_MESSAGE = ex.Message
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
                         }
                     };
                 return errorResult;
             }
         }
-        public async Task<IEnumerable<TASK_DASHBOARD>> GetTeamTaskAsync(string CURRENT_EMP_MKEY)
+        public async Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTeamTaskAsync(string CURRENT_EMP_MKEY)
         {
             try
             {
@@ -581,18 +660,28 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
-                    var TeamTask = (await db.QueryAsync<TASK_DASHBOARD>("SP_GET_TEAM_PROGRESS", parmeters, commandType: CommandType.StoredProcedure)).ToList();
-                    return TeamTask;
+                    var TeamTask = (await db.QueryAsync<GET_TASK_TREEOutPut>("SP_GET_TEAM_PROGRESS", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    var successsResult = new List<GET_TASK_TREEOutPut_List>
+                    {
+                        new GET_TASK_TREEOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= TeamTask
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new List<TASK_DASHBOARD>
+                var errorResult = new List<GET_TASK_TREEOutPut_List>
                     {
-                        new TASK_DASHBOARD
+                        new GET_TASK_TREEOutPut_List
                         {
-                            RESPONE_STATUS = "Error",
-                            RESPONSE_MESSAGE = ex.Message
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
                         }
                     };
                 return errorResult;
@@ -625,7 +714,7 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        public async Task<IEnumerable<TASK_HDR>> GetProjectDetailsWithSubProjectAsync(string ProjectID, string SubProjectID)
+        public async Task<IEnumerable<Get_Project_DetailsWithSubprojectOutPut_List>> GetProjectDetailsWithSubProjectAsync(string ProjectID, string SubProjectID)
         {
             try
             {
@@ -634,25 +723,61 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@PROJECTID", ProjectID);
                     parmeters.Add("@SUBPROJECTID", SubProjectID);
-                    var ProjectDetails = (await db.QueryAsync<TASK_HDR>("USP_GET_pROJECTPREVIEW", parmeters, commandType: CommandType.StoredProcedure)).ToList();
-                    return ProjectDetails;
+                    var ProjectDetails = await db.QueryAsync<Get_Project_DetailsWithSubprojectOutPut>("USP_GET_pROJECTPREVIEW", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<Get_Project_DetailsWithSubprojectOutPut_List>
+                    {
+                        new Get_Project_DetailsWithSubprojectOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= ProjectDetails
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new List<TASK_HDR>
+                var errorResult = new List<Get_Project_DetailsWithSubprojectOutPut_List>
                     {
-                        new TASK_HDR
+                        new Get_Project_DetailsWithSubprojectOutPut_List
                         {
-                            STATUS = "Error",
-                            Message = ex.Message
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
                         }
                     };
                 return errorResult;
             }
         }
 
-        public async Task<IEnumerable<TASK_HDR>> GetTaskTreeExportAsync(string Task_Mkey)
+        //public async Task<IEnumerable<TASK_HDR>> GetTaskTreeExportAsync(string Task_Mkey)
+        //{
+        //    try
+        //    {
+        //        using (IDbConnection db = _dapperDbConnection.CreateConnection())
+        //        {
+        //            var parmeters = new DynamicParameters();
+        //            parmeters.Add("@TASK_MKEY", Task_Mkey);
+        //            var TaskDetails = (await db.QueryAsync<TASK_HDR>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+        //            return TaskDetails;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var errorResult = new List<TASK_HDR>
+        //            {
+        //                new TASK_HDR
+        //                {
+        //                    STATUS = "Error",
+        //                    Message = ex.Message
+        //                }
+        //            };
+        //        return errorResult;
+        //    }
+        //}
+
+        public async Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> GetTaskTreeExportAsync(string Task_Mkey)
         {
             try
             {
@@ -660,17 +785,28 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@TASK_MKEY", Task_Mkey);
-                    var TaskDetails = (await db.QueryAsync<TASK_HDR>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
-                    return TaskDetails;
+                    parmeters.Add("@Completed", null);
+                    var TaskTreeDetails = (await db.QueryAsync<TASK_NESTED_GRIDOutPut>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    var successsResult = new List<TASK_NESTED_GRIDOutPut_List>
+                    {
+                        new TASK_NESTED_GRIDOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= TaskTreeDetails
+
+                        }
+                    };
+                    return successsResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new List<TASK_HDR>
+                var errorResult = new List<TASK_NESTED_GRIDOutPut_List>
                     {
-                        new TASK_HDR
+                        new TASK_NESTED_GRIDOutPut_List
                         {
-                            STATUS = "Error",
+                            Status = "Error",
                             Message = ex.Message
                         }
                     };
@@ -678,7 +814,7 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        public async Task<TASK_HDR> CreateAddTaskAsync(Add_TaskInput tASK_HDR)
+        public async Task<IEnumerable<Add_TaskOutPut_List>> CreateAddTaskAsync(Add_TaskInput tASK_HDR)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -731,37 +867,22 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@CREATION_DATE", tASK_HDR.CREATION_DATE);
                         parmeters.Add("@LAST_UPDATED_BY", tASK_HDR.LAST_UPDATED_BY);
                         parmeters.Add("@APPROVE_ACTION_DATE", tASK_HDR.APPROVE_ACTION_DATE);
-                        var InsertTaskDetails = await db.QueryFirstOrDefaultAsync<TASK_HDR>("Sp_insert_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        var InsertTaskDetails = (await db.QueryAsync<Add_TaskOutPut>("Sp_insert_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction)).ToList();
 
-                        if (InsertTaskDetails == null)
-                        {
-                            // Handle other unexpected exceptions
-                            if (transaction != null && !transactionCompleted)
-                            {
-                                try
-                                {
-                                    // Rollback only if the transaction is not yet completed
-                                    transaction.Rollback();
-                                }
-                                catch (InvalidOperationException rollbackEx)
-                                {
-
-                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                    //TranError.Message = ex.Message;
-                                    //return TranError;
-                                }
-                            }
-
-                            var TemplateError = new TASK_HDR();
-                            TemplateError.Status = "Error";
-                            TemplateError.Message = "Error Occurd";
-                            return TemplateError;
-                        }
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();
                         transactionCompleted = true;
 
-                        return InsertTaskDetails;
+                        var successsResult = new List<Add_TaskOutPut_List>
+                            {
+                            new Add_TaskOutPut_List
+                                {
+                                Status = "Ok",
+                                Message = "Inserted Successfully",
+                                Data= InsertTaskDetails
+                                }
+                        };
+                        return successsResult;
                     }
                     else
                     {
@@ -776,55 +897,42 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@TAGS", tASK_HDR.TAGS);
                         parmeters.Add("@LAST_UPDATED_BY", tASK_HDR.LAST_UPDATED_BY);
 
-                        var UpdateTaskHDR = await db.QueryFirstOrDefaultAsync<TASK_HDR>("update_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        var UpdateTaskHDR = await db.QueryAsync<Add_TaskOutPut>("update_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-
-                        if (UpdateTaskHDR == null)
-                        {
-                            // Handle other unexpected exceptions
-                            if (transaction != null && !transactionCompleted)
-                            {
-                                try
-                                {
-                                    // Rollback only if the transaction is not yet completed
-                                    transaction.Rollback();
-                                }
-                                catch (InvalidOperationException rollbackEx)
-                                {
-
-                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                    //TranError.Message = ex.Message;
-                                    //return TranError;
-                                }
-                            }
-
-                            var TemplateError = new APPROVAL_TASK_INITIATION();
-                            TemplateError.ResponseStatus = "Error";
-                            TemplateError.Message = "Error Occurd";
-                            return null;
-                        }
 
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();
                         transactionCompleted = true;
 
-                        return UpdateTaskHDR;
+                        var successsResult = new List<Add_TaskOutPut_List>
+                            {
+                            new Add_TaskOutPut_List
+                                {
+                                Status = "Ok",
+                                Message = "Updated Successfully",
+                                Data= UpdateTaskHDR
+                                }
+                        };
+                        return successsResult;
                     }
 
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new TASK_HDR
-                {
-                    STATUS = "Error",
-                    Message = ex.Message
-                };
+                var errorResult = new List<Add_TaskOutPut_List>
+                    {
+                        new Add_TaskOutPut_List
+                        {
+                            Status = "Error",
+                            Message = ex.Message
+                        }
+                    };
                 return errorResult;
             }
         }
 
-        public async Task<TASK_HDR> CreateAddSubTaskAsync(Add_Sub_TaskInput tASK_HDR)
+        public async Task<IEnumerable<Add_TaskOutPut_List>> CreateAddSubTaskAsync(Add_Sub_TaskInput tASK_HDR)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -879,47 +987,36 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@APPROVE_ACTION_DATE", tASK_HDR.APPROVE_ACTION_DATE);
                     parmeters.Add("@Current_Task_Mkey", tASK_HDR.Current_task_mkey);
 
-                    var InsertTaskDetails = await db.QueryFirstOrDefaultAsync<TASK_HDR>("SP_INSERT_TASK_NODE_DETAILS", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var InsertTaskDetails = await db.QueryAsync<Add_TaskOutPut>("SP_INSERT_TASK_NODE_DETAILS", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                    if (InsertTaskDetails == null)
-                    {
-                        // Handle other unexpected exceptions
-                        if (transaction != null && !transactionCompleted)
-                        {
-                            try
-                            {
-                                // Rollback only if the transaction is not yet completed
-                                transaction.Rollback();
-                            }
-                            catch (InvalidOperationException rollbackEx)
-                            {
-
-                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                //TranError.Message = ex.Message;
-                                //return TranError;
-                            }
-                        }
-
-                        var TemplateError = new TASK_HDR();
-                        TemplateError.Status = "Error";
-                        TemplateError.Message = "Error Occurd";
-                        return TemplateError;
-                    }
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
 
-                    return InsertTaskDetails;
+                    var successsResult = new List<Add_TaskOutPut_List>
+                            {
+                            new Add_TaskOutPut_List
+                                {
+                                Status = "Ok",
+                                Message = "Inserted Successfully",
+                                Data= InsertTaskDetails
+                                }
+                        };
+                    return successsResult;
+
 
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new TASK_HDR
-                {
-                    STATUS = "Error",
-                    Message = ex.Message
-                };
+                var errorResult = new List<Add_TaskOutPut_List>
+                    {
+                        new Add_TaskOutPut_List
+                        {
+                            Status = "Error",
+                            Message = ex.Message
+                        }
+                    };
                 return errorResult;
             }
         }
@@ -1025,11 +1122,6 @@ namespace TaskManagement.API.Repositories
                 return 1;
             }
         }
-
-        //Task<TASK_FILE_UPLOAD> IProjectEmployee.TASKFileUpoadAsync(string srNo, string taskMkey, string taskParentId, string fileName, string filePath, string createdBy, string deleteFlag, string taskMainNodeId)
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         public async Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag)
         {
@@ -1219,5 +1311,10 @@ namespace TaskManagement.API.Repositories
                 return 1;
             }
         }
+
+        //Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> IProjectEmployee.GetActionsAsync(int TASK_MKEY, int CURRENT_EMP_MKEY, string CURR_ACTION)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

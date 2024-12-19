@@ -12,6 +12,9 @@ using OfficeOpenXml;
 using TaskManagement.API.Repositories;
 using Newtonsoft.Json;
 using Azure;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using FastMember;
 
 namespace TaskManagement.API.Controllers
 {
@@ -28,7 +31,7 @@ namespace TaskManagement.API.Controllers
             _repository = repository;
             _configuration = configuration;
         }
-
+   
         [HttpPost("Task-Management/Login")]
         public async Task<ActionResult<EmployeeLoginOutput_LIST>> Login_Validate([FromBody] EmployeeCompanyMSTInput employeeCompanyMSTInput)
         {
@@ -143,7 +146,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new V_Building_Classification_new
+                var response = new EmployeeLoginOutput_LIST
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -238,11 +241,12 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<Task_DetailsOutPut_List>
+                var response = new Task_DetailsOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
-                    Data = null
+                    Data = null,
+                    Data1 = null
                 };
                 return Ok(response);
             }
@@ -270,7 +274,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_DETAILS_BY_MKEY_list>
+                var response = new TASK_DETAILS_BY_MKEY_list
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -282,7 +286,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/TASK-NESTED-GRID")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TASK_NESTED_GRID([FromQuery] TASK_NESTED_GRIDInput tASK_NESTED_GRIDInput)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TASK_NESTED_GRID([FromBody] TASK_NESTED_GRIDInput tASK_NESTED_GRIDInput)
         {
             try
             {
@@ -301,7 +305,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_NESTED_GRIDOutPut_List>
+                var response = new TASK_NESTED_GRIDOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -313,26 +317,26 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/GET-ACTIONS")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_ACTION_TRL>>> GET_ACTIONS([FromQuery] GET_ACTIONSInput gET_ACTIONSInput)
+        public async Task<ActionResult<IEnumerable<GET_ACTIONSOutPut_List>>> GET_ACTIONS([FromBody] GET_ACTIONSInput gET_ACTIONSInput)
         {
             try
             {
-                var TaskAction = await _repository.GetActionsAsync(Convert.ToInt32(gET_ACTIONSInput.TASK_MKEY), Convert.ToInt32(gET_ACTIONSInput.CURRENT_EMP_MKEY), gET_ACTIONSInput.CURR_ACTION);
-                if (TaskAction == null)
-                {
-                    var responseTaskAction = new ApiResponse<TASK_ACTION_TRL>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTaskAction);
-                }
+                var TaskAction = await _repository.GetActionsAsync(gET_ACTIONSInput.TASK_MKEY, gET_ACTIONSInput.CURRENT_EMP_MKEY, gET_ACTIONSInput.CURR_ACTION);
+                //if (TaskAction == null)
+                //{
+                //    var responseTaskAction = new ApiResponse<GET_ACTIONSOutPut_List>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTaskAction);
+                //}
                 return Ok(TaskAction);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_ACTION_TRL>
+                var response = new GET_ACTIONSOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -342,28 +346,41 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/GET-TASK_TREE")]
+        [HttpPost("Task-Management/GET-TASK_TREE")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> GET_TASK_TREE([FromQuery] GET_TASK_TREEInput gET_TASK_TREEInput)
+        public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List>>> GET_TASK_TREE([FromBody] GET_TASK_TREEInput gET_TASK_TREEInput)
         {
             try
             {
                 var TaskTree = await _repository.GetTaskTreeAsync(gET_TASK_TREEInput.TASK_MKEY);
-                if (TaskTree == null)
+                //if (TaskTree == null)
+                //{
+                //    var responseTaskAction = new ApiResponse<GET_TASK_TREEOutPut_List>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTaskAction);
+                //}
+                foreach(var checkerror in TaskTree)
                 {
-                    var responseTaskAction = new ApiResponse<TASK_DASHBOARD>
+                   if (checkerror.Status != "Ok")
                     {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTaskAction);
+                        var response = new GET_ACTIONSOutPut_List
+                        {
+                            Status = "Error",
+                            Message = checkerror.Message,
+                            Data = null
+                        };
+                        return Ok(response);
+                    }
                 }
                 return Ok(TaskTree);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_DASHBOARD>
+                var response = new GET_ACTIONSOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -375,27 +392,27 @@ namespace TaskManagement.API.Controllers
 
         [HttpPut("Task-Management/Change_Password")]
         [Authorize]
-        public async Task<ActionResult<EmployeeCompanyMST>> ChangePassword([FromQuery] ChangePasswordInput changePasswordInput)
+        public async Task<ActionResult<PutChangePasswordOutPut_List>> ChangePassword([FromBody] ChangePasswordInput changePasswordInput)
         {
             try
             {
                 var ChangePass = await _repository.PutChangePasswordAsync(changePasswordInput.LoginName, changePasswordInput.Old_Password, changePasswordInput.New_Password);
 
-                if (ChangePass == null)
-                {
-                    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTaskAction);
-                }
+                //if (ChangePass == null)
+                //{
+                //    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTaskAction);
+                //}
                 return Ok(ChangePass);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<EmployeeCompanyMST>
+                var response = new PutChangePasswordOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -405,9 +422,9 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/Forgot_Password")]
+        [HttpPost("Task-Management/Forgot_Password")]
         [Authorize]
-        public async Task<ActionResult<EmployeeCompanyMST>> ForgotPassword([FromQuery] ForgotPasswordInput forgotPasswordInput)
+        public async Task<ActionResult<IEnumerable<ResetPasswordOutPut_List>>> ForgotPassword([FromBody] ForgotPasswordInput forgotPasswordInput)
         {
             try
             {
@@ -423,26 +440,41 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseTaskAction);
                 }
-
-
-                var ResetPass = await _repository.GetResetPasswordAsync(ForgotPass.TEMPPASSWORD, forgotPasswordInput.LoginName);
-
-                if (ResetPass == null)
+                if (forgotPasswordInput.LoginName == null)
                 {
-                    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                    var responseTaskAction = new ForgotPasswordOutPut_List
                     {
                         Status = "Error",
-                        Message = "Error Occurd",
+                        Message = "Error Occurd LoginName",
                         Data = null
                     };
                     return Ok(responseTaskAction);
                 }
+                string TempararyPass = string.Empty;
+                foreach (var TempPaass in ForgotPass)
+                {
+                    TempararyPass = TempPaass.Data.Select(x => x.MessageText.ToString()).First().ToString();
+                }
+                
+
+                var ResetPass = await _repository.GetResetPasswordAsync(TempararyPass, forgotPasswordInput.LoginName);
+
+                //if (ResetPass == null)
+                //{
+                //    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTaskAction);
+                //}
 
                 return Ok(ResetPass);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<EmployeeCompanyMST>
+                var response = new ResetPasswordOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -466,29 +498,29 @@ namespace TaskManagement.API.Controllers
             return messageBody;
         }
 
-        [HttpGet("Task-Management/Validate_Email")]
+        [HttpPost("Task-Management/Validate_Email")]
         [Authorize]
-        public async Task<ActionResult<EmployeeCompanyMST>> ValidateEmail([FromQuery] ValidateEmailInput validateEmailInput)
+        public async Task<ActionResult<IEnumerable<ChangePasswordOutPut_List>>> ValidateEmail([FromBody] ValidateEmailInput validateEmailInput)
         {
             try
             {
                 var ValidateEmailVar = await _repository.GetValidateEmailAsync(validateEmailInput.Login_ID);
 
-                if (ValidateEmailVar == null)
-                {
-                    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTaskAction);
-                }
+                //if (ValidateEmailVar == null)
+                //{
+                //    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTaskAction);
+                //}
                 return Ok(ValidateEmailVar);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<EmployeeCompanyMST>
+                var response = new ChangePasswordOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -498,29 +530,29 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/TASK-DASHBOARD_DETAILS")]
+        [HttpPost("Task-Management/TASK-DASHBOARD_DETAILS")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Task_Dashboard_Details([FromQuery] Task_Dashboard_DetailsInput task_Dashboard_DetailsInput)
+        public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List>>> Task_Dashboard_Details([FromBody] Task_Dashboard_DetailsInput task_Dashboard_DetailsInput)
         {
             try
             {
                 var TaskDashboardDetails = await _repository.GetTaskDashboardDetailsAsync(Convert.ToString(task_Dashboard_DetailsInput.CURRENT_EMP_MKEY), task_Dashboard_DetailsInput.CURR_ACTION);
 
-                if (TaskDashboardDetails == null)
-                {
-                    var responseTaskAction = new ApiResponse<TASK_DASHBOARD>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTaskAction);
-                }
+                //if (TaskDashboardDetails == null)
+                //{
+                //    var responseTaskAction = new ApiResponse<TASK_DASHBOARD>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTaskAction);
+                //}
                 return Ok(TaskDashboardDetails);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_DASHBOARD>
+                var response = new GET_TASK_TREEOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -530,29 +562,29 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/TeamTask")]
+        [HttpPost("Task-Management/TeamTask")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TeamTask([FromQuery] TeamTaskInput teamTaskInput)
+        public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List>>> TeamTask([FromBody] TeamTaskInput teamTaskInput)
         {
             try
             {
                 var TaskTeamTask = await _repository.GetTeamTaskAsync(teamTaskInput.CURRENT_EMP_MKEY);
 
-                if (TaskTeamTask == null)
-                {
-                    var responseTeamTask = new ApiResponse<TASK_DASHBOARD>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTeamTask);
-                }
+                //if (TaskTeamTask == null)
+                //{
+                //    var responseTeamTask = new ApiResponse<TASK_DASHBOARD>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTeamTask);
+                //}
                 return Ok(TaskTeamTask);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_DASHBOARD>
+                var response = new GET_TASK_TREEOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -562,9 +594,9 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/Team_Task_Details")]
+        [HttpPost("Task-Management/Team_Task_Details")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Team_Task_Details([FromQuery] Team_Task_DetailsInput team_Task_DetailsInput)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Team_Task_Details([FromBody] Team_Task_DetailsInput team_Task_DetailsInput)
         {
             try
             {
@@ -633,29 +665,29 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/Get_Project_Details")]
+        [HttpPost("Task-Management/Get_Project_Details")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Get_Project_DetailsWithSubproject([FromQuery] Get_Project_DetailsWithSubprojectInput get_Project_DetailsWithSubprojectInput)
+        public async Task<ActionResult<IEnumerable<Get_Project_DetailsWithSubprojectOutPut_List>>> Get_Project_DetailsWithSubproject([FromBody] Get_Project_DetailsWithSubprojectInput get_Project_DetailsWithSubprojectInput)
         {
             try
             {
                 var TaskTeamTask = await _repository.GetProjectDetailsWithSubProjectAsync(get_Project_DetailsWithSubprojectInput.ProjectID, get_Project_DetailsWithSubprojectInput.SubProjectID);
 
-                if (TaskTeamTask == null)
-                {
-                    var responseTeamTask = new ApiResponse<TASK_HDR>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTeamTask);
-                }
+                //if (TaskTeamTask == null)
+                //{
+                //    var responseTeamTask = new ApiResponse<TASK_HDR>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTeamTask);
+                //}
                 return Ok(TaskTeamTask);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_HDR>
+                var response = new Get_Project_DetailsWithSubprojectOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -665,27 +697,37 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/GET-TASK_TREEExport")]
+        [HttpPost("Task-Management/GET-TASK_TREEExport")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_HDR>>> GET_TASK_TREEExport([FromQuery] GET_TASK_TREEExportInput gET_TASK_TREEExportInput)
+        public async Task<ActionResult<IEnumerable<TASK_NESTED_GRIDOutPut_List>>> GET_TASK_TREEExport([FromBody] GET_TASK_TREEExportInput gET_TASK_TREEExportInput)
         {
             try
             {
                 DataTable dsTaskTree = new DataTable();
                 var TaskTreeExport = await _repository.GetTaskTreeExportAsync(gET_TASK_TREEExportInput.TASK_MKEY.ToString());
 
-                if (TaskTreeExport == null)
+                //if (TaskTreeExport == null)
+                //{
+                //    var responseTeamTask = new ApiResponse<TASK_HDR>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null
+                //    };
+                //    return Ok(responseTeamTask);
+                //}
+                DataTable dsTaskTreeExport2 = new DataTable();
+                foreach (var TaskTtree in TaskTreeExport)
                 {
-                    var responseTeamTask = new ApiResponse<TASK_HDR>
+                    dsTaskTreeExport2 = ConvertToDataTable(TaskTtree.Data);
+                    using (var reader = ObjectReader.Create(TaskTtree.Data))
                     {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null
-                    };
-                    return Ok(responseTeamTask);
+                        dsTaskTreeExport2.Load(reader);
+                    }
                 }
 
-                dsTaskTree = ConvertToDataTable(TaskTreeExport);
+
+                dsTaskTree = dsTaskTreeExport2;// ConvertToDataTable(dsTaskTreeExport2);
 
                 var fileName = $"Task_Details_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
 
@@ -723,12 +765,11 @@ namespace TaskManagement.API.Controllers
                     // Return the file as an Excel file
                     return File(memoryStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
                 }
-
                 return Ok(dsTaskTree);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_HDR>
+                var response = new TASK_NESTED_GRIDOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -763,9 +804,9 @@ namespace TaskManagement.API.Controllers
             return table;
         }
 
-        [HttpGet("Task-Management/Get_ExportProject_DetailsWithSubproject")]
+        [HttpPost("Task-Management/Get_ExportProject_DetailsWithSubproject")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_HDR>>> Get_ExportProject_DetailsWithSubproject([FromQuery] Get_ExportProject_DetailsWithSubprojectInput get_ExportProject_DetailsWithSubprojectInput)
+        public async Task<ActionResult<IEnumerable<Get_Project_DetailsWithSubprojectOutPut_List>>> Get_ExportProject_DetailsWithSubproject([FromBody] Get_ExportProject_DetailsWithSubprojectInput get_ExportProject_DetailsWithSubprojectInput)
         {
             try
             {
@@ -782,7 +823,17 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseTeamTask);
                 }
-                dsTaskTree = ConvertToDataTable(ProjectTask);
+                DataTable dsTaskTreeExport2 = new DataTable();
+                foreach (var TaskTtree in ProjectTask)
+                {
+                    dsTaskTreeExport2 = ConvertToDataTable(TaskTtree.Data);
+                    using (var reader = ObjectReader.Create(TaskTtree.Data))
+                    {
+                        dsTaskTreeExport2.Load(reader);
+                    }
+                }
+
+                dsTaskTree = dsTaskTreeExport2;
 
                 var fileName = $"Task_Details_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
 
@@ -825,7 +876,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_HDR>
+                var response = new Get_Project_DetailsWithSubprojectOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -837,32 +888,32 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/Add-Task")]
         [Authorize]
-        public async Task<ActionResult<TASK_HDR>> Add_Task([FromBody] Add_TaskInput add_TaskInput)
+        public async Task<ActionResult<Add_TaskOutPut_List>> Add_Task([FromBody] Add_TaskInput add_TaskInput)
         {
             try
             {
                 var modelTask = await _repository.CreateAddTaskAsync(add_TaskInput);
-                if (modelTask == null)
-                {
-                    var responseStatus = new ApiResponse<TASK_HDR>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null // No data in case of exception
-                    };
-                    return Ok(responseStatus);
-                }
-                var response = new ApiResponse<TASK_HDR>
-                {
-                    Status = "Ok",
-                    Message = "Inserted Successfully",
-                    Data = modelTask // No data in case of exception
-                };
-                return Ok(response);
+                //if (modelTask == null)
+                //{
+                //    var responseStatus = new ApiResponse<TASK_HDR>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null // No data in case of exception
+                //    };
+                //    return Ok(responseStatus);
+                //}
+                //var response = new ApiResponse<TASK_HDR>
+                //{
+                //    Status = "Ok",
+                //    Message = "Inserted Successfully",
+                //    Data = modelTask // No data in case of exception
+                //};
+                return Ok(modelTask);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_HDR>
+                var response = new Add_TaskOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -872,35 +923,35 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Task-Management/Add-Sub-Task")]
+        [HttpPost("Task-Management/Add-Sub-Task")]
         [Authorize]
-        public async Task<ActionResult<TASK_HDR>> Add_Sub_Task([FromBody] Add_Sub_TaskInput add_Sub_TaskInput)
+        public async Task<ActionResult<Add_TaskOutPut_List>> Add_Sub_Task([FromBody] Add_Sub_TaskInput add_Sub_TaskInput)
         {
             //(string TASK_NO, string TASK_NAME, string TASK_DESCRIPTION, string CATEGORY, string PROJECT_ID, string SUBPROJECT_ID, string COMPLETION_DATE, string ASSIGNED_TO, string TAGS, string ISNODE, string START_DATE, string CLOSE_DATE, string DUE_DATE, string TASK_PARENT_ID, string TASK_PARENT_NODE_ID, string TASK_PARENT_NUMBER, string STATUS, string STATUS_PERC, string TASK_CREATED_BY, string APPROVER_ID, string IS_ARCHIVE, string ATTRIBUTE1, string ATTRIBUTE2, string ATTRIBUTE3, string ATTRIBUTE4, string ATTRIBUTE5, string CREATED_BY, string CREATION_DATE, string LAST_UPDATED_BY, string APPROVE_ACTION_DATE, string Current_task_mkey)
             try
             {
                 var modelTask = await _repository.CreateAddSubTaskAsync(add_Sub_TaskInput);
-                if (modelTask == null)
-                {
-                    var responseStatus = new ApiResponse<TASK_HDR>
-                    {
-                        Status = "Error",
-                        Message = "Error Occurd",
-                        Data = null // No data in case of exception
-                    };
-                    return Ok(responseStatus);
-                }
-                var response = new ApiResponse<TASK_HDR>
-                {
-                    Status = "Ok",
-                    Message = "Inserted Successfully",
-                    Data = modelTask // No data in case of exception
-                };
-                return Ok(response);
+                //if (modelTask == null)
+                //{
+                //    var responseStatus = new ApiResponse<TASK_HDR>
+                //    {
+                //        Status = "Error",
+                //        Message = "Error Occurd",
+                //        Data = null // No data in case of exception
+                //    };
+                //    return Ok(responseStatus);
+                //}
+                //var response = new ApiResponse<TASK_HDR>
+                //{
+                //    Status = "Ok",
+                //    Message = "Inserted Successfully",
+                //    Data = modelTask // No data in case of exception
+                //};
+                return Ok(modelTask);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_HDR>
+                var response = new Add_TaskOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -910,8 +961,9 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [Authorize]
+         
         [HttpPost("Task-Management/FileUpload"), DisableRequestSizeLimit]
+        [Authorize]
         public async Task<IActionResult> Post([FromForm] IFormCollection form)
         {
             try
@@ -981,8 +1033,9 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [Authorize]
+         
         [HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
+        [Authorize]
         public async Task<IActionResult> Post_TASK_ACTION([FromForm] IFormCollection form)
         {
             try

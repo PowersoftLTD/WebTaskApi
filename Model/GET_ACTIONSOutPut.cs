@@ -1,14 +1,22 @@
 ﻿using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace TaskManagement.API.Model
 {
-    public class TASK_ACTION_TRL
+    public class GET_ACTIONSOutPut_List
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message ")]
+        public string? Message { get; set; }
+
+        public IEnumerable<GET_ACTIONSOutPut> Data { get; set; }
+    }
+    public class GET_ACTIONSOutPut
     {
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
         [JsonPropertyName("CREATION_DATE")]
-        public DateTime? CREATION_DATE { get; set; }
+        public string? CREATION_DATE { get; set; }
         [JsonPropertyName("PROGRESS_PERC")]
         public decimal? PROGRESS_PERC { get; set; }
         [JsonPropertyName("ACTION_TYPE")]

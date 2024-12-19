@@ -8,8 +8,8 @@ namespace TaskManagement.API.Model
         public string? Status { get; set; }
         [JsonPropertyName("Message")]
         public string? Message { get; set; }
-
         public IEnumerable<Task_DetailsOutPut> Data { get; set; }
+        public IEnumerable<TaskDashboardCount> Data1 { get; set; }
     }
 
     public class Task_DetailsOutPut

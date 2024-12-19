@@ -45,8 +45,8 @@ namespace TaskManagement.API.Model
         public string? Login_ID { get; set; }
         [JsonPropertyName("LOGIN_NAME")]
         public string? LOGIN_NAME { get; set; }
-        [JsonPropertyName("LOGIN_PASSWORD")]
-        public string? LOGIN_PASSWORD { get; set; }
+        //[JsonPropertyName("LOGIN_PASSWORD")]
+        //public string? LOGIN_PASSWORD { get; set; }
         [JsonPropertyName("RA1_MKEY")]
         public int? RA1_MKEY { get; set; }
         [JsonPropertyName("RA2_MKEY")]
