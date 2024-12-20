@@ -6,7 +6,7 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("Status")]
         public string? Status { get; set; }
-        [JsonPropertyName("Message ")]
+        [JsonPropertyName("Message")]
         public string? Message { get; set; }
         public IEnumerable<Add_TaskOutPut> Data { get; set; }
     }

@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.SqlClient;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TaskManagement.API.Repositories
 {
@@ -20,7 +21,6 @@ namespace TaskManagement.API.Repositories
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
         }
-
         public async Task<IEnumerable<EmployeeLoginOutput_LIST>> Login_Validate(string Login_ID, string LOGIN_PASSWORD)
         {
             try
@@ -61,7 +61,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification_new>> GetProjectAsync(string TYPE_CODE, string MASTER_MKEY)
         {
             try
@@ -102,7 +101,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification_new>> GetSubProjectAsync(string Project_Mkey)
         {
             try
@@ -150,7 +148,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<EmployeeLoginOutput_LIST>> GetEmpAsync(string CURRENT_EMP_MKEY, string FILTER)
         {
             try
@@ -189,7 +186,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<EmployeeLoginOutput_LIST>> GetAssignedToAsync(string AssignNameLike)
         {
             try
@@ -225,7 +221,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<EmployeeTagsOutPut_list>> GetEmpTagsAsync(string EMP_TAGS)
         {
             try
@@ -275,7 +270,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<Task_DetailsOutPut_List>> GetTaskDetailsAsync(string CURRENT_EMP_MKEY, string FILTER)
         {
             try
@@ -320,7 +314,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<TASK_DETAILS_BY_MKEY_list>> GetTaskDetailsByMkeyAsync(string Mkey)
         {
             try
@@ -392,7 +385,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<GET_ACTIONSOutPut_List>> GetActionsAsync(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION)
         {
             try
@@ -403,14 +395,19 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@TASK_MKEY", TASK_MKEY);
                     parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
                     parmeters.Add("@CURR_ACTION", CURR_ACTION);
-                    var TaskTreeDetails = await db.QueryAsync<GET_ACTIONSOutPut>("SP_GET_ACTIONS", parmeters, commandType: CommandType.StoredProcedure);
+                    var TaskTreeDetails = await db.QueryMultipleAsync("SP_GET_ACTIONS", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var data = TaskTreeDetails.Read<GET_ACTIONSOutPut>().ToList();
+                    var data1 = TaskTreeDetails.Read<GET_ACTIONSOutPut>().ToList();
+
                     var successsResult = new List<GET_ACTIONSOutPut_List>
                     {
                         new GET_ACTIONSOutPut_List
                         {
                             Status = "Ok",
                             Message = "Message",
-                            Data= TaskTreeDetails
+                            Data= data,
+                            Data1= data1
 
                         }
                     };
@@ -430,7 +427,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskTreeAsync(string Mkey)
         {
             try
@@ -440,7 +436,7 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@TASK_MKEY", Mkey);
                     parmeters.Add("@Completed", null);
-                    var TaskTreeDetails = (await db.QueryAsync<GET_TASK_TREEOutPut>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    var TaskTreeDetails = (await db.QueryAsync<GetTaskTreeOutPut>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
                     var successsResult = new List<GET_TASK_TREEOutPut_List>
                     {
                         new GET_TASK_TREEOutPut_List
@@ -467,7 +463,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<PutChangePasswordOutPut_List>> PutChangePasswordAsync(string LoginName, string Old_Password, string New_Password)
         {
             try
@@ -505,7 +500,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<ForgotPasswordOutPut_List>> GetForgotPasswordAsync(string LoginName)
         {
             try
@@ -541,8 +535,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
-
         public async Task<IEnumerable<ResetPasswordOutPut_List>> GetResetPasswordAsync(string TEMPPASSWORD, string LoginName)
         {
             try
@@ -579,7 +571,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<ChangePasswordOutPut_List>> GetValidateEmailAsync(string Login_ID)
         {
             try
@@ -615,7 +606,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskDashboardDetailsAsync(string CURRENT_EMP_MKEY, string CURR_ACTION)
         {
             try
@@ -625,14 +615,33 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
                     parmeters.Add("@CURR_ACTION", CURR_ACTION);
-                    var ValidateEmail = (await db.QueryAsync<GET_TASK_TREEOutPut>("SP_Get_Overall_DB", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    var ValidateEmail = await db.QueryMultipleAsync("SP_Get_Overall_DB", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var Data = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+                    var Data1 = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+                    var Data2 = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+                    var Data3 = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+                    var Data4 = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+                    var Data5 = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+                    var Data6 = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+                    var Data7 = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+                    var Data8 = ValidateEmail.Read<GET_TASK_TREEOutPut>().ToList();
+
                     var successsResult = new List<GET_TASK_TREEOutPut_List>
                     {
                         new GET_TASK_TREEOutPut_List
                         {
                             Status = "Ok",
                             Message = "Message",
-                            Data= ValidateEmail
+                             Table = Data,
+                             Table1 = Data1,
+                             Table2 = Data2,
+                             Table3 = Data3,
+                             Table4 = Data4,
+                             Table5 = Data5,
+                             Table6 = Data6,
+                             Table7 = Data7,
+                             Table8 = Data8
                         }
                     };
                     return successsResult;
@@ -646,13 +655,21 @@ namespace TaskManagement.API.Repositories
                         {
                            Status = "Error",
                             Message= ex.Message,
-                            Data= null
+                            Table = null,
+                             Table1 = null,
+                             Table2 = null,
+                             Table3 = null,
+                             Table4 = null,
+                             Table5 = null,
+                             Table6 = null,
+                             Table7 = null,
+                             Table8 = null
                         }
                     };
                 return errorResult;
             }
         }
-        public async Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTeamTaskAsync(string CURRENT_EMP_MKEY)
+        public async Task<IEnumerable<GetTaskTeamOutPut_List>> GetTeamTaskAsync(string CURRENT_EMP_MKEY)
         {
             try
             {
@@ -660,14 +677,19 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
-                    var TeamTask = (await db.QueryAsync<GET_TASK_TREEOutPut>("SP_GET_TEAM_PROGRESS", parmeters, commandType: CommandType.StoredProcedure)).ToList();
-                    var successsResult = new List<GET_TASK_TREEOutPut_List>
+                    var TeamTask = await db.QueryMultipleAsync("SP_GET_TEAM_PROGRESS", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var Data = TeamTask.Read<GET_TASK_DepartmentOutPut>().ToList();
+                    var Data1 = TeamTask.Read<TEAM_PROGRESSOutPut>().ToList();
+
+                    var successsResult = new List<GetTaskTeamOutPut_List>
                     {
-                        new GET_TASK_TREEOutPut_List
+                        new GetTaskTeamOutPut_List
                         {
                             Status = "Ok",
                             Message = "Message",
-                            Data= TeamTask
+                            Data= Data,
+                            Data1= Data1
                         }
                     };
                     return successsResult;
@@ -675,13 +697,14 @@ namespace TaskManagement.API.Repositories
             }
             catch (Exception ex)
             {
-                var errorResult = new List<GET_TASK_TREEOutPut_List>
+                var errorResult = new List<GetTaskTeamOutPut_List>
                     {
-                        new GET_TASK_TREEOutPut_List
+                        new GetTaskTeamOutPut_List
                         {
                            Status = "Error",
                             Message= ex.Message,
-                            Data= null
+                            Data= null,
+                            Data1 = null
                         }
                     };
                 return errorResult;

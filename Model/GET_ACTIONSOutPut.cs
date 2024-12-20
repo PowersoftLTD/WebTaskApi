@@ -6,10 +6,12 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("Status")]
         public string? Status { get; set; }
-        [JsonPropertyName("Message ")]
+        [JsonPropertyName("Message")]
         public string? Message { get; set; }
-
+        [JsonPropertyName("Data")]
         public IEnumerable<GET_ACTIONSOutPut> Data { get; set; }
+        [JsonPropertyName("Data1")]
+        public IEnumerable<GET_ACTIONSOutPut> Data1 { get; set; }
     }
     public class GET_ACTIONSOutPut
     {

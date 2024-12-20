@@ -556,7 +556,15 @@ namespace TaskManagement.API.Controllers
                 {
                     Status = "Error",
                     Message = ex.Message,
-                    Data = null
+                    Table =  null,
+                    Table1 = null,
+                    Table2 = null,
+                    Table3 = null,
+                    Table4 = null,
+                    Table5 = null,
+                    Table6 = null,
+                    Table7 = null,
+                    Table8 = null
                 };
                 return Ok(response);
             }
@@ -564,7 +572,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/TeamTask")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List>>> TeamTask([FromBody] TeamTaskInput teamTaskInput)
+        public async Task<ActionResult<IEnumerable<GetTaskTeamOutPut_List>>> TeamTask([FromBody] TeamTaskInput teamTaskInput)
         {
             try
             {
@@ -584,11 +592,12 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new GET_TASK_TREEOutPut_List
+                var response = new GetTaskTeamOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
-                    Data = null
+                    Data = null,
+                    Data1 = null
                 };
                 return Ok(response);
             }
