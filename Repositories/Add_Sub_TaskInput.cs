@@ -5,17 +5,17 @@ namespace TaskManagement.API.Repositories
     public class Add_Sub_TaskInput
     {
         [JsonPropertyName("TASK_NO")]
-        public string TASK_NO { get; set; }
+        public int TASK_NO { get; set; }
         [JsonPropertyName("TASK_NAME")]
         public string TASK_NAME { get; set; }
         [JsonPropertyName("TASK_DESCRIPTION")]
         public string TASK_DESCRIPTION { get; set; }
         [JsonPropertyName("CATEGORY")]
-        public string CATEGORY { get; set; }
+        public int CATEGORY { get; set; }
         [JsonPropertyName("PROJECT_ID")]
-        public string PROJECT_ID { get; set; }
+        public int PROJECT_ID { get; set; }
         [JsonPropertyName("SUBPROJECT_ID")]
-        public string SUBPROJECT_ID { get; set; }
+        public int SUBPROJECT_ID { get; set; }
         [JsonPropertyName("COMPLETION_DATE")]
         public string COMPLETION_DATE { get; set; }
         [JsonPropertyName("ASSIGNED_TO")]
@@ -31,9 +31,9 @@ namespace TaskManagement.API.Repositories
         [JsonPropertyName("DUE_DATE")]
         public string DUE_DATE { get; set; }
         [JsonPropertyName("TASK_PARENT_ID")]
-        public string TASK_PARENT_ID { get; set; }
+        public int TASK_PARENT_ID { get; set; }
         [JsonPropertyName("TASK_PARENT_NODE_ID")]
-        public string TASK_PARENT_NODE_ID { get; set; }
+        public int TASK_PARENT_NODE_ID { get; set; }
         [JsonPropertyName("TASK_PARENT_NUMBER")]
         public string TASK_PARENT_NUMBER { get; set; }
         [JsonPropertyName("STATUS")]
@@ -41,7 +41,7 @@ namespace TaskManagement.API.Repositories
         [JsonPropertyName("STATUS_PERC")]
         public string STATUS_PERC { get; set; }
         [JsonPropertyName("TASK_CREATED_BY")]
-        public string TASK_CREATED_BY { get; set; }
+        public int TASK_CREATED_BY { get; set; }
         [JsonPropertyName("APPROVER_ID")]
         public string APPROVER_ID { get; set; }
         [JsonPropertyName("IS_ARCHIVE")]
@@ -57,14 +57,14 @@ namespace TaskManagement.API.Repositories
         [JsonPropertyName("ATTRIBUTE5")]
         public string ATTRIBUTE5 { get; set; }
         [JsonPropertyName("CREATED_BY")]
-        public string CREATED_BY { get; set; }
+        public int CREATED_BY { get; set; }
         [JsonPropertyName("CREATION_DATE")]
         public string CREATION_DATE { get; set; }
         [JsonPropertyName("LAST_UPDATED_BY")]
-        public string LAST_UPDATED_BY { get; set; }
+        public int LAST_UPDATED_BY { get; set; }
         [JsonPropertyName("APPROVE_ACTION_DATE")]
         public string APPROVE_ACTION_DATE { get; set; }
         [JsonPropertyName("Current_task_mkey")]
-        public string Current_task_mkey { get; set; }
+        public int Current_task_mkey { get; set; }
     }
 }

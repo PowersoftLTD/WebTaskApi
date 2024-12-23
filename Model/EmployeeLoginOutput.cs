@@ -44,7 +44,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("LOGIN_NAME")]
         public string? LOGIN_NAME { get; set; }
         [JsonPropertyName("LOGIN_PASSWORD")]
-        public string? LOGIN_PASSWORD { get; set; }
+        public object LOGIN_PASSWORD { get; set; }
         [JsonPropertyName("RA1_MKEY")]
         public int? RA1_MKEY { get; set; }
         [JsonPropertyName("RA2_MKEY")]
@@ -83,8 +83,8 @@ namespace TaskManagement.API.Model
         public char? DELETE_FLAG { get; set; }
         [JsonPropertyName("ISFORGOTPASSWORD")]
         public bool? ISFORGOTPASSWORD { get; set; }
-        [JsonPropertyName("TEMPPASSWORD")]
-        public string? TEMPPASSWORD { get; set; }
+        //[JsonPropertyName("TEMPPASSWORD")]
+        //public object? TEMPPASSWORD { get; set; }
         [JsonPropertyName("BUSINESS_GROUP_ID")]
         public int? BUSINESS_GROUP_ID { get; set; }
         [JsonPropertyName("BUSINESS_GROUPS_NAME")]

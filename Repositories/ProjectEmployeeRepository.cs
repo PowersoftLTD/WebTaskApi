@@ -385,7 +385,7 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-        public async Task<IEnumerable<GET_ACTIONSOutPut_List>> GetActionsAsync(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION)
+        public async Task<IEnumerable<GET_ACTIONS_TYPE_FILE>> GetActionsAsync(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION)
         {
             try
             {
@@ -397,12 +397,12 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@CURR_ACTION", CURR_ACTION);
                     var TaskTreeDetails = await db.QueryMultipleAsync("SP_GET_ACTIONS", parmeters, commandType: CommandType.StoredProcedure);
 
-                    var data = TaskTreeDetails.Read<GET_ACTIONSOutPut>().ToList();
-                    var data1 = TaskTreeDetails.Read<GET_ACTIONSOutPut>().ToList();
+                    var data = TaskTreeDetails.Read<GetActionsListTypeDesc>().ToList();
+                    var data1 = TaskTreeDetails.Read<GetActionsListFile>().ToList();
 
-                    var successsResult = new List<GET_ACTIONSOutPut_List>
+                    var successsResult = new List<GET_ACTIONS_TYPE_FILE>
                     {
-                        new GET_ACTIONSOutPut_List
+                        new GET_ACTIONS_TYPE_FILE
                         {
                             Status = "Ok",
                             Message = "Message",
@@ -416,9 +416,9 @@ namespace TaskManagement.API.Repositories
             }
             catch (Exception ex)
             {
-                var errorResult = new List<GET_ACTIONSOutPut_List>
+                var errorResult = new List<GET_ACTIONS_TYPE_FILE>
                     {
-                        new GET_ACTIONSOutPut_List
+                        new GET_ACTIONS_TYPE_FILE
                         {
                            Status = "Error",
                             Message= ex.Message
@@ -710,8 +710,7 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
-        public async Task<IEnumerable<TASK_DASHBOARD>> GetTeamTaskDetailsAsync(string CURRENT_EMP_MKEY)
+        public async Task<IEnumerable<TASK_DASHBOARDOutPut_List>> GetTeamTaskDetailsAsync(string CURRENT_EMP_MKEY)
         {
             try
             {
@@ -719,24 +718,40 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
-                    var TeamTask = (await db.QueryAsync<TASK_DASHBOARD>("SP_GET_TEAM_PROGRESS", parmeters, commandType: CommandType.StoredProcedure)).ToList();
-                    return TeamTask;
+                    var TeamTask = await db.QueryMultipleAsync("SP_GET_TEAM_PROGRESS", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var Data = TeamTask.Read<GET_TASK_DepartmentOutPut>().ToList();
+                    var Data1 = TeamTask.Read<TEAM_PROGRESSOutPut>().ToList();
+
+                    var successsResult = new List<TASK_DASHBOARDOutPut_List>
+                    {
+                        new TASK_DASHBOARDOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data = Data,
+                            Data1= Data1,
+
+                        }
+                    };
+                    return successsResult;
+
+                    //return TeamTask;
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new List<TASK_DASHBOARD>
+                var errorResult = new List<TASK_DASHBOARDOutPut_List>
                     {
-                        new TASK_DASHBOARD
+                        new TASK_DASHBOARDOutPut_List
                         {
-                            RESPONE_STATUS = "Error",
-                            RESPONSE_MESSAGE = ex.Message
+                            Status = "Error",
+                            Message = ex.Message
                         }
                     };
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<Get_Project_DetailsWithSubprojectOutPut_List>> GetProjectDetailsWithSubProjectAsync(string ProjectID, string SubProjectID)
         {
             try
@@ -747,6 +762,9 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@PROJECTID", ProjectID);
                     parmeters.Add("@SUBPROJECTID", SubProjectID);
                     var ProjectDetails = await db.QueryAsync<Get_Project_DetailsWithSubprojectOutPut>("USP_GET_pROJECTPREVIEW", parmeters, commandType: CommandType.StoredProcedure);
+
+                    // var SUBTAsyncASKDetails = await db.QueryAsync("select Project_id,sub_project_id from V_RootTasks", commandType: CommandType.Text);
+
                     var successsResult = new List<Get_Project_DetailsWithSubprojectOutPut_List>
                     {
                         new Get_Project_DetailsWithSubprojectOutPut_List
@@ -773,7 +791,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         //public async Task<IEnumerable<TASK_HDR>> GetTaskTreeExportAsync(string Task_Mkey)
         //{
         //    try
@@ -799,7 +816,6 @@ namespace TaskManagement.API.Repositories
         //        return errorResult;
         //    }
         //}
-
         public async Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> GetTaskTreeExportAsync(string Task_Mkey)
         {
             try
@@ -836,7 +852,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<Add_TaskOutPut_List>> CreateAddTaskAsync(Add_TaskInput tASK_HDR)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -860,7 +875,7 @@ namespace TaskManagement.API.Repositories
                     transaction = db.BeginTransaction();
                     transactionCompleted = false;  // Reset transaction state
 
-                    if (tASK_HDR.TASK_NO == "0000")
+                    if (tASK_HDR.TASK_NO.ToString() == "0000".ToString())
                     {
                         var parmeters = new DynamicParameters();
                         parmeters.Add("@TASK_NO", tASK_HDR.TASK_NO);
@@ -922,7 +937,6 @@ namespace TaskManagement.API.Repositories
 
                         var UpdateTaskHDR = await db.QueryAsync<Add_TaskOutPut>("update_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();
                         transactionCompleted = true;
@@ -954,7 +968,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<Add_TaskOutPut_List>> CreateAddSubTaskAsync(Add_Sub_TaskInput tASK_HDR)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -1043,8 +1056,7 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
-        public async Task<int> TASKFileUpoadAsync(string srNo, string taskMkey, string taskParentId, string fileName, string filePath, string createdBy, string deleteFlag, string taskMainNodeId)
+        public async Task<int> TASKFileUpoadAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -1145,7 +1157,6 @@ namespace TaskManagement.API.Repositories
                 return 1;
             }
         }
-
         public async Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -1235,7 +1246,6 @@ namespace TaskManagement.API.Repositories
                 return 1;
             }
         }
-
         public async Task<int> GetPostTaskActionAsync(string Mkey, string TASK_MKEY, string TASK_PARENT_ID, string ACTION_TYPE, string DESCRIPTION_COMMENT, string PROGRESS_PERC, string STATUS, string CREATED_BY, string TASK_MAIN_NODE_ID, string FILE_NAME, string FILE_PATH)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -1331,10 +1341,9 @@ namespace TaskManagement.API.Repositories
                 var ErrorFileDetails = new TASK_FILE_UPLOAD();
                 ErrorFileDetails.STATUS = "Error";
                 ErrorFileDetails.MESSAGE = ex.Message;
-                return 1;
+                return 0;
             }
         }
-
         //Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> IProjectEmployee.GetActionsAsync(int TASK_MKEY, int CURRENT_EMP_MKEY, string CURR_ACTION)
         //{
         //    throw new NotImplementedException();

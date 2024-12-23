@@ -86,39 +86,39 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
         [JsonPropertyName("CATEGORY")]
-        public int CATEGORY { get; set; }
+        public string CATEGORY { get; set; }
         [JsonPropertyName("TASK_NO")]
-        public int TASK_NO { get; set; }
+        public string TASK_NO { get; set; }
         [JsonPropertyName("CREATOR")]
-        public int CREATOR { get; set; }
+        public string CREATOR { get; set; }
         [JsonPropertyName("RESPONSIBLE")]
-        public int RESPONSIBLE { get; set; }
+        public string RESPONSIBLE { get; set; }
         [JsonPropertyName("ACTIONABLE")]
-        public int ACTIONABLE { get; set; }
+        public string ACTIONABLE { get; set; }
         [JsonPropertyName("CREATION_DATE")]
-        public int CREATION_DATE { get; set; }
+        public string CREATION_DATE { get; set; }
         [JsonPropertyName("COMPLETION_DATE")]
-        public int COMPLETION_DATE { get; set; }
+        public string COMPLETION_DATE { get; set; }
         [JsonPropertyName("TASK_NAME")]
-        public int TASK_NAME { get; set; }
+        public string TASK_NAME { get; set; }
         [JsonPropertyName("TASK_DESCRIPTION")]
-        public int TASK_DESCRIPTION { get; set; }
+        public string TASK_DESCRIPTION { get; set; }
         [JsonPropertyName("TAGS")]
-        public int TAGS { get; set; }
+        public string TAGS { get; set; }
         [JsonPropertyName("STATUS")]
-        public int STATUS { get; set; }
+        public string STATUS { get; set; }
         [JsonPropertyName("RESPONSIBLE_TAG")]
-        public int RESPONSIBLE_TAG { get; set; }
+        public string RESPONSIBLE_TAG { get; set; }
         [JsonPropertyName("ASSIGNEE")]
-        public int ASSIGNEE { get; set; }
+        public string ASSIGNEE { get; set; }
         [JsonPropertyName("ASSIGNEE_DEPARTMENT_ID")]
         public int ASSIGNEE_DEPARTMENT_ID { get; set; }
         [JsonPropertyName("TASKTYPE")]
-        public int TASKTYPE { get; set; }
+        public string TASKTYPE { get; set; }
         [JsonPropertyName("TASKTYPE_DESC")]
-        public int TASKTYPE_DESC { get; set; }
+        public string TASKTYPE_DESC { get; set; }
         [JsonPropertyName("PROJECT_NAME")]
-        public int PROJECT_NAME { get; set; }
+        public string PROJECT_NAME { get; set; }
 
     }
 

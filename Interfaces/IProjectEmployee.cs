@@ -17,7 +17,7 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<Task_DetailsOutPut_List>> GetTaskDetailsAsync(string CURRENT_EMP_MKEY, string FILTER);
         Task<IEnumerable<TASK_DETAILS_BY_MKEY_list>> GetTaskDetailsByMkeyAsync(string Mkey);
         Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> GetTaskNestedGridAsync(string Mkey);
-        Task<IEnumerable<GET_ACTIONSOutPut_List>> GetActionsAsync(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION);
+        Task<IEnumerable<GET_ACTIONS_TYPE_FILE>> GetActionsAsync(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION);
         Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskTreeAsync(string TASK_MKEY);
         Task<IEnumerable<PutChangePasswordOutPut_List>> PutChangePasswordAsync(string LoginName, string Old_Password, string New_Password);
         Task<IEnumerable<ForgotPasswordOutPut_List>> GetForgotPasswordAsync(string LoginName);
@@ -25,12 +25,12 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<ChangePasswordOutPut_List>> GetValidateEmailAsync(string Login_ID);
         Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskDashboardDetailsAsync(string CURRENT_EMP_MKEY, string CURR_ACTION);
         Task<IEnumerable<GetTaskTeamOutPut_List>> GetTeamTaskAsync(string CURRENT_EMP_MKEY);
-        Task<IEnumerable<TASK_DASHBOARD>> GetTeamTaskDetailsAsync(string CURRENT_EMP_MKEY);
+        Task<IEnumerable<TASK_DASHBOARDOutPut_List>> GetTeamTaskDetailsAsync(string CURRENT_EMP_MKEY);
         Task<IEnumerable<Get_Project_DetailsWithSubprojectOutPut_List>> GetProjectDetailsWithSubProjectAsync(string ProjectID, string SubProjectID);
         Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> GetTaskTreeExportAsync(string Task_Mkey);
         Task<IEnumerable<Add_TaskOutPut_List>> CreateAddTaskAsync(Add_TaskInput add_TaskInput);
         Task<IEnumerable<Add_TaskOutPut_List>> CreateAddSubTaskAsync(Add_Sub_TaskInput add_Sub_TaskInput);
-        Task<int> TASKFileUpoadAsync(string srNo, string taskMkey, string taskParentId, string fileName, string filePath, string createdBy, string deleteFlag, string taskMainNodeId);
+        Task<int> TASKFileUpoadAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId);
         //Task<TASK_HDR> AddTaskAsync(TASK_HDR tASK_HDR);
         //Task<TASK_HDR> UpdateTaskAsync(TASK_HDR tASK_HDR);
         Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag);

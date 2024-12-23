@@ -15,23 +15,29 @@ using Azure;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using FastMember;
+using Microsoft.Extensions.Options;
 
 namespace TaskManagement.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+
     public class CommonApiController : ControllerBase
     {
         private readonly IConfiguration _configuration;
         private readonly IProjectEmployee _repository;
+        public static IWebHostEnvironment _environment;
+
+        private readonly FileSettings _fileSettings;
         public IDapperDbConnection _dapperDbConnection;
-        public CommonApiController(IProjectEmployee repository, IConfiguration configuration)
+        public CommonApiController(IProjectEmployee repository, IConfiguration configuration, IWebHostEnvironment environment, IOptions<FileSettings> fileSettings)
         {
             _repository = repository;
             _configuration = configuration;
+            _environment = environment;
+            _fileSettings = fileSettings.Value;
         }
-   
+
         [HttpPost("Task-Management/Login")]
         public async Task<ActionResult<EmployeeLoginOutput_LIST>> Login_Validate([FromBody] EmployeeCompanyMSTInput employeeCompanyMSTInput)
         {
@@ -187,7 +193,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
         [HttpPost("Task-Management/EMP_TAGS")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<EmployeeLoginOutput_LIST>>> EMP_TAGS([FromBody] EMP_TAGSInput eMP_TAGSInput)
@@ -218,8 +223,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
-
         [HttpPost("Task-Management/TASK-DASHBOARD")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<Task_DetailsOutPut_List>>> Task_Details([FromBody] Task_DetailsInput task_DetailsInput)
@@ -251,8 +254,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
-
         [HttpPost("Task-Management/TASK-DETAILS_BY_MKEY")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_DETAILS_BY_MKEY_list>>> TASK_DETAILS_BY_MKEY([FromBody] TASK_DETAILS_BY_MKEYInput tASK_DETAILS_BY_MKEYInput)
@@ -283,7 +284,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
         [HttpPost("Task-Management/TASK-NESTED-GRID")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TASK_NESTED_GRID([FromBody] TASK_NESTED_GRIDInput tASK_NESTED_GRIDInput)
@@ -317,14 +317,14 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/GET-ACTIONS")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<GET_ACTIONSOutPut_List>>> GET_ACTIONS([FromBody] GET_ACTIONSInput gET_ACTIONSInput)
+        public async Task<ActionResult<IEnumerable<GET_ACTIONS_TYPE_FILE>>> GET_ACTIONS([FromBody] GET_ACTIONSInput gET_ACTIONSInput)
         {
             try
             {
                 var TaskAction = await _repository.GetActionsAsync(gET_ACTIONSInput.TASK_MKEY, gET_ACTIONSInput.CURRENT_EMP_MKEY, gET_ACTIONSInput.CURR_ACTION);
                 //if (TaskAction == null)
                 //{
-                //    var responseTaskAction = new ApiResponse<GET_ACTIONSOutPut_List>
+                //    var responseTaskAction = new ApiResponse<GET_ACTIONS_TYPE_FILE>
                 //    {
                 //        Status = "Error",
                 //        Message = "Error Occurd",
@@ -336,7 +336,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new GET_ACTIONSOutPut_List
+                var response = new GET_ACTIONS_TYPE_FILE
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -363,9 +363,9 @@ namespace TaskManagement.API.Controllers
                 //    };
                 //    return Ok(responseTaskAction);
                 //}
-                foreach(var checkerror in TaskTree)
+                foreach (var checkerror in TaskTree)
                 {
-                   if (checkerror.Status != "Ok")
+                    if (checkerror.Status != "Ok")
                     {
                         var response = new GET_ACTIONSOutPut_List
                         {
@@ -455,7 +455,7 @@ namespace TaskManagement.API.Controllers
                 {
                     TempararyPass = TempPaass.Data.Select(x => x.MessageText.ToString()).First().ToString();
                 }
-                
+
 
                 var ResetPass = await _repository.GetResetPasswordAsync(TempararyPass, forgotPasswordInput.LoginName);
 
@@ -556,7 +556,7 @@ namespace TaskManagement.API.Controllers
                 {
                     Status = "Error",
                     Message = ex.Message,
-                    Table =  null,
+                    Table = null,
                     Table1 = null,
                     Table2 = null,
                     Table3 = null,
@@ -605,7 +605,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/Team_Task_Details")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> Team_Task_Details([FromBody] Team_Task_DetailsInput team_Task_DetailsInput)
+        public async Task<ActionResult<IEnumerable<TASK_DASHBOARDOutPut_List>>> Team_Task_Details([FromBody] Team_Task_DetailsInput team_Task_DetailsInput)
         {
             try
             {
@@ -614,57 +614,93 @@ namespace TaskManagement.API.Controllers
 
                 if (TaskTeamTask == null)
                 {
-                    var responseTeamTask = new ApiResponse<TASK_DASHBOARD>
+                    var responseTeamTask = new TASK_DASHBOARDOutPut_List
                     {
                         Status = "Error",
-                        Message = "Error Occurd",
+                        Message = "Error Occured",
                         Data = null
                     };
                     return Ok(responseTeamTask);
                 }
 
-                DataTable TeamTaskDT = new DataTable();
+                //DataTable TeamTaskDT = new DataTable();
 
-                TeamTaskDT.Columns.Add("TASKTYPE", typeof(string));
-                TeamTaskDT.Columns.Add("TASKTYPE_DESC", typeof(string));
-                TeamTaskDT.Columns.Add("CURRENT_EMP_MKEY", typeof(string)); // Adjust types as necessary
+                //TeamTaskDT.Columns.Add("TASKTYPE", typeof(string));
+                //TeamTaskDT.Columns.Add("TASKTYPE_DESC", typeof(string));
+                //TeamTaskDT.Columns.Add("CURRENT_EMP_MKEY", typeof(string));
 
-                // Populate DataTable with the List<TASK_DASHBOARD>
                 foreach (var task in TaskTeamTask)
                 {
-                    DataRow row = TeamTaskDT.NewRow();
-                    row["TASKTYPE"] = task.TASKTYPE;
-                    row["TASKTYPE_DESC"] = task.TASKTYPE_DESC;
-                    row["CURRENT_EMP_MKEY"] = task.CURRENT_EMP_MKEY;
-                    TeamTaskDT.Rows.Add(row);
+                    if (task.Data != null)
+                    {
+                        // Apply LINQ filter to the Data property of each task
+                        var filteredData = task.Data1.Where(a =>
+                            a.TASKTYPE == team_Task_DetailsInput.TASKTYPE &&
+                            a.TASKTYPE_DESC == team_Task_DetailsInput.TASKTYPE_DESC &&
+                            a.CURRENT_EMP_MKEY.ToString() == team_Task_DetailsInput.mKEY.ToString())
+                            .ToList();
+                        task.Data1 = filteredData;
+                        // For each filtered item, add a row to the DataTable
+                        //foreach (var item in filteredData)
+                        //{
+                        //    DataRow row = TeamTaskDT.NewRow();
+                        //    row["TASKTYPE"] = item.TASKTYPE;
+                        //    row["TASKTYPE_DESC"] = item.TASKTYPE_DESC;
+                        //    row["CURRENT_EMP_MKEY"] = item.CURRENT_EMP_MKEY;
+                        //    TeamTaskDT.Rows.Add(row);
+                        //}
+                    }
                 }
 
-                var searchStr = team_Task_DetailsInput.TASKTYPE.ToString().Trim() + " " + team_Task_DetailsInput.TASKTYPE_DESC.ToString().Trim() + " " + team_Task_DetailsInput.mKEY;
-                var splitSearchString = searchStr.Split(' ');
-                var columnNameStr = "TASKTYPE TASKTYPE_DESC CURRENT_EMP_MKEY";
-                var splitcolumnNameStr = columnNameStr.Split(' ');
-                var expression = new List<string>();
-                DataTable table = new DataTable();
 
-                int iCnt = 0;
-                foreach (var searchElement in splitSearchString)
-                {
-                    expression.Add(
-                        string.Format("[{0}] = '{1}'", splitcolumnNameStr[iCnt], searchElement));
-                    iCnt++;
-                }
-                var searchExpressionString = string.Join(" and ", expression.ToArray());
-                DataRow[] rows = TeamTaskDT.Select(searchExpressionString);
+                // Populate DataTable with the List<TASK_DASHBOARD>
+                //foreach (var task in TaskTeamTask)
+                //{
+                //    DataRow row = TeamTaskDT.NewRow();
+                //    //row["TASKTYPE"] = task.Data.Where(x => x.TASKTYPE = "gfgf").FirstOrDefault();
+                //    //row["TASKTYPE_DESC"] = task.Data.Select(x => x.TASKTYPE_DESC).FirstOrDefault();
+                //    //row["CURRENT_EMP_MKEY"] = task.Data.Select(x => x.CURRENT_EMP_MKEY).FirstOrDefault();
 
-                Temptable = TeamTaskDT.Clone();
-                for (int i = 0; i < rows.Length; i++)
-                    Temptable.Rows.Add(rows[i].ItemArray);
+                //    var query = from a in task.Data
+                //                    //where a.TASKTYPE  == team_Task_DetailsInput.TASKTYPE && a.TASKTYPE_DESC == team_Task_DetailsInput.TASKTYPE_DESC && a.CURRENT_EMP_MKEY.ToString() == team_Task_DetailsInput.mKEY.ToString()
+                //                select a;
 
-                return Ok(Temptable);
+                //    var filterresult = from a in query
+                //                       where a.TASKTYPE == team_Task_DetailsInput.TASKTYPE && a.TASKTYPE_DESC == team_Task_DetailsInput.TASKTYPE_DESC && a.CURRENT_EMP_MKEY.ToString() == team_Task_DetailsInput.mKEY.ToString()
+                //                       select a;
+
+                //    TeamTaskDT.Rows.Add(row);
+                //}
+
+                //var searchStr = team_Task_DetailsInput.TASKTYPE.ToString().Trim() + " " + team_Task_DetailsInput.TASKTYPE_DESC.ToString().Trim() + " " + team_Task_DetailsInput.mKEY;
+                //var splitSearchString = searchStr.Split(' ');
+                //var columnNameStr = "TASKTYPE TASKTYPE_DESC CURRENT_EMP_MKEY";
+                //var splitcolumnNameStr = columnNameStr.Split(' ');
+                //var expression = new List<string>();
+                //DataTable table = new DataTable();
+
+                //int iCnt = 0;
+                //foreach (var searchElement in splitSearchString)
+                //{
+                //    expression.Add(
+                //        string.Format("[{0}] = '{1}'", splitcolumnNameStr[iCnt], searchElement));
+                //    iCnt++;
+                //}
+                //var searchExpressionString = string.Join(" and ", expression.ToArray());
+                //DataRow[] rows = TeamTaskDT.Select(searchExpressionString);
+
+                //Temptable = TeamTaskDT.Clone();
+                //for (int i = 0; i < rows.Length; i++)
+                //    Temptable.Rows.Add(rows[i].ItemArray);
+
+                // Convert the DataTable to a list of dictionaries (which is serializable)
+                // var result = DataTableToList(Temptable);
+
+                return Ok(TaskTeamTask);
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<TASK_DASHBOARD>
+                var response = new TASK_DASHBOARDOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -672,6 +708,24 @@ namespace TaskManagement.API.Controllers
                 };
                 return Ok(response);
             }
+        }
+
+        // Helper method to convert DataTable to a list of dictionaries
+        private List<Dictionary<string, object>> DataTableToList(DataTable dt)
+        {
+            var rows = new List<Dictionary<string, object>>();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                var dict = new Dictionary<string, object>();
+                foreach (DataColumn column in dt.Columns)
+                {
+                    dict[column.ColumnName] = row[column];
+                }
+                rows.Add(dict);
+            }
+
+            return rows;
         }
 
         [HttpPost("Task-Management/Get_Project_Details")]
@@ -970,149 +1024,307 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-         
-        [HttpPost("Task-Management/FileUpload"), DisableRequestSizeLimit]
+        //[HttpPost("Task-Management/FileUpload"), DisableRequestSizeLimit]
+        //[Authorize]
+        //public async Task<IActionResult> Post([FromForm] IFormCollection form)
+        //{
+        //    try
+        //    {
+        //        string uploadFilePath = _configuration["UploadFile_Path"];
+        //        var files = form.Files;
+        //        string taskMkey = form["Mkey"];
+        //        string createdBy = form["CREATED_BY"];
+        //        string deleteFlag = form["DELETE_FLAG"];
+        //        string taskParentId = form["TASK_PARENT_ID"];
+        //        string taskMainNodeId = form["TASK_MAIN_NODE_ID"];
+        //        int srNo = 0;
+        //        var uploadedFiles = new List<string>();
+        //        string fileName, filePath;
+
+        //        if (files.Count > 0)
+        //        {
+        //            foreach (var file in files)
+        //            {
+        //                srNo++;
+        //                fileName = file.FileName;
+        //                string fileDirectory = Path.Combine(uploadFilePath, taskMainNodeId);
+
+        //                if (!Directory.Exists(fileDirectory))
+        //                {
+        //                    Directory.CreateDirectory(fileDirectory);
+        //                }
+
+        //                // Generate new file name with timestamp
+        //                string newFileName = DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + fileName;
+        //                filePath = Path.Combine(fileDirectory, newFileName);
+
+        //                // Save the file
+        //                using (var fileStream = new FileStream(filePath, FileMode.Create))
+        //                {
+        //                    await file.CopyToAsync(fileStream);
+        //                }
+
+        //                uploadedFiles.Add(filePath);
+
+        //                string fileRelativePath = Path.Combine(_configuration["Refer_UploadFile_Path"], taskMainNodeId, newFileName);
+
+        //                if (file.Length > 0)
+        //                {
+        //                    // Perform the database insertion or other operations
+        //                    await _repository.TASKFileUpoadAsync(srNo.ToString(), taskMkey, taskParentId, fileName, filePath, createdBy, deleteFlag, taskMainNodeId);
+        //                }
+        //            }
+
+        //            // Return the response
+        //            return Ok(new { Status = "Success", Files = uploadedFiles });  // You can return a custom response
+        //        }
+        //        else
+        //        {
+        //            if (taskMkey != "0000")
+        //            {
+        //                await _repository.UpdateTASKFileUpoadAsync(taskMkey, deleteFlag);
+        //            }
+        //        }
+
+        //        return BadRequest("No files were uploaded.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Handle exception (could be logging or returning an error response)
+        //        return StatusCode(400, new { Message = "An error occurred", Error = ex.Message });
+        //    }
+        //}
+
         [Authorize]
-        public async Task<IActionResult> Post([FromForm] IFormCollection form)
+        [HttpPost("Task-Management/FileUpload"), DisableRequestSizeLimit]
+        public async Task<IActionResult> Post([FromForm] TaskFileUploadAPI objFile)
         {
             try
             {
-                string uploadFilePath = _configuration["UploadFile_Path"];
-                var files = form.Files;
-                string taskMkey = form["Mkey"];
-                string createdBy = form["CREATED_BY"];
-                string deleteFlag = form["DELETE_FLAG"];
-                string taskParentId = form["TASK_PARENT_ID"];
-                string taskMainNodeId = form["TASK_MAIN_NODE_ID"];
                 int srNo = 0;
-                var uploadedFiles = new List<string>();
-                string fileName, filePath;
-
-                if (files.Count > 0)
+                string filePathOpen = string.Empty;
+                if (objFile.files.Length > 0)
                 {
-                    foreach (var file in files)
+                    srNo = srNo + 1;
+                    //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
+                    objFile.FILE_PATH = _fileSettings.FilePath;
+                    if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
                     {
-                        srNo++;
-                        fileName = file.FileName;
-                        string fileDirectory = Path.Combine(uploadFilePath, taskMainNodeId);
-
-                        if (!Directory.Exists(fileDirectory))
+                        Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
+                    }
+                    using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
+                    {
+                        objFile.files.CopyTo(filestream);
+                        filestream.Flush();
+                    }
+                    objFile.FILE_NAME = objFile.files.FileName;
+                    filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName;
+                    int ResultCount = await _repository.TASKFileUpoadAsync(srNo, objFile.TASK_MKEY, objFile.TASK_PARENT_ID, objFile.FILE_NAME, filePathOpen, objFile.CREATED_BY, Convert.ToChar(objFile.DELETE_FLAG), objFile.TASK_MAIN_NODE_ID);
+                    objFile.FILE_PATH = filePathOpen;
+                    if (ResultCount > 0)
+                    {
+                        var Successresponse = new Add_TaskOutPut_List
                         {
-                            Directory.CreateDirectory(fileDirectory);
+                            Status = "ok",
+                            Message = "File Uploaded",
+                            Data2 = objFile
+                        };
+                        return Ok(Successresponse);
+                    }
+                    else
+                    {
+                        var Errorresponse = new Add_TaskOutPut_List
+                        {
+                            Status = "Error",
+                            Message = "Error occurred",
+                            Data1 = null
+                        };
+                        return Ok(Errorresponse);
+                    }
+                }
+                var response = new Add_TaskOutPut_List
+                {
+                    Status = "Error",
+                    Message = "please attach the file!!!",
+                    Data1 = null
+                };
+                return Ok(response);
+
+            }
+            catch (Exception ex)
+            {
+                var response = new Add_TaskOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data1 = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
+        [Authorize]
+        public async Task<IActionResult> Post_TASK_ACTION([FromForm] TaskPostActionFileUploadAPI objFile)
+        {
+            try
+            {
+                int srNo = 0;
+                string filePathOpen = string.Empty;
+                if (objFile.files != null)
+                {
+                    if (objFile.files.Length > 0)
+                    {
+                        srNo = srNo + 1;
+                        //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
+                        objFile.FILE_PATH = _fileSettings.FilePath;
+                        if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
+                        {
+                            Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
                         }
-
-                        // Generate new file name with timestamp
-                        string newFileName = DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + fileName;
-                        filePath = Path.Combine(fileDirectory, newFileName);
-
-                        // Save the file
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
                         {
-                            await file.CopyToAsync(fileStream);
+                            objFile.files.CopyTo(filestream);
+                            filestream.Flush();
                         }
-
-                        uploadedFiles.Add(filePath);
-
-                        string fileRelativePath = Path.Combine(_configuration["Refer_UploadFile_Path"], taskMainNodeId, newFileName);
-
-                        if (file.Length > 0)
+                        objFile.FILE_NAME = objFile.files.FileName;
+                        filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_")
+                            + "_" + objFile.files.FileName;
+                        int ResultCount = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+                            objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+                            objFile.TASK_MAIN_NODE_ID.ToString(), objFile.FILE_NAME, filePathOpen);
+                        objFile.FILE_PATH = filePathOpen;
+                        if (ResultCount > 0)
                         {
-                            // Perform the database insertion or other operations
-                            await _repository.TASKFileUpoadAsync(srNo.ToString(), taskMkey, taskParentId, fileName, filePath, createdBy, deleteFlag, taskMainNodeId);
+                            var Successresponse = new Add_TaskOutPut_List
+                            {
+                                Status = "ok",
+                                Message = "File Uploaded",
+                                Data1 = objFile
+                            };
+                            return Ok(Successresponse);
+                        }
+                        else
+                        {
+                            filePathOpen = null;
+                            int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+                                objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+                                objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
+                            objFile.FILE_PATH = filePathOpen;
+
+                            var Errorresponse = new Add_TaskOutPut_List
+                            {
+                                Status = "Error",
+                                Message = "Error occurred",
+                                Data1 = null
+                            };
+                            return Ok(Errorresponse);
                         }
                     }
-
-                    // Return the response
-                    return Ok(new { Status = "Success", Files = uploadedFiles });  // You can return a custom response
                 }
                 else
                 {
-                    if (taskMkey != "0000")
+                    filePathOpen = null;
+                    int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+                        objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+                        objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
+                    objFile.FILE_PATH = filePathOpen;
+
+                    var Successresponse = new Add_TaskOutPut_List
                     {
-                        await _repository.UpdateTASKFileUpoadAsync(taskMkey, deleteFlag);
-                    }
+                        Status = "Ok",
+                        Message = "Updated Successfuly",
+                        Data1 = null
+                    };
+                    return Ok(Successresponse);
                 }
 
-                return BadRequest("No files were uploaded.");
-            }
-            catch (Exception ex)
-            {
-                // Handle exception (could be logging or returning an error response)
-                return StatusCode(400, new { Message = "An error occurred", Error = ex.Message });
-            }
-        }
-
-         
-        [HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
-        [Authorize]
-        public async Task<IActionResult> Post_TASK_ACTION([FromForm] IFormCollection form)
-        {
-            try
-            {
-                string uploadFilePath = _configuration["UploadFile_Path"];
-                var files = form.Files;
-                string Mkey = form["Mkey"];
-                string TASK_MKEY = form["TASK_MKEY"];
-                string TASK_PARENT_ID = form["TASK_PARENT_ID"];
-                string ACTION_TYPE = form["ACTION_TYPE"];
-                string DESCRIPTION_COMMENT = form["DESCRIPTION_COMMENT"];
-                string PROGRESS_PERC = form["PROGRESS_PERC"];
-                string STATUS = form["STATUS"];
-                string CREATED_BY = form["CREATED_BY"];
-                string TASK_MAIN_NODE_ID = form["TASK_MAIN_NODE_ID"];
-
-
-                int srNo = 0;
-                var uploadedFiles = new List<string>();
-                string fileName, filePath;
-
-                if (files.Count > 0)
+                var response = new Add_TaskOutPut_List
                 {
-                    foreach (var file in files)
-                    {
-                        srNo++;
-                        fileName = file.FileName;
-                        string fileDirectory = Path.Combine(uploadFilePath, TASK_MAIN_NODE_ID);
+                    Status = "Error",
+                    Message = "Please attach the file!!!",
+                    Data1 = null
+                };
+                return Ok(response);
 
-                        if (!Directory.Exists(fileDirectory))
-                        {
-                            Directory.CreateDirectory(fileDirectory);
-                        }
-
-                        // Generate new file name with timestamp
-                        string newFileName = DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + fileName;
-                        filePath = Path.Combine(fileDirectory, newFileName);
-
-                        // Save the file
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(fileStream);
-                        }
-
-                        uploadedFiles.Add(filePath);
-
-                        string fileRelativePath = Path.Combine(_configuration["Refer_UploadFile_Path"], TASK_MAIN_NODE_ID, newFileName);
-
-                        if (file.Length > 0)
-                        {
-                            // Perform the database insertion or other operations
-                            await _repository.GetPostTaskActionAsync(Mkey, TASK_MKEY, TASK_PARENT_ID, ACTION_TYPE, DESCRIPTION_COMMENT, PROGRESS_PERC, STATUS, CREATED_BY, TASK_MAIN_NODE_ID, fileName, filePath);
-                        }
-                    }
-
-                    // Return the response
-                    return Ok(new { Status = "Success", Files = uploadedFiles });  // You can return a custom response
-                }
-
-
-                return BadRequest("No files were uploaded.");
             }
             catch (Exception ex)
             {
-                // Handle exception (could be logging or returning an error response)
-                return StatusCode(400, new { Message = "An error occurred", Error = ex.Message });
+                var response = new Add_TaskOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data1 = null
+                };
+                return Ok(response);
             }
-        }
+            //return Ok(objFile);
 
+            //try
+            //{
+            //    string uploadFilePath = _configuration["UploadFile_Path"];
+            //    var files = form.Files;
+            //    string Mkey = form["Mkey"];
+            //    string TASK_MKEY = form["TASK_MKEY"];
+            //    string TASK_PARENT_ID = form["TASK_PARENT_ID"];
+            //    string ACTION_TYPE = form["ACTION_TYPE"];
+            //    string DESCRIPTION_COMMENT = form["DESCRIPTION_COMMENT"];
+            //    string PROGRESS_PERC = form["PROGRESS_PERC"];
+            //    string STATUS = form["STATUS"];
+            //    string CREATED_BY = form["CREATED_BY"];
+            //    string TASK_MAIN_NODE_ID = form["TASK_MAIN_NODE_ID"];
+
+
+            //    int srNo = 0;
+            //    var uploadedFiles = new List<string>();
+            //    string fileName, filePath;
+
+            //    if (files.Count > 0)
+            //    {
+            //        foreach (var file in files)
+            //        {
+            //            srNo++;
+            //            fileName = file.FileName;
+            //            string fileDirectory = Path.Combine(uploadFilePath, TASK_MAIN_NODE_ID);
+
+            //            if (!Directory.Exists(fileDirectory))
+            //            {
+            //                Directory.CreateDirectory(fileDirectory);
+            //            }
+
+            //            // Generate new file name with timestamp
+            //            string newFileName = DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + fileName;
+            //            filePath = Path.Combine(fileDirectory, newFileName);
+
+            //            // Save the file
+            //            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            //            {
+            //                await file.CopyToAsync(fileStream);
+            //            }
+
+            //            uploadedFiles.Add(filePath);
+
+            //            string fileRelativePath = Path.Combine(_configuration["Refer_UploadFile_Path"], TASK_MAIN_NODE_ID, newFileName);
+
+            //            if (file.Length > 0)
+            //            {
+            //                // Perform the database insertion or other operations
+            //                await _repository.GetPostTaskActionAsync(Mkey, TASK_MKEY, TASK_PARENT_ID, ACTION_TYPE, DESCRIPTION_COMMENT, PROGRESS_PERC, STATUS, CREATED_BY, TASK_MAIN_NODE_ID, fileName, filePath);
+            //            }
+            //        }
+
+            //        // Return the response
+            //        return Ok(new { Status = "Success", Files = uploadedFiles });  // You can return a custom response
+            //    }
+
+
+            //    return BadRequest("No files were uploaded.");
+            //}
+            //catch (Exception ex)
+            //{
+            //    // Handle exception (could be logging or returning an error response)
+            //    return StatusCode(400, new { Message = "An error occurred", Error = ex.Message });
+            //}
+        }
     }
 }

@@ -9,6 +9,8 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Message")]
         public string? Message { get; set; }
         public IEnumerable<Add_TaskOutPut> Data { get; set; }
+        public TaskPostActionFileUploadAPI Data1 { get; set; }
+        public TaskFileUploadAPI Data2 { get; set; }
     }
 
     public class Add_TaskOutPut

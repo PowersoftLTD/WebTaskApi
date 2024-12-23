@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using System.ComponentModel;
 using System.Reflection;
+using TaskManagement.API.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 // Configure database connection using Entity Framework Core
@@ -24,7 +25,7 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();  // Allow any header
     });
 });
-
+builder.Services.Configure<FileSettings>(builder.Configuration.GetSection("FileSettings"));
 builder.Services.AddScoped<IJWTConfigure, JWTConfigure>();
 builder.Services.AddScoped<ITASKRepository, TASKRepository>();
 builder.Services.AddScoped<IDoc_Temp, DocumentTemplateRepository>();

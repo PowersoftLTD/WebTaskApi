@@ -2,6 +2,19 @@
 
 namespace TaskManagement.API.Model
 {
+    public class TASK_DASHBOARDOutPut_List
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message ")]
+        public string? Message { get; set; }
+
+        public IEnumerable<GET_TASK_DepartmentOutPut> Data { get; set; }
+        public IEnumerable<TEAM_PROGRESSOutPut> Data1 { get; set; }
+        
+        
+    }
+
     public class TASK_DASHBOARD
     {
         [JsonPropertyName("MKEY")]
