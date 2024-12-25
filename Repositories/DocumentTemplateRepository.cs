@@ -84,8 +84,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@ATTRIBUTE2", dOC_TEMPLATE_HDR.ATTRIBUTE2);
 
                     // Ensure the transaction is passed to the query
-                    dOC_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<DOC_TEMPLATE_HDR>(
-                        "SP_INSERT_DOCUMENT_TEMPLATES",
+                    dOC_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<DOC_TEMPLATE_HDR>("SP_INSERT_DOCUMENT_TEMPLATES",
                         parameters,
                         transaction: transaction,  // Pass the transaction here
                         commandType: CommandType.StoredProcedure
@@ -263,7 +262,7 @@ namespace TaskManagement.API.Repositories
                     var parameters = new DynamicParameters();
                     parameters.Add("@MKEY", id);
                     parameters.Add("@LAST_UPDATED_BY", LastUpatedBy);
-                    var doc_delete =  await db.ExecuteAsync("SP_DELETE_DOCUMENT_TEMPLATES", parameters, commandType: CommandType.StoredProcedure, transaction:transaction);
+                    var doc_delete = await db.ExecuteAsync("SP_DELETE_DOCUMENT_TEMPLATES", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (doc_delete == null)
                     {
