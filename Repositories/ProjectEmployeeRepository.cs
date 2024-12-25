@@ -1344,9 +1344,5 @@ namespace TaskManagement.API.Repositories
                 return 0;
             }
         }
-        //Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> IProjectEmployee.GetActionsAsync(int TASK_MKEY, int CURRENT_EMP_MKEY, string CURR_ACTION)
-        //{
-        //    throw new NotImplementedException();
-        //}
     }
 }

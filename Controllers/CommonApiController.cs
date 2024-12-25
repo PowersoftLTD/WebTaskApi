@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using FastMember;
 using Microsoft.Extensions.Options;
+using System.Collections;
 
 namespace TaskManagement.API.Controllers
 {
@@ -1163,9 +1164,106 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        //[HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
+        //[Authorize]
+        //public async Task<IActionResult> Post_TASK_ACTION([FromForm] TaskPostActionFileUploadAPI objFile)
+        //{
+        //    try
+        //    {
+        //        int srNo = 0;
+        //        string filePathOpen = string.Empty;
+        //        if (objFile.files != null)
+        //        {
+        //            if (objFile.files.Length > 0)
+        //            {
+        //                srNo = srNo + 1;
+        //                //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
+        //                objFile.FILE_PATH = _fileSettings.FilePath;
+        //                if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
+        //                {
+        //                    Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
+        //                }
+        //                using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
+        //                {
+        //                    objFile.files.CopyTo(filestream);
+        //                    filestream.Flush();
+        //                }
+        //                objFile.FILE_NAME = objFile.files.FileName;
+        //                filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_")
+        //                    + "_" + objFile.files.FileName;
+        //                int ResultCount = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+        //                    objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+        //                    objFile.TASK_MAIN_NODE_ID.ToString(), objFile.FILE_NAME, filePathOpen);
+        //                objFile.FILE_PATH = filePathOpen;
+        //                if (ResultCount > 0)
+        //                {
+        //                    var Successresponse = new Add_TaskOutPut_List
+        //                    {
+        //                        Status = "ok",
+        //                        Message = "File Uploaded",
+        //                        Data1 = objFile
+        //                    };
+        //                    return Ok(Successresponse);
+        //                }
+        //                else
+        //                {
+        //                    filePathOpen = null;
+        //                    int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+        //                        objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+        //                        objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
+        //                    objFile.FILE_PATH = filePathOpen;
+
+        //                    var Errorresponse = new Add_TaskOutPut_List
+        //                    {
+        //                        Status = "Error",
+        //                        Message = "Error occurred",
+        //                        Data1 = null
+        //                    };
+        //                    return Ok(Errorresponse);
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            filePathOpen = null;
+        //            int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+        //                objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+        //                objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
+        //            objFile.FILE_PATH = filePathOpen;
+
+        //            var Successresponse = new Add_TaskOutPut_List
+        //            {
+        //                Status = "Ok",
+        //                Message = "Updated Successfuly",
+        //                Data1 = null
+        //            };
+        //            return Ok(Successresponse);
+        //        }
+
+        //        var response = new Add_TaskOutPut_List
+        //        {
+        //            Status = "Error",
+        //            Message = "Please attach the file!!!",
+        //            Data1 = null
+        //        };
+        //        return Ok(response);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var response = new Add_TaskOutPut_List
+        //        {
+        //            Status = "Error",
+        //            Message = ex.Message,
+        //            Data1 = null
+        //        };
+        //        return Ok(response);
+        //    }
+        //}
+
         [HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
         [Authorize]
-        public async Task<IActionResult> Post_TASK_ACTION([FromForm] TaskPostActionFileUploadAPI objFile)
+        public async Task<ActionResult<TaskPostActionFileUploadAPIOutPut_List>> Post_TASK_ACTION([FromForm] TaskPostActionFileUploadAPI objFile)
         {
             try
             {
@@ -1176,155 +1274,229 @@ namespace TaskManagement.API.Controllers
                     if (objFile.files.Length > 0)
                     {
                         srNo = srNo + 1;
-                        //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
-                        objFile.FILE_PATH = _fileSettings.FilePath;
-                        if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
+                        string FilePath = _fileSettings.FilePath;
+                        if (!Directory.Exists(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
                         {
-                            Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
+                            Directory.CreateDirectory(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
                         }
-                        using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
+                        using (FileStream filestream = System.IO.File.Create(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
                         {
                             objFile.files.CopyTo(filestream);
                             filestream.Flush();
                         }
-                        objFile.FILE_NAME = objFile.files.FileName;
-                        filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_")
-                            + "_" + objFile.files.FileName;
-                        int ResultCount = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-                            objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-                            objFile.TASK_MAIN_NODE_ID.ToString(), objFile.FILE_NAME, filePathOpen);
-                        objFile.FILE_PATH = filePathOpen;
-                        if (ResultCount > 0)
-                        {
-                            var Successresponse = new Add_TaskOutPut_List
-                            {
-                                Status = "ok",
-                                Message = "File Uploaded",
-                                Data1 = objFile
-                            };
-                            return Ok(Successresponse);
-                        }
-                        else
-                        {
-                            filePathOpen = null;
-                            int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-                                objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-                                objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
-                            objFile.FILE_PATH = filePathOpen;
 
-                            var Errorresponse = new Add_TaskOutPut_List
-                            {
-                                Status = "Error",
-                                Message = "Error occurred",
-                                Data1 = null
-                            };
-                            return Ok(Errorresponse);
-                        }
+                        filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName;
+                        var FileUploadDetails = new TaskPostActionFileUploadAPIOutPut
+                        {
+                            FILE_NAME = objFile.files.FileName,
+                            FILE_PATH = filePathOpen,
+                            TASK_MAIN_NODE_ID = objFile.TASK_MAIN_NODE_ID
+                        };
+
+                        var SuccessResult = new TaskPostActionFileUploadAPIOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Uploaded file",
+                            Data = new List<TaskPostActionFileUploadAPIOutPut> { FileUploadDetails }
+                        };
+
+                        return SuccessResult;
                     }
                 }
-                else
-                {
-                    filePathOpen = null;
-                    int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-                        objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-                        objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
-                    objFile.FILE_PATH = filePathOpen;
-
-                    var Successresponse = new Add_TaskOutPut_List
-                    {
-                        Status = "Ok",
-                        Message = "Updated Successfuly",
-                        Data1 = null
-                    };
-                    return Ok(Successresponse);
-                }
-
-                var response = new Add_TaskOutPut_List
+                var response = new TaskPostActionFileUploadAPIOutPut_List
                 {
                     Status = "Error",
                     Message = "Please attach the file!!!",
-                    Data1 = null
+                    Data = null
                 };
                 return Ok(response);
 
             }
             catch (Exception ex)
             {
-                var response = new Add_TaskOutPut_List
+                var response = new TaskPostActionFileUploadAPIOutPut_List
                 {
                     Status = "Error",
                     Message = ex.Message,
-                    Data1 = null
+                    Data = null
                 };
                 return Ok(response);
             }
-            //return Ok(objFile);
-
-            //try
-            //{
-            //    string uploadFilePath = _configuration["UploadFile_Path"];
-            //    var files = form.Files;
-            //    string Mkey = form["Mkey"];
-            //    string TASK_MKEY = form["TASK_MKEY"];
-            //    string TASK_PARENT_ID = form["TASK_PARENT_ID"];
-            //    string ACTION_TYPE = form["ACTION_TYPE"];
-            //    string DESCRIPTION_COMMENT = form["DESCRIPTION_COMMENT"];
-            //    string PROGRESS_PERC = form["PROGRESS_PERC"];
-            //    string STATUS = form["STATUS"];
-            //    string CREATED_BY = form["CREATED_BY"];
-            //    string TASK_MAIN_NODE_ID = form["TASK_MAIN_NODE_ID"];
-
-
-            //    int srNo = 0;
-            //    var uploadedFiles = new List<string>();
-            //    string fileName, filePath;
-
-            //    if (files.Count > 0)
-            //    {
-            //        foreach (var file in files)
-            //        {
-            //            srNo++;
-            //            fileName = file.FileName;
-            //            string fileDirectory = Path.Combine(uploadFilePath, TASK_MAIN_NODE_ID);
-
-            //            if (!Directory.Exists(fileDirectory))
-            //            {
-            //                Directory.CreateDirectory(fileDirectory);
-            //            }
-
-            //            // Generate new file name with timestamp
-            //            string newFileName = DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + fileName;
-            //            filePath = Path.Combine(fileDirectory, newFileName);
-
-            //            // Save the file
-            //            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            //            {
-            //                await file.CopyToAsync(fileStream);
-            //            }
-
-            //            uploadedFiles.Add(filePath);
-
-            //            string fileRelativePath = Path.Combine(_configuration["Refer_UploadFile_Path"], TASK_MAIN_NODE_ID, newFileName);
-
-            //            if (file.Length > 0)
-            //            {
-            //                // Perform the database insertion or other operations
-            //                await _repository.GetPostTaskActionAsync(Mkey, TASK_MKEY, TASK_PARENT_ID, ACTION_TYPE, DESCRIPTION_COMMENT, PROGRESS_PERC, STATUS, CREATED_BY, TASK_MAIN_NODE_ID, fileName, filePath);
-            //            }
-            //        }
-
-            //        // Return the response
-            //        return Ok(new { Status = "Success", Files = uploadedFiles });  // You can return a custom response
-            //    }
-
-
-            //    return BadRequest("No files were uploaded.");
-            //}
-            //catch (Exception ex)
-            //{
-            //    // Handle exception (could be logging or returning an error response)
-            //    return StatusCode(400, new { Message = "An error occurred", Error = ex.Message });
-            //}
         }
+
+        [HttpPost("Task-Management/TASK-ACTION-TRL-Update"), DisableRequestSizeLimit]
+        [Authorize]
+        public async Task<ActionResult<TaskPostActionAPIOutPut_List>> UPDATE_TASK_ACTION([FromBody] TaskPostActionInput taskPostActionInput)
+        {
+            try
+            {
+                if (taskPostActionInput.FILE_NAME != null)
+                {
+                    taskPostActionInput.FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME;
+                }
+                else
+                {
+                    taskPostActionInput.FILE_PATH = string.Empty;
+                }
+
+                int ResultCount = await _repository.GetPostTaskActionAsync(taskPostActionInput.Mkey.ToString(), taskPostActionInput.TASK_MKEY.ToString(),
+                    taskPostActionInput.TASK_PARENT_ID.ToString(),
+                    taskPostActionInput.ACTION_TYPE, taskPostActionInput.DESCRIPTION_COMMENT, taskPostActionInput.PROGRESS_PERC, taskPostActionInput.STATUS,
+                    taskPostActionInput.CREATED_BY.ToString(),
+                    taskPostActionInput.TASK_MAIN_NODE_ID.ToString(), taskPostActionInput.FILE_NAME, taskPostActionInput.FILE_PATH);
+
+                if (ResultCount > 0)
+                {
+                    var objFileDetails = new TaskPostActionOutput()
+                    {
+
+                        FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME,
+                        FILE_NAME = taskPostActionInput.FILE_NAME
+                    };
+
+                    var response = new TaskPostActionAPIOutPut_List
+                    {
+                        Status = "Ok",
+                        Message = "File attach successfuly!!!",
+                        Data = objFileDetails
+                    };
+                    return Ok(response);
+                }
+                else
+                {
+                    var response = new TaskPostActionAPIOutPut_List
+                    {
+                        Status = "Error",
+                        Message = "Please attach the file!!!",
+                        Data = null
+                    };
+                    return Ok(response);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskPostActionAPIOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        //[HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
+        //[Authorize]
+        //public async Task<IActionResult> PostTASKACTION([FromBody] TaskPostActionFileUploadAPI objFile)
+        //{
+        //    try
+        //    {
+
+        //        filePathOpen = null;
+        //        int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+        //            objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+        //            objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
+        //        objFile.FILE_PATH = filePathOpen;
+
+        //        var Errorresponse = new Add_TaskOutPut_List
+        //        {
+        //            Status = "Error",
+        //            Message = "Error occurred",
+        //            Data1 = null
+        //        };
+        //        return Ok(Errorresponse);
+
+
+        //        int srNo = 0;
+        //        string filePathOpen = string.Empty;
+        //        if (objFile.files != null)
+        //        {
+        //            if (objFile.files.Length > 0)
+        //            {
+        //                srNo = srNo + 1;
+        //                //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
+        //                objFile.FILE_PATH = _fileSettings.FilePath;
+        //                if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
+        //                {
+        //                    Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
+        //                }
+        //                using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
+        //                {
+        //                    objFile.files.CopyTo(filestream);
+        //                    filestream.Flush();
+        //                }
+        //                objFile.FILE_NAME = objFile.files.FileName;
+        //                filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_")
+        //                    + "_" + objFile.files.FileName;
+        //                int ResultCount = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+        //                    objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+        //                    objFile.TASK_MAIN_NODE_ID.ToString(), objFile.FILE_NAME, filePathOpen);
+        //                objFile.FILE_PATH = filePathOpen;
+        //                if (ResultCount > 0)
+        //                {
+        //                    var Successresponse = new Add_TaskOutPut_List
+        //                    {
+        //                        Status = "ok",
+        //                        Message = "File Uploaded",
+        //                        Data1 = objFile
+        //                    };
+        //                    return Ok(Successresponse);
+        //                }
+        //                else
+        //                {
+        //                    filePathOpen = null;
+        //                    int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+        //                        objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+        //                        objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
+        //                    objFile.FILE_PATH = filePathOpen;
+
+        //                    var Errorresponse = new Add_TaskOutPut_List
+        //                    {
+        //                        Status = "Error",
+        //                        Message = "Error occurred",
+        //                        Data1 = null
+        //                    };
+        //                    return Ok(Errorresponse);
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            filePathOpen = null;
+        //            int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
+        //                objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
+        //                objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
+        //            objFile.FILE_PATH = filePathOpen;
+
+        //            var Successresponse = new Add_TaskOutPut_List
+        //            {
+        //                Status = "Ok",
+        //                Message = "Updated Successfuly",
+        //                Data1 = null
+        //            };
+        //            return Ok(Successresponse);
+        //        }
+
+        //        var response = new Add_TaskOutPut_List
+        //        {
+        //            Status = "Error",
+        //            Message = "Please attach the file!!!",
+        //            Data1 = null
+        //        };
+        //        return Ok(response);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var response = new Add_TaskOutPut_List
+        //        {
+        //            Status = "Error",
+        //            Message = ex.Message,
+        //            Data1 = null
+        //        };
+        //        return Ok(response);
+        //    }
+        //}
     }
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
 using Microsoft.AspNetCore.Authorization;
+using System.Collections;
+using System.Threading.Tasks;
 
 namespace TaskManagement.API.Controllers
 {
@@ -11,6 +13,7 @@ namespace TaskManagement.API.Controllers
     [Authorize]
     public class ProjectDocumentDepositoryController : ControllerBase
     {
+      
         private readonly IProjectDocDepository _repository;
         public ProjectDocumentDepositoryController(IProjectDocDepository repository)
         {
@@ -65,6 +68,43 @@ namespace TaskManagement.API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(("Failed to do stuff.", ex.Message));
+            }
+
+        }
+
+        [HttpPut("Put-Project-Document-Depsitory")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List>>> UpdateProjDocDepsitory(UpdateProjectDocDepositoryHDRInput updateProjectDocDepositoryHDRInput)
+        {
+            try
+            {
+                var DocDeository = await _repository.GetProjectDocDeositoryByIDAsync(Convert.ToInt32(updateProjectDocDepositoryHDRInput.MKEY), updateProjectDocDepositoryHDRInput.CREATED_BY.ToString(), "UpdateProjDocDepsitory".ToString(), "Update".ToString());
+                
+                if (DocDeository != null || Convert.ToInt32(DocDeository) > 0)
+                {
+                    var ProjectDocDeository = await _repository.UpdateProjectDepositoryDocumentAsync(updateProjectDocDepositoryHDRInput); 
+                    return Ok(ProjectDocDeository);
+                }
+                else
+                {
+                    var responseDocumentTemplate = new UpdateProjectDocDepositoryHDROutput_List
+                    {
+                        Status = "Error",
+                        Message = "Not found",
+                        Data = null
+                    };
+                    return Ok(responseDocumentTemplate);
+                }
+            }
+            catch (Exception ex)
+            {
+                var responseDocumentTemplate = new UpdateProjectDocDepositoryHDROutput_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(responseDocumentTemplate);
             }
 
         }

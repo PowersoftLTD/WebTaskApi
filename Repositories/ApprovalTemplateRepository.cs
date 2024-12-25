@@ -234,6 +234,8 @@ namespace TaskManagement.API.Repositories
                         if (OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST != null)
                         {
                             var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';", new { MKEY = aPPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text);
+
+                           
                             // Populate the DataTable with product data
                             foreach (var END_DOC_LIST in OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST)
                             {
@@ -494,7 +496,6 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@NO_DAYS_REQUIRED", aPPROVAL_TEMPLATE_HDR.DAYS_REQUIERD);
                     parameters.Add("@SANCTION_AUTHORITY", aPPROVAL_TEMPLATE_HDR.SANCTION_AUTHORITY);
                     parameters.Add("@SANCTION_DEPARTMENT", aPPROVAL_TEMPLATE_HDR.SANCTION_DEPARTMENT);
-                    
                     //parameters.Add("@CHECKLIST_DOC", aPPROVAL_TEMPLATE_HDR.CHECKLIST_DOC);
                     parameters.Add("@TAGS", aPPROVAL_TEMPLATE_HDR.TAGS);
                     parameters.Add("@ATTRIBUTE1", aPPROVAL_TEMPLATE_HDR.ATTRIBUTE1);
@@ -661,6 +662,10 @@ namespace TaskManagement.API.Repositories
                     }
 
                     transactionCompleted = true;
+
+                    aPPROVAL_TEMPLATE_HDR.Status = "Ok";
+                    aPPROVAL_TEMPLATE_HDR.Message = "updated successfully";
+
                     return aPPROVAL_TEMPLATE_HDR;  // Return the updated object
                 }
             }

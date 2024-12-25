@@ -7,11 +7,13 @@ using TaskManagement.API.Model;
 using System.Data.SqlClient;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
+using Microsoft.AspNetCore.Mvc;
 
 namespace TaskManagement.API.Repositories
 {
     public class ProjectDocDepositoryRepository : IProjectDocDepository
     {
+        private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         public IDapperDbConnection _dapperDbConnection;
         public ProjectDocDepositoryRepository(IDapperDbConnection dapperDbConnection)
         {
@@ -57,8 +59,8 @@ namespace TaskManagement.API.Repositories
                 return new List<dynamic>();
             }
         }
-        public async Task<PROJECT_DOC_DEPOSITORY_HDR> CreateProjectDocDeositoryAsync(PROJECT_DOC_DEPOSITORY_HDR pROJECT_DOC_DEPOSITORY_HDR) 
-                                                                                                                                            
+        public async Task<PROJECT_DOC_DEPOSITORY_HDR> CreateProjectDocDeositoryAsync(PROJECT_DOC_DEPOSITORY_HDR pROJECT_DOC_DEPOSITORY_HDR)
+
         {
             try
             {
@@ -110,7 +112,6 @@ namespace TaskManagement.API.Repositories
                 return new List<dynamic>();
             }
         }
-
         public async Task<dynamic> GetPROJECT_DEPOSITORY_DOCUMENTAsync(int? BUILDING_TYPE, int? PROPERTY_TYPE, int? DOC_MKEY)
         {
             try
@@ -128,6 +129,102 @@ namespace TaskManagement.API.Repositories
             catch (Exception ex)
             {
                 return new List<dynamic>();
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List>>> UpdateProjectDepositoryDocumentAsync(UpdateProjectDocDepositoryHDRInput updateProjectDocDepositoryHDRInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@MKEY", updateProjectDocDepositoryHDRInput.MKEY);
+                    parameters.Add("@BUILDING_TYPE", updateProjectDocDepositoryHDRInput.BUILDING_TYPE);
+                    parameters.Add("@PROPERTY_TYPE", updateProjectDocDepositoryHDRInput.PROPERTY_TYPE);
+                    parameters.Add("@DOC_NAME", updateProjectDocDepositoryHDRInput.DOC_NAME);
+                    parameters.Add("@DOC_NUMBER", updateProjectDocDepositoryHDRInput.DOC_NUMBER);
+                    parameters.Add("@DOC_DATE", updateProjectDocDepositoryHDRInput.DOC_DATE);
+                    parameters.Add("@DOC_ATTACHMENT", updateProjectDocDepositoryHDRInput.DOC_ATTACHMENT);
+                    parameters.Add("@VALIDITY_DATE", updateProjectDocDepositoryHDRInput.VALIDITY_DATE);
+                    parameters.Add("@CREATED_BY", updateProjectDocDepositoryHDRInput.CREATED_BY);
+                    parameters.Add("@DELETE_FLAG", updateProjectDocDepositoryHDRInput.DELETE_FLAG);
+                    var ProjectDocDsp = await db.QueryAsync<UpdateProjectDocDepositoryHDROutput>("SP_UPDATE_PROJECT_DOCUMENT_DEPOSITORY", parameters, commandType: CommandType.StoredProcedure,transaction:transaction);
+
+                    if (ProjectDocDsp == null)
+                    {
+                        // Handle other unexpected exceptions
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                //TranError.Message = ex.Message;
+                                //return TranError;
+                            }
+                        }
+                        var errorResult = new List<UpdateProjectDocDepositoryHDROutput_List>
+                            {
+                                new UpdateProjectDocDepositoryHDROutput_List
+                                {
+                                   Status = "Error",
+                                    Message= "An error occurd",
+                                    Data= null
+                                }
+                            };
+                        return errorResult;
+                    }
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+                    var successsResult = new List<UpdateProjectDocDepositoryHDROutput_List>
+                    {
+                        new UpdateProjectDocDepositoryHDROutput_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= ProjectDocDsp
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<UpdateProjectDocDepositoryHDROutput_List>
+                    {
+                        new UpdateProjectDocDepositoryHDROutput_List
+                        {
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
+                        }
+                    };
+                return errorResult;
             }
         }
     }

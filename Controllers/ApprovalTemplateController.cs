@@ -212,6 +212,17 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseStatus);
                 }
+                //if (ApprovaleTemplateDetails.Result.Status == "Error")
+                //{
+                //    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                //    {
+                //        Status = "Error",
+                //        Message = "Mkey not found",
+                //        Data = aPPROVAL_TEMPLATE_HDR // No data in case of exception
+                //    };
+                //    return Ok(responseStatus);
+                //}
+
                 if (MKEY != ApprovaleTemplateDetails.Result.MKEY)
                 {
                     var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
@@ -234,7 +245,7 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseStatus);
                 }
-                if (model.Status.ToLower() != "Ok".ToString().ToLower())
+                if (model == null || model.Status.ToLower() != "Ok".ToString().ToLower())
                 {
                     var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
                     {
@@ -266,7 +277,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpDelete("ApprovalTemplate/Delete-Task")]
         [Authorize]
-        public async Task<IActionResult> DeleteApprovalTemplate(int MKEY,int LAST_UPDATED_BY)
+        public async Task<IActionResult> DeleteApprovalTemplate(int MKEY, int LAST_UPDATED_BY)
         {
             try
             {

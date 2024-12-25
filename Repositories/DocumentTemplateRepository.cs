@@ -143,7 +143,6 @@ namespace TaskManagement.API.Repositories
                 return doc_insert;
             }
         }
-
         public async Task<bool> UpdateDocumentTemplateAsync(DOC_TEMPLATE_HDR dOC_TEMPLATE_HDR)
         {
             IDbTransaction transaction = null;
