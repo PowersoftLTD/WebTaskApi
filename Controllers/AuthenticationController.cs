@@ -27,10 +27,10 @@ namespace TaskManagement.API.Controllers
         [Route("Login")]
         public async Task<ActionResult<EMPLOYEE_MST>> Login(EMPLOYEE_MST eMPLOYEE_MST)
         {
-            var user = await userManager.LoginAsync(eMPLOYEE_MST.LOGIN_NAME);
+            var user = await userManager.LoginAsync(eMPLOYEE_MST.LOGIN_NAME.Trim());
             if (user != null)
             {
-                var checkPasswordResult = await userManager.CheckPasswordAsync(eMPLOYEE_MST.LOGIN_PASSWORD);
+                var checkPasswordResult = await userManager.CheckPasswordAsync(eMPLOYEE_MST.LOGIN_PASSWORD.Trim());
 
                 if (checkPasswordResult != null)
                 {

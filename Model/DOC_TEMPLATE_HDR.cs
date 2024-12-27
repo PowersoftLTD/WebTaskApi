@@ -1,5 +1,33 @@
-﻿namespace TaskManagement.API.Model
+﻿using System.Text.Json.Serialization;
+
+namespace TaskManagement.API.Model
 {
+    public class DocFileUploadOutput_List
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+
+        public DocFileUploadOutPut Data { get; set; }
+    }
+    public class DocFileUploadInput
+    {
+        public IFormFile files { get; set; }
+        [JsonPropertyName("MKEY")]
+        public int MKEY { get; set; }
+    }
+   
+    public class DocFileUploadOutPut
+    {
+        [JsonPropertyName("MKEY")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("FILE_NAME")]
+        public string FILE_NAME { get; set; }
+        [JsonPropertyName("FILE_PATH")]
+        public string FILE_PATH { get; set; }
+    }
+
     public class DOC_TEMPLATE_HDR
     {
         public int? MKEY { get; set; }

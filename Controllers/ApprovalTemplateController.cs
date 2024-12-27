@@ -93,15 +93,17 @@ namespace TaskManagement.API.Controllers
                         Data = ApprovalBYID
                     });
                 }
-
-                if (ApprovalBYID.Status.ToString().ToLower() != "Ok".ToString().ToLower())
+                if (ApprovalBYID.Status != null)
                 {
-                    return Ok(new
+                    if (ApprovalBYID.Status.ToString().ToLower() != "Ok".ToString().ToLower())
                     {
-                        Status = "Error",
-                        Message = "An error occurred",
-                        Data = ApprovalBYID
-                    });
+                        return Ok(new
+                        {
+                            Status = "Error",
+                            Message = "An error occurred",
+                            Data = ApprovalBYID
+                        });
+                    }
                 }
 
                 return Ok(new
@@ -212,17 +214,6 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseStatus);
                 }
-                //if (ApprovaleTemplateDetails.Result.Status == "Error")
-                //{
-                //    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
-                //    {
-                //        Status = "Error",
-                //        Message = "Mkey not found",
-                //        Data = aPPROVAL_TEMPLATE_HDR // No data in case of exception
-                //    };
-                //    return Ok(responseStatus);
-                //}
-
                 if (MKEY != ApprovaleTemplateDetails.Result.MKEY)
                 {
                     var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>

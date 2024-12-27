@@ -30,6 +30,7 @@
         public Dictionary<string, object>? END_RESULT_DOC_LST { get; set; }
         public Dictionary<string, object>? CHECKLIST_DOC_LST { get; set; }
         public List<APPROVAL_TEMPLATE_TRL_SUBTASK>? SUBTASK_LIST { get; set; } = new List<APPROVAL_TEMPLATE_TRL_SUBTASK>();
+        public List<APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>? SANCTIONING_DEPARTMENT_LIST { get; set; } = new List<APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>();
         public string? Status { get; set; }
         public string? Message { get; set; }
         public Char? DELETE_FLAG { get; set; }
