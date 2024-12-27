@@ -26,7 +26,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR>>> GetApprovalTemplate(int LoggedInID)
+        public async Task<ActionResult<IEnumerable<OutPutApprovalTemplates>>> GetApprovalTemplate(int LoggedInID)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("GetByID")]
         [Authorize]
-        public async Task<ActionResult<APPROVAL_TEMPLATE_HDR>> GetApprovalTemplateID(int id, int LoggedIN)
+        public async Task<ActionResult<OutPutApprovalTemplates>> GetApprovalTemplateID(int id, int LoggedIN)
         {
             try
             {
@@ -127,13 +127,13 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<APPROVAL_TEMPLATE_HDR>> CreateTASK([FromBody] APPROVAL_TEMPLATE_HDR aPPROVAL_TEMPLATE_HDR)
+        public async Task<ActionResult<OutPutApprovalTemplates>> CreateTASK([FromBody] InsertApprovalTemplates insertApprovalTemplates)
         {
             try
             {
                 bool flagSeq_no = false;
                 double IndexSeq_NO = 0.0;
-                var model = await _repository.CreateApprovalTemplateAsync(aPPROVAL_TEMPLATE_HDR);
+                var model = await _repository.CreateApprovalTemplateAsync(insertApprovalTemplates);
                 if (model == null)
                 {
                     return StatusCode(400, "Faild to insert data");
@@ -196,71 +196,64 @@ namespace TaskManagement.API.Controllers
 
         [HttpPut("ApprovalTemplate/Update-ApprovalTemplate")]
         [Authorize]
-        public async Task<ActionResult<APPROVAL_TEMPLATE_HDR>> UpdateApprovalTemplate(int MKEY, [FromBody] APPROVAL_TEMPLATE_HDR aPPROVAL_TEMPLATE_HDR)
+        public async Task<ActionResult<OutPutApprovalTemplates>> UpdateApprovalTemplate(int MKEY, [FromBody] UpdateApprovalTemplates updateApprovalTemplates)
         {
             try
             {
                 bool flagSeq_no = false;
                 double IndexSeq_NO = 0.0;
 
-                var ApprovaleTemplateDetails = _repository.GetApprovalTemplateByIdAsync(aPPROVAL_TEMPLATE_HDR.MKEY, Convert.ToInt32(aPPROVAL_TEMPLATE_HDR.CREATED_BY));
+                var ApprovaleTemplateDetails = _repository.GetApprovalTemplateByIdAsync(updateApprovalTemplates.MKEY, Convert.ToInt32(updateApprovalTemplates.CREATED_BY));
                 if (ApprovaleTemplateDetails == null)
                 {
-                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    var responseStatus = new OutPutApprovalTemplates
                     {
-                        Status = "Error",
-                        Message = "Mkey not found",
-                        Data = aPPROVAL_TEMPLATE_HDR // No data in case of exception
+                        MKEY = 0
                     };
                     return Ok(responseStatus);
                 }
                 if (MKEY != ApprovaleTemplateDetails.Result.MKEY)
                 {
-                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    var responseStatus = new OutPutApprovalTemplates
                     {
-                        Status = "Error",
-                        Message = "Data not match",
-                        Data = aPPROVAL_TEMPLATE_HDR // No data in case of exception
+                        MKEY = 0
                     };
                     return Ok(responseStatus);
                 }
 
-                var model = await _repository.UpdateApprovalTemplateAsync(aPPROVAL_TEMPLATE_HDR);
+                var model = await _repository.UpdateApprovalTemplateAsync(updateApprovalTemplates);
                 if (model == null)
                 {
-                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    var responseStatus = new OutPutApprovalTemplates
                     {
                         Status = "Error",
-                        Message = "failed to update data",
-                        Data = aPPROVAL_TEMPLATE_HDR // No data in case of exception
+                        Message = "failed to update data"
+                        // No data in case of exception
                     };
                     return Ok(responseStatus);
                 }
-                if (model == null || model.Status.ToLower() != "Ok".ToString().ToLower())
+                if (model == null)
                 {
-                    var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                    var responseStatus = new OutPutApprovalTemplates
                     {
                         Status = "Error",
-                        Message = model.Message,
-                        Data = aPPROVAL_TEMPLATE_HDR // No data in case of exception
+                        Message = "Error occured",
                     };
                     return Ok(responseStatus);
                 }
                 else
                 {
-                    model.Status = "Ok";
-                    model.Message = "Data updated successfully !!!";
-                    return model;
+                    return Ok(model);
                 }
             }
             catch (Exception ex)
             {
                 // Handle other unexpected exceptions
-                var responseStatus = new ApiResponse<APPROVAL_TEMPLATE_HDR>
+                var responseStatus = new OutPutApprovalTemplates
                 {
                     Status = "Error",
-                    Message = ex.Message,
-                    Data = aPPROVAL_TEMPLATE_HDR // No data in case of exception
+                    Message = "failed to update data"
+                    // No data in case of exception
                 };
                 return Ok(responseStatus);
             }
