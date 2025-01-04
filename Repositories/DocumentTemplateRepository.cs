@@ -10,6 +10,7 @@ namespace TaskManagement.API.Repositories
 {
     public class DocumentTemplateRepository : IDoc_Temp
     {
+        private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         public IDapperDbConnection _dapperDbConnection;
         public DocumentTemplateRepository(IDapperDbConnection dapperDbConnection)
         {
@@ -318,6 +319,115 @@ namespace TaskManagement.API.Repositories
                 doc_update.Status = "Error";
                 doc_update.Message = ex.Message;
                 return false;
+            }
+        }
+        public async Task<DocCategoryOutPut_List> InsertDocumentCategory(DocCategoryInput docCategoryInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@DOC_CATEGORY", docCategoryInput.DOC_CATEGORY);
+                    parmeters.Add("@CREATED_BY", docCategoryInput.CREATED_BY);
+                    parmeters.Add("@COMPANY_ID", docCategoryInput.COMPANY_ID);
+
+                    var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_INSERT_DOC_CATEGORY", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new DocCategoryOutPut_List
+                    {
+                        Status = "Ok",
+                        Message = "Inserted Successfully",
+                        Data = InsertDocCategory
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new DocCategoryOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return errorResult;
+            }
+        }
+        public async Task<DocCategoryOutPut_List> UpdateDocumentCategory(DocCategoryUpdateInput docCategoryUpdateInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@MKEY", docCategoryUpdateInput.MKEY);
+                    parmeters.Add("@CREATED_BY", docCategoryUpdateInput.CREATED_BY);
+                    parmeters.Add("@DOC_CATEGORY", docCategoryUpdateInput.DOC_CATEGORY);
+                    parmeters.Add("@DELETE_FLAG", docCategoryUpdateInput.DELETE_FLAG);
+
+                    var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_UPDATE_DOC_CATEGORY", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new DocCategoryOutPut_List
+                    {
+                        Status = "Ok",
+                        Message = "Update Successfully",
+                        Data = InsertDocCategory
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new DocCategoryOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return errorResult;
             }
         }
     }

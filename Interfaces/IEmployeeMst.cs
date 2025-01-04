@@ -5,6 +5,6 @@ namespace TaskManagement.API.Interfaces
     public interface IEmployeeMst
     {
         Task<EMPLOYEE_MST> LoginAsync(string UserName);
-        Task<EMPLOYEE_MST> CheckPasswordAsync(string Password);
+        Task<EMPLOYEE_MST> CheckPasswordAsync(string UserName,string Password);
     }
 }

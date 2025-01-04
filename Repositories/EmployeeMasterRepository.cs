@@ -13,21 +13,25 @@ namespace TaskManagement.API.Repositories
             _dapperDbConnection = dapperDbConnection;
         }
 
-        async Task<EMPLOYEE_MST> IEmployeeMst.LoginAsync(string UserName)
+        public async Task<EMPLOYEE_MST> LoginAsync(string UserName)
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
             {
-                return await db.QueryFirstOrDefaultAsync<EMPLOYEE_MST>("SELECT EMAIL_ID_OFFICIAL,LOGIN_NAME,cast(LOGIN_PASSWORD as varchar) as LOGIN_PASSWORD FROM EMPLOYEE_MST WHERE EMAIL_ID_OFFICIAL = @UserName OR LOGIN_NAME = @UserName ", new { UserName = UserName });
+                return await db.QueryFirstOrDefaultAsync<EMPLOYEE_MST>("SELECT EMAIL_ID_OFFICIAL,LOGIN_NAME,cast(LOGIN_PASSWORD as varchar)" +
+                    " as LOGIN_PASSWORD FROM EMPLOYEE_MST WHERE EMAIL_ID_OFFICIAL = @UserName OR LOGIN_NAME = @UserName ",
+                    new { UserName = UserName });
             }
         }
-        async Task<EMPLOYEE_MST> IEmployeeMst.CheckPasswordAsync(string Password)
+        public async Task<EMPLOYEE_MST> CheckPasswordAsync(string UserName, string Password)
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
             {
-                return await db.QueryFirstOrDefaultAsync<EMPLOYEE_MST>("SELECT EMAIL_ID_OFFICIAL,LOGIN_NAME,cast(LOGIN_PASSWORD as varchar) as LOGIN_PASSWORD FROM EMPLOYEE_MST WHERE cast(LOGIN_PASSWORD as varchar) = @Password", new { Password = Password });
+                return await db.QueryFirstOrDefaultAsync<EMPLOYEE_MST>("SELECT EMAIL_ID_OFFICIAL,LOGIN_NAME,cast(LOGIN_PASSWORD as varchar) " +
+                    " as LOGIN_PASSWORD FROM EMPLOYEE_MST WHERE (EMAIL_ID_OFFICIAL = @UserName OR LOGIN_NAME = @UserName) " +
+                    " AND [LOGIN_PASSWORD] = @Password", new { UserName = UserName, Password = Password });
             }
         }
 
-        
+
     }
 }

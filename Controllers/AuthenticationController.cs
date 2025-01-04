@@ -30,7 +30,7 @@ namespace TaskManagement.API.Controllers
             var user = await userManager.LoginAsync(eMPLOYEE_MST.LOGIN_NAME.Trim());
             if (user != null)
             {
-                var checkPasswordResult = await userManager.CheckPasswordAsync(eMPLOYEE_MST.LOGIN_PASSWORD.Trim());
+                var checkPasswordResult = await userManager.CheckPasswordAsync(eMPLOYEE_MST.LOGIN_NAME.Trim() ,eMPLOYEE_MST.LOGIN_PASSWORD.Trim());
 
                 if (checkPasswordResult != null)
                 {

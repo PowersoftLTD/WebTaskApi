@@ -221,6 +221,50 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPut("DocumentTemplate-Put-Doc-Category")]
+        [Authorize]
+        public async Task<DocCategoryOutPut_List> PutDocCategory(DocCategoryUpdateInput docCategoryUpdateInput)
+        {
+            try
+            {
+                var InsertDoc_Category  = await _repository.UpdateDocumentCategory(docCategoryUpdateInput);
+                
+                return InsertDoc_Category;
+            }
+            catch (Exception ex)
+            {
+                var response = new DocCategoryOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return response;
+            }
+        }
+
+        [HttpPost("DocumentTemplate-Insert-Doc-Category")]
+        [Authorize]
+        public async Task<DocCategoryOutPut_List> InsertDocCategory(DocCategoryInput docCategoryInput)
+        {
+            try
+            {
+                var InsertDoc_Category = await _repository.InsertDocumentCategory(docCategoryInput);
+
+                return InsertDoc_Category;
+            }
+            catch (Exception ex)
+            {
+                var response = new DocCategoryOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return response;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
