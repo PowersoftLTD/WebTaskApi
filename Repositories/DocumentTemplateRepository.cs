@@ -80,6 +80,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@DOC_NUM_VALID_FLAG", dOC_TEMPLATE_HDR.DOC_NUM_VALID_FLAG);
                     parameters.Add("@DOC_NUM_DATE_APP_FLAG", dOC_TEMPLATE_HDR.DOC_NUM_DATE_APP_FLAG);
                     parameters.Add("@DOC_ATTACH_APP_FLAG", dOC_TEMPLATE_HDR.DOC_ATTACH_APP_FLAG);
+                    parameters.Add("@COMPANY_ID", dOC_TEMPLATE_HDR.COMPANY_ID);
                     parameters.Add("@CREATED_BY", dOC_TEMPLATE_HDR.CREATED_BY);
                     parameters.Add("@ATTRIBUTE1", dOC_TEMPLATE_HDR.ATTRIBUTE1);
                     parameters.Add("@ATTRIBUTE2", dOC_TEMPLATE_HDR.ATTRIBUTE2);
@@ -344,24 +345,42 @@ namespace TaskManagement.API.Repositories
                     transaction = db.BeginTransaction();
                     transactionCompleted = false;  // Reset transaction state
 
-                    var parmeters = new DynamicParameters();
-                    parmeters.Add("@DOC_CATEGORY", docCategoryInput.DOC_CATEGORY);
-                    parmeters.Add("@CREATED_BY", docCategoryInput.CREATED_BY);
-                    parmeters.Add("@COMPANY_ID", docCategoryInput.COMPANY_ID);
+                    var CheckDocCategory = await db.QueryFirstOrDefaultAsync<int>("SELECT count(*) TOTAL_COUNT FROM TYPE_MST " +
+                        " WHERE TYPE_CODE = 'DOC_CATEGORY' AND DELETE_FLAG = 'N' AND LOWER(TYPE_DESC) = LOWER(@TYPE_DESC) GROUP BY [TYPE_DESC]; ",
+                        new { TYPE_DESC = docCategoryInput.DOC_CATEGORY }, transaction: transaction);
 
-                    var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_INSERT_DOC_CATEGORY", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                    var sqlTransaction = (SqlTransaction)transaction;
-                    await sqlTransaction.CommitAsync();
-                    transactionCompleted = true;
-
-                    var successsResult = new DocCategoryOutPut_List
+                    if (CheckDocCategory > 0)
                     {
-                        Status = "Ok",
-                        Message = "Inserted Successfully",
-                        Data = InsertDocCategory
-                    };
-                    return successsResult;
+                        var successsResult = new DocCategoryOutPut_List
+                        {
+                            Status = "Error",
+                            Message = "Category already exists!!!",
+                            Data = null
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var parmeters = new DynamicParameters();
+                        parmeters.Add("@DOC_CATEGORY", docCategoryInput.DOC_CATEGORY);
+                        parmeters.Add("@CREATED_BY", docCategoryInput.CREATED_BY);
+                        parmeters.Add("@COMPANY_ID", docCategoryInput.COMPANY_ID);
+
+                        var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_INSERT_DOC_CATEGORY", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+
+                        var successsResult = new DocCategoryOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Inserted Successfully",
+                            Data = InsertDocCategory
+                        };
+                        return successsResult;
+                    }
+
                 }
             }
             catch (Exception ex)

@@ -19,6 +19,7 @@ namespace TaskManagement.API.Model
         public Dictionary<string, object>? END_RESULT_DOC_LST { get; set; }
         public Dictionary<string, object>? CHECKLIST_DOC_LST { get; set; }
         public List<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK>? SUBTASK_LIST { get; set; } = new List<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK>();
+        [JsonPropertyName("SANCTIONING_DEPARTMENT_LIST")]
         public List<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>? SANCTIONING_DEPARTMENT_LIST { get; set; } = new List<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>();
     }
 
@@ -40,6 +41,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("START_DATE")]
         public DateTime START_DATE { get; set; }
         [JsonPropertyName("END_DATE")]
-        public DateTime END_DATE { get; set; }
+        public DateTime? END_DATE { get; set; }
     }
 }

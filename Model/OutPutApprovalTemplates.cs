@@ -45,6 +45,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("START_DATE")]
         public DateTime START_DATE { get; set; }
         [JsonPropertyName("END_DATE")]
-        public DateTime END_DATE { get; set; }
+        public DateTime? END_DATE { get; set; }
     }
 }

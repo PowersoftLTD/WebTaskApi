@@ -35,7 +35,7 @@ namespace TaskManagement.API.Model
     public class UPDATE_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT
     {
         [JsonPropertyName("MKEY")]
-        public int MKEY { get; set; }
+        public int MKEY { get; set; }   
         [JsonPropertyName("SR_NO")]
         public int SR_NO { get; set; }
         [JsonPropertyName("LEVEL")]
@@ -47,6 +47,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("START_DATE")]
         public DateTime START_DATE { get; set; }
         [JsonPropertyName("END_DATE")]
-        public DateTime END_DATE { get; set; }
+        public DateTime? END_DATE { get; set; }
     }
 }
