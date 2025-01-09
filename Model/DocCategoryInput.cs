@@ -43,6 +43,18 @@ namespace TaskManagement.API.Model
         public char DELETE_FLAG { get; set; }
     }
 
+    public class DocCategoryUpdateCheckListInput
+    {
+        [JsonPropertyName("MKEY")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("DOC_INSTR")]
+        public string? DOC_INSTR { get; set; }
+        [JsonPropertyName("CREATED_BY")]
+        public int CREATED_BY { get; set; }
+        [JsonPropertyName("DELETE_FLAG")]
+        public char DELETE_FLAG { get; set; }
+    }
+
     public class DocCategoryOutPut
     {
         [JsonPropertyName("DOC_CATEGORY")]

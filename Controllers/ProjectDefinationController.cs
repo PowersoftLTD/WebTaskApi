@@ -280,7 +280,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("ProjectDefination/Get-Approval-Details")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<PROJECT_TRL_APPROVAL_ABBR_LIST>>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE,
+        public async Task<ActionResult<IEnumerable<dynamic>>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE,
             string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
         {
             try
@@ -300,5 +300,28 @@ namespace TaskManagement.API.Controllers
                 return new List<PROJECT_TRL_APPROVAL_ABBR_LIST>();
             }
         }
+
+        //[HttpGet("ProjectDefination/Get-Approval-Details")]
+        //[Authorize]
+        //public async Task<ActionResult<IEnumerable<PROJECT_TRL_APPROVAL_ABBR_LIST>>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE,
+        //    string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
+        //{
+        //    try
+        //    {
+        //        var Task = await _repository.GetApprovalDetails(LoggedInID, BUILDING_TYPE, BUILDING_STANDARD, STATUTORY_AUTHORITY);
+        //        if (Task != null & Task.Count() > 0)
+        //        {
+        //            return Ok(Task);
+        //        }
+        //        else
+        //        {
+        //            return NotFound();
+        //        }
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return new List<PROJECT_TRL_APPROVAL_ABBR_LIST>();
+        //    }
+        //}
     }
 }

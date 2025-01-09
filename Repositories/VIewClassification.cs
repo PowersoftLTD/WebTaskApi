@@ -26,7 +26,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Type");
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewDoc_Type_CheckListAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -34,7 +33,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Type_CHECK_LIST");
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewStandard_TypeAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())

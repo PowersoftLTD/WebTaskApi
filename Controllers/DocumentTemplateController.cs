@@ -243,6 +243,28 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPut("DocumentTemplate-Put-Doc-Category_CheckList")]
+        [Authorize]
+        public async Task<DocCategoryOutPut_List> PutDocCategoryCheckList(DocCategoryUpdateCheckListInput docCategoryUpdateCheckListInput)
+        {
+            try
+            {
+                var InsertDoc_Category = await _repository.UpdateDocumentCategoryCheckList(docCategoryUpdateCheckListInput);
+
+                return InsertDoc_Category;
+            }
+            catch (Exception ex)
+            {
+                var response = new DocCategoryOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return response;
+            }
+        }
+
         [HttpPost("DocumentTemplate-Insert-Doc-Category")]
         [Authorize]
         public async Task<DocCategoryOutPut_List> InsertDocCategory(DocCategoryInput docCategoryInput)

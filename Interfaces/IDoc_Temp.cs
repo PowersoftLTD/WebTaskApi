@@ -12,5 +12,7 @@ namespace TaskManagement.API.Interfaces
         Task<DocCategoryOutPut_List> InsertDocumentCategory(DocCategoryInput docCategoryInput);
         Task<DocCategoryOutPut_List> InsertDocumentCategoryCheckList(DocCategoryCheckListInput docCategoryCheckListInput);
         Task<DocCategoryOutPut_List> UpdateDocumentCategory(DocCategoryUpdateInput docCategoryUpdateInput);
+
+        Task<DocCategoryOutPut_List> UpdateDocumentCategoryCheckList(DocCategoryUpdateCheckListInput docCategoryUpdateInput);
     }
 }
