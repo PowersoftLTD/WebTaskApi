@@ -125,11 +125,11 @@ namespace TaskManagement.API.Controllers
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,COMPLITION_DATE ";
                 }
-                if (aPPROVAL_TASK_INITIATION.SANCTION_AUTHORITY == null)
-                {
-                    flagRequired = true;
-                    RequiredColumn = RequiredColumn + " ,SANCTION_AUTHORITY ";
-                }
+                //if (aPPROVAL_TASK_INITIATION.SANCTION_AUTHORITY == null)
+                //{
+                //    flagRequired = true;
+                //    RequiredColumn = RequiredColumn + " ,SANCTION_AUTHORITY ";
+                //}
 
                 if (aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY == null)
                 {
@@ -153,8 +153,8 @@ namespace TaskManagement.API.Controllers
                 {
                     if (ChkDate != null)
                     {
-                        
-                            if (ChkDate.APPROVAL_ABBRIVATION == null)
+
+                        if (ChkDate.APPROVAL_ABBRIVATION == null)
                         {
                             flagRequired = true;
                             RequiredColumn = RequiredColumn + " ,APPROVAL_ABBRIVATION ";
@@ -188,12 +188,12 @@ namespace TaskManagement.API.Controllers
                             RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";
                         }
 
-                        if (aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE <= ChkDate.TENTATIVE_START_DATE)
+                        if (aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE >= ChkDate.TENTATIVE_START_DATE)
                         {
                             flagRequired = true;
                             RequiredColumn = RequiredColumn + " ,TENTATIVE_START_DATE ";
                         }
-                        if (aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE >= ChkDate.TENTATIVE_END_DATE)
+                        if (aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE <= ChkDate.TENTATIVE_END_DATE)
                         {
                             flagRequired = true;
                             RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";

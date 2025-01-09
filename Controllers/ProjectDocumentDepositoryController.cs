@@ -54,7 +54,8 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                int DocDeository = await _repository.GetPROJECT_DEPOSITORY_DOCUMENTAsync(pROJECT_DOC_DEPOSITORY_HDR.BUILDING_TYPE, pROJECT_DOC_DEPOSITORY_HDR.PROPERTY_TYPE, pROJECT_DOC_DEPOSITORY_HDR.DOC_NAME);
+                int DocDeository = await _repository.GetPROJECT_DEPOSITORY_DOCUMENTAsync(pROJECT_DOC_DEPOSITORY_HDR.BUILDING_TYPE,
+                    pROJECT_DOC_DEPOSITORY_HDR.PROPERTY_TYPE, pROJECT_DOC_DEPOSITORY_HDR.DOC_NAME);
                 if (DocDeository == null || Convert.ToInt32(DocDeository) == 0)
                 {
                     var ProjectDocDeository = await _repository.CreateProjectDocDeositoryAsync(pROJECT_DOC_DEPOSITORY_HDR); //(BUILDING_TYPE, PROPERTY_TYPE, DOC_NAME, DOC_NUMBER, DOC_DATE, DOC_ATTACHMENT, VALIDITY_DATE, CREATED_BY, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3);
@@ -143,13 +144,16 @@ namespace TaskManagement.API.Controllers
                         {
                             Directory.CreateDirectory(FilePath + "\\Attachments\\" + "Document Depository\\" + docFileUploadInput.MKEY);
                         }
-                        using (FileStream filestream = System.IO.File.Create(FilePath + "\\Attachments\\" + "Document Depository\\" + docFileUploadInput.MKEY + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + docFileUploadInput.files.FileName))
+                        using (FileStream filestream = System.IO.File.Create(FilePath + "\\Attachments\\" + "Document Depository\\" 
+                            + docFileUploadInput.MKEY + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + docFileUploadInput.files.FileName))
                         {
                             docFileUploadInput.files.CopyTo(filestream);
                             filestream.Flush();
                         }
 
-                        filePathOpen = "\\Attachments\\" + "Document Depository\\" + docFileUploadInput.MKEY + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + docFileUploadInput.files.FileName;
+                        filePathOpen = "\\Attachments\\" + "Document Depository\\" + docFileUploadInput.MKEY + "\\" 
+                            + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" 
+                            + docFileUploadInput.files.FileName;
 
                         var objDocFileUpload = new DocFileUploadOutPut
                         {

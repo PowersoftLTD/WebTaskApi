@@ -19,7 +19,16 @@ namespace TaskManagement.API.Model
         public int CREATED_BY { get; set; }
         [JsonPropertyName("COMPANY_ID")]
         public int COMPANY_ID { get; set; }
-        
+    }
+
+    public class DocCategoryCheckListInput
+    {
+        [JsonPropertyName("DOC_CATEGORY")]
+        public string DOC_CATEGORY { get; set; }
+        [JsonPropertyName("CREATED_BY")]
+        public int CREATED_BY { get; set; }
+        [JsonPropertyName("COMPANY_ID")]
+        public int COMPANY_ID { get; set; }
     }
 
     public class DocCategoryUpdateInput

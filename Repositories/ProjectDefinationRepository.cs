@@ -293,9 +293,9 @@ namespace TaskManagement.API.Repositories
                         // IF STATUS IS CREATED FOR INSERT THEN IT WILL BE INSERT THE VALUE
                         if (InsertProjectList != null)
                         {
-                            using var connection = new SqlConnection(_connectionString);
-                            await connection.OpenAsync();
-                            using var transactionApprovals = connection.BeginTransaction();
+                            //using var connection = new SqlConnection(_connectionString);
+                            //await connection.OpenAsync();
+                            //using var transactionApprovals = connection.BeginTransaction();
 
                             // Insert list of subtask that status is Created
                             var approvalsInsertDataTable = new DataTable();
@@ -332,7 +332,7 @@ namespace TaskManagement.API.Repositories
                             if (approvalsInsertDataTable.Rows.Count > 0)
                             {
                                 // Use SqlBulkCopy to insert subtasks
-                                using var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transactionApprovals)
+                                using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
                                 {
                                     DestinationTableName = "PROJECT_TRL_APPROVAL_ABBR"  // Ensure this matches your table name
                                 };
@@ -399,9 +399,9 @@ namespace TaskManagement.API.Repositories
                             // TO CHECK IF THE STATUS IS INITIATED AND HAVE LIST OF UPDATE
                             if (approvalsUpdateDataTable.Rows.Count > 0)
                             {
-                                using var connection = new SqlConnection(_connectionString);
-                                await connection.OpenAsync();
-                                using var transactionApprovals = connection.BeginTransaction();
+                                //using var connection = new SqlConnection(_connectionString);
+                                //await connection.OpenAsync();
+                                //using var transactionApprovals = connection.BeginTransaction();
 
                                 foreach (DataRow row in approvalsUpdateDataTable.Rows)
                                 {
@@ -475,19 +475,18 @@ namespace TaskManagement.API.Repositories
                 return false;
             }
         }
-        public async Task<IEnumerable<dynamic>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD,
+        public async Task<IEnumerable<PROJECT_APPROVAL_DETAILS_OUTPUT>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD,
             string STATUTORY_AUTHORITY)
         {
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
-
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@BUILDING_TYPE", BUILDING_TYPE);
                     parmeters.Add("@BUILDING_STANDARD", BUILDING_STANDARD);
                     parmeters.Add("@STATUTORY_AUTHORITY", STATUTORY_AUTHORITY);
-                    var pROJECT_APPROVAL_ABBR_LIST = await db.QueryAsync("SP_GET_APPROVAL_SUBTASK_TREE_VIEW_LIST", parmeters, commandType: CommandType.StoredProcedure);
+                    var pROJECT_APPROVAL_ABBR_LIST = await db.QueryAsync<PROJECT_APPROVAL_DETAILS_OUTPUT>("SP_GET_APPROVAL_SUBTASK_TREE_VIEW_LIST", parmeters, commandType: CommandType.StoredProcedure);
                     //var HDRaSYNCDetails = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("select * from APPROVAL_TEMPLATE_HDR", commandType: CommandType.Text);
                     //var SUBTAsyncASKDetails = await db.QueryAsync<APPROVAL_TEMPLATE_TRL_SUBTASK>("select * from APPROVAL_TEMPLATE_TRL_SUBTASK", commandType: CommandType.Text);
                     // var SUBTAsyncASKDetails = await db.QueryAsync("select * from DOC_TEMPLATE_HDR", commandType: CommandType.Text);
@@ -496,7 +495,7 @@ namespace TaskManagement.API.Repositories
             }
             catch //(Exception ex)
             {
-                return Enumerable.Empty<dynamic>(); //return ApprovalsKeyValuePairs;
+                return Enumerable.Empty<PROJECT_APPROVAL_DETAILS_OUTPUT>(); //return ApprovalsKeyValuePairs;
             }
 
         }

@@ -394,6 +394,80 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<DocCategoryOutPut_List> InsertDocumentCategoryCheckList(DocCategoryCheckListInput docCategoryCheckListInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var CheckDocCategory = await db.QueryFirstOrDefaultAsync<int>("SELECT count(*) TOTAL_COUNT FROM TYPE_MST " +
+                        " WHERE TYPE_CODE = 'INSTR' AND DELETE_FLAG = 'N' AND LOWER(TYPE_DESC) = LOWER(@TYPE_DESC) GROUP BY [TYPE_DESC]; ",
+                        new { TYPE_DESC = docCategoryCheckListInput.DOC_CATEGORY }, transaction: transaction);
+
+                    if (CheckDocCategory > 0)
+                    {
+                        var successsResult = new DocCategoryOutPut_List
+                        {
+                            Status = "Error",
+                            Message = "Category already exists!!!",
+                            Data = null
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var parmeters = new DynamicParameters();
+                        parmeters.Add("@DOC_CATEGORY", docCategoryCheckListInput.DOC_CATEGORY);
+                        parmeters.Add("@CREATED_BY", docCategoryCheckListInput.CREATED_BY);
+                        parmeters.Add("@COMPANY_ID", docCategoryCheckListInput.COMPANY_ID);
+
+                        var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_INSERT_DOC_CATEGORY_CHECKLIST",
+                            parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+
+                        var successsResult = new DocCategoryOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Inserted Successfully",
+                            Data = InsertDocCategory
+                        };
+                        return successsResult;
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new DocCategoryOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return errorResult;
+            }
+        }
         public async Task<DocCategoryOutPut_List> UpdateDocumentCategory(DocCategoryUpdateInput docCategoryUpdateInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);

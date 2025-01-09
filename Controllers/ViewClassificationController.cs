@@ -48,6 +48,21 @@ namespace TaskManagement.API.Controllers
         }
 
 
+        [HttpGet("doc-type-check-list")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllViewDoc_Type_CheckList()
+        {
+            try
+            {
+                var classifications = await _repository.GetViewDoc_Type_CheckListAsync();
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
+
         [HttpGet("Standard-Type")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllViewStandard_Type()

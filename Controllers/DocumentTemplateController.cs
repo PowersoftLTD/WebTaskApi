@@ -109,7 +109,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPut("{MKEY}")]
-        [Authorize]
+        [Authorize] 
         public async Task<IActionResult> UpdateTASK(int MKEY, [FromBody] DOC_TEMPLATE_HDR dOC_TEMPLATE_HDR)
         {
             try
@@ -227,8 +227,8 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                var InsertDoc_Category  = await _repository.UpdateDocumentCategory(docCategoryUpdateInput);
-                
+                var InsertDoc_Category = await _repository.UpdateDocumentCategory(docCategoryUpdateInput);
+
                 return InsertDoc_Category;
             }
             catch (Exception ex)
@@ -250,6 +250,28 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var InsertDoc_Category = await _repository.InsertDocumentCategory(docCategoryInput);
+
+                return InsertDoc_Category;
+            }
+            catch (Exception ex)
+            {
+                var response = new DocCategoryOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return response;
+            }
+        }
+
+        [HttpPost("DocumentTemplate-Insert-Doc-Category-CheckList")]
+        [Authorize]
+        public async Task<DocCategoryOutPut_List> InsertDocCategoryCheckList(DocCategoryCheckListInput docCategoryCheckListInput)
+        {
+            try
+            {
+                var InsertDoc_Category = await _repository.InsertDocumentCategoryCheckList(docCategoryCheckListInput);
 
                 return InsertDoc_Category;
             }
