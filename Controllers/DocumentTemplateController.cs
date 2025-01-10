@@ -243,7 +243,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPut("DocumentTemplate-Put-Doc-Category_CheckList")]
+        [HttpPut("DocumentTemplate-Put-Instruction")]
         [Authorize]
         public async Task<DocCategoryOutPut_List> PutDocCategoryCheckList(DocCategoryUpdateCheckListInput docCategoryUpdateCheckListInput)
         {
@@ -287,7 +287,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("DocumentTemplate-Insert-Doc-Category-CheckList")]
+        [HttpPost("DocumentTemplate-Insert-Instruction")]
         [Authorize]
         public async Task<DocCategoryOutPut_List> InsertDocCategoryCheckList(DocCategoryCheckListInput docCategoryCheckListInput)
         {

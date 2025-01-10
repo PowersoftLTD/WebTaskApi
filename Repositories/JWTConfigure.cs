@@ -21,7 +21,8 @@ namespace TaskManagement.API.Repositories
                 try
                 {
                     // Log the SQL query execution
-                    var tokens = await db.QueryAsync<ConfigDetail>("select App,[Key],Issuer,Audience,ClientID,ClientSecret from Config_Details_Hdr_V");
+                    var tokens = await db.QueryAsync<ConfigDetail>("select App,[Key],Issuer,Audience,ClientID,ClientSecret " +
+                        "from Config_Details_Hdr_V");
 
                     // Log or inspect the result
                     if (tokens == null || !tokens.Any())

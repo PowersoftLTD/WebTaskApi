@@ -60,7 +60,8 @@ namespace TaskManagement.API.Repositories
                         approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property
 
 
-                        string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N'; ";
+                        string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY" +
+                            " AND DELETE_FLAG = 'N'; ";
                         var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                         // Initialize the END_RESULT_DOC_LST dictionary
@@ -73,7 +74,8 @@ namespace TaskManagement.API.Repositories
                             approvalTemplate.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
                         }
 
-                        sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
+                        sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST" +
+                            " WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
                         var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                         // Initialize the END_RESULT_DOC_LST dictionary
@@ -134,7 +136,8 @@ namespace TaskManagement.API.Repositories
 
                     approvalTemplate.SUBTASK_LIST = subtasks.ToList(); // Populate the SUBTASK_LIST property with subtasks
 
-                    string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
+                    string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT " +
+                        "WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
                     var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                     // Initialize the END_RESULT_DOC_LST dictionary
@@ -147,7 +150,8 @@ namespace TaskManagement.API.Repositories
                         approvalTemplate.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
                     }
 
-                    sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
+                    sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST " +
+                        "WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
                     var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
 
                     // Initialize the END_RESULT_DOC_LST dictionary
@@ -578,11 +582,13 @@ namespace TaskManagement.API.Repositories
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
-                    return await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SELECT HDR.MKEY,BUILDING_TYPE,BUILDING_STANDARD,STATUTORY_AUTHORITY," +
-                        "SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD,HDR.ATTRIBUTE1,HDR.ATTRIBUTE2," +
-                        "HDR.ATTRIBUTE3,HDR.ATTRIBUTE4,HDR.ATTRIBUTE5,HDR.CREATED_BY,HDR.CREATION_DATE,HDR.LAST_UPDATED_BY,HDR.LAST_UPDATE_DATE,SANCTION_AUTHORITY," +
-                        "SANCTION_DEPARTMENT,END_RESULT_DOC,CHECKLIST_DOC,HDR.DELETE_FLAG  FROM APPROVAL_TEMPLATE_HDR HDR INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL_SUB " +
-                        "ON HDR.MKEY = TRL_SUB.HEADER_MKEY WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR) AND HDR.DELETE_FLAG = 'N'; " +
+                    return await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SELECT HDR.MKEY,BUILDING_TYPE,BUILDING_STANDARD" +
+                        ",STATUTORY_AUTHORITY, SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY" +
+                        ",JOB_ROLE,DAYS_REQUIERD,HDR.ATTRIBUTE1,HDR.ATTRIBUTE2,HDR.ATTRIBUTE3,HDR.ATTRIBUTE4,HDR.ATTRIBUTE5,HDR.CREATED_BY" +
+                        ",HDR.CREATION_DATE,HDR.LAST_UPDATED_BY,HDR.LAST_UPDATE_DATE,SANCTION_AUTHORITY, SANCTION_DEPARTMENT,END_RESULT_DOC" +
+                        ",CHECKLIST_DOC,HDR.DELETE_FLAG  FROM APPROVAL_TEMPLATE_HDR HDR INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL_SUB " +
+                        "ON HDR.MKEY = TRL_SUB.HEADER_MKEY WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR)" +
+                        " AND HDR.DELETE_FLAG = 'N'; " +
                         "AND TRL_SUB.DELETE_FLAG = 'N' ", new { ABBR = ABBR });
                 }
             }
@@ -698,7 +704,8 @@ namespace TaskManagement.API.Repositories
                         dataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
                         dataTable.Columns.Add("DELETE_FLAG", typeof(char));
 
-                        var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO), 0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t WHERE MKEY = @MKEY " +
+                        var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO), 0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t" +
+                            " WHERE MKEY = @MKEY " +
                             "AND DELETE_FLAG = 'N';",
                                                                    new { MKEY = objAPPROVAL_TEMPLATE_HDR.MKEY },
                                                                    commandType: CommandType.Text,

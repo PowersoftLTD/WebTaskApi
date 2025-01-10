@@ -4,9 +4,17 @@ using System.Text.Json.Serialization;
 
 namespace TaskManagement.API.Model
 {
+    public class V_Instruction
+    {
+        [JsonPropertyName("MKEY")]
+        public int? MKEY { get; set; }
+        [JsonPropertyName("TYPE_DESC")]
+        public string? TYPE_DESC { get; set; }
+        [JsonPropertyName("ATTRIBUTE2")]
+        public string? ATTRIBUTE2 { get; set; }
+    }
     public class V_Building_Classification
     {
-
         public decimal? MKEY { get; set; }
 
         public decimal? COMPANY_ID { get; set; }

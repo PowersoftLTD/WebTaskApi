@@ -34,8 +34,6 @@ namespace TaskManagement.API.Repositories
 
             await _next(httpContext);
         }
-
-
         private byte[] ProtectResponse(HttpResponse response)
         {
             response.Body.Position = 0;
