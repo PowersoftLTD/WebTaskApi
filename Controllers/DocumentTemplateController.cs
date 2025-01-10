@@ -109,7 +109,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPut("{MKEY}")]
-        [Authorize] 
+        [Authorize]
         public async Task<IActionResult> UpdateTASK(int MKEY, [FromBody] DOC_TEMPLATE_HDR dOC_TEMPLATE_HDR)
         {
             try
@@ -245,11 +245,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpPut("DocumentTemplate-Put-Instruction")]
         [Authorize]
-        public async Task<DocCategoryOutPut_List> PutDocCategoryCheckList(DocCategoryUpdateCheckListInput docCategoryUpdateCheckListInput)
+        public async Task<DocCategoryOutPut_List> PutDocCategoryInstruction(UpdateInstructionInput updateInstructionInput)
         {
             try
             {
-                var InsertDoc_Category = await _repository.UpdateDocumentCategoryCheckList(docCategoryUpdateCheckListInput);
+                var InsertDoc_Category = await _repository.UpdateInstruction(updateInstructionInput);
 
                 return InsertDoc_Category;
             }
@@ -289,11 +289,41 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("DocumentTemplate-Insert-Instruction")]
         [Authorize]
-        public async Task<DocCategoryOutPut_List> InsertDocCategoryCheckList(DocCategoryCheckListInput docCategoryCheckListInput)
+        public async Task<DocCategoryOutPut_List> InsertInstruction(InsertInstructionInput insertInstructionInput)
         {
+            bool flagCheck = false;
+            string strMessage = string.Empty;
+
             try
             {
-                var InsertDoc_Category = await _repository.InsertDocumentCategoryCheckList(docCategoryCheckListInput);
+                if (insertInstructionInput.DOC_INSTR == "")
+                {
+                    flagCheck = true; 
+                    strMessage = strMessage + " Please enter Doc Instruction, ";
+                }
+                if (insertInstructionInput.CREATED_BY == 0)
+                {
+                    flagCheck = true;
+                    strMessage = strMessage + " Please enter Created By, ";
+                }
+                if (insertInstructionInput.COMPANY_ID == 0)
+                {
+                    flagCheck = true;
+                    strMessage = strMessage + " Please enter Company ID ";
+                }
+
+                if (flagCheck == true)
+                {
+                    var ErrorResponse = new DocCategoryOutPut_List
+                    {
+                        Status = "Error",
+                        Message = strMessage,
+                        Data = null
+                    };
+                    return ErrorResponse;
+
+                }
+                var InsertDoc_Category = await _repository.InsertInstructionAsyn(insertInstructionInput);
 
                 return InsertDoc_Category;
             }
@@ -308,71 +338,5 @@ namespace TaskManagement.API.Controllers
                 return response;
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-
-
-        //[HttpGet]
-        //[Authorize]
-        //public async Task<ActionResult<IEnumerable<DOC_TEMPLATE_HDR>>> GetAllViewDoc_Type()
-        //{
-        //    try
-        //    {
-        //        var Task = await _repository.GetViewDoc_TypeAsync();
-        //        return Ok(Task);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return new List<DOC_TEMPLATE_HDR>();
-        //    }
-        //}
-
-        //[HttpGet]
-        //[Authorize]
-        //public async Task<ActionResult<IEnumerable<DOC_TEMPLATE_HDR>>> GetAllViewStandard_Type()
-        //{
-        //    try
-        //    {
-        //        var Task = await _repository.GetViewStandard_TypeAsync();
-        //        return Ok(Task);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return new List<DOC_TEMPLATE_HDR>();
-        //    }
-        //}
-
-        //[HttpGet]
-        //[Authorize]
-        //public async Task<ActionResult<IEnumerable<DOC_TEMPLATE_HDR>>> GetAllViewStatutory_Auth()
-        //{
-        //    try
-        //    {
-        //        var Task = await _repository.GetViewStatutory_AuthAsync();
-        //        return Ok(Task);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return new List<DOC_TEMPLATE_HDR>();
-        //    }
-        //}
-
-        //[HttpGet]
-        //[Authorize]
-        //public async Task<ActionResult<IEnumerable<DOC_TEMPLATE_HDR>>> GetAllViewJOB_ROLE()
-        //{
-        //    try
-        //    {
-        //        var Task = await _repository.GetViewJOB_ROLEAsync();
-        //        return Ok(Task);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return new List<DOC_TEMPLATE_HDR>();
-        //    }
-        //}
     }
 }

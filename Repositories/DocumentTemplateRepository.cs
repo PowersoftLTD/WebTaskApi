@@ -394,7 +394,7 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-        public async Task<DocCategoryOutPut_List> InsertDocumentCategoryCheckList(DocCategoryCheckListInput docCategoryCheckListInput)
+        public async Task<DocCategoryOutPut_List> InsertInstructionAsyn(InsertInstructionInput insertInstructionInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -419,7 +419,7 @@ namespace TaskManagement.API.Repositories
 
                     var CheckDocCategory = await db.QueryFirstOrDefaultAsync<int>("SELECT count(*) TOTAL_COUNT FROM TYPE_MST " +
                         " WHERE TYPE_CODE = 'INSTR' AND DELETE_FLAG = 'N' AND LOWER(TYPE_DESC) = LOWER(@TYPE_DESC) GROUP BY [TYPE_DESC]; ",
-                        new { TYPE_DESC = docCategoryCheckListInput.DOC_CATEGORY }, transaction: transaction);
+                        new { TYPE_DESC = insertInstructionInput.DOC_INSTR }, transaction: transaction);
 
                     if (CheckDocCategory > 0)
                     {
@@ -434,11 +434,11 @@ namespace TaskManagement.API.Repositories
                     else
                     {
                         var parmeters = new DynamicParameters();
-                        parmeters.Add("@DOC_CATEGORY", docCategoryCheckListInput.DOC_CATEGORY);
-                        parmeters.Add("@CREATED_BY", docCategoryCheckListInput.CREATED_BY);
-                        parmeters.Add("@COMPANY_ID", docCategoryCheckListInput.COMPANY_ID);
+                        parmeters.Add("@DOC_INSTR", insertInstructionInput.DOC_INSTR);
+                        parmeters.Add("@CREATED_BY", insertInstructionInput.CREATED_BY);
+                        parmeters.Add("@COMPANY_ID", insertInstructionInput.COMPANY_ID);
 
-                        var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_INSERT_DOC_CATEGORY_CHECKLIST",
+                        var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_INSERT_INSTRUCTION",
                             parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         var sqlTransaction = (SqlTransaction)transaction;
@@ -522,8 +522,7 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
-        public async Task<DocCategoryOutPut_List> UpdateDocumentCategoryCheckList(DocCategoryUpdateCheckListInput docCategoryUpdateCheckListInput)
+        public async Task<DocCategoryOutPut_List> UpdateInstruction(UpdateInstructionInput updateInstructionInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -547,24 +546,44 @@ namespace TaskManagement.API.Repositories
                     transactionCompleted = false;  // Reset transaction state
 
                     var parmeters = new DynamicParameters();
-                    parmeters.Add("@MKEY", docCategoryUpdateCheckListInput.MKEY);
-                    parmeters.Add("@CREATED_BY", docCategoryUpdateCheckListInput.CREATED_BY);
-                    parmeters.Add("@DOC_INSTR", docCategoryUpdateCheckListInput.DOC_INSTR);
-                    parmeters.Add("@DELETE_FLAG", docCategoryUpdateCheckListInput.DELETE_FLAG);
+                    parmeters.Add("@MKEY", updateInstructionInput.MKEY);
+                    parmeters.Add("@CREATED_BY", updateInstructionInput.CREATED_BY);
+                    parmeters.Add("@DOC_INSTR", updateInstructionInput.DOC_INSTR);
+                    parmeters.Add("@DELETE_FLAG", updateInstructionInput.DELETE_FLAG);
 
-                    var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_UPDATE_DOC_CATEGORY_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var InsertDocCategory = await db.QueryAsync<V_Building_Classification>("SP_UPDATE_INSTRUCTION", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
 
-                    var successsResult = new DocCategoryOutPut_List
+                    var StatusResponse = InsertDocCategory
+                                .Where(item => item.TYPE_DESC == "ERROR")
+                                .Select(item => new { item.TYPE_DESC, item.TYPE_CODE })
+                                .ToList();
+
+                    if (StatusResponse.Count == 0)
                     {
-                        Status = "Ok",
-                        Message = "Update Successfully",
-                        Data = InsertDocCategory
-                    };
-                    return successsResult;
+                        var successsResult = new DocCategoryOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = "Update Successfully",
+                            Data = InsertDocCategory
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        //var ErrorMessage = InsertDocCategory.Select(X => X.TYPE_CODE.ToString()).ToString();
+                        var successsResult = new DocCategoryOutPut_List
+                        {
+                            Status = "Error",
+                            Message = StatusResponse[0].TYPE_CODE.ToString(),
+                            Data = null
+                        };
+                        return successsResult;
+                    }
+
                 }
             }
             catch (Exception ex)

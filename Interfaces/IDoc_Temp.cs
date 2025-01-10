@@ -10,9 +10,8 @@ namespace TaskManagement.API.Interfaces
         Task<bool> UpdateDocumentTemplateAsync(DOC_TEMPLATE_HDR dOC_TEMPLATE_HDR);
         Task<bool> DeleteDocumentTemplateAsync(int id, int LastUpatedBy);
         Task<DocCategoryOutPut_List> InsertDocumentCategory(DocCategoryInput docCategoryInput);
-        Task<DocCategoryOutPut_List> InsertDocumentCategoryCheckList(DocCategoryCheckListInput docCategoryCheckListInput);
+        Task<DocCategoryOutPut_List> InsertInstructionAsyn(InsertInstructionInput insertInstructionInput);
         Task<DocCategoryOutPut_List> UpdateDocumentCategory(DocCategoryUpdateInput docCategoryUpdateInput);
-
-        Task<DocCategoryOutPut_List> UpdateDocumentCategoryCheckList(DocCategoryUpdateCheckListInput docCategoryUpdateInput);
+        Task<DocCategoryOutPut_List> UpdateInstruction(UpdateInstructionInput updateInstructionInput);
     }
 }

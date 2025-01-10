@@ -21,10 +21,10 @@ namespace TaskManagement.API.Model
         public int COMPANY_ID { get; set; }
     }
 
-    public class DocCategoryCheckListInput
+    public class InsertInstructionInput
     {
-        [JsonPropertyName("DOC_CATEGORY")]
-        public string DOC_CATEGORY { get; set; }
+        [JsonPropertyName("DOC_INSTR")]
+        public string DOC_INSTR { get; set; }
         [JsonPropertyName("CREATED_BY")]
         public int CREATED_BY { get; set; }
         [JsonPropertyName("COMPANY_ID")]
@@ -43,7 +43,7 @@ namespace TaskManagement.API.Model
         public char DELETE_FLAG { get; set; }
     }
 
-    public class DocCategoryUpdateCheckListInput
+    public class UpdateInstructionInput
     {
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
