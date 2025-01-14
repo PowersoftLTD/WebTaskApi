@@ -168,5 +168,35 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpGet("Responsible-Department")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetResponsibleDepartment()
+        {
+            try
+            {
+                var classifications = await _repository.GetViewResponsibleDepartment();
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
+
+        [HttpGet("Raised-AT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetRaiseAT()
+        {
+            try
+            {
+                var classifications = await _repository.GetRaiseATAsync();
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
+
     }
 }

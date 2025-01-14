@@ -68,6 +68,20 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Department");
             }
         }
+        public async Task<IEnumerable<V_Building_Classification>> GetViewResponsibleDepartment()
+        {
+            using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            {
+                return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_ResponsibleDepartment");
+            }
+        }
+        public async Task<IEnumerable<V_Building_Classification>> GetRaiseATAsync()
+        {
+            using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            {
+                return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_RaisedAT");
+            }
+        }
         public async Task<IEnumerable<V_Building_Classification>> GetViewSanctioningAuthority()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())

@@ -37,6 +37,7 @@ builder.Services.AddScoped<IApprovalTemplate, ApprovalTemplateRepository>();
 builder.Services.AddScoped<IProjectDocDepository, ProjectDocDepositoryRepository>();
 builder.Services.AddScoped<IProjectDefination, ProjectDefinationRepository>();
 builder.Services.AddScoped<IApprovalTaskInitiation, ApprovalTaskInitiationRepository>();
+builder.Services.AddScoped<ICompliance,ComplianceRepository>();
 builder.Services.AddScoped<IProjectEmployee, ProjectEmployeeRepository>();
 // Register IConfiguration to access connection strings
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);

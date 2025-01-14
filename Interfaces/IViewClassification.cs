@@ -14,5 +14,7 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<V_Building_Classification>> GetViewDepartment();
         Task<IEnumerable<V_Building_Classification>> GetViewSanctioningAuthority();
         Task<IEnumerable<V_Building_Classification>> GetViewDocument_Category();
+        Task<IEnumerable<V_Building_Classification>> GetViewResponsibleDepartment();
+        Task<IEnumerable<V_Building_Classification>> GetRaiseATAsync(); 
     }
 }
