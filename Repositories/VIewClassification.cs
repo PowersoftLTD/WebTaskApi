@@ -1,5 +1,9 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
+using System.Linq;
 using Dapper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
 
@@ -75,11 +79,121 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_ResponsibleDepartment");
             }
         }
-        public async Task<IEnumerable<V_Building_Classification>> GetRaiseATAsync()
+        public async Task<IEnumerable<RAISED_AT_OUTPUT_LIST>> GetRaiseATAsync(RAISED_AT_INPUT rAISED_AT_INPUT)
         {
-            using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            try
             {
-                return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_RaisedAT");
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    //var GetRaisetAT = await db.QueryAsync<RAISED_AT_OUTPUT>("SELECT * FROM V_RaisedAT " +
+                    //     "WHERE BUILDING_MKEY in (-1,@BUILDING_MKEY) AND PROPERTY in (-1,@PROPERTY_MKEY);", new { BUILDING_MKEY = rAISED_AT_INPUT.BUILDING_MKEY, PROPERTY_MKEY = rAISED_AT_INPUT.PROPERTY_MKEY });
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@PROPERTY_MKEY", rAISED_AT_INPUT.PROPERTY_MKEY);
+                    parameters.Add("@BUILDING_MKEY", rAISED_AT_INPUT.BUILDING_MKEY);
+
+                    var GetRaisetAT = await db.QueryAsync<RAISED_AT_OUTPUT>("SP_GET_RAISED_AT", parameters, commandType: CommandType.StoredProcedure);
+
+                    if (GetRaisetAT != null)
+                    {
+                        var successsResult = new List<RAISED_AT_OUTPUT_LIST>
+                            {
+                                new RAISED_AT_OUTPUT_LIST
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= GetRaisetAT
+
+                                }
+                            };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST>
+                            {
+                                new RAISED_AT_OUTPUT_LIST
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= null
+
+                                }
+                            };
+                        return ErrorResponse;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST>
+                        {
+                            new RAISED_AT_OUTPUT_LIST
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+        }
+        public async Task<IEnumerable<RAISED_AT_OUTPUT_LIST>> GetRaiseATBeforeAsync(RAISED_AT_INPUT rAISED_AT_INPUT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    //var GetRaisetAT = await db.QueryAsync<RAISED_AT_OUTPUT>("SELECT * FROM V_RaisedAT " +
+                    //     "WHERE BUILDING_MKEY in (-1,@BUILDING_MKEY) AND PROPERTY in (-1,@PROPERTY_MKEY);", new { BUILDING_MKEY = rAISED_AT_INPUT.BUILDING_MKEY, PROPERTY_MKEY = rAISED_AT_INPUT.PROPERTY_MKEY });
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@PROPERTY_MKEY", rAISED_AT_INPUT.PROPERTY_MKEY);
+                    parameters.Add("@BUILDING_MKEY", rAISED_AT_INPUT.BUILDING_MKEY);
+
+                    var GetRaisetAT = await db.QueryAsync<RAISED_AT_OUTPUT>("SP_GET_RAISED_AT_BEFORE", parameters, commandType: CommandType.StoredProcedure);
+
+                    if (GetRaisetAT != null)
+                    {
+                        var successsResult = new List<RAISED_AT_OUTPUT_LIST>
+                            {
+                                new RAISED_AT_OUTPUT_LIST
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= GetRaisetAT
+                                }
+                            };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST>
+                            {
+                                new RAISED_AT_OUTPUT_LIST
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= null
+
+                                }
+                            };
+                        return ErrorResponse;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST>
+                        {
+                            new RAISED_AT_OUTPUT_LIST
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
             }
         }
         public async Task<IEnumerable<V_Building_Classification>> GetViewSanctioningAuthority()
@@ -94,6 +208,53 @@ namespace TaskManagement.API.Repositories
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
             {
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Category");
+            }
+        }
+        public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST>>> GetComplianceStatusAsync()
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var GetComplianceStatus = await db.QueryAsync<COMPLIANCE_STATUS_OUTPUT>("SELECT * FROM V_COMPLIANCE_STATUS ");
+
+                    if (!GetComplianceStatus.Any())  // If no records are returned
+                    {
+                        var ErrorResponse = new List<COMPLIANCE_STATUS_OUTPUT_LIST>
+                {
+                    new COMPLIANCE_STATUS_OUTPUT_LIST
+                    {
+                        Status = "Error",
+                        Message = "No data found",
+                        Data = null
+                    }
+                };
+                        return ErrorResponse;
+                    }
+                    var SuccessResponse = new List<COMPLIANCE_STATUS_OUTPUT_LIST>
+                        {
+                            new COMPLIANCE_STATUS_OUTPUT_LIST
+                            {
+                                Status = "Ok",
+                                Message = "Data Get Successfuly",
+                                Data= GetComplianceStatus
+                            }
+                        };
+                    return SuccessResponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<COMPLIANCE_STATUS_OUTPUT_LIST>
+                        {
+                            new COMPLIANCE_STATUS_OUTPUT_LIST
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
             }
         }
     }

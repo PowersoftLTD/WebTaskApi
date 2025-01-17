@@ -35,8 +35,6 @@ namespace TaskManagement.API.Repositories
                     // Fetch approval template
                     var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_GET_APPROVAL_TASK_INITIATION", parmeters, commandType: CommandType.StoredProcedure);
 
-
-
                     if (approvalTemplate == null)
                     {
                         var aPPROVAL_TASK_INITIATION = new APPROVAL_TASK_INITIATION();

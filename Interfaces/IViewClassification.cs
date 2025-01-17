@@ -1,4 +1,5 @@
-﻿using TaskManagement.API.Model;
+﻿using Microsoft.AspNetCore.Mvc;
+using TaskManagement.API.Model;
 
 namespace TaskManagement.API.Interfaces
 {
@@ -15,6 +16,9 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<V_Building_Classification>> GetViewSanctioningAuthority();
         Task<IEnumerable<V_Building_Classification>> GetViewDocument_Category();
         Task<IEnumerable<V_Building_Classification>> GetViewResponsibleDepartment();
-        Task<IEnumerable<V_Building_Classification>> GetRaiseATAsync(); 
+        Task<IEnumerable<RAISED_AT_OUTPUT_LIST>> GetRaiseATAsync(RAISED_AT_INPUT rAISED_AT_INPUT);
+        Task<IEnumerable<RAISED_AT_OUTPUT_LIST>> GetRaiseATBeforeAsync(RAISED_AT_INPUT rAISED_AT_INPUT);
+        Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST>>> GetComplianceStatusAsync();
+        
     }
 }

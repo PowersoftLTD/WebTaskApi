@@ -183,18 +183,101 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Raised-AT")]
+        [HttpPost("Raised-AT")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetRaiseAT()
+        public async Task<ActionResult<IEnumerable<RAISED_AT_OUTPUT_LIST>>> GetRaiseAT(RAISED_AT_INPUT rAISED_AT_INPUT)
         {
             try
             {
-                var classifications = await _repository.GetRaiseATAsync();
+                if (rAISED_AT_INPUT.PROPERTY_MKEY == 0 || rAISED_AT_INPUT.BUILDING_MKEY == 0)
+                {
+                    var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST>
+                        {
+                            new RAISED_AT_OUTPUT_LIST
+                            {
+                                Status = "Error",
+                                Message = "Please enter the details",
+                                Data= null
+                            }
+                        };
+                    return ErrorResponse;
+                }
+                var classifications = await _repository.GetRaiseATAsync(rAISED_AT_INPUT);
                 return Ok(classifications);
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST>
+                        {
+                            new RAISED_AT_OUTPUT_LIST
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+        }
+
+        [HttpPost("Raised-AT-Before")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<RAISED_AT_OUTPUT_LIST>>> GetRaiseATBefore(RAISED_AT_INPUT rAISED_AT_INPUT)
+        {
+            try
+            {
+                if (rAISED_AT_INPUT.PROPERTY_MKEY == 0 || rAISED_AT_INPUT.BUILDING_MKEY == 0)
+                {
+                    var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST>
+                        {
+                            new RAISED_AT_OUTPUT_LIST
+                            {
+                                Status = "Error",
+                                Message = "Please enter the details",
+                                Data= null
+                            }
+                        };
+                    return ErrorResponse;
+                }
+                var classifications = await _repository.GetRaiseATBeforeAsync(rAISED_AT_INPUT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST>
+                        {
+                            new RAISED_AT_OUTPUT_LIST
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+        }
+
+        [HttpGet("Compliance-Status")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST>>> GetComplianceStatus()
+        {
+            try
+            {
+                var classifications = await _repository.GetComplianceStatusAsync();
+                return classifications;
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<COMPLIANCE_STATUS_OUTPUT_LIST>
+                        {
+                            new COMPLIANCE_STATUS_OUTPUT_LIST
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
             }
         }
 

@@ -17,7 +17,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Get-Compliance")]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ComplianceOutput_LIST>>> GetCompliance(ComplianceGetInput complianceGetInput)
         {
             try
@@ -28,9 +28,9 @@ namespace TaskManagement.API.Controllers
                             {
                                 new ComplianceOutput_LIST
                                 {
-                                    Status = "Error",
-                                    Message = "Please enter the details",
-                                    Data= null
+                                    STATUS= "Error",
+                                    MESSAGE = "Please enter the details",
+                                    DATA= null
                                 }
                             };
                     return ErroResponse;
@@ -45,9 +45,9 @@ namespace TaskManagement.API.Controllers
                 {
                     new ComplianceOutput_LIST
                     {
-                        Status = "Error",
-                        Message = ex.Message,
-                        Data= null
+                        STATUS = "Error",
+                        MESSAGE = ex.Message,
+                        DATA= null
                     }
                 };
                 return ErroResponse;
@@ -55,8 +55,8 @@ namespace TaskManagement.API.Controllers
         }
 
 
-        [HttpPost("Inster-Update-Compliance")]
-        //[Authorize]
+        [HttpPost("Insert-Update-Compliance")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ComplianceOutput_LIST>>> InsertUpdateCompliance(ComplianceInsertUpdateInput complianceInsertUpdateInput)
         {
             try
@@ -65,9 +65,9 @@ namespace TaskManagement.API.Controllers
                 {
                     var response = new ComplianceOutput_LIST
                     {
-                        Status = "Error",
-                        Message = "Please Enter the details",
-                        Data = null
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
                     };
                     return Ok(response);
                 }
@@ -79,9 +79,9 @@ namespace TaskManagement.API.Controllers
             {
                 var response = new ComplianceOutput_LIST
                 {
-                    Status = "Error",
-                    Message = ex.Message,
-                    Data = null
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
                 };
                 return Ok(response);
             }

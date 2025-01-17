@@ -58,6 +58,7 @@ namespace TaskManagement.API.Model
 
         public char? ENABLE_FLAG { get; set; }
 
+
         public string? ATTRIBUTE1 { get; set; }
 
         public string? ATTRIBUTE2 { get; set; }
@@ -78,16 +79,25 @@ namespace TaskManagement.API.Model
 
         public decimal? ATTRIBUTE10 { get; set; }
 
-        public decimal? CREATED_BY { get; set; }
+        [JsonPropertyName("CREATED_BY_ID")]
+        public string? CREATED_BY_ID { get; set; }
 
-        public DateTime? CREATION_DATE { get; set; }
+        [JsonPropertyName("CREATED_BY_NAME")]
+        public string? CREATED_BY_NAME { get; set; }
 
-        public decimal? LAST_UPDATED_BY { get; set; }
+        [JsonPropertyName("CREATION_DATE")]
+        public string? CREATION_DATE { get; set; }
 
-        public DateTime? LAST_UPDATE_DATE { get; set; }
+        [JsonPropertyName("LAST_UPDATED_BY")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("UPDATED_BY_NAME")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("LAST_UPDATE_DATE")]
+        public string? LAST_UPDATE_DATE { get; set; }
 
         public char? DELETE_FLAG { get; set; }
-
 
     }
 }
