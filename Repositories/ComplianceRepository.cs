@@ -158,10 +158,12 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@LONG_DESCRIPTION", complianceInsertUpdateInput.LONG_DESCRIPTION); // TASK_DESCRIPTION
                     parameters.Add("@CATEGORY", complianceInsertUpdateInput.CAREGORY);   //CATEGORY
                     parameters.Add("@RAISED_AT", complianceInsertUpdateInput.RAISED_AT);
+                    parameters.Add("@RAISED_AT_BEFORE", complianceInsertUpdateInput.RAISED_AT_BEFORE);
                     parameters.Add("@RESPONSIBLE_DEPARTMENT", complianceInsertUpdateInput.RESPONSIBLE_DEPARTMENT);
                     parameters.Add("@JOB_ROLE", complianceInsertUpdateInput.JOB_ROLE);
                     parameters.Add("@RESPONSIBLE_PERSON", complianceInsertUpdateInput.RESPONSIBLE_PERSON); //ASSIGNED_TO
                     parameters.Add("@TAGS", complianceInsertUpdateInput.TAGS);  //TAGS
+                    parameters.Add("@TASK_TYPE", complianceInsertUpdateInput.TASK_TYPE);  //TAGS
                     parameters.Add("@TO_BE_COMPLETED_BY", complianceInsertUpdateInput.TO_BE_COMPLETED_BY); //COMPLETION_DATE
                     parameters.Add("@NO_DAYS", complianceInsertUpdateInput.NO_DAYS);
                     parameters.Add("@STATUS", complianceInsertUpdateInput.STATUS);
@@ -170,79 +172,45 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@RESPONSE_STATUS", null);
                     parameters.Add("@MESSAGE", null);
 
-                    var GetCompliance = await db.QueryAsync<ComplianceTaskOutPut>("SP_COMPLIANCE_INSERT_UPDATE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var GetCompliance = await db.QueryAsync<ComplianceOutPut>("SP_COMPLIANCE_INSERT_UPDATE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                    //  var GetCompliance = await db.QueryAsync<ComplianceOutPut>("SP_COMPLIANCE_INSERT_UPDATE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    if (GetCompliance == null)
+                    {
+                        // Handle other unexpected exceptions
+                        RollbackTransaction(transaction);
+                        return GenerateErrorResponse("An error occurred");
+                    }
 
-                    //if (GetCompliance == null)
-                    //{
-                    //    // Handle other unexpected exceptions
-                    //    RollbackTransaction(transaction);
-                    //    return GenerateErrorResponse("An error occurred");
-                    //}
+                    foreach (var GetCount in GetCompliance)
+                    {
+                        if (GetCount == null || GetCount.ResponseStatus == "ERROR" || GetCount.MKEY == 0)
+                        {
+                            return new List<ComplianceOutput_LIST>
+                            {
+                                new ComplianceOutput_LIST
+                                {
+                                    STATUS = "Error",
+                                    MESSAGE = GetCount.Message,
+                                    DATA = null
+                                }
+                            };
+                        }
+                    }
 
-                    //    foreach (var checkStatus in GetCompliance)
-                    //    {
-                    //        if (checkStatus.ComplianceOutPut != null)
-                    //        {
-                    //            foreach (var check in checkStatus.ComplianceOutPut)
-                    //            {
-                    //                if (check.STATUS.ToString() == "ERROR")
-                    //                {
-                    //                    return GenerateErrorResponse(check.Message);
-                    //                }
-                    //            }
-                    //        }
-
-                    //        if (checkStatus.ComplianceTaskData != null)
-                    //        {
-                    //            foreach (var checkTask in checkStatus.ComplianceTaskData)
-                    //            {
-                    //                if (checkTask.MKEY != null)
-                    //                {
-                    //                    var parametersTask = new DynamicParameters();
-                    //                    parametersTask.Add("@MKEY", complianceInsertUpdateInput.MKEY);
-                    //                    parametersTask.Add("@TASK_MKEY", checkTask.MKEY);
-
-                    //                    var UpadteTaskNo = await db.QueryAsync<ComplianceOutPut>("SP_UPDATE_COMPLIANCE_TASK", parametersTask,
-                    //                        commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                    //                    if (UpadteTaskNo == null)
-                    //                    {
-                    //                        return GenerateErrorResponse("Error occurred while updating task.");
-                    //                    }
-                    //                }
-                    //            }
-                    //        }
-                    //        else
-                    //        {
-                    //            return new List<ComplianceOutput_LIST>
-                    //            {
-                    //                new ComplianceOutput_LIST
-                    //                {
-                    //                    STATUS = "Error",
-                    //                    MESSAGE = "No compliance data found or processed.",
-                    //                    DATA = null
-                    //                }
-                    //            };
-                    //        }
-
-                    //var ResponseCompliance = checkStatus.ComplianceOutPut;
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
 
                     return new List<ComplianceOutput_LIST>
-                {
-                    new ComplianceOutput_LIST
                     {
-                        STATUS = "Ok",
-                        MESSAGE = "Successfully Done",
-                        DATA = null
-                    }
-                };
-                //}
-            }
+                        new ComplianceOutput_LIST
+                        {
+                            STATUS = "Ok",
+                            MESSAGE = "Successfully Done",
+                            DATA = GetCompliance
+                        }
+                    };
+                }
 
                 // Ensure that this method always returns a value
                 return new List<ComplianceOutput_LIST>
@@ -279,15 +247,14 @@ namespace TaskManagement.API.Repositories
         private List<ComplianceOutput_LIST> GenerateErrorResponse(string message)
         {
             return new List<ComplianceOutput_LIST>
-    {
-        new ComplianceOutput_LIST
-        {
-            STATUS = "Error",
-            MESSAGE = message,
-            DATA = null
+            {
+                new ComplianceOutput_LIST
+                {
+                    STATUS = "Error",
+                    MESSAGE = message,
+                    DATA = null
+                }
+            };
         }
-    };
-        }
-
     }
 }

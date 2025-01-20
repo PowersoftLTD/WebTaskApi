@@ -257,5 +257,52 @@ namespace TaskManagement.API.Repositories
                 return ErrorResponse;
             }
         }
+        public async Task<ActionResult<IEnumerable<GetTaskTypeList>>> GetTaskTypeAsync()
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var GetComplianceStatus = await db.QueryAsync<GetTaskTypeOutPut>("SELECT * FROM V_TASK_TYPE;");
+
+                    if (!GetComplianceStatus.Any())  // If no records are returned
+                    {
+                        var ErrorResponse = new List<GetTaskTypeList>
+                        {
+                            new GetTaskTypeList
+                            {
+                                Status = "Error",
+                                Message = "No data found",
+                                Data = null
+                            }
+                        };
+                        return ErrorResponse;
+                    }
+                    var SuccessResponse = new List<GetTaskTypeList>
+                        {
+                            new GetTaskTypeList
+                            {
+                                Status = "Ok",
+                                Message = "Data Get Successfuly",
+                                Data= GetComplianceStatus
+                            }
+                        };
+                    return SuccessResponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<GetTaskTypeList>
+                        {
+                            new GetTaskTypeList
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+        }
     }
 }

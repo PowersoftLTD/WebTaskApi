@@ -33,7 +33,20 @@ namespace TaskManagement.API.Controllers
                 var Task = await _repository.GetAllApprovalTemplateAsync(LoggedInID);
                 if (Task != null)
                 {
+                    //foreach (var ApprvalCount in Task)
+                    //{
+                    //    if (ApprvalCount == null)
+                    //    {
+                    //        var response = new ApiResponse<IEnumerable<OutPutApprovalTemplates>>
+                    //        {
+                    //            Status = "Error",
+                    //            Message = "Not found",
+                    //            Data = null
+                    //        };
+                    //    }
+                    //}
                     return Ok(Task);
+
                     //var response = new ApiResponse<IEnumerable<APPROVAL_TEMPLATE_HDR>>
                     //{
                     //    Status = "OK",

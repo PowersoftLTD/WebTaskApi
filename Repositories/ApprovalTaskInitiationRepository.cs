@@ -99,6 +99,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@DUE_DATE", aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE);
                     parmeters.Add("@TASK_PARENT_ID", 0);
                     parmeters.Add("@STATUS", aPPROVAL_TASK_INITIATION.STATUS);
+                    parmeters.Add("@TASK_TYPE", "359");
                     parmeters.Add("@STATUS_PERC", 0.0);
                     parmeters.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.INITIATOR);
                     parmeters.Add("@APPROVER_ID", 0);
@@ -202,6 +203,7 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@DUE_DATE", SubTask.TENTATIVE_END_DATE);
                         parmetersSubtask.Add("@TASK_PARENT_NODE_ID", SubParentMkey.MKEY); // approvalTemplate.MKEY);
                         parmetersSubtask.Add("@TASK_PARENT_NUMBER", TaskPrentNo); // ParentTask_no
+                        parmetersSubtask.Add("@TASK_TYPE", "359");
                         parmetersSubtask.Add("@STATUS", SubTask.STATUS);
                         parmetersSubtask.Add("@STATUS_PERC", "0.0");
                         parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.INITIATOR);

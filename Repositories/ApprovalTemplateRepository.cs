@@ -45,7 +45,7 @@ namespace TaskManagement.API.Repositories
                         var approvalTemplate = new OutPutApprovalTemplates();
                         approvalTemplate.Status = "Error";
                         approvalTemplate.Message = "Not Found";
-                        return new List<OutPutApprovalTemplates> { approvalTemplate };
+                        return new List<OutPutApprovalTemplates> { null };
                     }
 
                     // Iterate over each approval template header to populate subtasks, end result docs, and checklist docs

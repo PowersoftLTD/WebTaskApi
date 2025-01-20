@@ -47,7 +47,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpGet("doc-type-Instruction")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllViewDoc_Type_CheckList()
@@ -277,6 +276,30 @@ namespace TaskManagement.API.Controllers
                                 Data= null
                             }
                         };
+                return ErrorResponse;
+            }
+        }
+
+        [HttpGet("Task-Type")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GetTaskTypeList>>> GetTaskType()
+        {
+            try
+            {
+                var classifications = await _repository.GetTaskTypeAsync();
+                return classifications;
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<GetTaskTypeList>
+                {
+                    new GetTaskTypeList
+                    {
+                        Status = "Error",
+                        Message =ex.Message,
+                        Data= null
+                    }
+                };
                 return ErrorResponse;
             }
         }
