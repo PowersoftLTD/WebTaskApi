@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -1342,6 +1343,333 @@ namespace TaskManagement.API.Repositories
                 ErrorFileDetails.STATUS = "Error";
                 ErrorFileDetails.MESSAGE = ex.Message;
                 return 0;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_list>>> GetTaskComplianceAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@PROPERTY_MKEY", tASK_COMPLIANCE_INPUT.PROPERTY_MKEY);
+                    parmeters.Add("@BUILDING_MKEY", tASK_COMPLIANCE_INPUT.BUILDING_MKEY);
+                    parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
+                    parmeters.Add("@API_NAME", "GetTaskCompliance");
+                    parmeters.Add("@API_METHOD", "Get");
+                    var GetTaskCompliance = await db.QueryAsync<TASK_COMPLIANCE_OUTPUT>("SP_GET_TASK_COMPLIANCE", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    foreach (var TaskCompliance in GetTaskCompliance)
+                    {
+                        if (TaskCompliance.MKEY <= 1)
+                        {
+                            var errorResult = new List<TASK_COMPLIANCE_list>
+                                {
+                                    new TASK_COMPLIANCE_list
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Data not found",
+                                        DATA = null
+                                    }
+                                };
+                            return errorResult;
+                        }
+                    }
+                    var successsResult = new List<TASK_COMPLIANCE_list>
+                            {
+                            new TASK_COMPLIANCE_list
+                                {
+                                STATUS = "Ok",
+                                MESSAGE = "Get data successfully!!!",
+                                DATA= GetTaskCompliance
+                                }
+                        };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_COMPLIANCE_list>
+                    {
+                        new TASK_COMPLIANCE_list
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            DATA = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> GetTaskSanctioningDepartmentAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@PROPERTY_MKEY", tASK_COMPLIANCE_INPUT.PROPERTY_MKEY);
+                    parmeters.Add("@BUILDING_MKEY", tASK_COMPLIANCE_INPUT.BUILDING_MKEY);
+                    parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
+                    parmeters.Add("@API_NAME", "GetTaskCompliance");
+                    parmeters.Add("@API_METHOD", "Get");
+                    var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutput>("SP_GET_TASK_SANCTIONING_DEPARTMENT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    if (GetTaskSanDepart.Count<TaskSanctioningDepartmentOutput>() == 0)
+                    {
+                        var errorResult = new List<TaskSanctioningDepartmentOutputList>
+                            {
+                                new TaskSanctioningDepartmentOutputList
+                                {
+                                    STATUS = "Error",
+                                    MESSAGE = "No data found",
+                                    DATA = null
+                                }
+                            };
+                        return errorResult;
+                    }
+                    else
+                    {
+                        foreach (var TaskCompliance in GetTaskSanDepart)
+                        {
+                            if (TaskCompliance.MKEY <= 1)
+                            {
+                                var errorResult = new List<TaskSanctioningDepartmentOutputList>
+                                {
+                                    new TaskSanctioningDepartmentOutputList
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Data not found",
+                                        DATA = null
+                                    }
+                                };
+                                return errorResult;
+                            }
+                        }
+                        var successsResult = new List<TaskSanctioningDepartmentOutputList>
+                            {
+                            new TaskSanctioningDepartmentOutputList
+                                {
+                                STATUS = "Ok",
+                                MESSAGE = "Get data successfully!!!",
+                                DATA= GetTaskSanDepart
+                                }
+                        };
+                        return successsResult;
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TaskSanctioningDepartmentOutputList>
+                    {
+                        new TaskSanctioningDepartmentOutputList
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            DATA = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskEndListAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@PROPERTY_MKEY", tASK_COMPLIANCE_INPUT.PROPERTY_MKEY);
+                    parmeters.Add("@BUILDING_MKEY", tASK_COMPLIANCE_INPUT.BUILDING_MKEY);
+                    parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
+                    parmeters.Add("@API_NAME", "GetTaskCompliance");
+                    parmeters.Add("@API_METHOD", "Get");
+                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT>("SP_GET_TASK_ENDLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    foreach (var TaskCompliance in GetTaskEnd)
+                    {
+                        if (TaskCompliance.MKEY <= 1)
+                        {
+                            var errorResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                                {
+                                    new TASK_COMPLIANCE_END_CHECK_LIST
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Data not found",
+                                        DATA = null
+                                    }
+                                };
+                            return errorResult;
+                        }
+                    }
+                    var successsResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                            {
+                            new TASK_COMPLIANCE_END_CHECK_LIST
+                                {
+                                STATUS = "Ok",
+                                MESSAGE = "Get data successfully!!!",
+                                DATA= GetTaskEnd
+                                }
+                        };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                    {
+                        new TASK_COMPLIANCE_END_CHECK_LIST
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            DATA = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskCheckListAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@PROPERTY_MKEY", tASK_COMPLIANCE_INPUT.PROPERTY_MKEY);
+                    parmeters.Add("@BUILDING_MKEY", tASK_COMPLIANCE_INPUT.BUILDING_MKEY);
+                    parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
+                    parmeters.Add("@API_NAME", "GetTaskCompliance");
+                    parmeters.Add("@API_METHOD", "Get");
+                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT>("SP_GET_TASK_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    foreach (var TaskCompliance in GetTaskEnd)
+                    {
+                        if (TaskCompliance.MKEY <= 1)
+                        {
+                            var errorResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                                {
+                                    new TASK_COMPLIANCE_END_CHECK_LIST
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Data not found",
+                                        DATA = null
+                                    }
+                                };
+                            return errorResult;
+                        }
+                    }
+                    var successsResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                            {
+                            new TASK_COMPLIANCE_END_CHECK_LIST
+                                {
+                                STATUS = "Ok",
+                                MESSAGE = "Get data successfully!!!",
+                                DATA= GetTaskEnd
+                                }
+                        };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                    {
+                        new TASK_COMPLIANCE_END_CHECK_LIST
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            DATA = null
+                        }
+                    };
+                return errorResult;
             }
         }
     }

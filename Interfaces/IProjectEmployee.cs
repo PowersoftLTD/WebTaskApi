@@ -8,7 +8,6 @@ namespace TaskManagement.API.Interfaces
     public interface IProjectEmployee
     {
         Task<IEnumerable<EmployeeLoginOutput_LIST>> Login_Validate(string Login_ID, string LOGIN_PASSWORD);
-
         Task<IEnumerable<V_Building_Classification_new>> GetProjectAsync(string TYPE_CODE, string MASTER_MKEY);
         Task<IEnumerable<V_Building_Classification_new>> GetSubProjectAsync(string Project_Mkey);
         Task<IEnumerable<EmployeeLoginOutput_LIST>> GetEmpAsync(string CURRENT_EMP_MKEY, string FILTER);
@@ -35,6 +34,10 @@ namespace TaskManagement.API.Interfaces
         //Task<TASK_HDR> UpdateTaskAsync(TASK_HDR tASK_HDR);
         Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag);
         Task<int> GetPostTaskActionAsync(string Mkey, string TASK_MKEY, string TASK_PARENT_ID, string ACTION_TYPE, string DESCRIPTION_COMMENT, string PROGRESS_PERC, string STATUS, string CREATED_BY, string TASK_MAIN_NODE_ID, string FILE_NAME, string FILE_PATH);
+        Task<ActionResult<IEnumerable<TASK_COMPLIANCE_list>>> GetTaskComplianceAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT);
+        Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> GetTaskSanctioningDepartmentAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT);
+        Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskEndListAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT);
 
+        Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskCheckListAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT);
     }
 }

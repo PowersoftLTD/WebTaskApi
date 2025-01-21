@@ -1386,117 +1386,249 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        //[HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
-        //[Authorize]
-        //public async Task<IActionResult> PostTASKACTION([FromBody] TaskPostActionFileUploadAPI objFile)
-        //{
-        //    try
-        //    {
+        [HttpPost("Task-Management/Get-Task-Compliance")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_list>>> GetTaskCompliance(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        {
+            bool FlagError = false;
+            string ErrorMessage = string.Empty;
+            try
+            {
+                if (tASK_COMPLIANCE_INPUT == null)
+                {
+                    var response = new TASK_COMPLIANCE_list
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                }
+                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                }
 
-        //        filePathOpen = null;
-        //        int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-        //            objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-        //            objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
-        //        objFile.FILE_PATH = filePathOpen;
+                if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "User ID is required,";
+                }
 
-        //        var Errorresponse = new Add_TaskOutPut_List
-        //        {
-        //            Status = "Error",
-        //            Message = "Error occurred",
-        //            Data1 = null
-        //        };
-        //        return Ok(Errorresponse);
+                if (FlagError == true)
+                {
+                    var response = new ComplianceOutput_LIST
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ErrorMessage,
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.GetTaskComplianceAsync(tASK_COMPLIANCE_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new ComplianceOutput_LIST
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Get-Task-EndList")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskEndList(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        {
+            bool FlagError = false;
+            string ErrorMessage = string.Empty;
+            try
+            {
+                if (tASK_COMPLIANCE_INPUT == null)
+                {
+                    var response = new TASK_COMPLIANCE_list
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                }
+                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                }
+
+                if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "User ID is required,";
+                }
+
+                if (FlagError == true)
+                {
+                    var response = new TASK_COMPLIANCE_END_CHECK_LIST
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ErrorMessage,
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.GetTaskEndListAsync(tASK_COMPLIANCE_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TASK_COMPLIANCE_END_CHECK_LIST
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Get-Task-CheckList")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskCheckList(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        {
+            bool FlagError = false;
+            string ErrorMessage = string.Empty;
+            try
+            {
+                if (tASK_COMPLIANCE_INPUT == null)
+                {
+                    var response = new TASK_COMPLIANCE_list
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                }
+                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                }
+
+                if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "User ID is required,";
+                }
+
+                if (FlagError == true)
+                {
+                    var response = new TASK_COMPLIANCE_END_CHECK_LIST
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ErrorMessage,
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.GetTaskEndListAsync(tASK_COMPLIANCE_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TASK_COMPLIANCE_END_CHECK_LIST
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
 
 
-        //        int srNo = 0;
-        //        string filePathOpen = string.Empty;
-        //        if (objFile.files != null)
-        //        {
-        //            if (objFile.files.Length > 0)
-        //            {
-        //                srNo = srNo + 1;
-        //                //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
-        //                objFile.FILE_PATH = _fileSettings.FilePath;
-        //                if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
-        //                {
-        //                    Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
-        //                }
-        //                using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
-        //                {
-        //                    objFile.files.CopyTo(filestream);
-        //                    filestream.Flush();
-        //                }
-        //                objFile.FILE_NAME = objFile.files.FileName;
-        //                filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_")
-        //                    + "_" + objFile.files.FileName;
-        //                int ResultCount = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-        //                    objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-        //                    objFile.TASK_MAIN_NODE_ID.ToString(), objFile.FILE_NAME, filePathOpen);
-        //                objFile.FILE_PATH = filePathOpen;
-        //                if (ResultCount > 0)
-        //                {
-        //                    var Successresponse = new Add_TaskOutPut_List
-        //                    {
-        //                        Status = "ok",
-        //                        Message = "File Uploaded",
-        //                        Data1 = objFile
-        //                    };
-        //                    return Ok(Successresponse);
-        //                }
-        //                else
-        //                {
-        //                    filePathOpen = null;
-        //                    int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-        //                        objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-        //                        objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
-        //                    objFile.FILE_PATH = filePathOpen;
+        [HttpPost("Task-Management/Get-Task-Sanctioning-Authority")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> GetTaskSanctioningAuthority(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        {
+            bool FlagError = false;
+            string ErrorMessage = string.Empty;
+            try
+            {
+                if (tASK_COMPLIANCE_INPUT == null)
+                {
+                    var response = new TaskSanctioningDepartmentOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                }
+                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                }
 
-        //                    var Errorresponse = new Add_TaskOutPut_List
-        //                    {
-        //                        Status = "Error",
-        //                        Message = "Error occurred",
-        //                        Data1 = null
-        //                    };
-        //                    return Ok(Errorresponse);
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            filePathOpen = null;
-        //            int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-        //                objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-        //                objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
-        //            objFile.FILE_PATH = filePathOpen;
+                if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "User ID is required,";
+                }
 
-        //            var Successresponse = new Add_TaskOutPut_List
-        //            {
-        //                Status = "Ok",
-        //                Message = "Updated Successfuly",
-        //                Data1 = null
-        //            };
-        //            return Ok(Successresponse);
-        //        }
+                if (FlagError == true)
+                {
+                    var response = new TaskSanctioningDepartmentOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ErrorMessage,
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
 
-        //        var response = new Add_TaskOutPut_List
-        //        {
-        //            Status = "Error",
-        //            Message = "Please attach the file!!!",
-        //            Data1 = null
-        //        };
-        //        return Ok(response);
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var response = new Add_TaskOutPut_List
-        //        {
-        //            Status = "Error",
-        //            Message = ex.Message,
-        //            Data1 = null
-        //        };
-        //        return Ok(response);
-        //    }
-        //}
+                var RsponseStatus = await _repository.GetTaskSanctioningDepartmentAsync(tASK_COMPLIANCE_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskSanctioningDepartmentOutputList
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
     }
 }

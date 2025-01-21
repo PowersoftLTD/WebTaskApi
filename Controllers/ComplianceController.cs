@@ -54,7 +54,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("Insert-Update-Compliance")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<ComplianceOutput_LIST>>> InsertUpdateCompliance(ComplianceInsertUpdateInput complianceInsertUpdateInput)

@@ -47,32 +47,36 @@ namespace TaskManagement.API.Controllers
             }
             return Ok(ProjectDocDeository);
         }
-
+       
         [HttpPost("Post-Project-Document-Depsitory")]
         [Authorize]
-        public async Task<ActionResult<dynamic>> CreateProjDocDepsitory(PROJECT_DOC_DEPOSITORY_HDR pROJECT_DOC_DEPOSITORY_HDR)
+        public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List>>> CreateProjDocDepsitory([FromForm] PROJECT_DOC_DEPOSITORY_HDR pROJECT_DOC_DEPOSITORY_HDR)
         {
             try
             {
-                int DocDeository = await _repository.GetPROJECT_DEPOSITORY_DOCUMENTAsync(pROJECT_DOC_DEPOSITORY_HDR.BUILDING_TYPE,
-                    pROJECT_DOC_DEPOSITORY_HDR.PROPERTY_TYPE, pROJECT_DOC_DEPOSITORY_HDR.DOC_NAME);
-                if (DocDeository == null || Convert.ToInt32(DocDeository) == 0)
+                if (pROJECT_DOC_DEPOSITORY_HDR == null)
                 {
-                    var ProjectDocDeository = await _repository.CreateProjectDocDeositoryAsync(pROJECT_DOC_DEPOSITORY_HDR); //(BUILDING_TYPE, PROPERTY_TYPE, DOC_NAME, DOC_NUMBER, DOC_DATE, DOC_ATTACHMENT, VALIDITY_DATE, CREATED_BY, ATTRIBUTE1, ATTRIBUTE2, ATTRIBUTE3);
-                    if (ProjectDocDeository == null)
+                    var response = new UpdateProjectDocDepositoryHDROutput_List
                     {
-                        return NotFound();
-                    }
-                    return Ok(ProjectDocDeository);
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
                 }
-                else
-                {
-                    return Ok(true);
-                }
+
+                var RsponseStatus = await _repository.CreateProjectDocDeositoryAsync(pROJECT_DOC_DEPOSITORY_HDR);
+                return RsponseStatus;
             }
             catch (Exception ex)
             {
-                return BadRequest(("Failed to do stuff.", ex.Message));
+                var response = new UpdateProjectDocDepositoryHDROutput_List
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
             }
 
         }
@@ -94,9 +98,9 @@ namespace TaskManagement.API.Controllers
                 {
                     var responseDocumentTemplate = new UpdateProjectDocDepositoryHDROutput_List
                     {
-                        Status = "Error",
-                        Message = "Not found",
-                        Data = null
+                        STATUS = "Error",
+                        MESSAGE = "Not found",
+                        DATA = null
                     };
                     return Ok(responseDocumentTemplate);
                 }
@@ -105,9 +109,9 @@ namespace TaskManagement.API.Controllers
             {
                 var responseDocumentTemplate = new UpdateProjectDocDepositoryHDROutput_List
                 {
-                    Status = "Error",
-                    Message = ex.Message,
-                    Data = null
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
                 };
                 return Ok(responseDocumentTemplate);
             }
@@ -144,15 +148,15 @@ namespace TaskManagement.API.Controllers
                         {
                             Directory.CreateDirectory(FilePath + "\\Attachments\\" + "Document Depository\\" + docFileUploadInput.MKEY);
                         }
-                        using (FileStream filestream = System.IO.File.Create(FilePath + "\\Attachments\\" + "Document Depository\\" 
+                        using (FileStream filestream = System.IO.File.Create(FilePath + "\\Attachments\\" + "Document Depository\\"
                             + docFileUploadInput.MKEY + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + docFileUploadInput.files.FileName))
                         {
                             docFileUploadInput.files.CopyTo(filestream);
                             filestream.Flush();
                         }
 
-                        filePathOpen = "\\Attachments\\" + "Document Depository\\" + docFileUploadInput.MKEY + "\\" 
-                            + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" 
+                        filePathOpen = "\\Attachments\\" + "Document Depository\\" + docFileUploadInput.MKEY + "\\"
+                            + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_"
                             + docFileUploadInput.files.FileName;
 
                         var objDocFileUpload = new DocFileUploadOutPut

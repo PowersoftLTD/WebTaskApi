@@ -111,25 +111,25 @@ namespace TaskManagement.API.Model
         public DateTime? EFFECTIVE_END_DATE { get; set; }
 
         public char? ENABLE_FLAG { get; set; }
-        [JsonIgnore]
+        
         public string? ATTRIBUTE1 { get; set; }
-        [JsonIgnore]
+        
         public string? ATTRIBUTE2 { get; set; }
-        [JsonIgnore]
+        
         public string? ATTRIBUTE3 { get; set; }
-        [JsonIgnore]
+       
         public string? ATTRIBUTE4 { get; set; }
-        [JsonIgnore]
+        
         public string? ATTRIBUTE5 { get; set; }
-        [JsonIgnore]
+        
         public decimal? ATTRIBUTE6 { get; set; }
-        [JsonIgnore]
+        
         public decimal? ATTRIBUTE7 { get; set; }
-        [JsonIgnore]
+        
         public decimal? ATTRIBUTE8 { get; set; }
-        [JsonIgnore]
+        
         public decimal? ATTRIBUTE9 { get; set; }
-        [JsonIgnore]
+       
         public decimal? ATTRIBUTE10 { get; set; }
 
         [JsonPropertyName("CREATED_BY_ID")]
