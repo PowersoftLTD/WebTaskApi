@@ -18,15 +18,7 @@ namespace TaskManagement.API.Model
         public int MKEY { get; set; }
     }
 
-    public class DocFileUploadOutPut
-    {
-        [JsonPropertyName("MKEY")]
-        public int MKEY { get; set; }
-        [JsonPropertyName("FILE_NAME")]
-        public string FILE_NAME { get; set; }
-        [JsonPropertyName("FILE_PATH")]
-        public string FILE_PATH { get; set; }
-    }
+   
 
     public class DOC_TEMPLATE_HDR
     {

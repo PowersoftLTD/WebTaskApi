@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using System.ComponentModel;
 using System.Reflection;
 using TaskManagement.API.Model;
+using static Microsoft.IO.RecyclableMemoryStreamManager;
 
 var builder = WebApplication.CreateBuilder(args);
 // Configure database connection using Entity Framework Core
@@ -96,7 +97,7 @@ builder.Services.AddSwaggerGen(c =>
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
         Scheme = "bearer"
     });
-
+    c.OperationFilter<FileUploadOperationFilter>();
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         { new Microsoft.OpenApi.Models.OpenApiSecurityScheme

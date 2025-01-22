@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace TaskManagement.API.Repositories
 {
@@ -16,30 +17,97 @@ namespace TaskManagement.API.Repositories
     {
         private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         private readonly FileSettings _fileSettings;
+
         public IDapperDbConnection _dapperDbConnection;
         public ProjectDocDepositoryRepository(IDapperDbConnection dapperDbConnection, IOptions<FileSettings> fileSettings)
         {
             _dapperDbConnection = dapperDbConnection;
             _fileSettings = fileSettings.Value;
         }
-        public async Task<IEnumerable<dynamic>> GetAllProjectDocDeositoryAsync(string? ATTRIBUTE1, string? ATTRIBUTE2, string? ATTRIBUTE3)
+        public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List>>> GetAllProjectDocDeositoryAsync(ProjectDocDepositoryInput projectDocDepositoryInput)
         {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            bool flagCount = false;
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
-                    parmeters.Add("@MKEY", null);
-                    parmeters.Add("@ATTRIBUTE1", ATTRIBUTE1);
-                    parmeters.Add("@ATTRIBUTE2", ATTRIBUTE2);
-                    parmeters.Add("@ATTRIBUTE3", ATTRIBUTE3);
-                    var ProjDoc_Desp = await db.QueryAsync("SP_GET_PROJECT_DOC_DEPOSITORY", parmeters, commandType: CommandType.StoredProcedure);
-                    return ProjDoc_Desp;
+                    parmeters.Add("@MKEY", projectDocDepositoryInput.MKEY);
+                    parmeters.Add("@USER_ID", projectDocDepositoryInput.USER_ID);
+                    parmeters.Add("@API_NAME", "GetAllProjDocDepsitory");
+                    parmeters.Add("@API_METHOD", "Get");
+                    var GetProjectDepst = await db.QueryAsync<UpdateProjectDocDepositoryHDROutput>("SP_GET_PROJECT_DOC_DEPOSITORY", parmeters, commandType: CommandType.StoredProcedure);
+
+                    foreach (var ProjectDepst in GetProjectDepst)
+                    {
+
+                        if (ProjectDepst.MKEY < 1)
+                        {
+                            var errorResult = new List<UpdateProjectDocDepositoryHDROutput_List>
+                                {
+                                    new UpdateProjectDocDepositoryHDROutput_List
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Data not found",
+                                        DATA = null
+                                    }
+                                };
+                            return errorResult;
+                        }
+                        flagCount = true;
+                        var parametersDepost = new DynamicParameters();
+                        parametersDepost.Add("@PROJECT_DOC_MKEY", ProjectDepst.MKEY);
+                        parametersDepost.Add("@CREATED_BY", projectDocDepositoryInput.USER_ID);
+                        parametersDepost.Add("@APINAME", "CreateProjectDocDeositoryAsync");
+                        parametersDepost.Add("@API_METHOD", "Create");
+                        var GetProjectDocFile = await db.QueryAsync<DocFileUploadOutPut>("SP_GET_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersDepost, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        ProjectDepst.PROJECT_DOC_FILES = GetProjectDocFile;
+                    }
+
+                    if (flagCount = true)
+                    {
+                        var successsResult = new List<UpdateProjectDocDepositoryHDROutput_List>
+                            {
+                            new UpdateProjectDocDepositoryHDROutput_List
+                                {
+                                STATUS = "Ok",
+                                MESSAGE = "Get data successfully!!!",
+                                DATA= GetProjectDepst
+                                }
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<UpdateProjectDocDepositoryHDROutput_List>
+                                {
+                                    new UpdateProjectDocDepositoryHDROutput_List
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Data not found",
+                                        DATA = null
+                                    }
+                                };
+                        return errorResult;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                return new List<dynamic>();
+                var errorResult = new List<UpdateProjectDocDepositoryHDROutput_List>
+                    {
+                        new UpdateProjectDocDepositoryHDROutput_List
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            DATA = null
+                        }
+                    };
+                return errorResult;
             }
         }
         public async Task<dynamic> GetProjectDocDeositoryByIDAsync(int? MKEY, string? ATTRIBUTE1, string? ATTRIBUTE2, string? ATTRIBUTE3)
@@ -87,8 +155,9 @@ namespace TaskManagement.API.Repositories
                     transactionCompleted = false;  // Reset transaction state
 
                     var parameters = new DynamicParameters();
-                    parameters.Add("@BUILDING_TYPE", pROJECT_DOC_DEPOSITORY_HDR.BUILDING_TYPE);
-                    parameters.Add("@PROPERTY_TYPE", pROJECT_DOC_DEPOSITORY_HDR.PROPERTY_TYPE);
+                    parameters.Add("@MKEY", pROJECT_DOC_DEPOSITORY_HDR.MKEY);
+                    parameters.Add("@BUILDING_TYPE", pROJECT_DOC_DEPOSITORY_HDR.BUILDING_MKEY);
+                    parameters.Add("@PROPERTY_TYPE", pROJECT_DOC_DEPOSITORY_HDR.PROPERTY_MKEY);
                     parameters.Add("@DOC_MKEY", pROJECT_DOC_DEPOSITORY_HDR.DOC_MKEY);
                     parameters.Add("@DOC_NUMBER", pROJECT_DOC_DEPOSITORY_HDR.DOC_NUMBER);
                     parameters.Add("@DOC_DATE", pROJECT_DOC_DEPOSITORY_HDR.DOC_DATE);
@@ -96,6 +165,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@API_NAME", "CreateProjectDocDeositoryAsync");
                     parameters.Add("@API_METHOD", "Create");
                     parameters.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.CREATED_BY);
+                    parameters.Add("@DELETE_FLAG", pROJECT_DOC_DEPOSITORY_HDR.DELETE_FLAG);
 
                     var GetProjectDocDesp = await db.QueryAsync<UpdateProjectDocDepositoryHDROutput>("SP_INSERT_PROJECT_DOCUMENT_DEPOSITORY", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
@@ -109,17 +179,10 @@ namespace TaskManagement.API.Repositories
                     foreach (var GetCount in GetProjectDocDesp)
                     {
                         pROJECT_DOC_DEPOSITORY_HDR.MKEY = GetCount.MKEY;
-                        if (GetCount == null || GetCount.ResponseStatus == "ERROR" || GetCount.MKEY == 0)
+                        if (GetCount == null || GetCount.MKEY == 0)
                         {
-                            return new List<UpdateProjectDocDepositoryHDROutput_List>
-                            {
-                                new UpdateProjectDocDepositoryHDROutput_List
-                                {
-                                    STATUS = "Error",
-                                    MESSAGE = GetCount.Message,
-                                    DATA = null
-                                }
-                            };
+                            RollbackTransaction(transaction);
+                            return GenerateErrorResponse("An error occurred");
                         }
                     }
 
@@ -129,16 +192,15 @@ namespace TaskManagement.API.Repositories
                         int srNo = 0;
                         string filePathOpen = string.Empty;
 
-                        if (pROJECT_DOC_DEPOSITORY_HDR.PROJECT_DOC_FILES != null || pROJECT_DOC_DEPOSITORY_HDR.PROJECT_DOC_FILES.Count > 0)
+                        if (pROJECT_DOC_DEPOSITORY_HDR.PROJECT_DOC_FILES != null)
                         {
                             var parametersDelete = new DynamicParameters();
-                            parametersDelete.Add("@PROJECT_DOC_MKEY", pROJECT_DOC_DEPOSITORY_HDR.PROPERTY_TYPE);
-                            parametersDelete.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.VALIDITY_DATE);
-                            parametersDelete.Add("@DELETE_FLAG", pROJECT_DOC_DEPOSITORY_HDR.ATTRIBUTE1);
+                            parametersDelete.Add("@PROJECT_DOC_MKEY", pROJECT_DOC_DEPOSITORY_HDR.MKEY);
+                            parametersDelete.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.CREATED_BY);
                             parametersDelete.Add("@APINAME", "CreateProjectDocDeositoryAsync");
                             parametersDelete.Add("@API_METHOD", "Update");
-                            
-                            var DeleteProjectDocFile = await db.QueryAsync<dynamic>("SP_UPDATE_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersDelete, commandType: CommandType.StoredProcedure, transaction: transaction); 
+
+                            var DeleteProjectDocFile = await db.QueryAsync<dynamic>("SP_UPDATE_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersDelete, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                             foreach (var ProjectDocFile in pROJECT_DOC_DEPOSITORY_HDR.PROJECT_DOC_FILES)
                             {
@@ -170,9 +232,9 @@ namespace TaskManagement.API.Repositories
                                     parametersFiles.Add("@APINAME", "CreateProjectDocDeositoryAsync");
                                     parametersFiles.Add("@API_METHOD", "Create");
 
-                                    var GetProjectDocFile = await db.QueryAsync<DocFileUploadOutPut>("SP_INSERT_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                    var InsertProjectDocFile = await db.QueryAsync<DocFileUploadOutPut>("SP_INSERT_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                                    if (GetProjectDocDesp == null)
+                                    if (InsertProjectDocFile == null)
                                     {
                                         // Handle other unexpected exceptions
                                         RollbackTransaction(transaction);
@@ -181,18 +243,26 @@ namespace TaskManagement.API.Repositories
                                 }
                             }
                         }
+
                     }
                     catch (Exception ex)
                     {
-                        return new List<UpdateProjectDocDepositoryHDROutput_List>
+                        RollbackTransaction(transaction);
+                        return GenerateErrorResponse(ex.Message);
+                    }
+                    if (pROJECT_DOC_DEPOSITORY_HDR.PROJECT_DOC_FILES != null)
+                    {
+                        var parametersDepost = new DynamicParameters();
+                        parametersDepost.Add("@PROJECT_DOC_MKEY", pROJECT_DOC_DEPOSITORY_HDR.MKEY);
+                        parametersDepost.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.CREATED_BY);
+                        parametersDepost.Add("@APINAME", "CreateProjectDocDeositoryAsync");
+                        parametersDepost.Add("@API_METHOD", "Create");
+                        var GetProjectDocFile = await db.QueryAsync<DocFileUploadOutPut>("SP_GET_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersDepost, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        foreach (var AddAttachment in GetProjectDocDesp)
                         {
-                            new UpdateProjectDocDepositoryHDROutput_List
-                            {
-                                STATUS = "Error",
-                                MESSAGE = ex.Message,
-                                DATA = null
-                            }
-                        };
+                            AddAttachment.PROJECT_DOC_FILES = GetProjectDocFile;
+                        }
                     }
 
                     var sqlTransaction = (SqlTransaction)transaction;
@@ -204,22 +274,24 @@ namespace TaskManagement.API.Repositories
                         new UpdateProjectDocDepositoryHDROutput_List
                         {
                             STATUS = "Ok",
-                            MESSAGE = "Successfully Done",
+                            MESSAGE = "Successfully Inserted",
                             DATA = GetProjectDocDesp
                         }
                     };
                 }
 
+                RollbackTransaction(transaction);
+                return GenerateErrorResponse("No Project Doc Depository data found or processed.");
                 // Ensure that this method always returns a value
-                return new List<UpdateProjectDocDepositoryHDROutput_List>
-                    {
-                        new UpdateProjectDocDepositoryHDROutput_List
-                        {
-                            STATUS = "Error",
-                            MESSAGE = "No Project Doc Depository data found or processed.",
-                            DATA = null
-                        }
-                    };
+                //return new List<UpdateProjectDocDepositoryHDROutput_List>
+                //    {
+                //        new UpdateProjectDocDepositoryHDROutput_List
+                //        {
+                //            STATUS = "Error",
+                //            MESSAGE = "No Project Doc Depository data found or processed.",
+                //            DATA = null
+                //        }
+                //    };
             }
             catch (Exception ex)
             {
@@ -318,8 +390,8 @@ namespace TaskManagement.API.Repositories
 
                     var parameters = new DynamicParameters();
                     parameters.Add("@MKEY", updateProjectDocDepositoryHDRInput.MKEY);
-                    parameters.Add("@BUILDING_TYPE", updateProjectDocDepositoryHDRInput.BUILDING_TYPE);
-                    parameters.Add("@PROPERTY_TYPE", updateProjectDocDepositoryHDRInput.PROPERTY_TYPE);
+                    parameters.Add("@BUILDING_MKEY", updateProjectDocDepositoryHDRInput.BUILDING_MKEY);
+                    parameters.Add("@PROPERTY_MKEY", updateProjectDocDepositoryHDRInput.PROPERTY_MKEY);
                     parameters.Add("@DOC_NAME", updateProjectDocDepositoryHDRInput.DOC_NAME);
                     parameters.Add("@DOC_NUMBER", updateProjectDocDepositoryHDRInput.DOC_NUMBER);
                     parameters.Add("@DOC_DATE", updateProjectDocDepositoryHDRInput.DOC_DATE);
