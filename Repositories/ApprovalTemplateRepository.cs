@@ -458,7 +458,7 @@ namespace TaskManagement.API.Repositories
                         SanctioningDataTable.Columns.Add("SANCTIONING_DEPARTMENT", typeof(string));
                         SanctioningDataTable.Columns.Add("SANCTIONING_AUTHORITY", typeof(string));
                         SanctioningDataTable.Columns.Add("START_DATE", typeof(DateTime));
-                        SanctioningDataTable.Columns.Add("END_DATE", typeof(DateTime));
+                        SanctioningDataTable.Columns.Add("END_DATE",  typeof(DateTime));
                         SanctioningDataTable.Columns.Add("CREATED_BY", typeof(int));
                         SanctioningDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
                         SanctioningDataTable.Columns.Add("DELETE_FLAG", typeof(char));
@@ -472,9 +472,10 @@ namespace TaskManagement.API.Repositories
                             // Populate the DataTable with subtasks
                             foreach (var SANCTIONING_DEPARTMENT in OBJ_APPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST) // Assuming SUBTASK_LIST is a list of subtasks
                             {
+
                                 SanctioningDataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, SR_No, SANCTIONING_DEPARTMENT.LEVEL
                                     , SANCTIONING_DEPARTMENT.SANCTIONING_DEPARTMENT, SANCTIONING_DEPARTMENT.SANCTIONING_AUTHORITY
-                                    , SANCTIONING_DEPARTMENT.START_DATE,SANCTIONING_DEPARTMENT.END_DATE ,insertApprovalTemplates.CREATED_BY
+                                    , SANCTIONING_DEPARTMENT.START_DATE, SANCTIONING_DEPARTMENT.END_DATE == null ? null : SANCTIONING_DEPARTMENT.END_DATE  ,insertApprovalTemplates.CREATED_BY
                                     , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
                                 SR_No = SR_No + 1;
                             }
@@ -862,7 +863,9 @@ namespace TaskManagement.API.Repositories
                         SanctioningDataTable.Columns.Add("LAST_UPDATED_BY", typeof(int));
                         SanctioningDataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
                         SanctioningDataTable.Columns.Add("DELETE_FLAG", typeof(char));
+                        
                         bool flagID = false;
+                        
                         if (objAPPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST != null)
                         {
                             var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t " +
@@ -874,7 +877,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 SanctioningDataTable.Rows.Add(updateApprovalTemplates.MKEY, SANCTIONING_DEPARTMENT.SR_NO, SANCTIONING_DEPARTMENT.LEVEL
                                     , SANCTIONING_DEPARTMENT.SANCTIONING_DEPARTMENT, SANCTIONING_DEPARTMENT.SANCTIONING_AUTHORITY
-                                    , SANCTIONING_DEPARTMENT.START_DATE, SANCTIONING_DEPARTMENT.END_DATE, updateApprovalTemplates.CREATED_BY
+                                    , SANCTIONING_DEPARTMENT.START_DATE, SANCTIONING_DEPARTMENT.END_DATE == null ? null : SANCTIONING_DEPARTMENT.END_DATE, updateApprovalTemplates.CREATED_BY
                                     , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
                                 SR_No = SR_No + 1;
                             }

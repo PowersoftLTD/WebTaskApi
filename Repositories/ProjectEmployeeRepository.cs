@@ -1371,6 +1371,7 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@PROPERTY_MKEY", tASK_COMPLIANCE_INPUT.PROPERTY_MKEY);
                     parmeters.Add("@BUILDING_MKEY", tASK_COMPLIANCE_INPUT.BUILDING_MKEY);
+                    parmeters.Add("@TASK_MKEY", tASK_COMPLIANCE_INPUT.TASK_MKEY); 
                     parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
                     parmeters.Add("@API_NAME", "GetTaskCompliance");
                     parmeters.Add("@API_METHOD", "Get");
@@ -1548,6 +1549,16 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@API_METHOD", "Get");
                     var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT>("SP_GET_TASK_ENDLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
+                    foreach (var item in GetTaskEnd)
+                    {
+                        if (item.CHECK_DOC_LST == null)
+                        {
+                            item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
+                        }
+                        // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                        item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                    }
+
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
@@ -1595,7 +1606,7 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskCheckListAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_CHECK_LIST>>> GetTaskCheckListAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -1624,7 +1635,17 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
                     parmeters.Add("@API_NAME", "GetTaskCompliance");
                     parmeters.Add("@API_METHOD", "Get");
-                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT>("SP_GET_TASK_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_LIST_OUTPUT>("SP_GET_TASK_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    foreach (var item in GetTaskEnd)
+                    {
+                        if (item.CHECK_DOC_LST == null)
+                        {
+                            item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
+                        }
+                        // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                        item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                    }
 
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
@@ -1634,9 +1655,9 @@ namespace TaskManagement.API.Repositories
                     {
                         if (TaskCompliance.MKEY <= 1)
                         {
-                            var errorResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                            var errorResult = new List<TASK_COMPLIANCE_CHECK_LIST>
                                 {
-                                    new TASK_COMPLIANCE_END_CHECK_LIST
+                                    new TASK_COMPLIANCE_CHECK_LIST
                                     {
                                         STATUS = "Error",
                                         MESSAGE = "Data not found",
@@ -1646,9 +1667,9 @@ namespace TaskManagement.API.Repositories
                             return errorResult;
                         }
                     }
-                    var successsResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                    var successsResult = new List<TASK_COMPLIANCE_CHECK_LIST>
                             {
-                            new TASK_COMPLIANCE_END_CHECK_LIST
+                            new TASK_COMPLIANCE_CHECK_LIST
                                 {
                                 STATUS = "Ok",
                                 MESSAGE = "Get data successfully!!!",
@@ -1660,9 +1681,9 @@ namespace TaskManagement.API.Repositories
             }
             catch (Exception ex)
             {
-                var errorResult = new List<TASK_COMPLIANCE_END_CHECK_LIST>
+                var errorResult = new List<TASK_COMPLIANCE_CHECK_LIST>
                     {
-                        new TASK_COMPLIANCE_END_CHECK_LIST
+                        new TASK_COMPLIANCE_CHECK_LIST
                         {
                             STATUS = "Error",
                             MESSAGE = ex.Message,

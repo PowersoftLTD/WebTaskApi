@@ -69,6 +69,7 @@ namespace TaskManagement.API.Controllers
                     var RsponseTTStatus = await _repository.CreateProjectDocDeositoryAsync(pROJECT_DOC_DEPOSITORY_HDR);
                     return RsponseTTStatus;
                 }
+
                 if (pROJECT_DOC_DEPOSITORY_HDR == null)
                 {
                     var response = new UpdateProjectDocDepositoryHDROutput_List
@@ -96,42 +97,42 @@ namespace TaskManagement.API.Controllers
 
         }
 
-        [HttpPut("Put-Project-Document-Depsitory")]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List>>> UpdateProjDocDepsitory(UpdateProjectDocDepositoryHDRInput updateProjectDocDepositoryHDRInput)
-        {
-            try
-            {
-                var DocDeository = await _repository.GetAllProjDocDepsitory(Convert.ToInt32(updateProjectDocDepositoryHDRInput.MKEY), updateProjectDocDepositoryHDRInput.CREATED_BY.ToString(), "UpdateProjDocDepsitory".ToString(), "Update".ToString());
+        //[HttpPut("Put-Project-Document-Depsitory")]
+        //[Authorize]
+        //public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List>>> UpdateProjDocDepsitory(UpdateProjectDocDepositoryHDRInput updateProjectDocDepositoryHDRInput)
+        //{
+        //    try
+        //    {
+        //        var DocDeository = await _repository.GetProjectDocDeositoryByIDAsync(Convert.ToInt32(updateProjectDocDepositoryHDRInput.MKEY), updateProjectDocDepositoryHDRInput.CREATED_BY.ToString(), "UpdateProjDocDepsitory".ToString(), "Update".ToString());
 
-                if (DocDeository != null || Convert.ToInt32(DocDeository) > 0)
-                {
-                    var ProjectDocDeository = await _repository.UpdateProjectDepositoryDocumentAsync(updateProjectDocDepositoryHDRInput);
-                    return Ok(ProjectDocDeository);
-                }
-                else
-                {
-                    var responseDocumentTemplate = new UpdateProjectDocDepositoryHDROutput_List
-                    {
-                        STATUS = "Error",
-                        MESSAGE = "Not found",
-                        DATA = null
-                    };
-                    return Ok(responseDocumentTemplate);
-                }
-            }
-            catch (Exception ex)
-            {
-                var responseDocumentTemplate = new UpdateProjectDocDepositoryHDROutput_List
-                {
-                    STATUS = "Error",
-                    MESSAGE = ex.Message,
-                    DATA = null
-                };
-                return Ok(responseDocumentTemplate);
-            }
+        //        if (DocDeository != null || Convert.ToInt32(DocDeository) > 0)
+        //        {
+        //            var ProjectDocDeository = await _repository.UpdateProjectDepositoryDocumentAsync(updateProjectDocDepositoryHDRInput);
+        //            return OkProjectDocDeository);
+        //        }
+        //        else
+        //        {
+        //            var responseDocumentTemplate = new UpdateProjectDocDepositoryHDROutput_List
+        //            {
+        //                STATUS = "Error",
+        //                MESSAGE = "Not found",
+        //                DATA = null
+        //            };
+        //            return responseDocumentTemplate;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var responseDocumentTemplate = new UpdateProjectDocDepositoryHDROutput_List
+        //        {
+        //            STATUS = "Error",
+        //            MESSAGE = ex.Message,
+        //            DATA = null
+        //        };
+        //        return responseDocumentTemplate;
+        //    }
 
-        }
+        //}
 
         [HttpGet("Get-Document-Details")]
         [Authorize]

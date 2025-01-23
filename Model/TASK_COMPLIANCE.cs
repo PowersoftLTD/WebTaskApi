@@ -3,6 +3,18 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace TaskManagement.API.Model
 {
+    public class TASK_COMPLIANCE_INPUT
+    {
+        [JsonPropertyName("PROPERTY_MKEY")]
+        public int PROPERTY_MKEY { get; set; }
+        [JsonPropertyName("BUILDING_MKEY")]
+        public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("TASK_MKEY")]
+        public int TASK_MKEY { get; set; }
+        [JsonPropertyName("USER_ID")]
+        public int USER_ID { get; set; }
+    }
+
     public class TASK_COMPLIANCE_list
     {
         [JsonPropertyName("STATUS")]
@@ -11,8 +23,6 @@ namespace TaskManagement.API.Model
         public string? MESSAGE { get; set; }
         [JsonPropertyName("DATA")]
         public IEnumerable<TASK_COMPLIANCE_OUTPUT> DATA { get; set; }
-        
-        
     }
 
     public class TASK_COMPLIANCE_END_CHECK_LIST
@@ -23,6 +33,56 @@ namespace TaskManagement.API.Model
         public string? MESSAGE { get; set; }
         [JsonPropertyName("DATA")]
         public IEnumerable<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT> DATA { get; set; }
+    }
+    public class TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT
+    {
+        [JsonPropertyName("MKEY")]
+        public int MKEY { get; set; }
+
+        [JsonPropertyName("PROPERTY_MKEY")]
+        public int PROPERTY_MKEY { get; set; }
+
+        [JsonPropertyName("BUILDING_MKEY")]
+        public int BUILDING_MKEY { get; set; }
+
+        [JsonPropertyName("CHECK_DOC_LST")]
+        public Dictionary<string, object>? CHECK_DOC_LST { get; set; }
+
+        [JsonPropertyName("DOCUMENT_CATEGORY")]
+        public string DOCUMENT_CATEGORY { get; set; }
+
+        [JsonPropertyName("TYPE_DESC")]
+        public string TYPE_DESC { get; set; }
+
+        [JsonPropertyName("DOCUMENT_NAME")]
+        public string DOCUMENT_NAME { get; set; }
+
+        [JsonPropertyName("CREATED_BY_ID")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("CREATED_BY_NAME")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("CREATION_DATE")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("LAST_UPDATED_BY")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("UPDATED_BY_NAME")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("LAST_UPDATE_DATE")]
+        public string? LAST_UPDATE_DATE { get; set; }
+    }
+    public class TASK_COMPLIANCE_CHECK_LIST
+    {
+        [JsonPropertyName("STATUS")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("MESSAGE")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("DATA")]
+        public IEnumerable<TASK_COMPLIANCE_CHECK_LIST_OUTPUT> DATA { get; set; }
     }
 
 
@@ -65,18 +125,7 @@ namespace TaskManagement.API.Model
         public string LAST_UPDATE_DATE { get; set; }
     }
 
-    public class TASK_COMPLIANCE_INPUT
-    {
-        [JsonPropertyName("PROPERTY_MKEY")]
-        public int PROPERTY_MKEY { get; set; }
-        [JsonPropertyName("BUILDING_MKEY")]
-        public int BUILDING_MKEY { get; set; }
-        [JsonPropertyName("USER_ID")]
-        public int USER_ID { get; set; }
-    }
-
-
-    public class TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT
+    public class TASK_COMPLIANCE_CHECK_LIST_OUTPUT
     {
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
@@ -86,7 +135,10 @@ namespace TaskManagement.API.Model
         
         [JsonPropertyName("BUILDING_MKEY")]
         public int BUILDING_MKEY { get; set; }
-        
+
+        [JsonPropertyName("CHECK_DOC_LST")]
+        public Dictionary<string, object>? CHECK_DOC_LST { get; set; }
+
         [JsonPropertyName("DOCUMENT_CATEGORY")]
         public string DOCUMENT_CATEGORY { get; set; }
         

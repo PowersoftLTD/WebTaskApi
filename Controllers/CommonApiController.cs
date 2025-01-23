@@ -1510,7 +1510,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/Get-Task-CheckList")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskCheckList(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_CHECK_LIST>>> GetTaskCheckList(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
         {
             bool FlagError = false;
             string ErrorMessage = string.Empty;
@@ -1545,7 +1545,7 @@ namespace TaskManagement.API.Controllers
 
                 if (FlagError == true)
                 {
-                    var response = new TASK_COMPLIANCE_END_CHECK_LIST
+                    var response = new TASK_COMPLIANCE_CHECK_LIST
                     {
                         STATUS = "Error",
                         MESSAGE = ErrorMessage,
@@ -1554,12 +1554,12 @@ namespace TaskManagement.API.Controllers
                     return Ok(response);
                 }
 
-                var RsponseStatus = await _repository.GetTaskEndListAsync(tASK_COMPLIANCE_INPUT);
+                var RsponseStatus = await _repository.GetTaskCheckListAsync(tASK_COMPLIANCE_INPUT);
                 return RsponseStatus;
             }
             catch (Exception ex)
             {
-                var response = new TASK_COMPLIANCE_END_CHECK_LIST
+                var response = new TASK_COMPLIANCE_CHECK_LIST
                 {
                     STATUS = "Error",
                     MESSAGE = ex.Message,
