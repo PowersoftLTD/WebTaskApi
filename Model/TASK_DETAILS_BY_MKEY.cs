@@ -40,6 +40,8 @@ namespace TaskManagement.API.Model
         public string? CAREGORY { get; set; }
         [JsonPropertyName("PROJECT_MKEY")]
         public string PROJECT_MKEY { get; set; }
+        [JsonPropertyName("BUILDING_MKEY")]
+        public int BUILDING_MKEY { get; set; }
         [JsonPropertyName("PROJECT")]
         public string? PROJECT { get; set; }
         [JsonPropertyName("Sub_PROJECT")]

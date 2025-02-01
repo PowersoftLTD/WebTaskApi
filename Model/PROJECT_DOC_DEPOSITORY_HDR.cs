@@ -125,7 +125,7 @@ namespace TaskManagement.API.Model
         public string? CREATION_DATE { get; set; }
 
         [JsonPropertyName("LAST_UPDATED_BY")]
-        public int? LAST_UPDATED_BY { get; set; }
+        public string? LAST_UPDATED_BY { get; set; }
 
         [JsonPropertyName("UPDATED_BY_NAME")]
         public string? UPDATED_BY_NAME { get; set; }

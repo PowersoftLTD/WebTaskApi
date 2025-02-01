@@ -8,6 +8,10 @@ namespace TaskManagement.API.Model
         public int HEADER_MKEY { get; set; }
         [JsonPropertyName("TASK_NO")]
         public string TASK_NO { get; set; }  // SEQ_NO IS TASK_NO
+        
+        [JsonPropertyName("SEQ_NO")]
+        public string SEQ_NO { get; set; }  // 
+        
         [JsonPropertyName("MAIN_ABBR")]
         public string MAIN_ABBR { get; set; }
         [JsonPropertyName("ABBR_SHORT_DESC")]

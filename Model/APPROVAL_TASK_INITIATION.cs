@@ -34,6 +34,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("RESPOSIBLE_EMP_MKEY")]
         public int? RESPOSIBLE_EMP_MKEY { get; set; }
 
+        [JsonPropertyName("RESPOSIBLE_EMP_NAME")]
+        public string? RESPOSIBLE_EMP_NAME { get; set; }
+
         [JsonPropertyName("JOB_ROLE")]
         public int? JOB_ROLE { get; set; }
 

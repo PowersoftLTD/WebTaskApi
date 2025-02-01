@@ -102,17 +102,17 @@ namespace TaskManagement.API.Controllers
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,PROPERTY ";
                 }
-                if (aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE == null)
-                {
-                    flagRequired = true;
-                    RequiredColumn = RequiredColumn + " ,START_DATE ";
-                }
+                //if (aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE == null)
+                //{
+                //    flagRequired = true;
+                //    RequiredColumn = RequiredColumn + " ,START_DATE ";
+                //}
 
-                if (aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE == null)
-                {
-                    flagRequired = true;
-                    RequiredColumn = RequiredColumn + " ,END_DATE ";
-                }
+                //if (aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE == null)
+                //{
+                //    flagRequired = true;
+                //    RequiredColumn = RequiredColumn + " ,END_DATE ";
+                //}
 
                 if (aPPROVAL_TASK_INITIATION.INITIATOR == null)
                 {
@@ -188,16 +188,16 @@ namespace TaskManagement.API.Controllers
                             RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";
                         }
 
-                        if (aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE >= ChkDate.TENTATIVE_START_DATE)
-                        {
-                            flagRequired = true;
-                            RequiredColumn = RequiredColumn + " ,TENTATIVE_START_DATE ";
-                        }
-                        if (aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE <= ChkDate.TENTATIVE_END_DATE)
-                        {
-                            flagRequired = true;
-                            RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";
-                        }
+                        //if (aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE >= ChkDate.TENTATIVE_START_DATE)
+                        //{
+                        //    flagRequired = true;
+                        //    RequiredColumn = RequiredColumn + " ,TENTATIVE_START_DATE ";
+                        //}
+                        //if (aPPROVAL_TASK_INITIATION.TENTATIVE_END_DATE <= ChkDate.TENTATIVE_END_DATE)
+                        //{
+                        //    flagRequired = true;
+                        //    RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";
+                        //}
                     }
                     else
                     {
