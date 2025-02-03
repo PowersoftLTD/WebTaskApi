@@ -16,6 +16,7 @@ namespace TaskManagement.API.Model
         public int? JOB_ROLE { get; set; }
         public string? TAGS { get; set; }
         public int? DAYS_REQUIERD { get; set; }
+        public string? SEQ_ORDER { get; set; }
         public int? CREATED_BY { get; set; }
         public Dictionary<string, object>? END_RESULT_DOC_LST { get; set; }
         public Dictionary<string, object>? CHECKLIST_DOC_LST { get; set; }

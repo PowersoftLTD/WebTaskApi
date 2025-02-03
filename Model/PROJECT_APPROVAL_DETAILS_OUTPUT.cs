@@ -16,6 +16,10 @@ namespace TaskManagement.API.Model
         public string MAIN_ABBR { get; set; }
         [JsonPropertyName("ABBR_SHORT_DESC")]
         public string ABBR_SHORT_DESC { get; set; }
+
+        [JsonPropertyName("SHORT_DESCRIPTION")]
+        public string? SHORT_DESCRIPTION { get; set; }
+
         [JsonPropertyName("DAYS_REQUIERD")]
         public string DAYS_REQUIERD { get; set; }
         [JsonPropertyName("AUTHORITY_DEPARTMENT")]

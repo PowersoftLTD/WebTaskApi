@@ -16,6 +16,7 @@ namespace TaskManagement.API.Model
         public int? JOB_ROLE { get; set; }
         public string? TAGS { get; set; }
         public int? DAYS_REQUIERD { get; set; }
+        public string? SEQ_ORDER { get; set; }
         public Dictionary<string, object>? END_RESULT_DOC_LST { get; set; }
         public Dictionary<string, object>? CHECKLIST_DOC_LST { get; set; }
         public List<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>? SUBTASK_LIST { get; set; } = new List<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>();

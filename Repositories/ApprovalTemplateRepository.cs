@@ -216,6 +216,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@RESPOSIBLE_EMP_MKEY", insertApprovalTemplates.RESPOSIBLE_EMP_MKEY);
                     parameters.Add("@JOB_ROLE", insertApprovalTemplates.JOB_ROLE);
                     parameters.Add("@NO_DAYS_REQUIRED", insertApprovalTemplates.DAYS_REQUIERD);
+                    parameters.Add("@SEQ_ORDER", insertApprovalTemplates.SEQ_ORDER);
                     parameters.Add("@TAGS", insertApprovalTemplates.TAGS);
                     parameters.Add("@CREATED_BY", insertApprovalTemplates.CREATED_BY);
                     parameters.Add("@TAGS", insertApprovalTemplates.TAGS);
@@ -381,52 +382,55 @@ namespace TaskManagement.API.Repositories
                         subtaskDataTable.Columns.Add("DELETE_FLAG", typeof(char));
 
                         bool flagID = false;
-                        if (OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null && OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Count > 0)
+                        if (OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Any())
                         {
-                            // Populate the DataTable with subtasks
-                            foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
+                            if (OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null && OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Count > 0)
                             {
-                                subtaskDataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY
-                                    , objOutPutApprovalTemplates.MKEY, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY
-                                    , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
-                            }
-
-                            // Use SqlBulkCopy to insert subtasks
-                            using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
-                            {
-                                DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"  // Ensure this matches your table name
-                            };
-
-                            bulkCopy.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
-                            bulkCopy.ColumnMappings.Add("SUBTASK_ABBR", "SUBTASK_ABBR");
-                            bulkCopy.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
-                            bulkCopy.ColumnMappings.Add("SUBTASK_MKEY", "SUBTASK_MKEY");
-                            bulkCopy.ColumnMappings.Add("SUBTASK_PARENT_ID", "SUBTASK_PARENT_ID");
-                            bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
-                            bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
-                            bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
-
-                            await bulkCopy.WriteToServerAsync(subtaskDataTable);
-
-                            // Commit the transactionSubTask
-                            //await transactionSubTask.CommitAsync();
-
-                            // Optionally, fetch the inserted values (if necessary)
-                            string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY,SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';";
-                            var subtaskKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = objOutPutApprovalTemplates.MKEY }, transaction: transaction);
-
-                            // Assuming the model has a SUBTASK_LIST dictionary to hold these values
-                            objOutPutApprovalTemplates.SUBTASK_LIST = new List<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>();  // Assuming Subtask is a class for this data
-
-                            foreach (var item in subtaskKeyValuePairs)
-                            {
-                                objOutPutApprovalTemplates.SUBTASK_LIST.Add(new OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK
+                                // Populate the DataTable with subtasks
+                                foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
                                 {
-                                    HEADER_MKEY = item.HEADER_MKEY,
-                                    SEQ_NO = item.SEQ_NO,
-                                    SUBTASK_MKEY = item.SUBTASK_MKEY,
-                                    SUBTASK_ABBR = item.SUBTASK_ABBR
-                                });
+                                    subtaskDataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY
+                                        , objOutPutApprovalTemplates.MKEY, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY
+                                        , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                }
+
+                                // Use SqlBulkCopy to insert subtasks
+                                using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
+                                {
+                                    DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"  // Ensure this matches your table name
+                                };
+
+                                bulkCopy.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
+                                bulkCopy.ColumnMappings.Add("SUBTASK_ABBR", "SUBTASK_ABBR");
+                                bulkCopy.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
+                                bulkCopy.ColumnMappings.Add("SUBTASK_MKEY", "SUBTASK_MKEY");
+                                bulkCopy.ColumnMappings.Add("SUBTASK_PARENT_ID", "SUBTASK_PARENT_ID");
+                                bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
+                                bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
+                                bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+
+                                await bulkCopy.WriteToServerAsync(subtaskDataTable);
+
+                                // Commit the transactionSubTask
+                                //await transactionSubTask.CommitAsync();
+
+                                // Optionally, fetch the inserted values (if necessary)
+                                string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY,SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';";
+                                var subtaskKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = objOutPutApprovalTemplates.MKEY }, transaction: transaction);
+
+                                // Assuming the model has a SUBTASK_LIST dictionary to hold these values
+                                objOutPutApprovalTemplates.SUBTASK_LIST = new List<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>();  // Assuming Subtask is a class for this data
+
+                                foreach (var item in subtaskKeyValuePairs)
+                                {
+                                    objOutPutApprovalTemplates.SUBTASK_LIST.Add(new OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK
+                                    {
+                                        HEADER_MKEY = item.HEADER_MKEY,
+                                        SEQ_NO = item.SEQ_NO,
+                                        SUBTASK_MKEY = item.SUBTASK_MKEY,
+                                        SUBTASK_ABBR = item.SUBTASK_ABBR
+                                    });
+                                }
                             }
                         }
                         //return aPPROVAL_TEMPLATE_HDR;
@@ -458,7 +462,7 @@ namespace TaskManagement.API.Repositories
                         SanctioningDataTable.Columns.Add("SANCTIONING_DEPARTMENT", typeof(string));
                         SanctioningDataTable.Columns.Add("SANCTIONING_AUTHORITY", typeof(string));
                         SanctioningDataTable.Columns.Add("START_DATE", typeof(DateTime));
-                        SanctioningDataTable.Columns.Add("END_DATE",  typeof(DateTime));
+                        SanctioningDataTable.Columns.Add("END_DATE", typeof(DateTime));
                         SanctioningDataTable.Columns.Add("CREATED_BY", typeof(int));
                         SanctioningDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
                         SanctioningDataTable.Columns.Add("DELETE_FLAG", typeof(char));
@@ -475,7 +479,7 @@ namespace TaskManagement.API.Repositories
 
                                 SanctioningDataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, SR_No, SANCTIONING_DEPARTMENT.LEVEL
                                     , SANCTIONING_DEPARTMENT.SANCTIONING_DEPARTMENT, SANCTIONING_DEPARTMENT.SANCTIONING_AUTHORITY
-                                    , SANCTIONING_DEPARTMENT.START_DATE, SANCTIONING_DEPARTMENT.END_DATE == null ? null : SANCTIONING_DEPARTMENT.END_DATE  ,insertApprovalTemplates.CREATED_BY
+                                    , SANCTIONING_DEPARTMENT.START_DATE, SANCTIONING_DEPARTMENT.END_DATE == null ? null : SANCTIONING_DEPARTMENT.END_DATE, insertApprovalTemplates.CREATED_BY
                                     , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
                                 SR_No = SR_No + 1;
                             }
@@ -585,7 +589,7 @@ namespace TaskManagement.API.Repositories
                 {
                     return await db.QueryFirstOrDefaultAsync<APPROVAL_TEMPLATE_HDR>("SELECT HDR.MKEY,BUILDING_TYPE,BUILDING_STANDARD" +
                         ",STATUTORY_AUTHORITY, SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY" +
-                        ",JOB_ROLE,DAYS_REQUIERD,HDR.ATTRIBUTE1,HDR.ATTRIBUTE2,HDR.ATTRIBUTE3,HDR.ATTRIBUTE4,HDR.ATTRIBUTE5,HDR.CREATED_BY" +
+                        ",JOB_ROLE,DAYS_REQUIERD,HDR.SEQ_ORDER,HDR.ATTRIBUTE1,HDR.ATTRIBUTE2,HDR.ATTRIBUTE3,HDR.ATTRIBUTE4,HDR.ATTRIBUTE5,HDR.CREATED_BY" +
                         ",HDR.CREATION_DATE,HDR.LAST_UPDATED_BY,HDR.LAST_UPDATE_DATE,SANCTION_AUTHORITY, SANCTION_DEPARTMENT,END_RESULT_DOC" +
                         ",CHECKLIST_DOC,HDR.DELETE_FLAG  FROM APPROVAL_TEMPLATE_HDR HDR INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL_SUB " +
                         "ON HDR.MKEY = TRL_SUB.HEADER_MKEY WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR)" +
@@ -656,6 +660,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@RESPOSIBLE_EMP_MKEY", updateApprovalTemplates.RESPOSIBLE_EMP_MKEY);
                     parameters.Add("@JOB_ROLE", updateApprovalTemplates.JOB_ROLE);
                     parameters.Add("@NO_DAYS_REQUIRED", updateApprovalTemplates.DAYS_REQUIERD);
+                    parameters.Add("@SEQ_ORDER", updateApprovalTemplates.SEQ_ORDER);
                     parameters.Add("@TAGS", updateApprovalTemplates.TAGS);
                     parameters.Add("@LAST_UPDATED_BY", updateApprovalTemplates.CREATED_BY);
 
@@ -863,9 +868,9 @@ namespace TaskManagement.API.Repositories
                         SanctioningDataTable.Columns.Add("LAST_UPDATED_BY", typeof(int));
                         SanctioningDataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
                         SanctioningDataTable.Columns.Add("DELETE_FLAG", typeof(char));
-                        
+
                         bool flagID = false;
-                        
+
                         if (objAPPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST != null)
                         {
                             var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t " +
