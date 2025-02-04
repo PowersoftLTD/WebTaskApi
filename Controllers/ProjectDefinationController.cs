@@ -68,101 +68,52 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                if (pROJECT_HDR.PROJECT_ABBR == null)
+                if (ModelState.IsValid)
                 {
-                    return StatusCode(400, "Please insert details of " + pROJECT_HDR.PROJECT_ABBR);
-                }
-                if (pROJECT_HDR.PROPERTY == null)
-                {
-                    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.PROPERTY);
-                }
-                if (pROJECT_HDR.BUILDING_CLASSIFICATION == null)
-                {
-                    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.BUILDING_CLASSIFICATION);
-                }
-                if (pROJECT_HDR.PROJECT_NAME == null)
-                {
-                    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.PROJECT_NAME);
-                }
-
-                if (pROJECT_HDR.BUILDING_STANDARD == null)
-                {
-                    return StatusCode(400, "Please insert details of " + pROJECT_HDR.BUILDING_STANDARD);
-                }
-                if (pROJECT_HDR.STATUTORY_AUTHORITY == null)
-                {
-                    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.STATUTORY_AUTHORITY);
-                }
-
-                foreach (var subtaskdetails in pROJECT_HDR.APPROVALS_ABBR_LIST)
-                {
-                    if (subtaskdetails.TENTATIVE_START_DATE == null)
+                    if (pROJECT_HDR.PROJECT_ABBR == null)
                     {
-                        return StatusCode(400, "Please insert details of  " + subtaskdetails.TENTATIVE_START_DATE);
+                        return StatusCode(400, "Please insert details of " + pROJECT_HDR.PROJECT_ABBR);
                     }
-                    if (subtaskdetails.TENTATIVE_END_DATE == null)
+                    if (pROJECT_HDR.PROPERTY == null)
                     {
-                        return StatusCode(400, "Please insert details of  " + subtaskdetails.TENTATIVE_END_DATE);
+                        return StatusCode(400, "Please insert details of  " + pROJECT_HDR.PROPERTY);
+                    }
+                    if (pROJECT_HDR.BUILDING_CLASSIFICATION == null)
+                    {
+                        return StatusCode(400, "Please insert details of  " + pROJECT_HDR.BUILDING_CLASSIFICATION);
+                    }
+                    if (pROJECT_HDR.PROJECT_NAME == null)
+                    {
+                        return StatusCode(400, "Please insert details of  " + pROJECT_HDR.PROJECT_NAME);
                     }
 
-                    if (subtaskdetails.DAYS_REQUIRED == null)
+                    if (pROJECT_HDR.BUILDING_STANDARD == null)
                     {
-                        return StatusCode(400, "Please insert details of  " + subtaskdetails.DAYS_REQUIRED);
+                        return StatusCode(400, "Please insert details of " + pROJECT_HDR.BUILDING_STANDARD);
                     }
-                }
-                var model = await _repository.CreateProjectDefinationAsync(pROJECT_HDR);
-                if (model == null)
-                {
-                    return StatusCode(500);
-                }
-                else
-                {
-                    return model;
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(400, ex.Message);
-            }
-        }
-
-        [HttpPut("ProjectDefination/Update-Project-Defination")]
-        [Authorize]
-        public async Task<IActionResult> UpdateProjectDefination(int MKEY, PROJECT_HDR pROJECT_HDR)
-        {
-            try
-            {
-                var ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY, pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
-
-                if (ProjectDetails == null)
-                {
-                    var ErrorDoc = new PROJECT_HDR();
-                    var response = new ApiResponse<PROJECT_HDR>
+                    if (pROJECT_HDR.STATUTORY_AUTHORITY == null)
                     {
-                        Status = "Error",
-                        Message = "Error occured",
-                        Data = ErrorDoc // No data in case of exception
-                    };
-                    return Ok(response);
-                }
-                if (MKEY != pROJECT_HDR.MKEY)
-                {
-                    var ErrorDoc = new PROJECT_HDR();
-                    var response = new ApiResponse<PROJECT_HDR>
-                    {
-                        Status = "Error",
-                        Message = "Not found",
-                        Data = ErrorDoc // No data in case of exception
-                    };
-                    return Ok(response);
-                }
+                        return StatusCode(400, "Please insert details of  " + pROJECT_HDR.STATUTORY_AUTHORITY);
+                    }
 
-                var UpadateProjectDefiniation = await _repository.UpdateProjectDefinationAsync(pROJECT_HDR);
-                if (UpadateProjectDefiniation != null)
-                {
-                    ProjectDetails = null;
-                    ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY, pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
-                    if (ProjectDetails == null)
+                    //foreach (var subtaskdetails in pROJECT_HDR.APPROVALS_ABBR_LIST)
+                    //{
+                    //    if (subtaskdetails.TENTATIVE_START_DATE == null)
+                    //    {
+                    //        return StatusCode(400, "Please insert details of  " + subtaskdetails.TENTATIVE_START_DATE);
+                    //    }
+                    //    if (subtaskdetails.TENTATIVE_END_DATE == null)
+                    //    {
+                    //        return StatusCode(400, "Please insert details of  " + subtaskdetails.TENTATIVE_END_DATE);
+                    //    }
+
+                    //    if (subtaskdetails.DAYS_REQUIRED == null)
+                    //    {
+                    //        return StatusCode(400, "Please insert details of  " + subtaskdetails.DAYS_REQUIRED);
+                    //    }
+                    //}
+                    var model = await _repository.CreateProjectDefinationAsync(pROJECT_HDR);
+                    if (model == null)
                     {
                         var ErrorDoc = new PROJECT_HDR();
                         var response = new ApiResponse<PROJECT_HDR>
@@ -175,11 +126,104 @@ namespace TaskManagement.API.Controllers
                     }
                     else
                     {
+                        return model;
+                    }
+                }
+                else
+                {
+                    var ErrorDoc = new PROJECT_HDR();
+                    var response = new ApiResponse<PROJECT_HDR>
+                    {
+                        Status = "Error",
+                        Message = "Error occured",
+                        Data = ErrorDoc // No data in case of exception
+                    };
+                    return Ok(response);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorDoc = new PROJECT_HDR();
+                var response = new ApiResponse<PROJECT_HDR>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = ErrorDoc // No data in case of exception
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPut("ProjectDefination/Update-Project-Defination")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProjectDefination(int MKEY, PROJECT_HDR pROJECT_HDR)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+
+                    var ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY, pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
+
+                    if (ProjectDetails == null)
+                    {
+                        var ErrorDoc = new PROJECT_HDR();
                         var response = new ApiResponse<PROJECT_HDR>
                         {
-                            Status = "Ok",
-                            Message = "Data Updated",
-                            Data = ProjectDetails // No data in case of exception
+                            Status = "Error",
+                            Message = "Error occured",
+                            Data = ErrorDoc // No data in case of exception
+                        };
+                        return Ok(response);
+                    }
+                    if (MKEY != pROJECT_HDR.MKEY)
+                    {
+                        var ErrorDoc = new PROJECT_HDR();
+                        var response = new ApiResponse<PROJECT_HDR>
+                        {
+                            Status = "Error",
+                            Message = "Not found",
+                            Data = ErrorDoc // No data in case of exception
+                        };
+                        return Ok(response);
+                    }
+
+                    var UpadateProjectDefiniation = await _repository.UpdateProjectDefinationAsync(pROJECT_HDR);
+                    if (UpadateProjectDefiniation != null)
+                    {
+                        ProjectDetails = null;
+                        ProjectDetails = await _repository.GetProjectDefinationByIdAsync(MKEY, pROJECT_HDR.LAST_UPDATED_BY, pROJECT_HDR.ATTRIBUTE2, pROJECT_HDR.ATTRIBUTE3);
+                        if (ProjectDetails == null)
+                        {
+                            var ErrorDoc = new PROJECT_HDR();
+                            var response = new ApiResponse<PROJECT_HDR>
+                            {
+                                Status = "Error",
+                                Message = "Error occured",
+                                Data = ErrorDoc // No data in case of exception
+                            };
+                            return Ok(response);
+                        }
+                        else
+                        {
+                            var response = new ApiResponse<PROJECT_HDR>
+                            {
+                                Status = "Ok",
+                                Message = "Data Updated",
+                                Data = ProjectDetails // No data in case of exception
+                            };
+                            return Ok(response);
+                        }
+                    }
+                    else
+                    {
+                        var ErrorDoc = new PROJECT_HDR();
+                        var response = new ApiResponse<PROJECT_HDR>
+                        {
+                            Status = "Error",
+                            Message = "Not found",
+                            Data = ErrorDoc // No data in case of exception
                         };
                         return Ok(response);
                     }
@@ -194,6 +238,7 @@ namespace TaskManagement.API.Controllers
                         Data = ErrorDoc // No data in case of exception
                     };
                     return Ok(response);
+
                 }
             }
             catch (Exception ex)
