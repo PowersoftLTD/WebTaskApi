@@ -155,13 +155,13 @@ namespace TaskManagement.API.Model
 
     }
 
-
-
-
     public class TASK_ENDLIST_INPUT
     {
+        //[JsonPropertyName("PROJECT_DOC_FILES")]
+        //public List<IFormFile>? PROJECT_DOC_FILES { get; set; }
+
         [JsonPropertyName("PROJECT_DOC_FILES")]
-        public List<IFormFile>? PROJECT_DOC_FILES { get; set; }
+        public IFormFile? PROJECT_DOC_FILES { get; set; }
 
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }

@@ -35,6 +35,10 @@ namespace TaskManagement.API.Model
         public int RESPOSIBLE_EMP_MKEY { get; set; }
         [JsonPropertyName("LONG_DESCRIPTION")]
         public string LONG_DESCRIPTION { get; set; }
+
+        [JsonPropertyName("SEQ_ORDER")]
+        public string SEQ_ORDER { get; set; }
+
         [JsonPropertyName("Status")]
         public string? Status { get; set; }
         [JsonPropertyName("Message")]

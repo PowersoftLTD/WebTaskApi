@@ -197,7 +197,7 @@ namespace TaskManagement.API.Repositories
                             parametersDelete.Add("@PROJECT_DOC_MKEY", pROJECT_DOC_DEPOSITORY_HDR.MKEY);
                             parametersDelete.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.CREATED_BY);
                             parametersDelete.Add("@APINAME", "CreateProjectDocDeositoryAsync");
-                            parametersDelete.Add("@API_METHOD", "Update");
+                            parametersDelete.Add("@APIMETHOD", "Update");
 
                             var DeleteProjectDocFile = await db.QueryAsync<dynamic>("SP_UPDATE_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersDelete, commandType: CommandType.StoredProcedure, transaction: transaction);
 
