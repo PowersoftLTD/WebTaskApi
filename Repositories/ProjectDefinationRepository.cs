@@ -153,8 +153,8 @@ namespace TaskManagement.API.Repositories
                         approvalsDataTable.Columns.Add("APPROVAL_DESCRIPTION", typeof(string));
                         approvalsDataTable.Columns.Add("DAYS_REQUIRED", typeof(int));
                         approvalsDataTable.Columns.Add("RESPOSIBLE_EMP_MKEY", typeof(int));
-                        approvalsDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(DateTime));
-                        approvalsDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(DateTime));
+                        approvalsDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(string));
+                        approvalsDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(string));
                         approvalsDataTable.Columns.Add("DEPARTMENT", typeof(int));
                         approvalsDataTable.Columns.Add("JOB_ROLE", typeof(int));
                         approvalsDataTable.Columns.Add("OUTPUT_DOCUMENT", typeof(string));
@@ -173,8 +173,12 @@ namespace TaskManagement.API.Repositories
                             row["APPROVAL_DESCRIPTION"] = approvalsList.APPROVAL_DESCRIPTION;
                             row["DAYS_REQUIRED"] = approvalsList.DAYS_REQUIRED;
                             row["RESPOSIBLE_EMP_MKEY"] = RESPOSIBLE_EMP_MKEY;
-                            row["TENTATIVE_START_DATE"] = approvalsList.TENTATIVE_START_DATE;
-                            row["TENTATIVE_END_DATE"] = approvalsList.TENTATIVE_END_DATE;
+                            row["TENTATIVE_START_DATE"] = string.IsNullOrEmpty(approvalsList.TENTATIVE_START_DATE)
+                            ? DBNull.Value
+                            : (object)DateTime.Parse(approvalsList.TENTATIVE_START_DATE);
+                            row["TENTATIVE_END_DATE"] = string.IsNullOrEmpty(approvalsList.TENTATIVE_END_DATE)
+                                   ? DBNull.Value
+                                   : (object)DateTime.Parse(approvalsList.TENTATIVE_END_DATE);
                             row["DEPARTMENT"] = approvalsList.DEPARTMENT;
                             row["JOB_ROLE"] = approvalsList.JOB_ROLE;
                             row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
@@ -316,8 +320,8 @@ namespace TaskManagement.API.Repositories
                             approvalsInsertDataTable.Columns.Add("JOB_ROLE", typeof(int));
                             approvalsInsertDataTable.Columns.Add("RESPOSIBLE_EMP_MKEY", typeof(int));
                             approvalsInsertDataTable.Columns.Add("OUTPUT_DOCUMENT", typeof(string));
-                            approvalsInsertDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(DateTime));
-                            approvalsInsertDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(DateTime));
+                            approvalsInsertDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(string));
+                            approvalsInsertDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(string));
                             approvalsInsertDataTable.Columns.Add("STATUS", typeof(string));
                             approvalsInsertDataTable.Columns.Add("APPROVAL_MKEY", typeof(int));
                             approvalsInsertDataTable.Columns.Add("CREATED_BY", typeof(int));
@@ -332,8 +336,13 @@ namespace TaskManagement.API.Repositories
                                     approvalsInsertDataTable.Rows.Add(pROJECT_HDR.MKEY, approvalsList.TASK_NO
                                         , approvalsList.APPROVAL_ABBRIVATION
                                     , approvalsList.APPROVAL_DESCRIPTION, approvalsList.DAYS_REQUIRED, approvalsList.DEPARTMENT, approvalsList.JOB_ROLE
-                                    , approvalsList.RESPOSIBLE_EMP_MKEY, approvalsList.OUTPUT_DOCUMENT, approvalsList.TENTATIVE_START_DATE
-                                    , approvalsList.TENTATIVE_END_DATE, approvalsList.STATUS, approvalsList.APPROVAL_MKEY, OBJ_PROJECT_HDR.CREATED_BY
+                                    , approvalsList.RESPOSIBLE_EMP_MKEY, approvalsList.OUTPUT_DOCUMENT,
+                                     string.IsNullOrEmpty(approvalsList.TENTATIVE_START_DATE) ? DBNull.Value
+                                                : (object)DateTime.Parse(approvalsList.TENTATIVE_START_DATE)
+                                    , string.IsNullOrEmpty(approvalsList.TENTATIVE_END_DATE)
+                                           ? DBNull.Value
+                                           : (object)DateTime.Parse(approvalsList.TENTATIVE_END_DATE)
+                                    , approvalsList.STATUS, approvalsList.APPROVAL_MKEY, OBJ_PROJECT_HDR.CREATED_BY
                                     , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), OBJ_PROJECT_HDR.CREATED_BY, 'N');
                                 }
                             }
@@ -382,8 +391,8 @@ namespace TaskManagement.API.Repositories
                             approvalsUpdateDataTable.Columns.Add("JOB_ROLE", typeof(int));
                             approvalsUpdateDataTable.Columns.Add("RESPOSIBLE_EMP_MKEY", typeof(int));
                             approvalsUpdateDataTable.Columns.Add("OUTPUT_DOCUMENT", typeof(string));
-                            approvalsUpdateDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(DateTime));
-                            approvalsUpdateDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(DateTime));
+                            approvalsUpdateDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(string));
+                            approvalsUpdateDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(string));
                             approvalsUpdateDataTable.Columns.Add("STATUS", typeof(string));
                             approvalsUpdateDataTable.Columns.Add("APPROVAL_MKEY", typeof(int));
                             approvalsUpdateDataTable.Columns.Add("LAST_UPDATED_BY", typeof(int));
@@ -398,7 +407,8 @@ namespace TaskManagement.API.Repositories
                                     , approvalsList.APPROVAL_ABBRIVATION
                                     , approvalsList.APPROVAL_DESCRIPTION, approvalsList.DAYS_REQUIRED, approvalsList.DEPARTMENT
                                     , approvalsList.JOB_ROLE, approvalsList.RESPOSIBLE_EMP_MKEY, approvalsList.OUTPUT_DOCUMENT
-                                    , approvalsList.TENTATIVE_START_DATE, approvalsList.TENTATIVE_END_DATE, approvalsList.STATUS
+                                    , approvalsList.TENTATIVE_START_DATE == null ? null : approvalsList.TENTATIVE_START_DATE
+                                    , approvalsList.TENTATIVE_END_DATE == null ? null : approvalsList.TENTATIVE_END_DATE, approvalsList.STATUS
                                     , approvalsList.APPROVAL_MKEY
                                     , OBJ_PROJECT_HDR.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
                                 }

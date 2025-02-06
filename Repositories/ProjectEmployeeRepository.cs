@@ -1570,6 +1570,18 @@ namespace TaskManagement.API.Repositories
                                 };
                                 return errorResult;
                             }
+
+                            var parmetersMedia = new DynamicParameters();
+                            parmetersMedia.Add("@TASK_MKEY", tASK_COMPLIANCE_INPUT.TASK_MKEY);
+                            parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.DOC_MKEY);
+                            parmetersMedia.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
+                            var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                            TaskCompliance.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
+                            //foreach (var OutputMedia in GetTaskEnd)
+                            //{
+                            //    OutputMedia.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
+                            //}
                         }
 
                         var sqlTransaction = (SqlTransaction)transaction;
@@ -1755,15 +1767,15 @@ namespace TaskManagement.API.Repositories
 
                     if (GetTaskEnd.Any())
                     {
-                        foreach (var item in GetTaskEnd)
-                        {
-                            if (item.CHECK_DOC_LST == null)
-                            {
-                                item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
-                            }
-                            // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-                            item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-                        }
+                        //foreach (var item in GetTaskEnd)
+                        //{
+                        //    if (item.CHECK_DOC_LST == null)
+                        //    {
+                        //        item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
+                        //    }
+                        //    // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                        //    item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                        //}
 
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();
@@ -2370,7 +2382,8 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@PROPERTY_MKEY", tASK_CHECKLIST_INPUT.PROPERTY_MKEY);
                     parmeters.Add("@BUILDING_MKEY", tASK_CHECKLIST_INPUT.BUILDING_MKEY);
-                    parmeters.Add("@DOC_NAME", tASK_CHECKLIST_INPUT.DOC_NAME);
+                    parmeters.Add("@SR_NO", tASK_CHECKLIST_INPUT.SR_NO);
+                    //parmeters.Add("@DOC_NAME", tASK_CHECKLIST_INPUT.DOC_NAME);
                     parmeters.Add("@DOC_MKEY", tASK_CHECKLIST_INPUT.DOC_MKEY);
                     parmeters.Add("@APP_CHECK", tASK_CHECKLIST_INPUT.APP_CHECK);
                     parmeters.Add("@TASK_MKEY", tASK_CHECKLIST_INPUT.TASK_MKEY);
@@ -2382,15 +2395,15 @@ namespace TaskManagement.API.Repositories
 
                     if (GetTaskEnd.Any())
                     {
-                        foreach (var item in GetTaskEnd)
-                        {
-                            if (item.CHECK_DOC_LST == null)
-                            {
-                                item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
-                            }
-                            // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-                            item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-                        }
+                        //foreach (var item in GetTaskEnd)
+                        //{
+                        //    if (item.CHECK_DOC_LST == null)
+                        //    {
+                        //        item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
+                        //    }
+                        //    // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                        //    item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                        //}
 
                         // Commit the transaction if everything is successful
                         var sqlTransaction = (SqlTransaction)transaction;
