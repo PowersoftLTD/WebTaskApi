@@ -26,9 +26,10 @@ namespace TaskManagement.API.Repositories
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
             {
-                return await db.QueryFirstOrDefaultAsync<EMPLOYEE_MST>("SELECT EMAIL_ID_OFFICIAL,LOGIN_NAME,cast(LOGIN_PASSWORD as varchar) " +
+                var PassResponse = await db.QueryFirstOrDefaultAsync<EMPLOYEE_MST>("SELECT EMAIL_ID_OFFICIAL,LOGIN_NAME,cast(LOGIN_PASSWORD as varchar) " +
                     " as LOGIN_PASSWORD FROM EMPLOYEE_MST WHERE (EMAIL_ID_OFFICIAL = @UserName OR LOGIN_NAME = @UserName) " +
                     " AND [LOGIN_PASSWORD] = @Password", new { UserName = UserName, Password = Password });
+                return PassResponse;
             }
         }
 

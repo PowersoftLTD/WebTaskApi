@@ -17,20 +17,18 @@ namespace TaskManagement.API.Model
 
     public class TASK_SANCTIONING_AUTHORITY_INPUT
     {
-        [JsonPropertyName("PROPERTY_MKEY")]
-        public int PROPERTY_MKEY { get; set; }
-        [JsonPropertyName("BUILDING_MKEY")]
-        public int BUILDING_MKEY { get; set; }
-        [JsonPropertyName("TASK_MKEY")]
-        public int TASK_MKEY { get; set; }
-        [JsonPropertyName("SAUTHORITY_MKEY")]
-        public int SAUTHORITY_MKEY { get; set; }
-        [JsonPropertyName("STATUS")]
-        public string STATUS { get; set; }
+        [JsonPropertyName("MKEY")]
+        public int MKEY { get; set; }
         [JsonPropertyName("SR_NO")]
         public int SR_NO { get; set; }
         [JsonPropertyName("LEVEL")]
         public string LEVEL { get; set; }
+        [JsonPropertyName("PROPERTY_MKEY")]
+        public int PROPERTY_MKEY { get; set; }
+        [JsonPropertyName("BUILDING_MKEY")]
+        public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("STATUS")]
+        public string STATUS { get; set; }
         [JsonPropertyName("CREATED_BY")]
         public int CREATED_BY { get; set; }
     }
@@ -132,8 +130,12 @@ namespace TaskManagement.API.Model
 
     public class TASK_CHECKLIST_INPUT
     {
+        [JsonPropertyName("TASK_MKEY")]
+        public int? TASK_MKEY { get; set; }
         [JsonPropertyName("DOC_MKEY")]
         public int DOC_MKEY { get; set; }
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
 
         [JsonPropertyName("PROPERTY_MKEY")]
         public int PROPERTY_MKEY { get; set; }
@@ -142,13 +144,10 @@ namespace TaskManagement.API.Model
         public int BUILDING_MKEY { get; set; }
 
         [JsonPropertyName("DOC_NAME")]
-        public string DOC_NAME { get; set; }
+        public string? DOC_NAME { get; set; }
 
         [JsonPropertyName("APP_CHECK")]
         public char? APP_CHECK { get; set; }
-
-        [JsonPropertyName("TASK_MKEY")]
-        public int? TASK_MKEY { get; set; }
 
         [JsonPropertyName("CREATED_BY")]
         public string? CREATED_BY { get; set; }
@@ -157,14 +156,14 @@ namespace TaskManagement.API.Model
 
     public class TASK_ENDLIST_INPUT
     {
-        //[JsonPropertyName("PROJECT_DOC_FILES")]
-        //public List<IFormFile>? PROJECT_DOC_FILES { get; set; }
-
         [JsonPropertyName("PROJECT_DOC_FILES")]
         public IFormFile? PROJECT_DOC_FILES { get; set; }
 
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
+
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
 
         [JsonPropertyName("PROPERTY_MKEY")]
         public int PROPERTY_MKEY { get; set; }
@@ -173,7 +172,7 @@ namespace TaskManagement.API.Model
         public int BUILDING_MKEY { get; set; }
 
         [JsonPropertyName("DOC_MKEY")]
-        public string DOC_MKEY { get; set; }
+        public int DOC_MKEY { get; set; }
 
         [JsonPropertyName("DOC_NUMBER")]
         public string? DOC_NUMBER { get; set; }
@@ -188,7 +187,8 @@ namespace TaskManagement.API.Model
         public string? CREATED_BY { get; set; }
 
         [JsonPropertyName("DELETE_FLAG")]
-        public string DELETE_FLAG { get; set; }
+        public string? DELETE_FLAG { get; set; }
+
     }
 
 
@@ -196,11 +196,31 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("MKEY")]
         public int? MKEY { get; set; }
+        [JsonPropertyName("SR_NO")]
+        public int? SR_NO { get; set; }
 
         [JsonPropertyName("FILE_NAME")]
         public string? FILE_NAME { get; set; }
         [JsonPropertyName("FILE_PATH")]
         public string? FILE_PATH { get; set; }
+
+        [JsonPropertyName("CREATED_BY_ID")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("CREATED_BY_NAME")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("CREATION_DATE")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("LAST_UPDATED_BY")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("UPDATED_BY_NAME")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("LAST_UPDATE_DATE")]
+        public string? LAST_UPDATE_DATE { get; set; }
 
     }
 
@@ -209,11 +229,17 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
 
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
+
         [JsonPropertyName("PROPERTY_MKEY")]
         public int PROPERTY_MKEY { get; set; }
 
         [JsonPropertyName("BUILDING_MKEY")]
         public int BUILDING_MKEY { get; set; }
+
+        [JsonPropertyName("DOCUMENT_MKEY")]
+        public string DOCUMENT_MKEY { get; set; }
 
         [JsonPropertyName("TYPE_CODE")]
         public string TYPE_CODE { get; set; }
@@ -241,6 +267,10 @@ namespace TaskManagement.API.Model
         public string? DOC_NUM_DATE_APP_FLAG { get; set; }
         [JsonPropertyName("DOC_ATTACH_APP_FLAG")]
         public string? DOC_ATTACH_APP_FLAG { get; set; }
+
+        [JsonPropertyName("TASK_OUTPUT_ATTACHMENT")]
+        public List<TASK_OUTPUT_MEDIA>? TASK_OUTPUT_ATTACHMENT { get; set; }
+
         [JsonPropertyName("ATTRIBUTE1")]
         public string? ATTRIBUTE1 { get; set; }
 
@@ -288,23 +318,37 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
+
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
+
         [JsonPropertyName("TYPE_DESC")]
         public string TYPE_DESC { get; set; }
         [JsonPropertyName("TYPE_CODE")]
         public string TYPE_CODE { get; set; }
 
+        [JsonPropertyName("SANCTIONING_DEPARTMENT")]
+        public string SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("SANCTIONING_AUTHORITY")]
+        public string SANCTIONING_AUTHORITY { get; set; }
+
+        [JsonPropertyName("SANCTIONING_AUTHORITY_MKEY")]
+        public int SANCTIONING_AUTHORITY_MKEY { get; set; }
+
         [JsonPropertyName("LEVEL")]
-        public String LEVEL { get; set; }
+        public int LEVEL { get; set; }
 
         [JsonPropertyName("STATUS")]
-        public String STATUS { get; set; }
+        public string STATUS { get; set; }
 
         [JsonPropertyName("PROPERTY_MKEY")]
         public int PROPERTY_MKEY { get; set; }
         [JsonPropertyName("BUILDING_MKEY")]
         public int BUILDING_MKEY { get; set; }
-        [JsonPropertyName("SANCTIONING_AUTHORITY")]
-        public int SANCTIONING_AUTHORITY { get; set; }
+       
+        [JsonPropertyName("SANCTIONING_AUTHORITY_NAME")]
+        public string SANCTIONING_AUTHORITY_NAME { get; set; }
+
         [JsonPropertyName("CREATED_BY_ID")]
         public int CREATED_BY_ID { get; set; }
         [JsonPropertyName("CREATED_BY_NAME")]
@@ -324,17 +368,23 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
 
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
+
         [JsonPropertyName("PROPERTY_MKEY")]
         public int PROPERTY_MKEY { get; set; }
 
         [JsonPropertyName("BUILDING_MKEY")]
         public int BUILDING_MKEY { get; set; }
 
-        [JsonPropertyName("CHECK_DOC_LST")]
-        public Dictionary<string, object>? CHECK_DOC_LST { get; set; }
+        //[JsonPropertyName("CHECK_DOC_LST")]
+        //public Dictionary<string, object>? CHECK_DOC_LST { get; set; }
+
+        [JsonPropertyName("DOCUMENT_MKEY")]
+        public int DOCUMENT_MKEY { get; set; }
 
         [JsonPropertyName("DOCUMENT_CATEGORY")]
-        public string DOCUMENT_CATEGORY { get; set; }
+        public int DOCUMENT_CATEGORY { get; set; }
 
         [JsonPropertyName("TYPE_DESC")]
         public string TYPE_DESC { get; set; }

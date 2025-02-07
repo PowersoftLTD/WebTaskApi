@@ -35,10 +35,10 @@ namespace TaskManagement.API.Model
         public string? OUTPUT_DOCUMENT { get; set; }
 
         [Column("TENTATIVE_START_DATE")]
-        public DateTime? TENTATIVE_START_DATE { get; set; }
+        public string? TENTATIVE_START_DATE { get; set; }
 
         [Column("TENTATIVE_END_DATE")]
-        public DateTime? TENTATIVE_END_DATE { get; set; }
+        public string? TENTATIVE_END_DATE { get; set; }
 
         [Column("STATUS")]
         public string? STATUS { get; set; }
