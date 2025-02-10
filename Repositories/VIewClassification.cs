@@ -304,5 +304,59 @@ namespace TaskManagement.API.Repositories
                 return ErrorResponse;
             }
         }
+        public async Task<IEnumerable<EmployeeLoginOutput_LIST>> GetResponsiblePersonByJobRoleDepartmentAsync(RESPONSIBLE_PERSON_INPUT rESPONSIBLE_PERSON_INPUT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@DEPARTMENT_MKEY", rESPONSIBLE_PERSON_INPUT.DEPARTMENT_MKEY);
+                    parmeters.Add("@JOB_ROLE_MKEY", rESPONSIBLE_PERSON_INPUT.JOB_ROLE_MKEY);
+                    parmeters.Add("@USER_ID", rESPONSIBLE_PERSON_INPUT.USER_ID);
+                    var AssignToDetails = await db.QueryAsync<EmployeeLoginOutput>("SP_GET_RESPONSIBLE_PERSON_BY_JOBROLE", parmeters, commandType: CommandType.StoredProcedure);
+                    if (AssignToDetails.Any())
+                    {
+
+                        var successsResult = new List<EmployeeLoginOutput_LIST>
+                    {
+                        new EmployeeLoginOutput_LIST
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= AssignToDetails
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<EmployeeLoginOutput_LIST>
+                    {
+                        new EmployeeLoginOutput_LIST
+                        {
+                            Status = "Error",
+                            Message = "No found",
+                            Data=null
+                        }
+                    };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<EmployeeLoginOutput_LIST>
+                    {
+                        new EmployeeLoginOutput_LIST
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+                        }
+                    };
+                return errorResult;
+            }
+        }
     }
 }
