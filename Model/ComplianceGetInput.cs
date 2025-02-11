@@ -89,9 +89,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("LONG_DESCRIPTION")]
         public string LONG_DESCRIPTION { get; set; }
         [JsonPropertyName("RAISED_AT")]
-        public string? RAISED_AT { get; set; }
+        public int? RAISED_AT { get; set; }
         [JsonPropertyName("RAISED_AT_BEFORE")]
-        public string? RAISED_AT_BEFORE { get; set; }
+        public int? RAISED_AT_BEFORE { get; set; }
         [JsonPropertyName("RESPONSIBLE_DEPARTMENT")]
         public int? RESPONSIBLE_DEPARTMENT { get; set; }
         [JsonPropertyName("CAREGORY")]

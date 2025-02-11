@@ -304,5 +304,26 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Responsible-Person-By-JobRole-Department")]
+        [Authorize]
+        public async Task<ActionResult<EmployeeCompanyMST>> GetResponsiblePersonByJobRoleDepartment(RESPONSIBLE_PERSON_INPUT rESPONSIBLE_PERSON_INPUT)
+        {
+            try
+            {
+                var classifications = await _repository.GetResponsiblePersonByJobRoleDepartmentAsync(rESPONSIBLE_PERSON_INPUT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new V_Building_Classification_new
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
     }
 }

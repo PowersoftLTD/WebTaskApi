@@ -448,6 +448,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("STATUS")]
         public string STATUS { get; set; }
 
+        [JsonPropertyName("DISPLAY_STATUS")]
+        public string DISPLAY_STATUS { get; set; }
+
         [JsonPropertyName("TASK_TYPE")]
         public int? TASK_TYPE { get; set; }
 
