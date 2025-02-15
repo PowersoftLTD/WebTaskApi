@@ -34,12 +34,21 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("RESPONSIBLE_DEPARTMENT")]
         public int RESPONSIBLE_DEPARTMENT { get; set; }
+        [JsonPropertyName("RESPONSIBLE_DEPARTMENT_NAME")]
+        public string RESPONSIBLE_DEPARTMENT_NAME { get; set; }
+
         [JsonPropertyName("JOB_ROLE")]
         public int JOB_ROLE { get; set; }
+        [JsonPropertyName("JOB_ROLE_NAME")]
+        public string JOB_ROLE_NAME { get; set; }
         [JsonPropertyName("TAGS")]
         public string? TAGS { get; set; }
         [JsonPropertyName("RESPONSIBLE_PERSON")]
         public int RESPONSIBLE_PERSON { get; set; }
+
+        [JsonPropertyName("RESPONSIBLE_PERSON_NAME")]
+        public string RESPONSIBLE_PERSON_NAME { get; set; }
+
         [JsonPropertyName("TO_BE_COMPLETED_BY")]
         public DateTime TO_BE_COMPLETED_BY { get; set; }
         [JsonPropertyName("NO_DAYS")]

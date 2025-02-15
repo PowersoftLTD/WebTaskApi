@@ -174,34 +174,14 @@ namespace TaskManagement.API.Repositories
 
                     var GetCompliance = await db.QueryAsync<ComplianceOutPut>("SP_COMPLIANCE_INSERT_UPDATE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                    if (GetCompliance == null)
+
+                    if (GetCompliance.Any())
                     {
-                        // Handle other unexpected exceptions
-                        RollbackTransaction(transaction);
-                        return GenerateErrorResponse("An error occurred");
-                    }
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
 
-                    foreach (var GetCount in GetCompliance)
-                    {
-                        if (GetCount == null || GetCount.ResponseStatus == "ERROR" || GetCount.MKEY == 0)
-                        {
-                            return new List<ComplianceOutput_LIST>
-                            {
-                                new ComplianceOutput_LIST
-                                {
-                                    STATUS = "Error",
-                                    MESSAGE = GetCount.Message,
-                                    DATA = null
-                                }
-                            };
-                        }
-                    }
-
-                    var sqlTransaction = (SqlTransaction)transaction;
-                    await sqlTransaction.CommitAsync();
-                    transactionCompleted = true;
-
-                    return new List<ComplianceOutput_LIST>
+                        return new List<ComplianceOutput_LIST>
                     {
                         new ComplianceOutput_LIST
                         {
@@ -210,6 +190,20 @@ namespace TaskManagement.API.Repositories
                             DATA = GetCompliance
                         }
                     };
+                    }
+                    else
+                    {
+                        return new List<ComplianceOutput_LIST>
+                            {
+                                new ComplianceOutput_LIST
+                                {
+                                    STATUS = "Error",
+                                    MESSAGE = "Error occured",
+                                    DATA = null
+                                }
+                            };
+
+                    }
                 }
 
                 // Ensure that this method always returns a value
