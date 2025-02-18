@@ -167,18 +167,108 @@ namespace TaskManagement.API.Repositories
         }
         public async Task<int> TASKFileUpoadAsync(FileUploadAPI fileUploadAPI)
         {
-            using (IDbConnection db = _dapperDbConnection.CreateConnection())
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@MKEY", fileUploadAPI.TASK_MKEY);
-                parameters.Add("@FILE_NAME", fileUploadAPI.FILE_NAME);
-                parameters.Add("@FILE_PATH", fileUploadAPI.FILE_PATH);
-                parameters.Add("@CREATED_BY", fileUploadAPI.CREATED_BY);
-                parameters.Add("@ATTRIBUTE14", fileUploadAPI.ATTRIBUTE14);
-                parameters.Add("@ATTRIBUTE15", fileUploadAPI.ATTRIBUTE15);
-                parameters.Add("@ATTRIBUTE16", fileUploadAPI.ATTRIBUTE16);
-                return await db.ExecuteScalarAsync<int>("SP_INSERT_TASK_RECURSIVE_FILE_UPLOAD", parameters, commandType: CommandType.StoredProcedure);
+            //using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            //{
+            //    var parameters = new DynamicParameters();
+            //    parameters.Add("@MKEY", fileUploadAPI.TASK_MKEY);
+            //    parameters.Add("@FILE_NAME", fileUploadAPI.FILE_NAME);
+            //    parameters.Add("@FILE_PATH", fileUploadAPI.FILE_PATH);
+            //    parameters.Add("@CREATED_BY", fileUploadAPI.CREATED_BY);
+            //    parameters.Add("@ATTRIBUTE14", fileUploadAPI.ATTRIBUTE14);
+            //    parameters.Add("@ATTRIBUTE15", fileUploadAPI.ATTRIBUTE15);
+            //    parameters.Add("@ATTRIBUTE16", fileUploadAPI.ATTRIBUTE16);
+            //    return await db.ExecuteScalarAsync<int>("SP_INSERT_TASK_RECURSIVE_FILE_UPLOAD", parameters, commandType: CommandType.StoredProcedure);
 
+            //}
+
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@TASK_MKEY", fileUploadAPI.TASK_MKEY);
+                    parameters.Add("@FILE_NAME", fileUploadAPI.FILE_NAME);
+                    parameters.Add("@FILE_PATH", fileUploadAPI.FILE_PATH);
+                    parameters.Add("@CREATED_BY", fileUploadAPI.CREATED_BY);
+                    parameters.Add("@ATTRIBUTE14", fileUploadAPI.ATTRIBUTE14);
+                    parameters.Add("@ATTRIBUTE15", fileUploadAPI.ATTRIBUTE15);
+                    parameters.Add("@ATTRIBUTE16", fileUploadAPI.ATTRIBUTE16);
+                    var taskRecursive = await db.ExecuteScalarAsync<int>("SP_INSERT_TASK_RECURSIVE_FILE_UPLOAD", parameters, commandType: CommandType.StoredProcedure,transaction :transaction);
+                    
+                    if (taskRecursive == -1)
+                    {
+                        // Handle other unexpected exceptions
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                //TranError.Message = ex.Message;
+                                //return TranError;
+                            }
+                        }
+
+                        var TemplateError = new DOC_TEMPLATE_HDR();
+                        TemplateError.Status = "Error";
+                        TemplateError.Message = "Error Occurd";
+                        return taskRecursive;
+                    }
+                    else 
+                    {
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+                        return taskRecursive;
+                    }
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        //var TranError = new APPROVAL_TASK_INITIATION();
+                        //TranError.ResponseStatus = "Error";
+                        //TranError.Message = ex.Message;
+                        //return TranError;
+                    }
+                }
+                var doc_update = new DOC_TEMPLATE_HDR();
+                doc_update.Status = "Error";
+                doc_update.Message = ex.Message;
+                return 0;
             }
         }
     }
