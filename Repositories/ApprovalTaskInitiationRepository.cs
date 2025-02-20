@@ -196,7 +196,7 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@CATEGORY", aPPROVAL_TASK_INITIATION.CAREGORY);
                         parmetersSubtask.Add("@PROJECT_ID", aPPROVAL_TASK_INITIATION.PROPERTY);
                         parmetersSubtask.Add("@SUBPROJECT_ID", aPPROVAL_TASK_INITIATION.BUILDING_MKEY);
-                        parmetersSubtask.Add("@COMPLETION_DATE", SubTask.COMPLITION_DATE);
+                        parmetersSubtask.Add("@COMPLETION_DATE", aPPROVAL_TASK_INITIATION.COMPLITION_DATE);
                         parmetersSubtask.Add("@ASSIGNED_TO", SubTask.RESPOSIBLE_EMP_MKEY);
                         parmetersSubtask.Add("@TAGS", SubTask.TAGS);
                         parmetersSubtask.Add("@CLOSE_DATE", SubTask.TENTATIVE_END_DATE);

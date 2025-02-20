@@ -55,6 +55,9 @@ namespace TaskManagement.API.Model
         public IEnumerable<TASK_COMPLIANCE_OUTPUT> DATA { get; set; }
     }
 
+
+
+
     public class TASK_COMPLIANCE_END_CHECK_LIST
     {
         [JsonPropertyName("STATUS")]
@@ -151,8 +154,97 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("CREATED_BY")]
         public string? CREATED_BY { get; set; }
+    }
+
+    public class TaskCheckListOutputList
+    {
+        [JsonPropertyName("STATUS")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("MESSAGE")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("DATA")]
+        public IEnumerable<TASK_CHECKLIST_TABLE_OUTPUT> DATA { get; set; }
+    }
+
+    public class TASK_CHECKLIST_TABLE_INPUT
+    {
+        [JsonPropertyName("TASK_MKEY")]
+        public int? TASK_MKEY { get; set; }
+        [JsonPropertyName("DOC_MKEY")]
+        public int DOC_MKEY { get; set; }
+        [JsonPropertyName("DOCUMENT_CATEGORY")]
+        public int DOCUMENT_CATEGORY { get; set; }
+        //public Dictionary<string, object>? CHECKLIST_DOC_LST { get; set; }
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("DELETE_FLAG")]
+        public string DELETE_FLAG { get; set; }
+        [JsonPropertyName("CREATED_BY")]
+        public string? CREATED_BY { get; set; }
 
     }
+    public class TASK_CHECKLIST_TABLE_OUTPUT
+    {
+        [JsonPropertyName("TASK_MKEY")]
+        public int TASK_MKEY { get; set; }
+
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
+
+        [JsonPropertyName("PROPERTY_MKEY")]
+        public int PROPERTY_MKEY { get; set; }
+
+        [JsonPropertyName("BUILDING_MKEY")]
+        public int BUILDING_MKEY { get; set; }
+
+        //[JsonPropertyName("CHECK_DOC_LST")]
+        //public Dictionary<string, object>? CHECK_DOC_LST { get; set; }
+
+        [JsonPropertyName("DOCUMENT_MKEY")]
+        public int DOCUMENT_MKEY { get; set; }
+
+        [JsonPropertyName("DOCUMENT_CATEGORY")]
+        public int DOCUMENT_CATEGORY { get; set; }
+
+        [JsonPropertyName("TYPE_DESC")]
+        public string TYPE_DESC { get; set; }
+
+        [JsonPropertyName("DOCUMENT_NAME")]
+        public string DOCUMENT_NAME { get; set; }
+
+        [JsonPropertyName("APP_CHECK")]
+        public char APP_CHECK { get; set; }
+
+        [JsonPropertyName("CREATED_BY_ID")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("CREATED_BY_NAME")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("CREATION_DATE")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("LAST_UPDATED_BY")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("UPDATED_BY_NAME")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("LAST_UPDATE_DATE")]
+        public string? LAST_UPDATE_DATE { get; set; }
+        //[JsonPropertyName("TASK_MKEY")]
+        //public int? TASK_MKEY { get; set; }
+        //[JsonPropertyName("DOC_MKEY")]
+        //public int DOC_MKEY { get; set; }
+        //[JsonPropertyName("DOCUMENT_CATEGORY")]
+        //public int DOCUMENT_CATEGORY { get; set; }
+        //[JsonPropertyName("SR_NO")]
+        //public int SR_NO { get; set; }
+        //[JsonPropertyName("CREATED_BY")]
+        //public string? CREATED_BY { get; set; }
+
+    }
+
 
     public class TASK_ENDLIST_INPUT
     {
@@ -314,6 +406,9 @@ namespace TaskManagement.API.Model
         public IEnumerable<TaskSanctioningDepartmentOutput> DATA { get; set; }
     }
 
+
+
+
     public class TaskSanctioningDepartmentOutput
     {
         [JsonPropertyName("MKEY")]
@@ -345,7 +440,7 @@ namespace TaskManagement.API.Model
         public int PROPERTY_MKEY { get; set; }
         [JsonPropertyName("BUILDING_MKEY")]
         public int BUILDING_MKEY { get; set; }
-       
+
         [JsonPropertyName("SANCTIONING_AUTHORITY_NAME")]
         public string SANCTIONING_AUTHORITY_NAME { get; set; }
 

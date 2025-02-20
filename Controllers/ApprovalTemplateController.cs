@@ -149,16 +149,23 @@ namespace TaskManagement.API.Controllers
                 var model = await _repository.CreateApprovalTemplateAsync(insertApprovalTemplates);
                 if (model == null)
                 {
-                    return StatusCode(400, "Faild to insert data");
+
+                    var errorResponse = new OutPutApprovalTemplates();
+                    errorResponse.Status = "Error";
+                    errorResponse.Message = "An error occurd!!!";
+                    return Ok(errorResponse);
                 }
                 else
                 {
-                    return model;
+                    return Ok(model);
                 }
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                var errorResponse = new OutPutApprovalTemplates();
+                errorResponse.Status = "Error";
+                errorResponse.Message = ex.Message;
+                return Ok(errorResponse);
             }
         }
 
@@ -180,7 +187,10 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest("Please enter the ABBR");
+                var errorResponse = new APPROVAL_TEMPLATE_HDR();
+                errorResponse.Status = "Error";
+                errorResponse.Message = ex.Message;
+                return Ok(errorResponse);
             }
         }
 

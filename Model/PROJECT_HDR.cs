@@ -13,16 +13,14 @@ namespace TaskManagement.API.Model
         public string? PROJECT_ABBR { get; set; }  // Project Abbrivation // PROJECT_ABBR
         //[JsonPropertyName("PROPERTY")]
         public int? PROPERTY { get; set; } // Property
-
         public string? LEGAL_ENTITY { get; set; }
-
         public string? PROJECT_ADDRESS { get; set; }
-
         public int? BUILDING_CLASSIFICATION { get; set; }
-
+        public string BUILDING_TYPE_NAME { get; set; }
         public int? BUILDING_STANDARD { get; set; }
-
+        public string BUILDING_STANDARD_NAME { get; set; }
         public int? STATUTORY_AUTHORITY { get; set; }
+        public string STATUTORY_AUTHORITY_NAME { get; set; }
 
         public string? ATTRIBUTE1 { get; set; }
 

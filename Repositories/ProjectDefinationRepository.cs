@@ -342,7 +342,8 @@ namespace TaskManagement.API.Repositories
                                     , string.IsNullOrEmpty(approvalsList.TENTATIVE_END_DATE)
                                            ? DBNull.Value
                                            : (object)DateTime.Parse(approvalsList.TENTATIVE_END_DATE)
-                                    , approvalsList.STATUS, approvalsList.APPROVAL_MKEY, OBJ_PROJECT_HDR.CREATED_BY
+                                    , approvalsList.STATUS
+                                    , approvalsList.APPROVAL_MKEY, OBJ_PROJECT_HDR.CREATED_BY
                                     , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), OBJ_PROJECT_HDR.CREATED_BY, 'N');
                                 }
                             }
@@ -448,6 +449,13 @@ namespace TaskManagement.API.Repositories
                                 }
                             }
 
+                        }
+                        else
+                        {
+                            var parametersDeleteABBR = new DynamicParameters();
+                            parameters.Add("@HEADER_MKEY", pROJECT_HDR.MKEY);
+                            parameters.Add("@LAST_UPDATED_BY", pROJECT_HDR.CREATED_BY);
+                            await db.ExecuteAsync("SP_DELETE_PROJECT_TRL_APPROVAL_ABBR", parametersDeleteABBR, commandType: CommandType.StoredProcedure, transaction: transaction);
                         }
 
                     }

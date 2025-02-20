@@ -362,6 +362,8 @@ namespace TaskManagement.API.Repositories
                             {
                                 // Handle rollback exception (may occur if transaction is already completed)
                                 // Log or handle the rollback failure if needed
+                                objOutPutApprovalTemplates.Status = "Error";
+                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
                                 Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
                             }
                         }
@@ -448,6 +450,8 @@ namespace TaskManagement.API.Repositories
                             {
                                 // Handle rollback exception (may occur if transaction is already completed)
                                 // Log or handle the rollback failure if needed
+                                objOutPutApprovalTemplates.Status = "Error";
+                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
                                 Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
                             }
                         }
@@ -540,6 +544,8 @@ namespace TaskManagement.API.Repositories
                             {
                                 // Handle rollback exception (may occur if transaction is already completed)
                                 // Log or handle the rollback failure if needed
+                                objOutPutApprovalTemplates.Status = "Error";
+                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
                                 Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
                             }
                         }
@@ -554,7 +560,9 @@ namespace TaskManagement.API.Repositories
             {
                 var ErrorApprovalTemplates = new OutPutApprovalTemplates
                 {
-                    MKEY = 0
+                    MKEY = 0,
+                    Status = "Error",
+                    Message = ex.Message
                 };
                 return ErrorApprovalTemplates;
             }
@@ -576,7 +584,9 @@ namespace TaskManagement.API.Repositories
                 }
                 var ErrorApprovalTemplates = new OutPutApprovalTemplates
                 {
-                    MKEY = 0
+                    MKEY = 0,
+                    Status = "Error",
+                    Message = ex.Message
                 };
                 return ErrorApprovalTemplates;
             }
