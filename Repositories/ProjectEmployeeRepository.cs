@@ -2805,7 +2805,129 @@ namespace TaskManagement.API.Repositories
                 }
             }
         }
-        
+
+        public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskEndListTableInsertUpdateAsync(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            int ProjectDAttach = 0;
+            bool transactionCompleted = false;
+            bool flagInsert = false;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();
+                    }
+
+                    // Start a new transaction
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;
+
+                    // Prepare the parameters for the stored procedure
+
+                    foreach (var docMkey in tASK_ENDLIST_TABLE_INPUT.OUTPUT_DOC_LST)
+                    {
+                        foreach (var DocCategory in docMkey.Value.ToString().Split(','))
+                        {
+                            var parameters = new DynamicParameters();
+                            parameters.Add("@MKEY", tASK_ENDLIST_TABLE_INPUT.MKEY);
+                            parameters.Add("@SR_NO", tASK_ENDLIST_TABLE_INPUT.SR_NO);
+                            parameters.Add("@DOCUMENT_MKEY", docMkey.Key);
+                            parameters.Add("@DOCUMENT_CATEGORY_MKEY", DocCategory);
+                            parameters.Add("@DOC_NUM_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_DATE_APP_FLAG);
+                            parameters.Add("@DOC_NUM_VALID_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_VALID_FLAG);
+                            parameters.Add("@DOC_NUM_DATE_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_DATE_APP_FLAG);
+                            parameters.Add("@DOC_ATTACH_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_ATTACH_APP_FLAG);
+                            parameters.Add("@DOC_NUMBER", tASK_ENDLIST_TABLE_INPUT.DOC_NUMBER);
+                            parameters.Add("@DOC_DATE", tASK_ENDLIST_TABLE_INPUT.DOC_DATE);
+                            parameters.Add("@VALIDITY_DATE", tASK_ENDLIST_TABLE_INPUT.VALIDITY_DATE);
+                            parameters.Add("@CREATED_BY", tASK_ENDLIST_TABLE_INPUT.CREATED_BY);
+                            parameters.Add("@DELETE_FLAG", tASK_ENDLIST_TABLE_INPUT.DELETE_FLAG);
+                            parameters.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
+                            parameters.Add("@API_METHOD", "Insert/Update");
+
+                            var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                            if (!GetTaskEnd.Any())
+                            {
+                                flagInsert = true;
+                                break;
+                            }
+
+                        }
+                    }
+
+                    if (flagInsert == false)
+                    {
+                        var parmeters = new DynamicParameters();
+                        parmeters.Add("@PROPERTY_MKEY", null);
+                        parmeters.Add("@BUILDING_MKEY", null);
+                        parmeters.Add("@TASK_MKEY", tASK_ENDLIST_TABLE_INPUT.MKEY);
+                        parmeters.Add("@USER_ID", tASK_ENDLIST_TABLE_INPUT.CREATED_BY);
+                        parmeters.Add("@API_NAME", "GetTaskEndList");
+                        parmeters.Add("@API_METHOD", "Get");
+                        var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_GET_TASK_ENDLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        var successsResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
+                        {
+                            new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                            {
+                                STATUS = "Ok",
+                                MESSAGE = "Get data successfully!!!",
+                                DATA = GetTaskEnd
+                            }
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            transaction.Rollback();
+                        }
+
+                        var errorResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
+                        {
+                            new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                            {
+                                STATUS = "Error",
+                                MESSAGE = "An Error occurd",
+                                DATA = null
+                            }
+                        };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // If an error occurs, rollback the transaction
+                if (transaction != null && !transactionCompleted)
+                {
+                    transaction.Rollback();
+                }
+
+                // Return error response
+                var errorResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
+                {
+                    new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ex.Message,
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+        }
     }
 }
 

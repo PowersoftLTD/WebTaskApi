@@ -1908,5 +1908,38 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Management/Task-Output-Table-Insert-Update")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskOutputTableInsertUpdate(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT)
+        {
+            try
+            {
+                if (tASK_ENDLIST_TABLE_INPUT == null)
+                {
+                    var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.PostTaskEndListTableInsertUpdateAsync(tASK_ENDLIST_TABLE_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
+
+
     }
 }

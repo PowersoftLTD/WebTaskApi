@@ -25,7 +25,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost]
         [Route("Login")]
-        public async Task<ActionResult<EMPLOYEE_MST>> Login(EMPLOYEE_MST eMPLOYEE_MST)
+        public async Task<ActionResult<EMPLOYEE_MST>> Login([FromBody] EMPLOYEE_MST eMPLOYEE_MST)
         {
             var user = await userManager.LoginAsync(eMPLOYEE_MST.LOGIN_NAME.Trim());
             if (user != null)
