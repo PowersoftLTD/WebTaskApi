@@ -36,8 +36,9 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@P_LOGIN_PASSWORD", LOGIN_PASSWORD);
 
                     var dtReponse = await db.QueryAsync<EmployeeLoginOutput>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
-
-                    var successsResult = new List<EmployeeLoginOutput_LIST>
+                    if (dtReponse.Any())
+                    {
+                        var successsResult = new List<EmployeeLoginOutput_LIST>
                     {
                         new EmployeeLoginOutput_LIST
                         {
@@ -47,7 +48,22 @@ namespace TaskManagement.API.Repositories
 
                         }
                     };
-                    return successsResult;
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<EmployeeLoginOutput_LIST>
+                            {
+                                new EmployeeLoginOutput_LIST
+                                {
+                                    Status = "Error",
+                                    Message = "User name password is incorrect!!!",
+                                    Data=null
+
+                                }
+                            };
+                        return errorResult;
+                    }
                 }
             }
             catch (Exception ex)
@@ -65,6 +81,64 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<IEnumerable<EmployeeLoginOutput_LIST_NT>> Login_Validate_NT(EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
+                    parmeters.Add("@P_LOGIN_PASSWORD", employeeCompanyMSTInput_NT.Login_Password);
+
+                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    if (dtReponse.Any())
+                    {
+                        var successsResult = new List<EmployeeLoginOutput_LIST_NT>
+                    {
+                        new EmployeeLoginOutput_LIST_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= dtReponse
+
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                    {
+                        new EmployeeLoginOutput_LIST_NT
+                        {
+                            Status = "Error",
+                            Message = "User name password is incorrect!!!",
+                            Data=null
+
+                        }
+                    };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                    {
+                        new EmployeeLoginOutput_LIST_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
         public async Task<IEnumerable<V_Building_Classification_new>> GetProjectAsync(string TYPE_CODE, string MASTER_MKEY)
         {
             try
@@ -105,6 +179,48 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<IEnumerable<V_Building_Classification_NT>> GetProjectNTAsync(BuildingClassInput_NT v_Building_Classification)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@TYPE_CODE", v_Building_Classification.Type_Code);
+                    parameters.Add("@MASTER_MKEY", v_Building_Classification.Master_mkey);
+
+                    var result = await db.QueryAsync<V_Building_Classification_TMS_NT>("SP_GET_PROJECT", parameters, commandType: CommandType.StoredProcedure);
+
+                    var successsResult = new List<V_Building_Classification_NT>
+                    {
+                        new V_Building_Classification_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= result
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<V_Building_Classification_NT>
+                    {
+                        new V_Building_Classification_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
         public async Task<IEnumerable<V_Building_Classification_new>> GetSubProjectAsync(string Project_Mkey)
         {
             try
@@ -2679,13 +2795,42 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@DELETE_FLAG", tASK_CHECKLIST_TABLE_INPUT.DELETE_FLAG);
                     parmeters.Add("@METHOD_NAME", "Task-CheckList-Doc-Insert-Update");
                     parmeters.Add("@METHOD", "Insert/Update");
-                    //parmeters.Add("@OUT_STATUS", null);
-                    //parmeters.Add("@OUT_MESSAGE", null);
+                    parmeters.Add("@OUT_STATUS", null);
+                    parmeters.Add("@OUT_MESSAGE", null);
 
                     var GetTaskEnd = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (GetTaskEnd.Any())
                     {
+                        foreach (var Response in GetTaskEnd)
+                        {
+                            if (Response.OUT_STATUS != "OK")
+                            {
+                                if (transaction != null && !transactionCompleted)
+                                {
+                                    try
+                                    {
+                                        // Rollback only if the transaction is not yet completed
+                                        transaction.Rollback();
+                                    }
+                                    catch (InvalidOperationException rollbackEx)
+                                    {
+                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                    }
+                                }
+
+                                var errorResult = new List<TaskCheckListOutputList>
+                                {
+                                    new TaskCheckListOutputList
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = Response.OUT_MESSAGE,
+                                        DATA = GetTaskEnd
+                                    }
+                                };
+                                return errorResult;
+                            }
+                        }
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();
                         transactionCompleted = true;
@@ -2805,7 +2950,6 @@ namespace TaskManagement.API.Repositories
                 }
             }
         }
-
         public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskEndListTableInsertUpdateAsync(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);

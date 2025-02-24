@@ -19,7 +19,7 @@ namespace TaskManagement.API.Repositories
             this.configuration = configuration;
             this._configure = jWTConfigure;
         }
-        async Task<string> ITokenRepository.CreateJWTToken(EMPLOYEE_MST user)
+        public async Task<string> CreateJWTToken(EMPLOYEE_MST user)
         {
             var JWTtokens = await _configure.JWTToken();
             var JWTKEY = JWTtokens.FirstOrDefault();
@@ -40,6 +40,30 @@ namespace TaskManagement.API.Repositories
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        //public async Task<string> CreateJWTNTToken(EMPLOYEE_MST_NT user)
+        //{
+        //    var JWTtokens = await _configure.JWTToken();
+        //    var JWTKEY = JWTtokens.FirstOrDefault();
+        //    var claims = new List<Claim>();
+
+        //    claims.Add(new Claim(ClaimTypes.Email, user.LOGIN_NAME, JWTKEY.ClientID, JWTKEY.ClientSecret));
+
+        //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWTKEY.Key));
+
+        //    var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        //    var token = new JwtSecurityToken(
+        //        JWTKEY.Issuer,
+        //        JWTKEY.Audience,
+        //        claims,
+        //        expires: DateTime.Now.AddMinutes(120),
+        //        signingCredentials: credentials);
+
+        //    return new JwtSecurityTokenHandler().WriteToken(token);
+        //}
+
+      
 
         //public Task ValidateClientAuthentication(OAuthValidateClientAuthenticationContext context)
         //{

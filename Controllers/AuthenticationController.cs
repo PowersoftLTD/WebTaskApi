@@ -53,6 +53,37 @@ namespace TaskManagement.API.Controllers
             return BadRequest("Username or Password incorrect");
         }
 
+        [HttpPost]
+        [Route("Login_NT")]
+        public async Task<ActionResult<EMPLOYEE_MST>> Login_NT([FromBody] EMPLOYEE_MST_NT eMPLOYEE_MST)
+        {
+            var user = await userManager.LoginNTAsync(eMPLOYEE_MST);
+            if (user != null)
+            {
+                var checkPasswordResult = await userManager.CheckPasswordNTAsync(eMPLOYEE_MST);
+
+                if (checkPasswordResult != null)
+                {
+                    //create token
+                    var jwtToken = await tokenRepository.CreateJWTToken(user);
+                    if (IsValid(jwtToken))
+                    {
+                        var response = new LoginResponse_NT
+                        {
+                            JwtToken = jwtToken
+                        };
+                        return Ok(response);
+                    }
+                    else
+                    {
+                        return Ok("Session expired");
+                    }
+                }
+            }
+            return BadRequest("Username or Password incorrect");
+        }
+
+
         private bool IsValid(string token)
         {
             JwtSecurityToken jwtSecurityToken;

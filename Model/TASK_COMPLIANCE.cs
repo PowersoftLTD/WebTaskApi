@@ -232,6 +232,12 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("LAST_UPDATE_DATE")]
         public string? LAST_UPDATE_DATE { get; set; }
+        [JsonIgnore]
+        public string? OUT_STATUS { get; set; }
+        [JsonIgnore]
+        public string? OUT_MESSAGE { get; set; }
+
+
         //[JsonPropertyName("TASK_MKEY")]
         //public int? TASK_MKEY { get; set; }
         //[JsonPropertyName("DOC_MKEY")]
