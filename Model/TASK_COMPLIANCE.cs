@@ -284,10 +284,8 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("CREATED_BY")]
         public string? CREATED_BY { get; set; }
-
         [JsonPropertyName("DELETE_FLAG")]
         public string? DELETE_FLAG { get; set; }
-
     }
 
 
@@ -301,31 +299,25 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("OUTPUT_DOC_LST")]
         public Dictionary<string, object>? OUTPUT_DOC_LST { get; set; }
 
-        //[JsonPropertyName("DOCUMENT_MKEY")]
-        //public int? DOCUMENT_MKEY { get; set; }
+        //[JsonPropertyName("DOC_NUM_APP_FLAG")]
+        //public string? DOC_NUM_APP_FLAG { get; set; }
 
-        //[JsonPropertyName("DOCUMENT_CATEGORY_MKEY")]
-        //public string? DOCUMENT_CATEGORY_MKEY { get; set; }
+        //[JsonPropertyName("DOC_NUM_VALID_FLAG")]
+        //public string? DOC_NUM_VALID_FLAG { get; set; }
 
-        [JsonPropertyName("DOC_NUM_APP_FLAG")]
-        public string? DOC_NUM_APP_FLAG { get; set; }
+        //[JsonPropertyName("DOC_NUM_DATE_APP_FLAG")]
+        //public string? DOC_NUM_DATE_APP_FLAG { get; set; }
 
-        [JsonPropertyName("DOC_NUM_VALID_FLAG")]
-        public string? DOC_NUM_VALID_FLAG { get; set; }
+        //[JsonPropertyName("DOC_ATTACH_APP_FLAG")]
+        //public string? DOC_ATTACH_APP_FLAG { get; set; }
+        //[JsonPropertyName("DOC_NUMBER")]
+        //public string? DOC_NUMBER { get; set; }
 
-        [JsonPropertyName("DOC_NUM_DATE_APP_FLAG")]
-        public string? DOC_NUM_DATE_APP_FLAG { get; set; }
+        //[JsonPropertyName("DOC_DATE")]
+        //public string? DOC_DATE { get; set; }
 
-        [JsonPropertyName("DOC_ATTACH_APP_FLAG")]
-        public string? DOC_ATTACH_APP_FLAG { get; set; }
-        [JsonPropertyName("DOC_NUMBER")]
-        public string? DOC_NUMBER { get; set; }
-
-        [JsonPropertyName("DOC_DATE")]
-        public string? DOC_DATE { get; set; }
-
-        [JsonPropertyName("VALIDITY_DATE")]
-        public string? VALIDITY_DATE { get; set; }
+        //[JsonPropertyName("VALIDITY_DATE")]
+        //public string? VALIDITY_DATE { get; set; }
 
         [JsonPropertyName("CREATED_BY")]
         public string? CREATED_BY { get; set; }

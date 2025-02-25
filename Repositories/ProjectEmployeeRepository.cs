@@ -3411,15 +3411,15 @@ namespace TaskManagement.API.Repositories
                             var parameters = new DynamicParameters();
                             parameters.Add("@MKEY", tASK_ENDLIST_TABLE_INPUT.MKEY);
                             parameters.Add("@SR_NO", tASK_ENDLIST_TABLE_INPUT.SR_NO);
-                            parameters.Add("@DOCUMENT_MKEY", docMkey.Key);
-                            parameters.Add("@DOCUMENT_CATEGORY_MKEY", DocCategory);
-                            parameters.Add("@DOC_NUM_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_DATE_APP_FLAG);
-                            parameters.Add("@DOC_NUM_VALID_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_VALID_FLAG);
-                            parameters.Add("@DOC_NUM_DATE_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_DATE_APP_FLAG);
-                            parameters.Add("@DOC_ATTACH_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_ATTACH_APP_FLAG);
-                            parameters.Add("@DOC_NUMBER", tASK_ENDLIST_TABLE_INPUT.DOC_NUMBER);
-                            parameters.Add("@DOC_DATE", tASK_ENDLIST_TABLE_INPUT.DOC_DATE);
-                            parameters.Add("@VALIDITY_DATE", tASK_ENDLIST_TABLE_INPUT.VALIDITY_DATE);
+                            parameters.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
+                            parameters.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                            //parameters.Add("@DOC_NUM_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_DATE_APP_FLAG);
+                            //parameters.Add("@DOC_NUM_VALID_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_VALID_FLAG);
+                            //parameters.Add("@DOC_NUM_DATE_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_NUM_DATE_APP_FLAG);
+                            //parameters.Add("@DOC_ATTACH_APP_FLAG", tASK_ENDLIST_TABLE_INPUT.DOC_ATTACH_APP_FLAG);
+                            //parameters.Add("@DOC_NUMBER", tASK_ENDLIST_TABLE_INPUT.DOC_NUMBER);
+                            //parameters.Add("@DOC_DATE", tASK_ENDLIST_TABLE_INPUT.DOC_DATE);
+                            //parameters.Add("@VALIDITY_DATE", tASK_ENDLIST_TABLE_INPUT.VALIDITY_DATE);
                             parameters.Add("@CREATED_BY", tASK_ENDLIST_TABLE_INPUT.CREATED_BY);
                             parameters.Add("@DELETE_FLAG", tASK_ENDLIST_TABLE_INPUT.DELETE_FLAG);
                             parameters.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
@@ -3428,10 +3428,13 @@ namespace TaskManagement.API.Repositories
                             var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                             if (!GetTaskEnd.Any())
                             {
-                                flagInsert = true;
+                                flagInsert = false;
+                                //break;
+                            }
+                            if (flagInsert == true)
+                            {
                                 break;
                             }
-
                         }
                     }
 
@@ -3447,14 +3450,14 @@ namespace TaskManagement.API.Repositories
                         var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_GET_TASK_ENDLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         var successsResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-                        {
-                            new TASK_ENDLIST_DETAILS_OUTPUT_LIST
                             {
-                                STATUS = "Ok",
-                                MESSAGE = "Get data successfully!!!",
-                                DATA = GetTaskEnd
-                            }
-                        };
+                                new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                                {
+                                    STATUS = "Ok",
+                                    MESSAGE = "Get data successfully!!!",
+                                    DATA = GetTaskEnd
+                                }
+                            };
                         return successsResult;
                     }
                     else
