@@ -67,4 +67,74 @@ namespace TaskManagement.API.Repositories
         [JsonPropertyName("Current_task_mkey")]
         public int Current_task_mkey { get; set; }
     }
+
+    public class Add_Sub_TaskInput_NT
+    {
+        [JsonPropertyName("Task_No")]
+        public int TASK_NO { get; set; }
+        [JsonPropertyName("Task_Name")]
+        public string TASK_NAME { get; set; }
+        [JsonPropertyName("Task_Description")]
+        public string TASK_DESCRIPTION { get; set; }
+        [JsonPropertyName("Category")]
+        public int CATEGORY { get; set; }
+        [JsonPropertyName("Project_Id")]
+        public int PROJECT_ID { get; set; }
+        [JsonPropertyName("Subproject_Id")]
+        public int SUBPROJECT_ID { get; set; }
+        [JsonPropertyName("Completion_Date")]
+        public string COMPLETION_DATE { get; set; }
+        [JsonPropertyName("Assigned_To")]
+        public string ASSIGNED_TO { get; set; }
+        [JsonPropertyName("Tags")]
+        public string TAGS { get; set; }
+        [JsonPropertyName("Isnode")]
+        public string ISNODE { get; set; }
+        [JsonPropertyName("Start_Date")]
+        public string START_DATE { get; set; }
+        [JsonPropertyName("Close_Date")]
+        public string CLOSE_DATE { get; set; }
+        [JsonPropertyName("Due_Date")]
+        public string DUE_DATE { get; set; }
+        [JsonPropertyName("Task_Parent_Id")]
+        public int TASK_PARENT_ID { get; set; }
+        [JsonPropertyName("Task_Parent_Node_Id")]
+        public int TASK_PARENT_NODE_ID { get; set; }
+        [JsonPropertyName("Task_Parent_Number")]
+        public string TASK_PARENT_NUMBER { get; set; }
+        [JsonPropertyName("Status")]
+        public string STATUS { get; set; }
+        [JsonPropertyName("Status_Perc")]
+        public string STATUS_PERC { get; set; }
+        [JsonPropertyName("Task_Created_By")]
+        public int TASK_CREATED_BY { get; set; }
+        [JsonPropertyName("Approver_Id")]
+        public string APPROVER_ID { get; set; }
+        [JsonPropertyName("Is_Archive")]
+        public string IS_ARCHIVE { get; set; }
+        [JsonPropertyName("Attribute1")]
+        public string ATTRIBUTE1 { get; set; }
+        [JsonPropertyName("Attribute2")]
+        public string ATTRIBUTE2 { get; set; }
+        [JsonPropertyName("Attribute3")]
+        public string ATTRIBUTE3 { get; set; }
+        [JsonPropertyName("Attribute4")]
+        public string ATTRIBUTE4 { get; set; }
+        [JsonPropertyName("Attribute5")]
+        public string ATTRIBUTE5 { get; set; }
+        [JsonPropertyName("Created_By")]
+        public int CREATED_BY { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public string CREATION_DATE { get; set; }
+        [JsonPropertyName("Last_Updated_By")]
+        public int LAST_UPDATED_BY { get; set; }
+        [JsonPropertyName("Approve_Action_Date")]
+        public string APPROVE_ACTION_DATE { get; set; }
+        [JsonPropertyName("Current_task_mkey")]
+        public int Current_task_mkey { get; set; }
+        [JsonPropertyName("Session_User_ID")]
+        public string Session_User_ID { get; set; }
+        [JsonPropertyName("Business_Group_ID")]
+        public string Business_Group_ID { get; set; }
+    }
 }

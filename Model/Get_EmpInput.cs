@@ -9,4 +9,17 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("FILTER")]
         public string FILTER { get; set; }
     }
+
+
+    public class Get_EmpInput_NT
+    {
+        [JsonPropertyName("Current_Emp_Mkey")]
+        public string CURRENT_EMP_MKEY { get; set; }
+        [JsonPropertyName("Filter")]
+        public string FILTER { get; set; }
+        [JsonPropertyName("Session_User_ID")]
+        public string Session_User_ID { get; set; }
+        [JsonPropertyName("Business_Group_ID")]
+        public string Business_Group_ID { get; set; }
+    }
 }

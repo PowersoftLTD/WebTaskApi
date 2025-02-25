@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
@@ -19,11 +20,13 @@ namespace TaskManagement.API.Repositories
         public IDapperDbConnection _dapperDbConnection;
         private readonly string _connectionString;
         private readonly FileSettings _fileSettings;
-        public ProjectEmployeeRepository(IDapperDbConnection dapperDbConnection, string connectionString, IOptions<FileSettings> fileSettings)
+        private readonly ITokenRepository _tokenRepository;
+        public ProjectEmployeeRepository(IDapperDbConnection dapperDbConnection, string connectionString, IOptions<FileSettings> fileSettings, ITokenRepository tokenRepository)
         {
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
             _fileSettings = fileSettings.Value;
+            _tokenRepository = tokenRepository;
         }
         public async Task<IEnumerable<EmployeeLoginOutput_LIST>> Login_Validate(string Login_ID, string LOGIN_PASSWORD)
         {
@@ -81,7 +84,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<EmployeeLoginOutput_LIST_NT>> Login_Validate_NT(EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT)
         {
             try
@@ -92,33 +94,65 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
                     parmeters.Add("@P_LOGIN_PASSWORD", employeeCompanyMSTInput_NT.Login_Password);
 
-                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput__Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
                     if (dtReponse.Any())
                     {
-                        var successsResult = new List<EmployeeLoginOutput_LIST_NT>
-                    {
-                        new EmployeeLoginOutput_LIST_NT
+                        //create token
+                        var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
+                        if (IsValid(jwtToken))
                         {
-                            Status = "Ok",
-                            Message = "Message",
-                            Data= dtReponse
+                            var successsResult = new List<EmployeeLoginOutput_LIST_NT>
+                            {
+                                new EmployeeLoginOutput_LIST_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    JwtToken = jwtToken,
+                                    Data= dtReponse
 
+                                }
+                            };
+                            return successsResult;
                         }
-                    };
-                        return successsResult;
+                        else
+                        {
+                            var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                            {
+                                new EmployeeLoginOutput_LIST_NT
+                                {
+                                    Status = "Error",
+                                    Message = "Session expired!!!",
+                                    JwtToken = null,
+                                    Data=null
+                                }
+                            };
+                            return errorResult;
+                        }
+                        //var successsResult = new List<EmployeeLoginOutput_LIST_NT>
+                        //    {
+                        //        new EmployeeLoginOutput_LIST_NT
+                        //        {
+                        //            Status = "Ok",
+                        //            Message = "Message",
+                        //            Data= dtReponse
+
+                        //        }
+                        //    };
+                        //return successsResult;
                     }
                     else
                     {
                         var errorResult = new List<EmployeeLoginOutput_LIST_NT>
-                    {
-                        new EmployeeLoginOutput_LIST_NT
-                        {
-                            Status = "Error",
-                            Message = "User name password is incorrect!!!",
-                            Data=null
+                            {
+                                new EmployeeLoginOutput_LIST_NT
+                                {
+                                    Status = "Error",
+                                    Message = "Username or password is incorrect.",
+                                    JwtToken = null,
+                                    Data=null
 
-                        }
-                    };
+                                }
+                            };
                         return errorResult;
                     }
                 }
@@ -131,14 +165,27 @@ namespace TaskManagement.API.Repositories
                         {
                             Status = "Error",
                             Message = ex.Message,
+                            JwtToken = null,
                             Data=null
-
                         }
                     };
                 return errorResult;
             }
         }
+        private bool IsValid(string token)
+        {
+            JwtSecurityToken jwtSecurityToken;
+            try
+            {
+                jwtSecurityToken = new JwtSecurityToken(token);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
 
+            return jwtSecurityToken.ValidTo > DateTime.UtcNow;
+        }
         public async Task<IEnumerable<V_Building_Classification_new>> GetProjectAsync(string TYPE_CODE, string MASTER_MKEY)
         {
             try
@@ -179,7 +226,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification_NT>> GetProjectNTAsync(BuildingClassInput_NT v_Building_Classification)
         {
             try
@@ -220,7 +266,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification_new>> GetSubProjectAsync(string Project_Mkey)
         {
             try
@@ -268,6 +313,44 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<IEnumerable<V_Building_Classification_New_NT>> GetSubProjectNTAsync(GetSubProjectInput_NT getSubProjectInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@PROJECT_MKEY", getSubProjectInput_NT.Project_Mkey);
+                    var ProjectDetails = (await db.QueryAsync<V_Building_Classification_TMS_SESSION_NT>("SP_GET_SUBPROJECT", parmeters, commandType: CommandType.StoredProcedure));
+                    //  return ProjectDetails;
+                    var successsResult = new List<V_Building_Classification_New_NT>
+                    {
+                        new V_Building_Classification_New_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data = ProjectDetails
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<V_Building_Classification_New_NT>
+                    {
+                        new V_Building_Classification_New_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+
+                        }
+                    };
+                return errorResult;
+            }
+        }
         public async Task<IEnumerable<EmployeeLoginOutput_LIST>> GetEmpAsync(string CURRENT_EMP_MKEY, string FILTER)
         {
             try
@@ -296,6 +379,44 @@ namespace TaskManagement.API.Repositories
                 var errorResult = new List<EmployeeLoginOutput_LIST>
                     {
                         new EmployeeLoginOutput_LIST
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+
+                        }
+                    };
+                return errorResult;
+            }
+        }
+        public async Task<IEnumerable<EmployeeLoginOutput_LIST_Session_NT>> GetEmpNTAsync(Get_EmpInput_NT get_EmpInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@CURRENT_EMP_MKEY", get_EmpInput_NT.CURRENT_EMP_MKEY);
+                    parmeters.Add("@FILTER", get_EmpInput_NT.FILTER);
+                    var EmployeeDetails = await db.QueryAsync<EmployeeLoginOutput_NT>("SP_GET_EMP", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<EmployeeLoginOutput_LIST_Session_NT>
+                    {
+                        new EmployeeLoginOutput_LIST_Session_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= EmployeeDetails
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<EmployeeLoginOutput_LIST_Session_NT>
+                    {
+                        new EmployeeLoginOutput_LIST_Session_NT
                         {
                             Status = "Error",
                             Message = ex.Message,
@@ -1088,6 +1209,122 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<IEnumerable<Add_TaskOutPut_List_NT>> CreateAddTaskNTAsync(Add_TaskInput_NT add_TaskInput_NT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    if (add_TaskInput_NT.TASK_NO.ToString() == "0000".ToString())
+                    {
+                        var parmeters = new DynamicParameters();
+                        parmeters.Add("@TASK_NO", add_TaskInput_NT.TASK_NO);
+                        parmeters.Add("@TASK_NAME", add_TaskInput_NT.TASK_NAME);
+                        parmeters.Add("@TASK_DESCRIPTION", add_TaskInput_NT.TASK_DESCRIPTION);
+                        parmeters.Add("@CATEGORY", add_TaskInput_NT.CATEGORY);
+                        parmeters.Add("@PROJECT_ID", add_TaskInput_NT.PROJECT_ID);
+                        parmeters.Add("@SUBPROJECT_ID", add_TaskInput_NT.SUBPROJECT_ID);
+                        parmeters.Add("@COMPLETION_DATE", add_TaskInput_NT.COMPLETION_DATE);
+                        parmeters.Add("@ASSIGNED_TO", add_TaskInput_NT.ASSIGNED_TO);
+                        parmeters.Add("@TAGS", add_TaskInput_NT.TAGS);
+                        parmeters.Add("@ISNODE", add_TaskInput_NT.ISNODE);
+                        parmeters.Add("@CLOSE_DATE", add_TaskInput_NT.CLOSE_DATE);
+                        parmeters.Add("@DUE_DATE", add_TaskInput_NT.DUE_DATE);
+                        parmeters.Add("@TASK_PARENT_ID", add_TaskInput_NT.TASK_PARENT_ID);
+                        parmeters.Add("@STATUS", add_TaskInput_NT.STATUS);
+                        parmeters.Add("@STATUS_PERC", add_TaskInput_NT.STATUS_PERC);
+                        parmeters.Add("@TASK_CREATED_BY", add_TaskInput_NT.TASK_CREATED_BY);
+                        parmeters.Add("@APPROVER_ID", add_TaskInput_NT.APPROVER_ID);
+                        parmeters.Add("@IS_ARCHIVE", add_TaskInput_NT.IS_ARCHIVE);
+                        parmeters.Add("@ATTRIBUTE1", add_TaskInput_NT.ATTRIBUTE1);
+                        parmeters.Add("@ATTRIBUTE2", add_TaskInput_NT.ATTRIBUTE2);
+                        parmeters.Add("@ATTRIBUTE3", add_TaskInput_NT.ATTRIBUTE3);
+                        parmeters.Add("@ATTRIBUTE4", add_TaskInput_NT.ATTRIBUTE4);
+                        parmeters.Add("@ATTRIBUTE5", add_TaskInput_NT.ATTRIBUTE5);
+                        parmeters.Add("@CREATED_BY", add_TaskInput_NT.CREATED_BY);
+                        parmeters.Add("@CREATION_DATE", add_TaskInput_NT.CREATION_DATE);
+                        parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.LAST_UPDATED_BY);
+                        parmeters.Add("@APPROVE_ACTION_DATE", add_TaskInput_NT.APPROVE_ACTION_DATE);
+                        var InsertTaskDetails = (await db.QueryAsync<Add_TaskOutPut_NT>("Sp_insert_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction)).ToList();
+
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+
+                        var successsResult = new List<Add_TaskOutPut_List_NT>
+                            {
+                            new Add_TaskOutPut_List_NT
+                                {
+                                Status = "Ok",
+                                Message = "Inserted Successfully",
+                                Data= InsertTaskDetails
+                                }
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var parmeters = new DynamicParameters();
+                        parmeters.Add("@TASK_MKEY", add_TaskInput_NT.TASK_NO);
+                        parmeters.Add("@TASK_NAME", add_TaskInput_NT.TASK_NAME);
+                        parmeters.Add("@TASK_DESCRIPTION", add_TaskInput_NT.TASK_DESCRIPTION);
+                        parmeters.Add("@PROJECT_ID", add_TaskInput_NT.PROJECT_ID);
+                        parmeters.Add("@SUBPROJECT_ID", add_TaskInput_NT.SUBPROJECT_ID);
+                        parmeters.Add("@COMPLETION_DATE", add_TaskInput_NT.COMPLETION_DATE);
+                        parmeters.Add("@ASSIGNED_TO", add_TaskInput_NT.ASSIGNED_TO);
+                        parmeters.Add("@TAGS", add_TaskInput_NT.TAGS);
+                        parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.LAST_UPDATED_BY);
+
+                        var UpdateTaskHDR = await db.QueryAsync<Add_TaskOutPut_NT>("update_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+
+                        var successsResult = new List<Add_TaskOutPut_List_NT>
+                            {
+                            new Add_TaskOutPut_List_NT
+                                {
+                                Status = "Ok",
+                                Message = "Updated Successfully",
+                                Data= UpdateTaskHDR
+                                }
+                        };
+                        return successsResult;
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<Add_TaskOutPut_List_NT>
+                    {
+                        new Add_TaskOutPut_List_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
         public async Task<IEnumerable<Add_TaskOutPut_List>> CreateAddSubTaskAsync(Add_Sub_TaskInput tASK_HDR)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -1168,6 +1405,94 @@ namespace TaskManagement.API.Repositories
                 var errorResult = new List<Add_TaskOutPut_List>
                     {
                         new Add_TaskOutPut_List
+                        {
+                            Status = "Error",
+                            Message = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
+        public async Task<IEnumerable<Add_TaskOutPut_List_NT>> CreateAddSubTaskNTAsync(Add_Sub_TaskInput_NT add_TaskInput_NT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_NO", add_TaskInput_NT.TASK_NO);
+                    parmeters.Add("@TASK_NAME", add_TaskInput_NT.TASK_NAME);
+                    parmeters.Add("@TASK_DESCRIPTION", add_TaskInput_NT.TASK_DESCRIPTION);
+                    parmeters.Add("@CATEGORY", add_TaskInput_NT.CATEGORY);
+                    parmeters.Add("@PROJECT_ID", add_TaskInput_NT.PROJECT_ID);
+                    parmeters.Add("@SUBPROJECT_ID", add_TaskInput_NT.SUBPROJECT_ID);
+                    parmeters.Add("@COMPLETION_DATE", add_TaskInput_NT.COMPLETION_DATE);
+                    parmeters.Add("@ASSIGNED_TO", add_TaskInput_NT.ASSIGNED_TO);
+                    parmeters.Add("@TAGS", add_TaskInput_NT.TAGS);
+                    parmeters.Add("@ISNODE", add_TaskInput_NT.ISNODE);
+                    parmeters.Add("@CLOSE_DATE", add_TaskInput_NT.CLOSE_DATE);
+                    parmeters.Add("@DUE_DATE", add_TaskInput_NT.DUE_DATE);
+                    parmeters.Add("@TASK_PARENT_ID", add_TaskInput_NT.TASK_PARENT_ID);
+                    parmeters.Add("@TASK_PARENT_NODE_ID", add_TaskInput_NT.TASK_PARENT_NODE_ID);
+                    parmeters.Add("@TASK_PARENT_NUMBER", add_TaskInput_NT.TASK_PARENT_NUMBER);
+                    parmeters.Add("@STATUS", add_TaskInput_NT.STATUS);
+                    parmeters.Add("@STATUS_PERC", add_TaskInput_NT.STATUS_PERC);
+                    parmeters.Add("@TASK_CREATED_BY", add_TaskInput_NT.TASK_CREATED_BY);
+                    parmeters.Add("@APPROVER_ID", add_TaskInput_NT.APPROVER_ID);
+                    parmeters.Add("@IS_ARCHIVE", add_TaskInput_NT.IS_ARCHIVE);
+                    parmeters.Add("@ATTRIBUTE1", add_TaskInput_NT.ATTRIBUTE1);
+                    parmeters.Add("@ATTRIBUTE2", add_TaskInput_NT.ATTRIBUTE2);
+                    parmeters.Add("@ATTRIBUTE3", add_TaskInput_NT.ATTRIBUTE3);
+                    parmeters.Add("@ATTRIBUTE4", add_TaskInput_NT.ATTRIBUTE4);
+                    parmeters.Add("@ATTRIBUTE5", add_TaskInput_NT.ATTRIBUTE5);
+                    parmeters.Add("@CREATED_BY", add_TaskInput_NT.CREATED_BY);
+                    parmeters.Add("@CREATION_DATE", add_TaskInput_NT.CREATION_DATE);
+                    parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.LAST_UPDATED_BY);
+                    parmeters.Add("@APPROVE_ACTION_DATE", add_TaskInput_NT.APPROVE_ACTION_DATE);
+                    parmeters.Add("@Current_Task_Mkey", add_TaskInput_NT.Current_task_mkey);
+
+                    var InsertTaskDetails = await db.QueryAsync<Add_TaskOutPut_NT>("SP_INSERT_TASK_NODE_DETAILS", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new List<Add_TaskOutPut_List_NT>
+                            {
+                            new Add_TaskOutPut_List_NT
+                                {
+                                Status = "Ok",
+                                Message = "Inserted Successfully",
+                                Data= InsertTaskDetails
+                                }
+                        };
+                    return successsResult;
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<Add_TaskOutPut_List_NT>
+                    {
+                        new Add_TaskOutPut_List_NT
                         {
                             Status = "Error",
                             Message = ex.Message
@@ -1272,6 +1597,107 @@ namespace TaskManagement.API.Repositories
                 }
 
                 var ErrorFileDetails = new TASK_FILE_UPLOAD();
+                ErrorFileDetails.STATUS = "Error";
+                ErrorFileDetails.MESSAGE = ex.Message;
+                return 1;
+            }
+        }
+        public async Task<int> TASKFileUpoadNTAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+            int SR_NO = 0;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@SR_NO", srNo);
+                    parameters.Add("@TASK_MKEY", taskMkey);
+                    parameters.Add("@TASK_PARENT_ID", taskParentId);
+                    parameters.Add("@FILE_NAME", fileName);
+                    parameters.Add("@FILE_PATH", filePath);
+                    parameters.Add("@CREATED_BY", createdBy);
+                    parameters.Add("@ATTRIBUTE1", null);
+                    parameters.Add("@ATTRIBUTE2", null);
+                    parameters.Add("@ATTRIBUTE3", null);
+                    parameters.Add("@ATTRIBUTE4", null);
+                    parameters.Add("@ATTRIBUTE5", null);
+                    parameters.Add("@LAST_UPDATED_BY", createdBy);
+                    parameters.Add("@LAST_UPDATE_DATE", null);
+                    parameters.Add("@DELETE_FLAG", deleteFlag);
+                    parameters.Add("@TASK_MAIN_NODE_ID", taskMainNodeId);
+
+                    var TaskFile = await db.ExecuteAsync("sp_insert_attcahment", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (TaskFile == null)
+                    {
+                        // Handle other unexpected exceptions
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                //TranError.Message = ex.Message;
+                                //return TranError;
+                            }
+                        }
+
+                        var TemplateError = new TASK_FILE_UPLOAD_NT();
+                        TemplateError.STATUS = "Error";
+                        TemplateError.MESSAGE = "Error Occurd";
+                        return 0;
+                    }
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+                    return 1;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        //var TranError = new APPROVAL_TASK_INITIATION();
+                        //TranError.ResponseStatus = "Error";
+                        //TranError.Message = ex.Message;
+                        //return TranError;
+                    }
+                }
+
+                var ErrorFileDetails = new TASK_FILE_UPLOAD_NT();
                 ErrorFileDetails.STATUS = "Error";
                 ErrorFileDetails.MESSAGE = ex.Message;
                 return 1;

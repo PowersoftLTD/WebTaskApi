@@ -60,26 +60,25 @@ namespace TaskManagement.API.Controllers
         }
 
 
-        [HttpPost("Task-Management/Login_NT")]
-        public async Task<ActionResult<EmployeeLoginOutput_LIST_NT>> Login_Validate_NT([FromBody] EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT)
-        {
-            try
-            {
-                var LoginValidate = await _repository.Login_Validate_NT(employeeCompanyMSTInput_NT);
-                return Ok(LoginValidate);
-            }
-            catch (Exception ex)
-            {
-                var response = new EmployeeLoginOutput_LIST
-                {
-                    Status = "Error",
-                    Message = ex.Message,
-                    Data = null
-                };
-                return Ok(response);
-            }
-        }
-
+        //[HttpPost("Task-Management/Login_NT")]
+        //public async Task<ActionResult<EmployeeLoginOutput_LIST_NT>> Login_Validate_NT([FromBody] EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT)
+        //{
+        //    try
+        //    {
+        //        var LoginValidate = await _repository.Login_Validate_NT(employeeCompanyMSTInput_NT);
+        //        return Ok(LoginValidate);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var response = new EmployeeLoginOutput_LIST
+        //        {
+        //            Status = "Error",
+        //            Message = ex.Message,
+        //            Data = null
+        //        };
+        //        return Ok(response);
+        //    }
+        //}
 
 
         [HttpPost("Task-Management/Get-Option")]
@@ -144,8 +143,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
-
         [HttpPost("Task-Management/Get-Sub_Project")]
         [Authorize]
         public async Task<ActionResult<V_Building_Classification_new>> Get_Sub_Project([FromBody] GetSubProjectInput getSubProjectInput)
@@ -178,6 +175,37 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Management/Get-Sub_Project_NT")]
+        [Authorize]
+        public async Task<ActionResult<V_Building_Classification_New_NT>> Get_Sub_Project_NT([FromBody] GetSubProjectInput_NT getSubProjectInput_NT)
+        {
+            try
+            {
+                var classifications = await _repository.GetSubProjectNTAsync(getSubProjectInput_NT);
+                if (classifications == null)
+                {
+                    var ErrorResponse = new ApiResponse<V_Building_Classification_New_NT>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(ErrorResponse);
+                }
+
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new V_Building_Classification_New_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
         [HttpPost("Task-Management/Get-Emp")]
         [Authorize]
         public async Task<ActionResult<EmployeeLoginOutput_LIST>> Get_Emp([FromBody] Get_EmpInput get_EmpInput)
@@ -209,7 +237,26 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
+        [HttpPost("Task-Management/Get-Emp_NT")]
+        [Authorize]
+        public async Task<ActionResult<EmployeeLoginOutput_LIST_Session_NT>> Get_Emp_NT([FromBody] Get_EmpInput_NT get_EmpInput_NT)
+        {
+            try
+            {
+                var classifications = await _repository.GetEmpNTAsync(get_EmpInput_NT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new EmployeeLoginOutput_LIST_Session_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
         [HttpPost("Task-Management/Assigned_To")]
         [Authorize]
         public async Task<ActionResult<EmployeeCompanyMST>> AssignedTo([FromBody] AssignedToInput assignedToInput)
@@ -1202,6 +1249,115 @@ namespace TaskManagement.API.Controllers
             catch (Exception ex)
             {
                 var response = new Add_TaskOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data1 = null
+                };
+                return Ok(response);
+            }
+        }
+        [HttpPost("Task-Management/Add-Task_NT")]
+        [Authorize]
+        public async Task<ActionResult<Add_TaskOutPut_List_NT>> Add_Task_NT([FromBody] Add_TaskInput_NT add_TaskInput_NT)
+        {
+            try
+            {
+                var modelTask = await _repository.CreateAddTaskNTAsync(add_TaskInput_NT);
+                return Ok(modelTask);
+            }
+            catch (Exception ex)
+            {
+                var response = new Add_TaskOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Add-Sub-Task_NT")]
+        [Authorize]
+        public async Task<ActionResult<Add_TaskOutPut_List_NT>> Add_Sub_Task_NT([FromBody] Add_Sub_TaskInput_NT add_Sub_TaskInput_NT)
+        {
+            try
+            {
+                var modelTask = await _repository.CreateAddSubTaskNTAsync(add_Sub_TaskInput_NT);
+                return Ok(modelTask);
+            }
+            catch (Exception ex)
+            {
+                var response = new Add_TaskOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("Task-Management/FileUpload_NT"), DisableRequestSizeLimit]
+        public async Task<IActionResult> Post([FromForm] TaskFileUploadAPI_NT objFile)
+        {
+            try
+            {
+                int srNo = 0;
+                string filePathOpen = string.Empty;
+                if (objFile.files.Length > 0)
+                {
+                    srNo = srNo + 1;
+                    //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
+                    objFile.FILE_PATH = _fileSettings.FilePath;
+                    if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
+                    {
+                        Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
+                    }
+                    using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
+                    {
+                        objFile.files.CopyTo(filestream);
+                        filestream.Flush();
+                    }
+                    objFile.FILE_NAME = objFile.files.FileName;
+                    filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName;
+                    int ResultCount = await _repository.TASKFileUpoadNTAsync(srNo, objFile.TASK_MKEY, objFile.TASK_PARENT_ID, objFile.FILE_NAME, filePathOpen, objFile.CREATED_BY, Convert.ToChar(objFile.DELETE_FLAG), objFile.TASK_MAIN_NODE_ID);
+                    objFile.FILE_PATH = filePathOpen;
+                    if (ResultCount > 0)
+                    {
+                        var Successresponse = new Add_TaskOutPut_List_NT
+                        {
+                            Status = "ok",
+                            Message = "File Uploaded",
+                            Data2 = objFile
+                        };
+                        return Ok(Successresponse);
+                    }
+                    else
+                    {
+                        var Errorresponse = new Add_TaskOutPut_List_NT
+                        {
+                            Status = "Error",
+                            Message = "Error occurred",
+                            Data1 = null
+                        };
+                        return Ok(Errorresponse);
+                    }
+                }
+                var response = new Add_TaskOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = "please attach the file!!!",
+                    Data1 = null
+                };
+                return Ok(response);
+
+            }
+            catch (Exception ex)
+            {
+                var response = new Add_TaskOutPut_List_NT
                 {
                     Status = "Error",
                     Message = ex.Message,

@@ -41,6 +41,28 @@ namespace TaskManagement.API.Repositories
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        public async Task<string> CreateJWTToken_NT(string Login_ID)
+        {
+            var JWTtokens = await _configure.JWTToken();
+            var JWTKEY = JWTtokens.FirstOrDefault();
+            var claims = new List<Claim>();
+
+            claims.Add(new Claim(ClaimTypes.Email, Login_ID, JWTKEY.ClientID, JWTKEY.ClientSecret));
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWTKEY.Key));
+
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                JWTKEY.Issuer,
+                JWTKEY.Audience,
+                claims,
+                expires: DateTime.Now.AddMinutes(120),
+                signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
         //public async Task<string> CreateJWTNTToken(EMPLOYEE_MST_NT user)
         //{
         //    var JWTtokens = await _configure.JWTToken();
@@ -63,7 +85,7 @@ namespace TaskManagement.API.Repositories
         //    return new JwtSecurityTokenHandler().WriteToken(token);
         //}
 
-      
+
 
         //public Task ValidateClientAuthentication(OAuthValidateClientAuthenticationContext context)
         //{

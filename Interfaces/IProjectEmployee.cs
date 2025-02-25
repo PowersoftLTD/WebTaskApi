@@ -16,7 +16,12 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<V_Building_Classification_NT>> GetProjectNTAsync(BuildingClassInput_NT v_Building_Classification);
 
         Task<IEnumerable<V_Building_Classification_new>> GetSubProjectAsync(string Project_Mkey);
+
+        Task<IEnumerable<V_Building_Classification_New_NT>> GetSubProjectNTAsync(GetSubProjectInput_NT getSubProjectInput_NT);
         Task<IEnumerable<EmployeeLoginOutput_LIST>> GetEmpAsync(string CURRENT_EMP_MKEY, string FILTER);
+
+        Task<IEnumerable<EmployeeLoginOutput_LIST_Session_NT>> GetEmpNTAsync(Get_EmpInput_NT get_EmpInput_NT);
+
         Task<IEnumerable<EmployeeLoginOutput_LIST>> GetAssignedToAsync(string AssignNameLike);
         Task<IEnumerable<EmployeeTagsOutPut_list>> GetEmpTagsAsync(string EMP_TAGS);
         Task<IEnumerable<Task_DetailsOutPut_List>> GetTaskDetailsAsync(string CURRENT_EMP_MKEY, string FILTER);
@@ -34,8 +39,15 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<Get_Project_DetailsWithSubprojectOutPut_List>> GetProjectDetailsWithSubProjectAsync(string ProjectID, string SubProjectID);
         Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> GetTaskTreeExportAsync(string Task_Mkey);
         Task<IEnumerable<Add_TaskOutPut_List>> CreateAddTaskAsync(Add_TaskInput add_TaskInput);
+        Task<IEnumerable<Add_TaskOutPut_List_NT>> CreateAddTaskNTAsync(Add_TaskInput_NT add_TaskInput_NT);
         Task<IEnumerable<Add_TaskOutPut_List>> CreateAddSubTaskAsync(Add_Sub_TaskInput add_Sub_TaskInput);
+        Task<IEnumerable<Add_TaskOutPut_List_NT>> CreateAddSubTaskNTAsync(Add_Sub_TaskInput_NT add_Sub_TaskInput_NT);
+
         Task<int> TASKFileUpoadAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId);
+
+        Task<int> TASKFileUpoadNTAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId);
+
+
         //Task<TASK_HDR> AddTaskAsync(TASK_HDR tASK_HDR);
         //Task<TASK_HDR> UpdateTaskAsync(TASK_HDR tASK_HDR);
         Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag);

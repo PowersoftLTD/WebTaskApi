@@ -78,23 +78,23 @@ namespace TaskManagement.API.Controllers
                     {
                         return StatusCode(400, "Please insert details of  " + pROJECT_HDR.PROPERTY);
                     }
-                    if (pROJECT_HDR.BUILDING_CLASSIFICATION == null)
-                    {
-                        return StatusCode(400, "Please insert details of  " + pROJECT_HDR.BUILDING_CLASSIFICATION);
-                    }
+                    //if (pROJECT_HDR.BUILDING_CLASSIFICATION == null)
+                    //{
+                    //    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.BUILDING_CLASSIFICATION);
+                    //}
                     if (pROJECT_HDR.PROJECT_NAME == null)
                     {
                         return StatusCode(400, "Please insert details of  " + pROJECT_HDR.PROJECT_NAME);
                     }
 
-                    if (pROJECT_HDR.BUILDING_STANDARD == null)
-                    {
-                        return StatusCode(400, "Please insert details of " + pROJECT_HDR.BUILDING_STANDARD);
-                    }
-                    if (pROJECT_HDR.STATUTORY_AUTHORITY == null)
-                    {
-                        return StatusCode(400, "Please insert details of  " + pROJECT_HDR.STATUTORY_AUTHORITY);
-                    }
+                    //if (pROJECT_HDR.BUILDING_STANDARD == null)
+                    //{
+                    //    return StatusCode(400, "Please insert details of " + pROJECT_HDR.BUILDING_STANDARD);
+                    //}
+                    //if (pROJECT_HDR.STATUTORY_AUTHORITY == null)
+                    //{
+                    //    return StatusCode(400, "Please insert details of  " + pROJECT_HDR.STATUTORY_AUTHORITY);
+                    //}
 
                     //foreach (var subtaskdetails in pROJECT_HDR.APPROVALS_ABBR_LIST)
                     //{

@@ -17,10 +17,12 @@ namespace TaskManagement.API.Controllers
     {
         private readonly IEmployeeMst userManager;
         private readonly ITokenRepository tokenRepository;
-        public AuthenticationController(IEmployeeMst userManager, ITokenRepository tokenRepository)
+        private readonly IProjectEmployee _repository;
+        public AuthenticationController(IProjectEmployee repository, IEmployeeMst userManager, ITokenRepository tokenRepository)
         {
             this.userManager = userManager;
             this.tokenRepository = tokenRepository;
+            _repository = repository;
         }
 
         [HttpPost]
@@ -55,32 +57,48 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost]
         [Route("Login_NT")]
-        public async Task<ActionResult<EMPLOYEE_MST>> Login_NT([FromBody] EMPLOYEE_MST_NT eMPLOYEE_MST)
+        public async Task<ActionResult<EmployeeLoginOutput_LIST_NT>> Login_NT([FromBody] EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT)
         {
-            var user = await userManager.LoginNTAsync(eMPLOYEE_MST);
-            if (user != null)
+            try
             {
-                var checkPasswordResult = await userManager.CheckPasswordNTAsync(eMPLOYEE_MST);
-
-                if (checkPasswordResult != null)
-                {
-                    //create token
-                    var jwtToken = await tokenRepository.CreateJWTToken(user);
-                    if (IsValid(jwtToken))
-                    {
-                        var response = new LoginResponse_NT
-                        {
-                            JwtToken = jwtToken
-                        };
-                        return Ok(response);
-                    }
-                    else
-                    {
-                        return Ok("Session expired");
-                    }
-                }
+                var LoginValidate = await _repository.Login_Validate_NT(employeeCompanyMSTInput_NT);
+                return Ok(LoginValidate);
             }
-            return BadRequest("Username or Password incorrect");
+            catch (Exception ex)
+            {
+                var response = new EmployeeLoginOutput_LIST
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+
+            //var user = await userManager.LoginNTAsync(eMPLOYEE_MST);
+            //if (user != null)
+            //{
+            //    var checkPasswordResult = await userManager.CheckPasswordNTAsync(eMPLOYEE_MST);
+
+            //    if (checkPasswordResult != null)
+            //    {
+            //        //create token
+            //        var jwtToken = await tokenRepository.CreateJWTToken(user);
+            //        if (IsValid(jwtToken))
+            //        {
+            //            var response = new LoginResponse_NT
+            //            {
+            //                JwtToken = jwtToken
+            //            };
+            //            return Ok(response);
+            //        }
+            //        else
+            //        {
+            //            return Ok("Session expired");
+            //        }
+            //    }
+            //}
+            //return BadRequest("Username or Password incorrect");
         }
 
 
