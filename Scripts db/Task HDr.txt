@@ -1,0 +1,12 @@
+-----------------Task---------------------------
+select * from TASK_HDR 
+select * from TASK_CHECKLIST_TRL
+select * from TASK_ENDLIST_TRL
+select * from TASK_SANCTIONING_DEPARTMENT_TRL
+
+select * from TASK_HDR 
+where MKEY = 11178
+order by 1 desc
+select * from TASK_CHECKLIST_TRL where MKEY = 11178
+select * from TASK_ENDLIST_TRL where MKEY = 11178
+select * from TASK_SANCTIONING_DEPARTMENT_TRL where MKEY = 11178
