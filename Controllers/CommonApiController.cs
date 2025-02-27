@@ -2113,13 +2113,13 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-Management/Task-Output-Table-Insert-Update")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskOutputTableInsertUpdate(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT)
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> PostTaskOutputTableInsertUpdate(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT)
         {
             try
             {
                 if (tASK_ENDLIST_TABLE_INPUT == null)
                 {
-                    var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                    var response = new TASK_COMPLIANCE_END_CHECK_LIST
                     {
                         STATUS = "Error",
                         MESSAGE = "Please Enter the details",
@@ -2133,7 +2133,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                var response = new TASK_COMPLIANCE_END_CHECK_LIST
                 {
                     STATUS = "Error",
                     MESSAGE = ex.Message,
@@ -2143,6 +2143,37 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Management/Task-Sanctioning-Table-Insert-Update")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> PostTaskSanctioningTableInsertUpdate(TASK_SANCTIONING_INPUT tASK_SANCTIONING_INPUT)
+        {
+            try
+            {
+                if (tASK_SANCTIONING_INPUT == null)
+                {
+                    var response = new TaskSanctioningDepartmentOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.PostTaskSanctioningTableInsertUpdateAsync(tASK_SANCTIONING_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskSanctioningDepartmentOutputList
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
 
     }
 }

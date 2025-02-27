@@ -61,6 +61,7 @@ namespace TaskManagement.API.Interfaces
         Task<ActionResult<IEnumerable<TASK_COMPLIANCE_CHECK_LIST>>> PostTaskCheckListInsertUpdateAsync(TASK_CHECKLIST_INPUT tASK_CHECKLIST_INPUT);
         Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> PostTaskSanctioningAuthorityAsync(TASK_SANCTIONING_AUTHORITY_INPUT tASK_SANCTIONING_AUTHORITY_INPUT);
         Task<ActionResult<IEnumerable<TaskCheckListOutputList>>> PostTaskCheckListTableInsertUpdateAsync(TASK_CHECKLIST_TABLE_INPUT tASK_CHECKLIST_TABLE_INPUT);
-        Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskEndListTableInsertUpdateAsync(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT);
+        Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> PostTaskEndListTableInsertUpdateAsync(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT);
+        Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> PostTaskSanctioningTableInsertUpdateAsync(TASK_SANCTIONING_INPUT tASK_SANCTIONING_INPUT);
     }
 }

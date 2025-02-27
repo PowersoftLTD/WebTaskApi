@@ -15,6 +15,25 @@ namespace TaskManagement.API.Model
         public int USER_ID { get; set; }
     }
 
+    public class TASK_SANCTIONING_INPUT
+    {
+        [JsonPropertyName("MKEY")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("LEVEL")]
+        public int LEVEL { get; set; }
+        [JsonPropertyName("SANCTIONING_DEPARTMENT")]
+        public string SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("SANCTIONING_AUTHORITY_MKEY")]
+        public string SANCTIONING_AUTHORITY_MKEY { get; set; }
+        [JsonPropertyName("CREATED_BY")]
+        public int CREATED_BY { get; set; }
+        [JsonPropertyName("DELETE_FLAG")]
+        public char DELETE_FLAG { get; set; }
+    }
+
+
     public class TASK_SANCTIONING_AUTHORITY_INPUT
     {
         [JsonPropertyName("MKEY")]
@@ -129,6 +148,11 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("LAST_UPDATE_DATE")]
         public string? LAST_UPDATE_DATE { get; set; }
+
+        [JsonIgnore]
+        public string? OUT_STATUS { get; set; }
+        [JsonIgnore]
+        public string? OUT_MESSAGE { get; set; }
     }
 
     public class TASK_CHECKLIST_INPUT
@@ -499,6 +523,11 @@ namespace TaskManagement.API.Model
         public string UPDATED_BY_NAME { get; set; }
         [JsonPropertyName("LAST_UPDATE_DATE")]
         public string LAST_UPDATE_DATE { get; set; }
+
+        [JsonIgnore]
+        public string? OUT_STATUS { get; set; }
+        [JsonIgnore]
+        public string? OUT_MESSAGE { get; set; }
     }
 
     public class TASK_COMPLIANCE_CHECK_LIST_OUTPUT
