@@ -9,10 +9,12 @@ namespace TaskManagement.API.Model
         public int? MKEY { get; set; }
         //[JsonPropertyName("PROJECT_NAME")]
         public int? PROJECT_NAME { get; set; }  // BUILDING_MKEY
+        public string? BUILDING_NAME { get; set; }
         //[JsonPropertyName("PROJECT_ABBR")]
         public string? PROJECT_ABBR { get; set; }  // Project Abbrivation // PROJECT_ABBR
         //[JsonPropertyName("PROPERTY")]
         public int? PROPERTY { get; set; } // Property
+        public string? PROPERTY_NAME { get; set; }
         public string? LEGAL_ENTITY { get; set; }
         public string? PROJECT_ADDRESS { get; set; }
         public int? BUILDING_CLASSIFICATION { get; set; }

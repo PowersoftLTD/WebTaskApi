@@ -603,7 +603,7 @@ namespace TaskManagement.API.Repositories
                         ",HDR.CREATION_DATE,HDR.LAST_UPDATED_BY,HDR.LAST_UPDATE_DATE,SANCTION_AUTHORITY, SANCTION_DEPARTMENT,END_RESULT_DOC" +
                         ",CHECKLIST_DOC,HDR.DELETE_FLAG  FROM APPROVAL_TEMPLATE_HDR HDR INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL_SUB " +
                         "ON HDR.MKEY = TRL_SUB.HEADER_MKEY WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR)" +
-                        " AND HDR.DELETE_FLAG = 'N'; " +
+                        " AND HDR.DELETE_FLAG = 'N' " +
                         "AND TRL_SUB.DELETE_FLAG = 'N' ", new { ABBR = ABBR });
                 }
             }

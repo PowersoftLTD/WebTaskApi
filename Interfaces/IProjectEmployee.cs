@@ -24,6 +24,9 @@ namespace TaskManagement.API.Interfaces
 
         Task<IEnumerable<EmployeeLoginOutput_LIST>> GetAssignedToAsync(string AssignNameLike);
         Task<IEnumerable<EmployeeTagsOutPut_list>> GetEmpTagsAsync(string EMP_TAGS);
+
+        Task<IEnumerable<EmployeeTagsOutPut_Tags_list_NT>> GetEmpTagsNTAsync(EMP_TAGSInput_NT eMP_TAGSInput_NT);
+
         Task<IEnumerable<Task_DetailsOutPut_List>> GetTaskDetailsAsync(string CURRENT_EMP_MKEY, string FILTER);
         Task<IEnumerable<TASK_DETAILS_BY_MKEY_list>> GetTaskDetailsByMkeyAsync(string Mkey);
         Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> GetTaskNestedGridAsync(string Mkey);

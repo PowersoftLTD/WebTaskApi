@@ -96,7 +96,6 @@ namespace TaskManagement.API.Model
 
     }
 
-
     public class EmployeeLoginOutput_LIST_Session_NT
     {
         [JsonPropertyName("Status")]

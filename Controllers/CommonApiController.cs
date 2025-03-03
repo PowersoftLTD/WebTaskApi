@@ -318,6 +318,28 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+        [HttpPost("Task-Management/EMP_TAGS_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<EmployeeTagsOutPut_Tags_list_NT>>> EMP_TAGS_NT([FromBody] EMP_TAGSInput_NT eMP_TAGSInput_NT)
+        {
+            try
+            {
+                var classifications = await _repository.GetEmpTagsNTAsync(eMP_TAGSInput_NT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new EmployeeTagsOutPut_Tags_list_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
         [HttpPost("Task-Management/TASK-DASHBOARD")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<Task_DetailsOutPut_List>>> Task_Details([FromBody] Task_DetailsInput task_DetailsInput)

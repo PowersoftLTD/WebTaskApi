@@ -512,6 +512,63 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<IEnumerable<EmployeeTagsOutPut_Tags_list_NT>> GetEmpTagsNTAsync(EMP_TAGSInput_NT eMP_TAGSInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@EMP_MKEY", eMP_TAGSInput_NT.EMP_TAGS);
+
+                    var EmployeeDetails = await db.QueryAsync<EmployeeTagsOutPut_NT>("sp_EMP_TAGS", parmeters, commandType: CommandType.StoredProcedure);
+
+                    if (EmployeeDetails.Any())
+                    {
+                        var successsResult = new List<EmployeeTagsOutPut_Tags_list_NT>
+                    {
+                        new EmployeeTagsOutPut_Tags_list_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= EmployeeDetails
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<EmployeeTagsOutPut_Tags_list_NT>
+                    {
+                        new EmployeeTagsOutPut_Tags_list_NT
+                        {
+                            Status = "Error",
+                            Message = "Data not found",
+                            Data = null
+                        }
+                    };
+                        return errorResult;
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<EmployeeTagsOutPut_Tags_list_NT>
+                    {
+                        new EmployeeTagsOutPut_Tags_list_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+
         public async Task<IEnumerable<Task_DetailsOutPut_List>> GetTaskDetailsAsync(string CURRENT_EMP_MKEY, string FILTER)
         {
             try
@@ -3429,7 +3486,7 @@ namespace TaskManagement.API.Repositories
                             var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                             if (GetTaskEnd.Any())
                             {
-                                foreach(var ErrorRespo in GetTaskEnd)
+                                foreach (var ErrorRespo in GetTaskEnd)
                                 {
                                     if (ErrorRespo.OUT_STATUS != "Ok")
                                     {

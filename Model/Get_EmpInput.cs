@@ -18,8 +18,8 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Filter")]
         public string FILTER { get; set; }
         [JsonPropertyName("Session_User_ID")]
-        public string Session_User_ID { get; set; }
+        public int Session_User_ID { get; set; }
         [JsonPropertyName("Business_Group_ID")]
-        public string Business_Group_ID { get; set; }
+        public int Business_Group_ID { get; set; }
     }
 }
