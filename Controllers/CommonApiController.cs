@@ -369,6 +369,30 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+
+        [HttpPost("Task-Management/Task-Dashboard_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Task_DetailsOutPutNT_List>>> Task_Details_NT([FromBody] Task_DetailsInputNT task_DetailsInputNT)
+        {
+            try
+            {
+                var TaskDash = await _repository.GetTaskDetailsNTAsync(task_DetailsInputNT);
+                return Ok(TaskDash);
+            }
+            catch (Exception ex)
+            {
+                var response = new Task_DetailsOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null,
+                    Data1 = null
+                };
+                return Ok(response);
+            }
+        }
+
         [HttpPost("Task-Management/TASK-DETAILS_BY_MKEY")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_DETAILS_BY_MKEY_list>>> TASK_DETAILS_BY_MKEY([FromBody] TASK_DETAILS_BY_MKEYInput tASK_DETAILS_BY_MKEYInput)

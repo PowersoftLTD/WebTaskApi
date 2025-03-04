@@ -43,4 +43,46 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("PROJECT_NAME")]
         public string? PROJECT_NAME { get; set; }
     }
+
+    public class Task_DetailsOutPutNT_List
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        public IEnumerable<Task_DetailsOutPutNT> Data { get; set; }
+    }
+
+    public class Task_DetailsOutPutNT
+    {
+        [JsonPropertyName("Mkey")]
+        public string MKEY { get; set; }
+        [JsonPropertyName("Task_No")]
+        public string TASK_NO { get; set; }
+        [JsonPropertyName("Category")]
+        public string? CATEGORY { get; set; }
+        [JsonPropertyName("Creator")]
+        public string? CREATOR { get; set; }
+        [JsonPropertyName("Responsible")]
+        public string? RESPONSIBLE { get; set; }
+        [JsonPropertyName("Actionable")]
+        public string? ACTIONABLE { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+        [JsonPropertyName("Completion_Date")]
+        public string COMPLETION_DATE { get; set; }
+        [JsonPropertyName("Task_Name")]
+        public string? TASK_NAME { get; set; }
+        [JsonPropertyName("Task_Description")]
+        public string? TASK_DESCRIPTION { get; set; }
+        [JsonPropertyName("Tags")]
+        public string? TAGS { get; set; }
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Responsible_Tag")]
+        public string? RESPONSIBLE_TAG { get; set; }
+        [JsonPropertyName("Project_Name")]
+        public string? PROJECT_NAME { get; set; }
+    }
+   
 }

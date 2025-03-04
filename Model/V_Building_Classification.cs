@@ -43,7 +43,6 @@ namespace TaskManagement.API.Model
   
         [JsonPropertyName("Data")]
         public IEnumerable<GetTaskTypeOutPut> Data { get; set; }
-
     }
 
     public class GetTaskTypeOutPut
@@ -89,6 +88,71 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("DELETE_FLAG")]
         public char? DELETE_FLAG { get; set; }
     }
+
+    public class GetTaskTypeListNT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+
+        [JsonPropertyName("Data")]
+        public IEnumerable<GetTaskTypeOutPutNT> Data { get; set; }
+    }
+
+    public class GetTaskTypeInPut
+    {
+        [JsonPropertyName("Session_User_ID")]
+        public int Session_User_ID { get; set; }
+        [JsonPropertyName("Business_Group_ID")]
+        public int Business_Group_ID { get; set; }
+
+    }
+
+    public class GetTaskTypeOutPutNT
+    {
+        [JsonPropertyName("Mkey")]
+        public decimal? MKEY { get; set; }
+        [JsonPropertyName("Company_Id")]
+        public decimal? COMPANY_ID { get; set; }
+        [JsonPropertyName("Type_Code")]
+        public string? TYPE_CODE { get; set; }
+        [JsonPropertyName("Type_Desc")]
+        public string? TYPE_DESC { get; set; }
+        [JsonPropertyName("Type_Abbr")]
+        public string? TYPE_ABBR { get; set; }
+        [JsonPropertyName("Parent_Id")]
+        public decimal? PARENT_ID { get; set; }
+        [JsonPropertyName("Master_Mkey")]
+        public decimal? MASTER_MKEY { get; set; }
+        [JsonPropertyName("Effective_Start_Date")]
+        public DateTime? EFFECTIVE_START_DATE { get; set; }
+        [JsonPropertyName("Effective_End_Date")]
+        public DateTime? EFFECTIVE_END_DATE { get; set; }
+        [JsonPropertyName("Enable_Flag")]
+        public char? ENABLE_FLAG { get; set; }
+
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public char? DELETE_FLAG { get; set; }
+    }
+
 
     public class V_Building_Classification
     {

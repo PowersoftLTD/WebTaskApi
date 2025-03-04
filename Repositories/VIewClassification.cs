@@ -304,6 +304,55 @@ namespace TaskManagement.API.Repositories
                 return ErrorResponse;
             }
         }
+
+        public async Task<ActionResult<IEnumerable<GetTaskTypeListNT>>> GetTaskTypeNTAsync(GetTaskTypeInPut getTaskTypeInPut)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var GetComplianceStatus = await db.QueryAsync<GetTaskTypeOutPutNT>("SELECT * FROM V_TASK_TYPE;");
+
+                    if (!GetComplianceStatus.Any())  // If no records are returned
+                    {
+                        var ErrorResponse = new List<GetTaskTypeListNT>
+                        {
+                            new GetTaskTypeListNT
+                            {
+                                Status = "Error",
+                                Message = "No data found",
+                                Data = null
+                            }
+                        };
+                        return ErrorResponse;
+                    }
+                    var SuccessResponse = new List<GetTaskTypeListNT>
+                        {
+                            new GetTaskTypeListNT
+                            {
+                                Status = "Ok",
+                                Message = "Data Get Successfuly",
+                                Data= GetComplianceStatus
+                            }
+                        };
+                    return SuccessResponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<GetTaskTypeListNT>
+                        {
+                            new GetTaskTypeListNT
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+        }
+
         public async Task<IEnumerable<EmployeeLoginOutput_LIST>> GetResponsiblePersonByJobRoleDepartmentAsync(RESPONSIBLE_PERSON_INPUT rESPONSIBLE_PERSON_INPUT)
         {
             try

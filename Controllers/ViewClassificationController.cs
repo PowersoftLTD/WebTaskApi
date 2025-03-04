@@ -304,6 +304,30 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Type_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GetTaskTypeListNT>>> GetTaskType_NT(GetTaskTypeInPut getTaskTypeInPut)
+        {
+            try
+            {
+                var classifications = await _repository.GetTaskTypeNTAsync(getTaskTypeInPut);
+                return classifications;
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<GetTaskTypeListNT>
+                {
+                    new GetTaskTypeListNT
+                    {
+                        Status = "Error",
+                        Message =ex.Message,
+                        Data= null
+                    }
+                };
+                return ErrorResponse;
+            }
+        }
+
         [HttpPost("Responsible-Person-By-JobRole-Department")]
         [Authorize]
         public async Task<ActionResult<EmployeeCompanyMST>> GetResponsiblePersonByJobRoleDepartment(RESPONSIBLE_PERSON_INPUT rESPONSIBLE_PERSON_INPUT)

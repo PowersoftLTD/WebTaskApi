@@ -613,6 +613,50 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<IEnumerable<Task_DetailsOutPutNT_List>> GetTaskDetailsNTAsync(Task_DetailsInputNT task_DetailsInputNT)
+        {
+            try
+            {
+                DataSet dsTaskDash = new DataSet();
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@CURRENT_EMP_MKEY", task_DetailsInputNT.CURRENT_EMP_MKEY);
+                    parmeters.Add("@FILTER", task_DetailsInputNT.FILTER);
+                    var result = await db.QueryMultipleAsync("SP_TASK_DASHBOARD", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var data = result.Read<Task_DetailsOutPutNT>().ToList();
+                  //  var data1 = result.Read<TaskDashboardCount>().ToList();
+
+                    var successsResult = new List<Task_DetailsOutPutNT_List>
+                    {
+                        new Task_DetailsOutPutNT_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= data
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<Task_DetailsOutPutNT_List>
+                    {
+                        new Task_DetailsOutPutNT_List
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+
         public async Task<IEnumerable<TASK_DETAILS_BY_MKEY_list>> GetTaskDetailsByMkeyAsync(string Mkey)
         {
             try
