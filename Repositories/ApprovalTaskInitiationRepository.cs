@@ -196,7 +196,7 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@CATEGORY", aPPROVAL_TASK_INITIATION.CAREGORY);
                         parmetersSubtask.Add("@PROJECT_ID", aPPROVAL_TASK_INITIATION.PROPERTY);
                         parmetersSubtask.Add("@SUBPROJECT_ID", aPPROVAL_TASK_INITIATION.BUILDING_MKEY);
-                        parmetersSubtask.Add("@COMPLETION_DATE", aPPROVAL_TASK_INITIATION.COMPLITION_DATE);
+                        parmetersSubtask.Add("@COMPLETION_DATE", SubTask.TENTATIVE_END_DATE);
                         parmetersSubtask.Add("@ASSIGNED_TO", SubTask.RESPOSIBLE_EMP_MKEY);
                         parmetersSubtask.Add("@TAGS", SubTask.TAGS);
                         parmetersSubtask.Add("@CLOSE_DATE", SubTask.TENTATIVE_END_DATE);
@@ -206,7 +206,7 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@TASK_TYPE", "359");
                         parmetersSubtask.Add("@STATUS", SubTask.STATUS);
                         parmetersSubtask.Add("@STATUS_PERC", "0.0");
-                        parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.INITIATOR);
+                        parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY);
                         parmetersSubtask.Add("@APPROVER_ID", 0);
                         parmetersSubtask.Add("@IS_ARCHIVE", 'N');
                         parmetersSubtask.Add("@ATTRIBUTE1", null);

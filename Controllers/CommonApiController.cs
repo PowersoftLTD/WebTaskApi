@@ -59,7 +59,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         //[HttpPost("Task-Management/Login_NT")]
         //public async Task<ActionResult<EmployeeLoginOutput_LIST_NT>> Login_Validate_NT([FromBody] EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT)
         //{
@@ -79,7 +78,6 @@ namespace TaskManagement.API.Controllers
         //        return Ok(response);
         //    }
         //}
-
 
         [HttpPost("Task-Management/Get-Option")]
         [Authorize]

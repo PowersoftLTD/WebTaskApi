@@ -10,6 +10,29 @@ namespace TaskManagement.API.Model
         [Column("SEQ_NO")]
         public string? TASK_NO { get; set; }
 
+        [Column("TASK_NO")]
+        public string? SEQ_NO { get; set; }
+
+        [Column("TASK_MKEY")]
+        public int? MKEY { get; set; }
+
+        [Column("TASK_NAME")]
+        public string? TASK_NAME { get; set; }
+
+        [Column("TASK_STATUS")]
+        public string? TASK_STATUS { get; set; }
+
+        [Column("TASK_RESPOSIBLE_EMP_MKEY")]
+        public int? TASK_RESPOSIBLE_EMP_MKEY { get; set; }
+
+        [Column("COMPLETION_DATE")]
+        public string? COMPLETION_DATE { get; set; }
+
+        [Column("PERCENT_COMPLETE")]
+        public string? Percent_Complete { get; set; }
+
+        [Column("EMP_FULL_NAME")]
+        public string? EMP_FULL_NAME { get; set; }
         [Column("APPROVAL_MKEY")]
         public int? APPROVAL_MKEY { get; set; }
 
