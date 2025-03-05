@@ -567,8 +567,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
-
         public async Task<IEnumerable<Task_DetailsOutPut_List>> GetTaskDetailsAsync(string CURRENT_EMP_MKEY, string FILTER)
         {
             try
@@ -624,10 +622,10 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", task_DetailsInputNT.CURRENT_EMP_MKEY);
                     parmeters.Add("@FILTER", task_DetailsInputNT.FILTER);
-                    var result = await db.QueryMultipleAsync("SP_TASK_DASHBOARD", parmeters, commandType: CommandType.StoredProcedure);
+                    var result = await db.QueryMultipleAsync("SP_TASK_DASHBOARD_NT", parmeters, commandType: CommandType.StoredProcedure);
 
                     var data = result.Read<Task_DetailsOutPutNT>().ToList();
-                  //  var data1 = result.Read<TaskDashboardCount>().ToList();
+                    //  var data1 = result.Read<TaskDashboardCount>().ToList();
 
                     var successsResult = new List<Task_DetailsOutPutNT_List>
                     {
@@ -2522,47 +2520,73 @@ namespace TaskManagement.API.Repositories
 
                     if (GetTaskEnd.Any())
                     {
-                        if (tASK_ENDLIST_INPUT.PROJECT_DOC_FILES != null)
+                        if (tASK_ENDLIST_INPUT.FILE_DELETE_FLAG == "N")
                         {
-                            var descriptions = GetTaskEnd
-                                .Select(x =>
+                            if (tASK_ENDLIST_INPUT.PROJECT_DOC_FILES != null)
+                            {
+                                var descriptions = GetTaskEnd
+                              .Select(x =>
+                              {
+                                  var value = x.GetType().GetProperty("MKEY").GetValue(x);
+                                  return value is int ? (int)value : 0; // Default to 0 if not an int
+                              })
+                              .ToList();
+
+                                ProjectDAttach = Convert.ToInt32(descriptions[0]);
+                                string filePathOpen = string.Empty;
+
+                                // Create directory for file storage if it doesn't exist
+                                string filePath = _fileSettings.FilePath;
+                                string directoryPath = Path.Combine(filePath, "Attachments", "Document Depository", ProjectDAttach.ToString());
+                                if (!Directory.Exists(directoryPath))
                                 {
-                                    var value = x.GetType().GetProperty("MKEY").GetValue(x);
-                                    return value is int ? (int)value : 0; // Default to 0 if not an int
-                                })
-                                .ToList();
+                                    Directory.CreateDirectory(directoryPath);
+                                }
 
-                            ProjectDAttach = Convert.ToInt32(descriptions[0]);
-                            string filePathOpen = string.Empty;
+                                // Save the file to the directory
+                                string fileName = $"{DateTime.Now.Day}_{DateTime.Now.ToShortTimeString().Replace(":", "_")}_{tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName}";
+                                string fullFilePath = Path.Combine(directoryPath, fileName);
+                                using (FileStream fileStream = new FileStream(fullFilePath, FileMode.Create))
+                                {
+                                    await tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.CopyToAsync(fileStream);
+                                    fileStream.Flush();
+                                }
 
-                            // Create directory for file storage if it doesn't exist
-                            string filePath = _fileSettings.FilePath;
-                            string directoryPath = Path.Combine(filePath, "Attachments", "Document Depository", ProjectDAttach.ToString());
-                            if (!Directory.Exists(directoryPath))
-                            {
-                                Directory.CreateDirectory(directoryPath);
+                                filePathOpen = Path.Combine("Attachments", "Document Depository", ProjectDAttach.ToString(), fileName);
+
+                                // Insert file metadata into the database
+                                var parametersFiles = new DynamicParameters();
+                                parametersFiles.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
+                                parametersFiles.Add("@SR_NO", tASK_ENDLIST_INPUT.SR_NO);
+                                parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
+                                parametersFiles.Add("@FILE_NAME", tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName);
+                                parametersFiles.Add("@FILE_PATH", filePathOpen);
+                                parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
+                                parametersFiles.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.FILE_DELETE_FLAG);
+                                parametersFiles.Add("@APINAME", "CreateTaskEndlistAttach");
+                                parametersFiles.Add("@API_METHOD", "Create/Update");
+
+                                // Execute stored procedure for file insert
+                                var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_INSERT_TASK_ENDLIST_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                // Assign the file metadata to the task end list output
+                                foreach (var OutputMedia in GetTaskEnd)
+                                {
+                                    OutputMedia.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
+                                }
                             }
+                        }
 
-                            // Save the file to the directory
-                            string fileName = $"{DateTime.Now.Day}_{DateTime.Now.ToShortTimeString().Replace(":", "_")}_{tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName}";
-                            string fullFilePath = Path.Combine(directoryPath, fileName);
-                            using (FileStream fileStream = new FileStream(fullFilePath, FileMode.Create))
-                            {
-                                await tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.CopyToAsync(fileStream);
-                                fileStream.Flush();
-                            }
-
-                            filePathOpen = Path.Combine("Attachments", "Document Depository", ProjectDAttach.ToString(), fileName);
-
-                            // Insert file metadata into the database
+                        else if (tASK_ENDLIST_INPUT.FILE_DELETE_FLAG == "Y")
+                        {
                             var parametersFiles = new DynamicParameters();
                             parametersFiles.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
                             parametersFiles.Add("@SR_NO", tASK_ENDLIST_INPUT.SR_NO);
                             parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
-                            parametersFiles.Add("@FILE_NAME", tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName);
-                            parametersFiles.Add("@FILE_PATH", filePathOpen);
+                            parametersFiles.Add("@FILE_NAME", "");
+                            parametersFiles.Add("@FILE_PATH", "");
                             parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-                            parametersFiles.Add("@DELETE_FLAG", "N");
+                            parametersFiles.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.FILE_DELETE_FLAG);
                             parametersFiles.Add("@APINAME", "CreateTaskEndlistAttach");
                             parametersFiles.Add("@API_METHOD", "Create/Update");
 
@@ -2575,24 +2599,25 @@ namespace TaskManagement.API.Repositories
                                 OutputMedia.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
                             }
                         }
-                        else
-                        {
-                            var parametersFiles = new DynamicParameters();
-                            parametersFiles.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
-                            parametersFiles.Add("@SR_NO", tASK_ENDLIST_INPUT.SR_NO);
-                            parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
-                            parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-                            parametersFiles.Add("@DELETE_FLAG", "Y");
-                            parametersFiles.Add("@APINAME", "CreateTaskEndlistAttach");
-                            parametersFiles.Add("@API_METHOD", "Create/Update");
 
-                            // Execute stored procedure for file insert
-                            var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_INSERT_TASK_ENDLIST_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
-                            foreach (var OutputMedia in GetTaskEnd)
-                            {
-                                OutputMedia.TASK_OUTPUT_ATTACHMENT = null;
-                            }
-                        }
+                        //else
+                        //{
+                        //    var parametersFiles = new DynamicParameters();
+                        //    parametersFiles.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
+                        //    parametersFiles.Add("@SR_NO", tASK_ENDLIST_INPUT.SR_NO);
+                        //    parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
+                        //    parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
+                        //    parametersFiles.Add("@DELETE_FLAG", "Y");
+                        //    parametersFiles.Add("@APINAME", "CreateTaskEndlistAttach");
+                        //    parametersFiles.Add("@API_METHOD", "Create/Update");
+
+                        //    // Execute stored procedure for file insert
+                        //    var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_INSERT_TASK_ENDLIST_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        //    foreach (var OutputMedia in GetTaskEnd)
+                        //    {
+                        //        OutputMedia.TASK_OUTPUT_ATTACHMENT = null;
+                        //    }
+                        //}
 
                         // Commit the transaction after database operations and file handling
                         var sqlTransaction = (SqlTransaction)transaction;
@@ -2601,14 +2626,14 @@ namespace TaskManagement.API.Repositories
 
                         // Return success response
                         return new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-                    {
-                        new TASK_ENDLIST_DETAILS_OUTPUT_LIST
                         {
-                            STATUS = "Ok",
-                            MESSAGE = "Data processed successfully",
-                            DATA = GetTaskEnd
-                        }
-                    };
+                            new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                            {
+                                STATUS = "Ok",
+                                MESSAGE = "Data processed successfully",
+                                DATA = GetTaskEnd
+                            }
+                        };
                     }
                     else
                     {
@@ -2624,7 +2649,7 @@ namespace TaskManagement.API.Repositories
                                 new TASK_ENDLIST_DETAILS_OUTPUT_LIST
                                 {
                                     STATUS = "Error",
-                                    MESSAGE = "Error occurd",
+                                    MESSAGE = "Data not found",
                                     DATA = null
                                 }
                             };

@@ -345,16 +345,6 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var TaskDash = await _repository.GetTaskDetailsAsync(task_DetailsInput.CURRENT_EMP_MKEY, task_DetailsInput.FILTER);
-                //if (TaskDash == null)
-                //{
-                //    var responseApprovalTemplate = new ApiResponse<TASK_DASHBOARD>
-                //    {
-                //        Status = "Error",
-                //        Message = "Error Occurd",
-                //        Data = null
-                //    };
-                //    return Ok(responseApprovalTemplate);
-                //}
                 return Ok(TaskDash);
             }
             catch (Exception ex)
@@ -369,7 +359,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
 
         [HttpPost("Task-Management/Task-Dashboard_NT")]
         [Authorize]

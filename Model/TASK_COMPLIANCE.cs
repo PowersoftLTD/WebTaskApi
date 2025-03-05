@@ -310,6 +310,9 @@ namespace TaskManagement.API.Model
         public string? CREATED_BY { get; set; }
         [JsonPropertyName("DELETE_FLAG")]
         public string? DELETE_FLAG { get; set; }
+
+        [JsonPropertyName("FILE_DELETE_FLAG")]
+        public string? FILE_DELETE_FLAG { get; set; }
     }
 
 
