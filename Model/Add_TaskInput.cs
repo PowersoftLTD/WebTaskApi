@@ -64,8 +64,11 @@ namespace TaskManagement.API.Model
 
     public class Add_TaskInput_NT
     {
+        [JsonPropertyName("Mode")]
+        public string MODE { get; set; }
         [JsonPropertyName("Task_No")]
         public string TASK_NO { get; set; }
+      
         [JsonPropertyName("Task_Name")]
         public string TASK_NAME { get; set; }
         [JsonPropertyName("Task_Description")]
@@ -98,6 +101,16 @@ namespace TaskManagement.API.Model
         public string STATUS_PERC { get; set; }
         [JsonPropertyName("Task_Created_By")]
         public int TASK_CREATED_BY { get; set; }
+        [JsonPropertyName("Priority")]
+        public string? Priority { get; set; }
+        [JsonPropertyName("Tentative_Start_Date")]
+        public DateTime? Tentative_Start_Date { get; set; }
+        [JsonPropertyName("Tentative_End_Date")]
+        public DateTime? Tentative_End_Date { get; set; }
+        [JsonPropertyName("Actual_Start_Date")]
+        public DateTime? Actual_Start_Date { get; set; }
+        [JsonPropertyName("Actual_End_Date")]
+        public DateTime? Actual_End_Date { get; set; }
         [JsonPropertyName("Approver_Id")]
         public int APPROVER_ID { get; set; }
         [JsonPropertyName("Is_Archive")]
@@ -120,10 +133,110 @@ namespace TaskManagement.API.Model
         public int LAST_UPDATED_BY { get; set; }
         [JsonPropertyName("Approve_Action_Date")]
         public string APPROVE_ACTION_DATE { get; set; }
+        [JsonPropertyName("Task_Checklist")]
+        public List<TASK_CHECKLIST_TABLE_INPUT_NT>? tASK_CHECKLIST_TABLE_INPUT_NT { get; set; }
+        [JsonPropertyName("Task_Endlist")]
+        public List<TASK_ENDLIST_TABLE_INPUT_NT>? tASK_ENDLIST_TABLE_INPUT_NTs { get; set; }
+        [JsonPropertyName("Task_Sanctioning")]
+        public List<TASK_SANCTIONING_INPUT_NT>? tASK_SANCTIONING_INPUT_NT { get; set; }
+
+        [JsonPropertyName("Delete_Flag")]
+        public string Delete_Flag { get; set; }
 
         [JsonPropertyName("Session_User_ID")]
         public string Session_User_ID { get; set; }
         [JsonPropertyName("Business_Group_ID")]
         public string Business_Group_ID { get; set; }
+    }
+
+    public class TASK_CHECKLIST_TABLE_INPUT_NT
+    {
+        [JsonPropertyName("Task_Mkey")]
+        public int? TASK_MKEY { get; set; }
+        [JsonPropertyName("Doc_Mkey")]
+        public int DOC_MKEY { get; set; }
+        [JsonPropertyName("Document_Category")]
+        public int DOCUMENT_CATEGORY { get; set; }
+
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public string DELETE_FLAG { get; set; }
+        [JsonPropertyName("Created_By")]
+        public string? CREATED_BY { get; set; }
+
+    }
+
+    public class TASK_ENDLIST_TABLE_INPUT_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Output_Doc_List")]
+        public Dictionary<string, object>? OUTPUT_DOC_LST { get; set; }
+        [JsonPropertyName("Created_By")]
+        public string? CREATED_BY { get; set; }
+
+        [JsonPropertyName("Delete_Flag")]
+        public string? DELETE_FLAG { get; set; }
+    }
+
+    public class TASK_SANCTIONING_INPUT_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Level")]
+        public int LEVEL { get; set; }
+        [JsonPropertyName("Sanctioning_Department")]
+        public string SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("Sanctioning_Authority_Mkey")]
+        public string SANCTIONING_AUTHORITY_MKEY { get; set; }
+        [JsonPropertyName("Created_By")]
+        public int CREATED_BY { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public char DELETE_FLAG { get; set; }
+    }
+    public class ComplianceInsertUpdateInput_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("Short_Description")]
+        public string SHORT_DESCRIPTION { get; set; }
+        [JsonPropertyName("Long_Description")]
+        public string LONG_DESCRIPTION { get; set; }
+        [JsonPropertyName("Raised_At")]
+        public int? RAISED_AT { get; set; }
+        [JsonPropertyName("Raised_At_Before")]
+        public int? RAISED_AT_BEFORE { get; set; }
+        [JsonPropertyName("Responsible_Department")]
+        public int? RESPONSIBLE_DEPARTMENT { get; set; }
+        [JsonPropertyName("Category")]
+        public int? CAREGORY { get; set; }
+        [JsonPropertyName("Task_Type")]
+        public int? TASK_TYPE { get; set; }
+        [JsonPropertyName("Job_Role")]
+        public int? JOB_ROLE { get; set; }
+        [JsonPropertyName("Responsible_Person")]
+        public int? RESPONSIBLE_PERSON { get; set; }
+        [JsonPropertyName("To_Be_Completed_By")]
+        public DateTime? TO_BE_COMPLETED_BY { get; set; }
+        [JsonPropertyName("No_Days")]
+        public int? NO_DAYS { get; set; }
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Tags")]
+        public string? TAGS { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public char? DELETE_FLAG { get; set; }
+        [JsonPropertyName("Created_By")]
+        public int CREATED_BY { get; set; }
     }
 }

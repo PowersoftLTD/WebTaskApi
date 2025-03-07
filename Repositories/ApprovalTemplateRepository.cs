@@ -223,6 +223,34 @@ namespace TaskManagement.API.Repositories
                     var objOutPutApprovalTemplates = await db.QueryFirstOrDefaultAsync<OutPutApprovalTemplates>("SP_INSERT_APPROVAL_TEMPLATE", parameters,
                         commandType: CommandType.StoredProcedure, transaction: transaction);
 
+                    if (objOutPutApprovalTemplates.Status != "Ok")
+                    {
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                                // Handle rollback exception (may occur if transaction is already completed)
+                                // Log or handle the rollback failure if needed
+                                objOutPutApprovalTemplates.Status = "Error";
+                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            }
+
+                            var ErrorApprovalTemplates = new OutPutApprovalTemplates
+                            {
+                                MKEY = 0,
+                                Status = objOutPutApprovalTemplates.Status,
+                                Message = objOutPutApprovalTemplates.Message
+                            };
+                            return ErrorApprovalTemplates;
+                        }
+                    }
+
                     DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
                     try
                     {
@@ -388,12 +416,40 @@ namespace TaskManagement.API.Repositories
                         {
                             if (OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null && OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Count > 0)
                             {
-                                // Populate the DataTable with subtasks
                                 foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
                                 {
-                                    subtaskDataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY
-                                        , objOutPutApprovalTemplates.MKEY, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY
-                                        , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                    if (objOutPutApprovalTemplates.MKEY == subtask.SUBTASK_MKEY)
+                                    {
+                                        if (transaction != null && !transactionCompleted)
+                                        {
+                                            try
+                                            {
+                                                // Rollback only if the transaction is not yet completed
+                                                transaction.Rollback();
+                                            }
+                                            catch (InvalidOperationException rollbackEx)
+                                            {
+                                                // Handle rollback exception (may occur if transaction is already completed)
+                                                // Log or handle the rollback failure if needed
+                                                objOutPutApprovalTemplates.Status = "Error";
+                                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
+                                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                            }
+                                            var ErrorApprovalTemplates = new OutPutApprovalTemplates
+                                            {
+                                                MKEY = 0,
+                                                Status = "Error",
+                                                Message = "Approval Header Mkey and Sub Approval is same"
+                                            };
+                                            return ErrorApprovalTemplates;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        subtaskDataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY
+                                            , objOutPutApprovalTemplates.MKEY, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY
+                                            , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                    }
                                 }
 
                                 // Use SqlBulkCopy to insert subtasks

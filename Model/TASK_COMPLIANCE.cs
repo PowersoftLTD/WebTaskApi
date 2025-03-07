@@ -220,10 +220,7 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("BUILDING_MKEY")]
         public int BUILDING_MKEY { get; set; }
-
-        //[JsonPropertyName("CHECK_DOC_LST")]
-        //public Dictionary<string, object>? CHECK_DOC_LST { get; set; }
-
+     
         [JsonPropertyName("DOCUMENT_MKEY")]
         public int DOCUMENT_MKEY { get; set; }
 
@@ -260,19 +257,6 @@ namespace TaskManagement.API.Model
         public string? OUT_STATUS { get; set; }
         [JsonIgnore]
         public string? OUT_MESSAGE { get; set; }
-
-
-        //[JsonPropertyName("TASK_MKEY")]
-        //public int? TASK_MKEY { get; set; }
-        //[JsonPropertyName("DOC_MKEY")]
-        //public int DOC_MKEY { get; set; }
-        //[JsonPropertyName("DOCUMENT_CATEGORY")]
-        //public int DOCUMENT_CATEGORY { get; set; }
-        //[JsonPropertyName("SR_NO")]
-        //public int SR_NO { get; set; }
-        //[JsonPropertyName("CREATED_BY")]
-        //public string? CREATED_BY { get; set; }
-
     }
 
 
@@ -325,27 +309,6 @@ namespace TaskManagement.API.Model
         public int SR_NO { get; set; }
         [JsonPropertyName("OUTPUT_DOC_LST")]
         public Dictionary<string, object>? OUTPUT_DOC_LST { get; set; }
-
-        //[JsonPropertyName("DOC_NUM_APP_FLAG")]
-        //public string? DOC_NUM_APP_FLAG { get; set; }
-
-        //[JsonPropertyName("DOC_NUM_VALID_FLAG")]
-        //public string? DOC_NUM_VALID_FLAG { get; set; }
-
-        //[JsonPropertyName("DOC_NUM_DATE_APP_FLAG")]
-        //public string? DOC_NUM_DATE_APP_FLAG { get; set; }
-
-        //[JsonPropertyName("DOC_ATTACH_APP_FLAG")]
-        //public string? DOC_ATTACH_APP_FLAG { get; set; }
-        //[JsonPropertyName("DOC_NUMBER")]
-        //public string? DOC_NUMBER { get; set; }
-
-        //[JsonPropertyName("DOC_DATE")]
-        //public string? DOC_DATE { get; set; }
-
-        //[JsonPropertyName("VALIDITY_DATE")]
-        //public string? VALIDITY_DATE { get; set; }
-
         [JsonPropertyName("CREATED_BY")]
         public string? CREATED_BY { get; set; }
 

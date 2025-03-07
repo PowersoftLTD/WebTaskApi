@@ -157,6 +157,13 @@ namespace TaskManagement.API.Controllers
                 }
                 else
                 {
+                    if (model.Value.Status != "Ok")
+                    {
+                        var errorResponse = new OutPutApprovalTemplates();
+                        errorResponse.Status = "Error";
+                        errorResponse.Message = model.Value.Message;
+                        return Ok(errorResponse);
+                    }
                     return Ok(model);
                 }
             }

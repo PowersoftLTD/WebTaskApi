@@ -48,6 +48,9 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("COMPLITION_DATE")]
         public string? COMPLITION_DATE { get; set; }
+        
+        [JsonPropertyName("DAYS_REQUIERD")]
+        public string? DAYS_REQUIERD { get; set; }
 
         [JsonPropertyName("PROPERTY")]
         public int? PROPERTY { get; set; }

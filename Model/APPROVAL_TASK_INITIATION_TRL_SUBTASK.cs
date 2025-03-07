@@ -8,6 +8,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
 
+        [JsonPropertyName("HEADER_MKEY")]
+        public int? HEADER_MKEY { get; set; }
+
         [Column("APPROVAL_MKEY")]
         public int? APPROVAL_MKEY { get; set; }
 
