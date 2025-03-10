@@ -388,16 +388,6 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var TaskDash = await _repository.GetTaskDetailsByMkeyAsync(tASK_DETAILS_BY_MKEYInput.Mkey);
-                ////if (TaskDash == null)
-                ////{
-                ////    var responseApprovalTemplate = new ApiResponse<TASK_DASHBOARD>
-                ////    {
-                ////        Status = "Error",
-                ////        Message = "Error Occurd",
-                ////        Data = null
-                ////    };
-                ////    return Ok(responseApprovalTemplate);
-                ////}
                 return Ok(TaskDash);
             }
             catch (Exception ex)
@@ -411,6 +401,28 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+        [HttpPost("Task-Management/Task-Details_By_Mkey_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_DETAILS_BY_MKEY_list_NT>>> TASK_DETAILS_BY_MKEY_NT([FromBody] TASK_DETAILS_BY_MKEYInput_NT tASK_DETAILS_BY_MKEYInput_NT)
+        {
+            try
+            {
+                var TaskDash = await _repository.GetTaskDetailsByMkeyNTAsync(tASK_DETAILS_BY_MKEYInput_NT);
+                return Ok(TaskDash);
+            }
+            catch (Exception ex)
+            {
+                var response = new TASK_DETAILS_BY_MKEY_list_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
         [HttpPost("Task-Management/TASK-NESTED-GRID")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_DASHBOARD>>> TASK_NESTED_GRID([FromBody] TASK_NESTED_GRIDInput tASK_NESTED_GRIDInput)

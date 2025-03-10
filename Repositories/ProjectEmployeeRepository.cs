@@ -686,6 +686,78 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<IEnumerable<TASK_DETAILS_BY_MKEY_list_NT>> GetTaskDetailsByMkeyNTAsync(TASK_DETAILS_BY_MKEYInput_NT tASK_DETAILS_BY_MKEYInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@HDR_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                    var TaskDashDetails = await db.QueryAsync<TASK_DETAILS_BY_MKEY_NT>("SP_TASK_DETAILS_BY_MKEY_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                    {
+                        new TASK_DETAILS_BY_MKEY_list_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= TaskDashDetails
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                    {
+                        new TASK_DETAILS_BY_MKEY_list_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<IEnumerable<TASK_DETAILS_BY_MKEY_list_NT>> GetTaskDetailsByMkeyAsync(TASK_DETAILS_BY_MKEYInput_NT tASK_DETAILS_BY_MKEYInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@HDR_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                    var TaskDashDetails = await db.QueryAsync<TASK_DETAILS_BY_MKEY_NT>("SP_TASK_DETAILS_BY_MKEY", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                    {
+                        new TASK_DETAILS_BY_MKEY_list_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= TaskDashDetails
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                    {
+                        new TASK_DETAILS_BY_MKEY_list_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
         public async Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> GetTaskNestedGridAsync(string Mkey)
         {
             try

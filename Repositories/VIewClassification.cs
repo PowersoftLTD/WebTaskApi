@@ -37,6 +37,57 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Type_CHECK_LIST");
             }
         }
+        public async Task<IEnumerable<V_Building_Classification_OutPut_NT>> GetViewDoc_Type_CheckList_NTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var AssignToDetails = await db.QueryAsync<V_Doc_Type_NT>("Select * from V_Doc_Type_CHECK_LIST_NT", commandType: CommandType.Text);
+                    if (AssignToDetails.Any())
+                    {
+
+                        var successsResult = new List<V_Building_Classification_OutPut_NT>
+                    {
+                        new V_Building_Classification_OutPut_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= AssignToDetails
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<V_Building_Classification_OutPut_NT>
+                    {
+                        new V_Building_Classification_OutPut_NT
+                        {
+                            Status = "Error",
+                            Message = "No found",
+                            Data=null
+                        }
+                    };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<V_Building_Classification_OutPut_NT>
+                    {
+                        new V_Building_Classification_OutPut_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null
+                        }
+                    };
+                return errorResult;
+            }
+
+        }
         public async Task<IEnumerable<V_Instruction>> GetAllInstruction()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -202,6 +253,57 @@ namespace TaskManagement.API.Repositories
             {
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Sanctioning_Authority");
             }
+        }
+        public async Task<IEnumerable<V_Sanctioning_Authority_OutPut_NT>> GetViewSanctioningAuthority_NT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var Sanctioning_List = await db.QueryAsync<Sanctioning_Authority_List>("SELECT * FROM V_Sanctioning_Authority", commandType: CommandType.Text);
+                    if (Sanctioning_List.Any())
+                    {
+
+                        var successsResult = new List<V_Sanctioning_Authority_OutPut_NT>
+                    {
+                        new V_Sanctioning_Authority_OutPut_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= Sanctioning_List
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<V_Sanctioning_Authority_OutPut_NT>
+                    {
+                        new V_Sanctioning_Authority_OutPut_NT
+                        {
+                            Status = "Error",
+                            Message = "No found",
+                            Data=null
+                        }
+                    };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<V_Sanctioning_Authority_OutPut_NT>
+                    {
+                        new V_Sanctioning_Authority_OutPut_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+                        }
+                    };
+                return errorResult;
+            }
+
         }
         public async Task<IEnumerable<V_Building_Classification>> GetViewDocument_Category()
         {

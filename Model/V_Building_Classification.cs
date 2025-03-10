@@ -40,7 +40,7 @@ namespace TaskManagement.API.Model
         public string? Status { get; set; }
         [JsonPropertyName("Message")]
         public string? Message { get; set; }
-  
+
         [JsonPropertyName("Data")]
         public IEnumerable<GetTaskTypeOutPut> Data { get; set; }
     }
@@ -175,25 +175,25 @@ namespace TaskManagement.API.Model
         public DateTime? EFFECTIVE_END_DATE { get; set; }
 
         public char? ENABLE_FLAG { get; set; }
-        
+
         public string? ATTRIBUTE1 { get; set; }
-        
+
         public string? ATTRIBUTE2 { get; set; }
-        
+
         public string? ATTRIBUTE3 { get; set; }
-       
+
         public string? ATTRIBUTE4 { get; set; }
-        
+
         public string? ATTRIBUTE5 { get; set; }
-        
+
         public decimal? ATTRIBUTE6 { get; set; }
-        
+
         public decimal? ATTRIBUTE7 { get; set; }
-        
+
         public decimal? ATTRIBUTE8 { get; set; }
-        
+
         public decimal? ATTRIBUTE9 { get; set; }
-       
+
         public decimal? ATTRIBUTE10 { get; set; }
 
         [JsonPropertyName("CREATED_BY_ID")]
@@ -214,6 +214,103 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("LAST_UPDATE_DATE")]
         public string? LAST_UPDATE_DATE { get; set; }
 
+        public char? DELETE_FLAG { get; set; }
+    }
+
+    public class V_Sanctioning_Authority_OutPut_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<Sanctioning_Authority_List> Data { get; set; }
+    }
+
+    public class Sanctioning_Authority_List
+    {
+        [JsonPropertyName("Mkey")]
+        public decimal? MKEY { get; set; }
+        [JsonPropertyName("Company_Id")]
+        public decimal? COMPANY_ID { get; set; }
+        [JsonPropertyName("Type_Code")]
+        public string? TYPE_CODE { get; set; }
+        [JsonPropertyName("Type_Desc")]
+        public string? TYPE_DESC { get; set; }
+        [JsonPropertyName("Type_Abbr")]
+        public string? TYPE_ABBR { get; set; }
+        [JsonPropertyName("Parent_Id")]
+        public decimal? PARENT_ID { get; set; }
+        [JsonPropertyName("Master_Mkey")]
+        public decimal? MASTER_MKEY { get; set; }
+        [JsonPropertyName("Effective_Start_Date")]
+        public DateTime? EFFECTIVE_START_DATE { get; set; }
+        [JsonPropertyName("Effective_End_Date")]
+        public DateTime? EFFECTIVE_END_DATE { get; set; }
+        [JsonPropertyName("Enable_Flag")]
+        public char? ENABLE_FLAG { get; set; }
+
+        [JsonPropertyName("Created_By_Id")]
+        public String? Created_By_Id { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public char? DELETE_FLAG { get; set; }
+    }
+
+
+    public class V_Building_Classification_OutPut_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<V_Doc_Type_NT> Data { get; set; }
+    }
+
+    public class V_Doc_Type_NT
+    {
+        [JsonPropertyName("Doc_Type_Mkey")]
+        public decimal? Doc_Type_Mkey { get; set; }
+        [JsonPropertyName("Doc_Type_Name")]
+        public string? Doc_Type_Name { get; set; }
+        [JsonPropertyName("Doc_Category_Mkey")]
+        public decimal? Doc_Category_Mkey { get; set; }
+        [JsonPropertyName("Doc_Category_Name")]
+        public string? Doc_Category_Name { get; set; }
+
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+        [JsonPropertyName("Delete_Flag")]
         public char? DELETE_FLAG { get; set; }
 
     }

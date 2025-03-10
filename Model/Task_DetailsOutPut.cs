@@ -50,6 +50,7 @@ namespace TaskManagement.API.Model
         public string? Status { get; set; }
         [JsonPropertyName("Message")]
         public string? Message { get; set; }
+        [JsonPropertyName("Data")]
         public IEnumerable<Task_DetailsOutPutNT> Data { get; set; }
     }
 
@@ -83,6 +84,12 @@ namespace TaskManagement.API.Model
         public string? RESPONSIBLE_TAG { get; set; }
         [JsonPropertyName("Project_Name")]
         public string? PROJECT_NAME { get; set; }
+        [JsonPropertyName("Priority")]
+        public string? Priority { get; set; }
+        [JsonPropertyName("Progress_Percentage")]
+        public string? Progress_Percentage { get; set; }
+        [JsonPropertyName("Subtask_Count")]
+        public string? Subtask_Count { get; set; }
     }
    
 }

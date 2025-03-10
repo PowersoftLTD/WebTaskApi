@@ -62,6 +62,29 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+
+        [HttpPost("Doc-Type-Instruction_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Building_Classification_OutPut_NT>>> GetAllViewDoc_Type_CheckList_NT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            try
+            {
+                var classifications = await _repository.GetViewDoc_Type_CheckList_NTAsync(doc_Type_Doc_CategoryInput);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new V_Building_Classification_OutPut_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+
         [HttpGet("Instruction-List")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Instruction>>> GetAllInstruction()
@@ -144,6 +167,21 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var classifications = await _repository.GetViewSanctioningAuthority();
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
+
+        [HttpPost("Sanctioning-Authority_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Sanctioning_Authority_OutPut_NT>>> GetAllSanctioningAuthority_NT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            try
+            {
+                var classifications = await _repository.GetViewSanctioningAuthority_NT(doc_Type_Doc_CategoryInput);
                 return Ok(classifications);
             }
             catch (Exception ex)

@@ -77,4 +77,88 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("RESPONSE_MESSAGE")]
         public string? RESPONSE_MESSAGE { get; set; }
     }
+
+    public class TASK_DETAILS_BY_MKEY_list_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TASK_DETAILS_BY_MKEY_NT> Data { get; set; }
+    }
+
+
+    public class TASK_DETAILS_BY_MKEY_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public string? MKEY { get; set; }
+        [JsonPropertyName("Task_No")]
+        public string TASK_NO { get; set; }
+        [JsonPropertyName("Task_Name")]
+        public string TASK_NAME { get; set; }
+        [JsonPropertyName("Isnode")]
+        public char ISNODE { get; set; }
+        [JsonPropertyName("Task_Parent_Id")]
+        public decimal TASK_PARENT_ID { get; set; }
+        [JsonPropertyName("Task_Main_Node_Id")]
+        public decimal TASK_MAIN_NODE_ID { get; set; }
+        [JsonPropertyName("Status")]
+        public string STATUS { get; set; }
+        [JsonPropertyName("Status_Perc")]
+        public decimal STATUS_PERC { get; set; }
+        [JsonPropertyName("Task_Created_By")]
+        public decimal TASK_CREATED_BY { get; set; }
+        [JsonPropertyName("Approver_Id")]
+        public decimal APPROVER_ID { get; set; }
+        [JsonPropertyName("Approve_Action_Date")]
+        public DateTime APPROVE_ACTION_DATE { get; set; }
+        [JsonPropertyName("Caregory")]
+        public string? CAREGORY { get; set; }
+        [JsonPropertyName("Project_Mkey")]
+        public string PROJECT_MKEY { get; set; }
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("Project")]
+        public string? PROJECT { get; set; }
+        [JsonPropertyName("Sub_Project")]
+        public string? Sub_PROJECT { get; set; }
+        [JsonPropertyName("Category_Mkey")]
+        public int? CATEGORY_MKEY { get; set; }
+        [JsonPropertyName("Task_Description")]
+        public string TASK_DESCRIPTION { get; set; }
+        [JsonPropertyName("Start_Date")]
+        public DateTime? START_DATE { get; set; }
+        [JsonPropertyName("Completion_Date")]
+        public DateTime? COMPLETION_DATE { get; set; }
+        [JsonPropertyName("Close_Date")]
+        public DateTime? CLOSE_DATE { get; set; }
+        [JsonPropertyName("Due_Date")]
+        public DateTime? DUE_DATE { get; set; }
+        [JsonPropertyName("Assigned_To")]
+        public decimal? ASSIGNED_TO { get; set; }
+        [JsonPropertyName("Tags")]
+        public string? TAGS { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public DateTime? CREATION_DATE { get; set; }
+        [JsonPropertyName("Emp_Full_Name")]
+        public string? EMP_FULL_NAME { get; set; }
+        [JsonPropertyName("File_Name")]
+        public string? FILE_NAME { get; set; }
+        [JsonPropertyName("File_Path")]
+        public string? FILE_PATH { get; set; }
+        [JsonPropertyName("Resposible_Emp_Mkey")]
+        public string? RESPOSIBLE_EMP_MKEY { get; set; }
+        [JsonPropertyName("Priority")]
+        public string? Priority { get; set; }
+        [JsonPropertyName("Tentative_Start_Date")]
+        public DateTime? Tentative_Start_Date { get; set; }
+        [JsonPropertyName("Tentative_End_Date")]
+        public DateTime? Tentative_End_Date { get; set; }
+        [JsonPropertyName("Actual_Start_Date")]
+        public DateTime? Actual_Start_Date { get; set; }
+        [JsonPropertyName("Actual_End_Date")]
+        public DateTime? Actual_End_Date { get; set; }
+
+    }
 }
