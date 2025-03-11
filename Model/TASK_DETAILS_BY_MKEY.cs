@@ -147,6 +147,12 @@ namespace TaskManagement.API.Model
         public string? FILE_NAME { get; set; }
         [JsonPropertyName("File_Path")]
         public string? FILE_PATH { get; set; }
+        [JsonPropertyName("Task_Checklist")]
+        public List<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT>? tASK_CHECKLIST_TABLE_INPUT_NT { get; set; }
+        [JsonPropertyName("Task_Endlist")]
+        public List<TASK_ENDLIST_DETAILS_OUTPUT>? tASK_ENDLIST_TABLE_INPUT_NTs { get; set; }
+        [JsonPropertyName("Task_Sanctioning")]
+        public List<TaskSanctioningDepartmentOutput>? tASK_SANCTIONING_INPUT_NT { get; set; }
         [JsonPropertyName("Resposible_Emp_Mkey")]
         public string? RESPOSIBLE_EMP_MKEY { get; set; }
         [JsonPropertyName("Priority")]

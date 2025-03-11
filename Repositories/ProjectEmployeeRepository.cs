@@ -292,15 +292,6 @@ namespace TaskManagement.API.Repositories
             }
             catch (Exception ex)
             {
-                //var errorResult = new List<V_Building_Classification_new>
-                //    {
-                //        new V_Building_Classification_new
-                //        {
-                //            Status = "Error",
-                //            Message = ex.Message
-                //        }
-                //    };
-                //return errorResult;
                 var errorResult = new List<V_Building_Classification_new>
                     {
                         new V_Building_Classification_new
@@ -686,27 +677,134 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<TASK_DETAILS_BY_MKEY_list_NT>> GetTaskDetailsByMkeyNTAsync(TASK_DETAILS_BY_MKEYInput_NT tASK_DETAILS_BY_MKEYInput_NT)
         {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@HDR_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
-                    var TaskDashDetails = await db.QueryAsync<TASK_DETAILS_BY_MKEY_NT>("SP_TASK_DETAILS_BY_MKEY_NT", parmeters, commandType: CommandType.StoredProcedure);
-                    var successsResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
-                    {
-                        new TASK_DETAILS_BY_MKEY_list_NT
-                        {
-                            Status = "Ok",
-                            Message = "Message",
-                            Data= TaskDashDetails
+                    var TaskDashDetails = await db.QueryAsync<TASK_DETAILS_BY_MKEY_NT>("SP_TASK_DETAILS_BY_MKEY_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
+                    if (TaskDashDetails.Any())
+                    {
+                        var parmetersCheckList = new DynamicParameters();
+                        parmetersCheckList.Add("@PROPERTY_MKEY", 0);
+                        parmetersCheckList.Add("@BUILDING_MKEY", 0);
+                        parmetersCheckList.Add("@TASK_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                        parmetersCheckList.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                        parmetersCheckList.Add("@API_NAME", "GetTaskCompliance");
+                        parmetersCheckList.Add("@API_METHOD", "Get");
+                        var GetCheckList = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT>("SP_GET_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        foreach (var TaskMaster in TaskDashDetails)
+                        {
+                            TaskMaster.tASK_CHECKLIST_TABLE_INPUT_NT = GetCheckList.ToList();
                         }
-                    };
-                    return successsResult;
+
+
+                        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+                        var parmetersEndList = new DynamicParameters();
+                        parmetersEndList.Add("@PROPERTY_MKEY", 0);
+                        parmetersEndList.Add("@BUILDING_MKEY", 0);
+                        parmetersEndList.Add("@TASK_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                        parmetersEndList.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                        parmetersEndList.Add("@API_NAME", "GetTaskCompliance");
+                        parmetersEndList.Add("@API_METHOD", "Get");
+                        var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_GET_TASK_ENDLIST", parmetersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        if (GetTaskEndList.Any())
+                        {
+                            foreach (var TaskCompliance in GetTaskEndList)
+                            {
+                                var parmetersMedia = new DynamicParameters();
+                                parmetersMedia.Add("@TASK_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                                parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.DOC_MKEY);
+                                parmetersMedia.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                                var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                foreach (var EndListAttch in GetTaskEndList)
+                                {
+                                    EndListAttch.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
+                                }
+                            }
+                            foreach (var TaskMaster in TaskDashDetails)
+                            {
+                                TaskMaster.tASK_ENDLIST_TABLE_INPUT_NTs = GetTaskEndList.ToList();
+                            }
+
+                            //////////////////////////////////////////////////////////////////////////////////////////////////
+                            var parmetersSanctioning = new DynamicParameters();
+                            parmetersSanctioning.Add("@PROPERTY_MKEY", 0);
+                            parmetersSanctioning.Add("@BUILDING_MKEY", 0);
+                            parmetersSanctioning.Add("@MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                            parmetersSanctioning.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                            parmetersSanctioning.Add("@API_NAME", "GetTaskCompliance");
+                            parmetersSanctioning.Add("@API_METHOD", "Get");
+                            var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutput>("SP_GET_TASK_SANCTIONING_DEPARTMENT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                            if (GetTaskSanDepart.Any())
+                            {
+                                foreach (var TaskMaster in TaskDashDetails)
+                                {
+                                    TaskMaster.tASK_SANCTIONING_INPUT_NT = GetTaskSanDepart.ToList();
+                                }
+                            }
+
+                            var SuccessResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                            {
+                                new TASK_DETAILS_BY_MKEY_list_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Get Data"
+                                }
+                            };
+                            return SuccessResult;
+                        }
+                        else
+                        {
+                            var errorResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                                {
+                                    new TASK_DETAILS_BY_MKEY_list_NT
+                                    {
+                                        Status = "Error",
+                                        Message = "Error occurd"
+                                    }
+                                };
+                            return errorResult;
+                        }
+                    }
+                    else
+                    {
+                        var errorResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                            {
+                                new TASK_DETAILS_BY_MKEY_list_NT
+                                {
+                                    Status = "Error",
+                                    Message = "Error Occured"
+                                }
+                            };
+                        return errorResult;
+                    }
                 }
             }
             catch (Exception ex)
@@ -722,7 +820,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<TASK_DETAILS_BY_MKEY_list_NT>> GetTaskDetailsByMkeyAsync(TASK_DETAILS_BY_MKEYInput_NT tASK_DETAILS_BY_MKEYInput_NT)
         {
             try
@@ -1421,6 +1518,7 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@STATUS", add_TaskInput_NT.STATUS);
                         parmeters.Add("@STATUS_PERC", add_TaskInput_NT.STATUS_PERC);
                         parmeters.Add("@TASK_CREATED_BY", add_TaskInput_NT.TASK_CREATED_BY);
+                        parmeters.Add("@TASK_TYPE", add_TaskInput_NT.TASK_TYPE);
                         parmeters.Add("@APPROVER_ID", add_TaskInput_NT.APPROVER_ID);
                         parmeters.Add("@IS_ARCHIVE", add_TaskInput_NT.IS_ARCHIVE);
                         parmeters.Add("@ATTRIBUTE1", add_TaskInput_NT.ATTRIBUTE1);
@@ -1658,44 +1756,46 @@ namespace TaskManagement.API.Repositories
 
                         var UpdateTaskHDR = await db.QueryAsync<Add_TaskOutPut_NT>("update_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                        if (add_TaskInput_NT.tASK_CHECKLIST_TABLE_INPUT_NT != null)
+                        if (UpdateTaskHDR.Any())
                         {
-                            foreach (var TCheckList in add_TaskInput_NT.tASK_CHECKLIST_TABLE_INPUT_NT)
+                            if (add_TaskInput_NT.tASK_CHECKLIST_TABLE_INPUT_NT != null)
                             {
-                                var parmetersCheckList = new DynamicParameters();
-                                parmetersCheckList.Add("@TASK_MKEY", add_TaskInput_NT.TASK_NO);
-                                parmetersCheckList.Add("@SR_NO", TCheckList.SR_NO);
-                                parmetersCheckList.Add("@DOCUMENT_MKEY", TCheckList.DOC_MKEY);
-                                parmetersCheckList.Add("@DOCUMENT_CATEGORY", TCheckList.DOCUMENT_CATEGORY);
-                                parmetersCheckList.Add("@CREATED_BY", TCheckList.CREATED_BY);
-                                parmetersCheckList.Add("@DELETE_FLAG", TCheckList.DELETE_FLAG);
-                                parmetersCheckList.Add("@METHOD_NAME", "Task-CheckList-Doc-Insert-Update");
-                                parmetersCheckList.Add("@METHOD", "Insert/Update");
-                                parmetersCheckList.Add("@OUT_STATUS", null);
-                                parmetersCheckList.Add("@OUT_MESSAGE", null);
-
-                                var GetTaskCheckList = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                if (GetTaskCheckList.Any())
+                                foreach (var TCheckList in add_TaskInput_NT.tASK_CHECKLIST_TABLE_INPUT_NT)
                                 {
-                                    foreach (var Response in GetTaskCheckList)
-                                    {
-                                        if (Response.OUT_STATUS != "OK")
-                                        {
-                                            if (transaction != null && !transactionCompleted)
-                                            {
-                                                try
-                                                {
-                                                    // Rollback only if the transaction is not yet completed
-                                                    transaction.Rollback();
-                                                }
-                                                catch (InvalidOperationException rollbackEx)
-                                                {
-                                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                                }
-                                            }
+                                    var parmetersCheckList = new DynamicParameters();
+                                    parmetersCheckList.Add("@TASK_MKEY", add_TaskInput_NT.TASK_NO);
+                                    parmetersCheckList.Add("@SR_NO", TCheckList.SR_NO);
+                                    parmetersCheckList.Add("@DOCUMENT_MKEY", TCheckList.DOC_MKEY);
+                                    parmetersCheckList.Add("@DOCUMENT_CATEGORY", TCheckList.DOCUMENT_CATEGORY);
+                                    parmetersCheckList.Add("@CREATED_BY", TCheckList.CREATED_BY);
+                                    parmetersCheckList.Add("@DELETE_FLAG", TCheckList.DELETE_FLAG);
+                                    parmetersCheckList.Add("@METHOD_NAME", "Task-CheckList-Doc-Insert-Update");
+                                    parmetersCheckList.Add("@METHOD", "Insert/Update");
+                                    parmetersCheckList.Add("@OUT_STATUS", null);
+                                    parmetersCheckList.Add("@OUT_MESSAGE", null);
 
-                                            var errorResult = new List<Add_TaskOutPut_List_NT>
+                                    var GetTaskCheckList = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    if (GetTaskCheckList.Any())
+                                    {
+                                        foreach (var Response in GetTaskCheckList)
+                                        {
+                                            if (Response.OUT_STATUS != "OK")
+                                            {
+                                                if (transaction != null && !transactionCompleted)
+                                                {
+                                                    try
+                                                    {
+                                                        // Rollback only if the transaction is not yet completed
+                                                        transaction.Rollback();
+                                                    }
+                                                    catch (InvalidOperationException rollbackEx)
+                                                    {
+                                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                                    }
+                                                }
+
+                                                var errorResult = new List<Add_TaskOutPut_List_NT>
                                                 {
                                                     new Add_TaskOutPut_List_NT
                                                     {
@@ -1704,55 +1804,55 @@ namespace TaskManagement.API.Repositories
                                                         Data = null
                                                     }
                                                 };
-                                            return errorResult;
+                                                return errorResult;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        if (add_TaskInput_NT.tASK_ENDLIST_TABLE_INPUT_NTs != null)
-                        {
-                            // To Insert EndList
-                            foreach (var TEndList in add_TaskInput_NT.tASK_ENDLIST_TABLE_INPUT_NTs)
+                            if (add_TaskInput_NT.tASK_ENDLIST_TABLE_INPUT_NTs != null)
                             {
-                                foreach (var docMkey in TEndList.OUTPUT_DOC_LST)
+                                // To Insert EndList
+                                foreach (var TEndList in add_TaskInput_NT.tASK_ENDLIST_TABLE_INPUT_NTs)
                                 {
-                                    foreach (var DocCategory in docMkey.Value.ToString().Split(','))
+                                    foreach (var docMkey in TEndList.OUTPUT_DOC_LST)
                                     {
-                                        var parametersEndList = new DynamicParameters();
-                                        parametersEndList.Add("@MKEY", add_TaskInput_NT.TASK_NO);
-                                        parametersEndList.Add("@SR_NO", TEndList.SR_NO);
-                                        parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
-                                        parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
-                                        parametersEndList.Add("@CREATED_BY", TEndList.CREATED_BY);
-                                        parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG);
-                                        parametersEndList.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
-                                        parametersEndList.Add("@API_METHOD", "Insert/Update");
-                                        parametersEndList.Add("@OUT_STATUS", null);
-                                        parametersEndList.Add("@OUT_MESSAGE", null);
-
-                                        var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        if (GetTaskEndList.Any())
+                                        foreach (var DocCategory in docMkey.Value.ToString().Split(','))
                                         {
-                                            foreach (var Response in GetTaskEndList)
-                                            {
-                                                if (Response.OUT_STATUS.ToLower() != "OK".ToLower())
-                                                {
-                                                    if (transaction != null && !transactionCompleted)
-                                                    {
-                                                        try
-                                                        {
-                                                            // Rollback only if the transaction is not yet completed
-                                                            transaction.Rollback();
-                                                        }
-                                                        catch (InvalidOperationException rollbackEx)
-                                                        {
-                                                            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                                        }
-                                                    }
+                                            var parametersEndList = new DynamicParameters();
+                                            parametersEndList.Add("@MKEY", add_TaskInput_NT.TASK_NO);
+                                            parametersEndList.Add("@SR_NO", TEndList.SR_NO);
+                                            parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
+                                            parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                                            parametersEndList.Add("@CREATED_BY", TEndList.CREATED_BY);
+                                            parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG);
+                                            parametersEndList.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
+                                            parametersEndList.Add("@API_METHOD", "Insert/Update");
+                                            parametersEndList.Add("@OUT_STATUS", null);
+                                            parametersEndList.Add("@OUT_MESSAGE", null);
 
-                                                    var errorResult = new List<Add_TaskOutPut_List_NT>
+                                            var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                            if (GetTaskEndList.Any())
+                                            {
+                                                foreach (var Response in GetTaskEndList)
+                                                {
+                                                    if (Response.OUT_STATUS.ToLower() != "OK".ToLower())
+                                                    {
+                                                        if (transaction != null && !transactionCompleted)
+                                                        {
+                                                            try
+                                                            {
+                                                                // Rollback only if the transaction is not yet completed
+                                                                transaction.Rollback();
+                                                            }
+                                                            catch (InvalidOperationException rollbackEx)
+                                                            {
+                                                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                                            }
+                                                        }
+
+                                                        var errorResult = new List<Add_TaskOutPut_List_NT>
                                                     {
                                                         new Add_TaskOutPut_List_NT
                                                         {
@@ -1761,55 +1861,54 @@ namespace TaskManagement.API.Repositories
                                                             Data = null
                                                         }
                                                     };
-                                                    return errorResult;
+                                                        return errorResult;
+                                                    }
                                                 }
                                             }
-                                        }
 
+                                        }
                                     }
                                 }
                             }
-                        }
-
-                        if (add_TaskInput_NT.tASK_SANCTIONING_INPUT_NT != null)
-                        {
-                            // To Insert SANCTIONING
-                            foreach (var TSanctioning in add_TaskInput_NT.tASK_SANCTIONING_INPUT_NT)
+                            if (add_TaskInput_NT.tASK_SANCTIONING_INPUT_NT != null)
                             {
-                                var parmetersSanctioning = new DynamicParameters();
-                                parmetersSanctioning.Add("@TASK_MKEY", add_TaskInput_NT.TASK_NO);
-                                parmetersSanctioning.Add("@SR_NO", TSanctioning.SR_NO);
-                                parmetersSanctioning.Add("@LEVEL", TSanctioning.LEVEL);
-                                parmetersSanctioning.Add("@SANCTIONING_DEPARTMENT", TSanctioning.SANCTIONING_DEPARTMENT);
-                                parmetersSanctioning.Add("@SANCTIONING_AUTHORITY_MKEY", TSanctioning.SANCTIONING_AUTHORITY_MKEY);
-                                parmetersSanctioning.Add("@CREATED_BY", TSanctioning.CREATED_BY);
-                                parmetersSanctioning.Add("@DELETE_FLAG", TSanctioning.DELETE_FLAG);
-                                parmetersSanctioning.Add("@METHOD_NAME", "Task-Sanctioning-Table-Insert-Update");
-                                parmetersSanctioning.Add("@METHOD", "Insert/Update");
-                                parmetersSanctioning.Add("@OUT_STATUS", null);
-                                parmetersSanctioning.Add("@OUT_MESSAGE", null);
-
-                                var GetparmetersSanctioning = await db.QueryAsync<TaskSanctioningDepartmentOutput>("SP_INSERT_UPDATE_TABLE_SANCTIONING_DEPARTMENT", parmetersSanctioning, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                if (GetparmetersSanctioning.Any())
+                                // To Insert SANCTIONING
+                                foreach (var TSanctioning in add_TaskInput_NT.tASK_SANCTIONING_INPUT_NT)
                                 {
-                                    foreach (var Response in GetparmetersSanctioning)
+                                    var parmetersSanctioning = new DynamicParameters();
+                                    parmetersSanctioning.Add("@TASK_MKEY", add_TaskInput_NT.TASK_NO);
+                                    parmetersSanctioning.Add("@SR_NO", TSanctioning.SR_NO);
+                                    parmetersSanctioning.Add("@LEVEL", TSanctioning.LEVEL);
+                                    parmetersSanctioning.Add("@SANCTIONING_DEPARTMENT", TSanctioning.SANCTIONING_DEPARTMENT);
+                                    parmetersSanctioning.Add("@SANCTIONING_AUTHORITY_MKEY", TSanctioning.SANCTIONING_AUTHORITY_MKEY);
+                                    parmetersSanctioning.Add("@CREATED_BY", TSanctioning.CREATED_BY);
+                                    parmetersSanctioning.Add("@DELETE_FLAG", TSanctioning.DELETE_FLAG);
+                                    parmetersSanctioning.Add("@METHOD_NAME", "Task-Sanctioning-Table-Insert-Update");
+                                    parmetersSanctioning.Add("@METHOD", "Insert/Update");
+                                    parmetersSanctioning.Add("@OUT_STATUS", null);
+                                    parmetersSanctioning.Add("@OUT_MESSAGE", null);
+
+                                    var GetparmetersSanctioning = await db.QueryAsync<TaskSanctioningDepartmentOutput>("SP_INSERT_UPDATE_TABLE_SANCTIONING_DEPARTMENT", parmetersSanctioning, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    if (GetparmetersSanctioning.Any())
                                     {
-                                        if (Response.OUT_STATUS.ToLower() != "OK".ToLower())
+                                        foreach (var Response in GetparmetersSanctioning)
                                         {
-                                            if (transaction != null && !transactionCompleted)
+                                            if (Response.OUT_STATUS.ToLower() != "OK".ToLower())
                                             {
-                                                try
+                                                if (transaction != null && !transactionCompleted)
                                                 {
-                                                    // Rollback only if the transaction is not yet completed
-                                                    transaction.Rollback();
+                                                    try
+                                                    {
+                                                        // Rollback only if the transaction is not yet completed
+                                                        transaction.Rollback();
+                                                    }
+                                                    catch (InvalidOperationException rollbackEx)
+                                                    {
+                                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                                    }
                                                 }
-                                                catch (InvalidOperationException rollbackEx)
-                                                {
-                                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                                }
-                                            }
-                                            var errorResult = new List<Add_TaskOutPut_List_NT>
+                                                var errorResult = new List<Add_TaskOutPut_List_NT>
                                             {
                                                 new Add_TaskOutPut_List_NT
                                                 {
@@ -1818,30 +1917,55 @@ namespace TaskManagement.API.Repositories
                                                     Data = null
                                                 }
                                             };
-                                            return errorResult;
+                                                return errorResult;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        var sqlTransaction = (SqlTransaction)transaction;
-                        await sqlTransaction.CommitAsync();
-                        transactionCompleted = true;
+                            var sqlTransaction = (SqlTransaction)transaction;
+                            await sqlTransaction.CommitAsync();
+                            transactionCompleted = true;
 
-                        var successsResult = new List<Add_TaskOutPut_List_NT>
+                            var successsResult = new List<Add_TaskOutPut_List_NT>
                             {
                             new Add_TaskOutPut_List_NT
                                 {
-                                Status = "Ok",
-                                Message = "Updated Successfully",
-                                Data= UpdateTaskHDR
+                                    Status = "Ok",
+                                    Message = "Updated Successfully",
+                                    Data= UpdateTaskHDR
                                 }
-                        };
-                        return successsResult;
+                            };
+                            return successsResult;
+                        }
+                        else
+                        {
+                            var errorResult = new List<Add_TaskOutPut_List_NT>
+                            {
+                                new Add_TaskOutPut_List_NT
+                                {
+                                    Status = "Error",
+                                    Message = "Invalid mode or TASK_NO not set"
+                                }
+                            };
+                            return errorResult;
+                        }
                     }
                     else
                     {
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            }
+                        }
                         // If neither "A" nor "M", you should return an appropriate result.
                         var errorResult = new List<Add_TaskOutPut_List_NT>
                         {
@@ -2861,16 +2985,6 @@ namespace TaskManagement.API.Repositories
 
                     if (GetTaskEnd.Any())
                     {
-                        //foreach (var item in GetTaskEnd)
-                        //{
-                        //    if (item.CHECK_DOC_LST == null)
-                        //    {
-                        //        item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
-                        //    }
-                        //    // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-                        //    item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-                        //}
-
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();
                         transactionCompleted = true;

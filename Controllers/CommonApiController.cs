@@ -84,26 +84,8 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                // Get the project classifications (a collection)
                 var classifications = await _repository.GetProjectAsync(v_Building_Classification.Type_Code, v_Building_Classification.Master_mkey);
 
-                //if (classifications == null || !classifications.Any()) // Check if the result is null or empty
-                //{
-                //    //var responseApprovalTemplate = new ApiResponse<IEnumerable<V_Building_Classification_new>>
-                //    //{
-                //    //    Status = "Error",
-                //    //    Message = "Error Occurred or No Data Found",
-                //    //    Data = classifications
-                //    //};
-                //    return Ok(classifications);
-                //}
-
-                //var responseProject = new ApiResponse<IEnumerable<V_Building_Classification_new>>
-                //{
-                //    Status = "Ok",
-                //    Message = "Data Retrieved Successfully",
-                //    Data = classifications
-                //};
                 return Ok(classifications);
             }
             catch (Exception ex)
