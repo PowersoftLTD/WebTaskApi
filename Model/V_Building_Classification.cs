@@ -217,6 +217,50 @@ namespace TaskManagement.API.Model
         public char? DELETE_FLAG { get; set; }
     }
 
+
+    public class V_Doc_Type_OutPut_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<V_Doc_Type_NT> Data { get; set; }
+    }
+
+    public class V_Doc_Type_NT
+    {
+        [JsonPropertyName("Doc_Type_Mkey")]
+        public int? Doc_Type_Mkey { get; set; }
+        [JsonPropertyName("Doc_Type_Name")]
+        public string? Doc_Type_Name { get; set; }
+        [JsonPropertyName("Doc_Category_Mkey")]
+        public int? Doc_Category_Mkey { get; set; }
+        [JsonPropertyName("Doc_Category_Name")]
+        public string? Doc_Category_Name { get; set; }
+
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public char? DELETE_FLAG { get; set; }
+
+    }
+
     public class V_Sanctioning_Authority_OutPut_NT
     {
         [JsonPropertyName("Status")]
@@ -282,36 +326,36 @@ namespace TaskManagement.API.Model
         public IEnumerable<V_Doc_Type_NT> Data { get; set; }
     }
 
-    public class V_Doc_Type_NT
-    {
-        [JsonPropertyName("Doc_Type_Mkey")]
-        public decimal? Doc_Type_Mkey { get; set; }
-        [JsonPropertyName("Doc_Type_Name")]
-        public string? Doc_Type_Name { get; set; }
-        [JsonPropertyName("Doc_Category_Mkey")]
-        public decimal? Doc_Category_Mkey { get; set; }
-        [JsonPropertyName("Doc_Category_Name")]
-        public string? Doc_Category_Name { get; set; }
+    //public class V_Doc_Type_NT
+    //{
+    //    [JsonPropertyName("Doc_Type_Mkey")]
+    //    public decimal? Doc_Type_Mkey { get; set; }
+    //    [JsonPropertyName("Doc_Type_Name")]
+    //    public string? Doc_Type_Name { get; set; }
+    //    [JsonPropertyName("Doc_Category_Mkey")]
+    //    public decimal? Doc_Category_Mkey { get; set; }
+    //    [JsonPropertyName("Doc_Category_Name")]
+    //    public string? Doc_Category_Name { get; set; }
 
-        [JsonPropertyName("Created_By_Id")]
-        public string? CREATED_BY_ID { get; set; }
+    //    [JsonPropertyName("Created_By_Id")]
+    //    public string? CREATED_BY_ID { get; set; }
 
-        [JsonPropertyName("Created_By_Name")]
-        public string? CREATED_BY_NAME { get; set; }
+    //    [JsonPropertyName("Created_By_Name")]
+    //    public string? CREATED_BY_NAME { get; set; }
 
-        [JsonPropertyName("Creation_Date")]
-        public string? CREATION_DATE { get; set; }
+    //    [JsonPropertyName("Creation_Date")]
+    //    public string? CREATION_DATE { get; set; }
 
-        [JsonPropertyName("Last_Updated_By")]
-        public string? LAST_UPDATED_BY { get; set; }
+    //    [JsonPropertyName("Last_Updated_By")]
+    //    public string? LAST_UPDATED_BY { get; set; }
 
-        [JsonPropertyName("Updated_By_Name")]
-        public string? UPDATED_BY_NAME { get; set; }
+    //    [JsonPropertyName("Updated_By_Name")]
+    //    public string? UPDATED_BY_NAME { get; set; }
 
-        [JsonPropertyName("Last_Update_Date")]
-        public string? LAST_UPDATE_DATE { get; set; }
-        [JsonPropertyName("Delete_Flag")]
-        public char? DELETE_FLAG { get; set; }
+    //    [JsonPropertyName("Last_Update_Date")]
+    //    public string? LAST_UPDATE_DATE { get; set; }
+    //    [JsonPropertyName("Delete_Flag")]
+    //    public char? DELETE_FLAG { get; set; }
 
-    }
+    //}
 }

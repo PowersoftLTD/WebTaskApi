@@ -7,6 +7,8 @@ namespace TaskManagement.API.Interfaces
     {
         Task<IEnumerable<V_Building_Classification>> GetViewBuildingClassificationAsync();
         Task<IEnumerable<V_Building_Classification>> GetViewDoc_TypeAsync();
+
+        Task<IEnumerable<V_Doc_Type_OutPut_NT>> GetViewDoc_TypeNTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput);
         Task<IEnumerable<V_Building_Classification>> GetViewDoc_Type_CheckListAsync();
 
         Task<IEnumerable<V_Building_Classification_OutPut_NT>> GetViewDoc_Type_CheckList_NTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput);

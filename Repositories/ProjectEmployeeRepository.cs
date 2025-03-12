@@ -713,7 +713,7 @@ namespace TaskManagement.API.Repositories
                         parmetersCheckList.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
                         parmetersCheckList.Add("@API_NAME", "GetTaskCompliance");
                         parmetersCheckList.Add("@API_METHOD", "Get");
-                        var GetCheckList = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT>("SP_GET_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        var GetCheckList = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>("SP_GET_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         foreach (var TaskMaster in TaskDashDetails)
                         {
@@ -731,7 +731,7 @@ namespace TaskManagement.API.Repositories
                         parmetersEndList.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
                         parmetersEndList.Add("@API_NAME", "GetTaskCompliance");
                         parmetersEndList.Add("@API_METHOD", "Get");
-                        var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_GET_TASK_ENDLIST", parmetersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT_NT>("SP_GET_TASK_ENDLIST", parmetersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         if (GetTaskEndList.Any())
                         {
@@ -741,7 +741,7 @@ namespace TaskManagement.API.Repositories
                                 parmetersMedia.Add("@TASK_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
                                 parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.DOC_MKEY);
                                 parmetersMedia.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
-                                var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA_NT>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                 foreach (var EndListAttch in GetTaskEndList)
                                 {
@@ -761,7 +761,7 @@ namespace TaskManagement.API.Repositories
                             parmetersSanctioning.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
                             parmetersSanctioning.Add("@API_NAME", "GetTaskCompliance");
                             parmetersSanctioning.Add("@API_METHOD", "Get");
-                            var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutput>("SP_GET_TASK_SANCTIONING_DEPARTMENT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                            var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutput_NT>("SP_GET_TASK_SANCTIONING_DEPARTMENT", parmetersSanctioning, commandType: CommandType.StoredProcedure, transaction: transaction);
                             if (GetTaskSanDepart.Any())
                             {
                                 foreach (var TaskMaster in TaskDashDetails)
@@ -775,7 +775,8 @@ namespace TaskManagement.API.Repositories
                                 new TASK_DETAILS_BY_MKEY_list_NT
                                 {
                                     Status = "Ok",
-                                    Message = "Get Data"
+                                    Message = "Get Data",
+                                    Data = TaskDashDetails
                                 }
                             };
                             return SuccessResult;

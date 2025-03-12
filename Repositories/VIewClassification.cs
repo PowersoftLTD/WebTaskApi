@@ -30,6 +30,63 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Type");
             }
         }
+
+        public async Task<IEnumerable<V_Doc_Type_OutPut_NT>> GetViewDoc_TypeNTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            //using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            //{
+            //    return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Type");
+            //}
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var AssignToDetails = await db.QueryAsync<V_Doc_Type_NT>("SELECT * FROM V_Doc_Type_NT", commandType: CommandType.Text);
+                    if (AssignToDetails.Any())
+                    {
+
+                        var successsResult = new List<V_Doc_Type_OutPut_NT>
+                        {
+                            new V_Doc_Type_OutPut_NT
+                            {
+                                Status = "Ok",
+                                Message = "Message",
+                                Data= AssignToDetails
+                            }
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<V_Doc_Type_OutPut_NT>
+                    {
+                        new V_Doc_Type_OutPut_NT
+                        {
+                            Status = "Error",
+                            Message = "No found",
+                            Data=null
+                        }
+                    };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<V_Doc_Type_OutPut_NT>
+                    {
+                        new V_Doc_Type_OutPut_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
         public async Task<IEnumerable<V_Building_Classification>> GetViewDoc_Type_CheckListAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
