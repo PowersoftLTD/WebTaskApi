@@ -30,7 +30,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Type");
             }
         }
-
         public async Task<IEnumerable<V_Doc_Type_OutPut_NT>> GetViewDoc_TypeNTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
         {
             //using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -86,7 +85,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewDoc_Type_CheckListAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -463,7 +461,6 @@ namespace TaskManagement.API.Repositories
                 return ErrorResponse;
             }
         }
-
         public async Task<ActionResult<IEnumerable<GetTaskTypeListNT>>> GetTaskTypeNTAsync(GetTaskTypeInPut getTaskTypeInPut)
         {
             try
@@ -511,7 +508,6 @@ namespace TaskManagement.API.Repositories
                 return ErrorResponse;
             }
         }
-
         public async Task<IEnumerable<EmployeeLoginOutput_LIST>> GetResponsiblePersonByJobRoleDepartmentAsync(RESPONSIBLE_PERSON_INPUT rESPONSIBLE_PERSON_INPUT)
         {
             try

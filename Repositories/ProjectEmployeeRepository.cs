@@ -1752,10 +1752,15 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@SUBPROJECT_ID", add_TaskInput_NT.SUBPROJECT_ID);
                         parmeters.Add("@COMPLETION_DATE", add_TaskInput_NT.COMPLETION_DATE);
                         parmeters.Add("@ASSIGNED_TO", add_TaskInput_NT.ASSIGNED_TO);
+                        parmeters.Add("@Priority", add_TaskInput_NT.Priority);
+                        parmeters.Add("@Tentative_Start_Date", add_TaskInput_NT.Tentative_Start_Date);
+                        parmeters.Add("@Tentative_End_Date", add_TaskInput_NT.Tentative_End_Date);
+                        parmeters.Add("@Actual_Start_Date", add_TaskInput_NT.Actual_Start_Date);
+                        parmeters.Add("@Actual_End_Date", add_TaskInput_NT.Actual_End_Date);
                         parmeters.Add("@TAGS", add_TaskInput_NT.TAGS);
                         parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.LAST_UPDATED_BY);
 
-                        var UpdateTaskHDR = await db.QueryAsync<Add_TaskOutPut_NT>("update_task_details", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        var UpdateTaskHDR = await db.QueryAsync<Add_TaskOutPut_NT>("UPDATE_TASK_DETAILS_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         if (UpdateTaskHDR.Any())
                         {
