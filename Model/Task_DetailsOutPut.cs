@@ -66,6 +66,8 @@ namespace TaskManagement.API.Model
         public string? CREATOR { get; set; }
         [JsonPropertyName("Responsible")]
         public string? RESPONSIBLE { get; set; }
+        [JsonPropertyName("Dashboard_Status")]
+        public string? Dashboard_Status { get; set; }
         [JsonPropertyName("Actionable")]
         public string? ACTIONABLE { get; set; }
         [JsonPropertyName("Creation_Date")]
@@ -91,5 +93,5 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Subtask_Count")]
         public string? Subtask_Count { get; set; }
     }
-   
+
 }

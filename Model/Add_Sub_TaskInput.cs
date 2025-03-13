@@ -1,9 +1,11 @@
 ﻿using System.Text.Json.Serialization;
+using TaskManagement.API.Model;
 
 namespace TaskManagement.API.Repositories
 {
     public class Add_Sub_TaskInput
     {
+        
         [JsonPropertyName("TASK_NO")]
         public int TASK_NO { get; set; }
         [JsonPropertyName("TASK_NAME")]
@@ -70,6 +72,8 @@ namespace TaskManagement.API.Repositories
 
     public class Add_Sub_TaskInput_NT
     {
+        [JsonPropertyName("Mode")]
+        public string Mode { get; set; }
         [JsonPropertyName("Task_No")]
         public int TASK_NO { get; set; }
         [JsonPropertyName("Task_Name")]
@@ -112,6 +116,23 @@ namespace TaskManagement.API.Repositories
         public string APPROVER_ID { get; set; }
         [JsonPropertyName("Is_Archive")]
         public string IS_ARCHIVE { get; set; }
+
+        [JsonPropertyName("Task_Checklist")]
+        public List<TASK_CHECKLIST_TABLE_INPUT_NT>? tASK_CHECKLIST_TABLE_INPUT_NT { get; set; }
+        [JsonPropertyName("Task_Endlist")]
+        public List<TASK_ENDLIST_TABLE_INPUT_NT>? tASK_ENDLIST_TABLE_INPUT_NTs { get; set; }
+        [JsonPropertyName("Task_Sanctioning")]
+        public List<TASK_SANCTIONING_INPUT_NT>? tASK_SANCTIONING_INPUT_NT { get; set; }
+        [JsonPropertyName("Priority")]
+        public string? Priority { get; set; }
+        [JsonPropertyName("Tentative_Start_Date")]
+        public DateTime? Tentative_Start_Date { get; set; }
+        [JsonPropertyName("Tentative_End_Date")]
+        public DateTime? Tentative_End_Date { get; set; }
+        [JsonPropertyName("Actual_Start_Date")]
+        public DateTime? Actual_Start_Date { get; set; }
+        [JsonPropertyName("Actual_End_Date")]
+        public DateTime? Actual_End_Date { get; set; }
         [JsonPropertyName("Attribute1")]
         public string ATTRIBUTE1 { get; set; }
         [JsonPropertyName("Attribute2")]
