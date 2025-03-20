@@ -1667,6 +1667,7 @@ namespace TaskManagement.API.Repositories
                                     parmetersSanctioning.Add("@TASK_MKEY", MTask_No.ToString());
                                     parmetersSanctioning.Add("@SR_NO", TSanctioning.SR_NO);
                                     parmetersSanctioning.Add("@LEVEL", TSanctioning.LEVEL);
+                                    parmetersSanctioning.Add("@Status", TSanctioning.Status);
                                     parmetersSanctioning.Add("@SANCTIONING_DEPARTMENT", TSanctioning.SANCTIONING_DEPARTMENT);
                                     parmetersSanctioning.Add("@SANCTIONING_AUTHORITY_MKEY", TSanctioning.SANCTIONING_AUTHORITY_MKEY);
                                     parmetersSanctioning.Add("@CREATED_BY", TSanctioning.CREATED_BY);
@@ -1887,6 +1888,7 @@ namespace TaskManagement.API.Repositories
                                     parmetersSanctioning.Add("@LEVEL", TSanctioning.LEVEL);
                                     parmetersSanctioning.Add("@SANCTIONING_DEPARTMENT", TSanctioning.SANCTIONING_DEPARTMENT);
                                     parmetersSanctioning.Add("@SANCTIONING_AUTHORITY_MKEY", TSanctioning.SANCTIONING_AUTHORITY_MKEY);
+                                    parmetersSanctioning.Add("@Status", TSanctioning.Status);
                                     parmetersSanctioning.Add("@CREATED_BY", TSanctioning.CREATED_BY);
                                     parmetersSanctioning.Add("@DELETE_FLAG", TSanctioning.DELETE_FLAG);
                                     parmetersSanctioning.Add("@METHOD_NAME", "Task-Sanctioning-Table-Insert-Update");

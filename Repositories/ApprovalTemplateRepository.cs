@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Transactions;
 using System.Xml.Linq;
 using TaskManagement.API.DapperDbConnections;
@@ -880,6 +881,8 @@ namespace TaskManagement.API.Repositories
                     #region Insert SUBTASK_LIST
                     if (objAPPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null)
                     {
+
+
                         var subtaskDataTable = new DataTable();
                         subtaskDataTable.Columns.Add("HEADER_MKEY", typeof(int));
                         subtaskDataTable.Columns.Add("SEQ_NO", typeof(string));
@@ -892,6 +895,41 @@ namespace TaskManagement.API.Repositories
 
                         foreach (var subtask in updateApprovalTemplates.SUBTASK_LIST)
                         {
+                            var parametersApprovalCheck = new DynamicParameters();
+                            parametersApprovalCheck.Add("@BUILDING_TYPE", objAPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
+                            parametersApprovalCheck.Add("@BUILDING_STANDARD", objAPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
+                            parametersApprovalCheck.Add("@STATUTORY_AUTHORITY", objAPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
+                            parametersApprovalCheck.Add("@HEADER_KMEY", objAPPROVAL_TEMPLATE_HDR.MKEY);
+                            parametersApprovalCheck.Add("@MKEY_SUBAPPROVAL", subtask.SUBTASK_MKEY);
+                            parametersApprovalCheck.Add("@STATUS", null);
+                            parametersApprovalCheck.Add("@MESSAGE", null);
+                            var ApprovalSub = await db.QueryFirstOrDefaultAsync<OutPutApprovalTemplates>("SP_GET_APPROVAL_HEADER_CHECK_SUBAPPROVAL", parametersApprovalCheck,
+                                commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                            if (ApprovalSub != null)
+                            {
+                                if (ApprovalSub.Status != "Ok")
+                                {
+                                    if (transaction != null && !transactionCompleted)
+                                    {
+                                        try
+                                        {
+                                            // Rollback only if the transaction is not yet completed
+                                            transaction.Rollback();
+                                        }
+                                        catch (InvalidOperationException rollbackEx)
+                                        {
+                                            // Handle rollback exception (may occur if transaction is already completed)
+                                            // Log or handle the rollback failure if needed
+                                            objAPPROVAL_TEMPLATE_HDR.Status = "Error";
+                                            objAPPROVAL_TEMPLATE_HDR.Message = rollbackEx.Message;
+                                            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                        }
+                                        return ApprovalSub;
+                                    }
+                                }
+                            }
+
                             subtaskDataTable.Rows.Add(objAPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY,
                                 objAPPROVAL_TEMPLATE_HDR.MKEY,
                                                       updateApprovalTemplates.CREATED_BY, dateTime,

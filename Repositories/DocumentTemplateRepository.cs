@@ -88,7 +88,7 @@ namespace TaskManagement.API.Repositories
                     // Ensure the transaction is passed to the query
                     dOC_TEMPLATE_HDR = await db.QueryFirstOrDefaultAsync<DOC_TEMPLATE_HDR>("SP_INSERT_DOCUMENT_TEMPLATES",
                         parameters,
-                        transaction: transaction,  // Pass the transaction here
+                        transaction: transaction, 
                         commandType: CommandType.StoredProcedure
                     );
                     

@@ -197,6 +197,10 @@ namespace TaskManagement.API.Model
         public string SANCTIONING_DEPARTMENT { get; set; }
         [JsonPropertyName("Sanctioning_Authority_Mkey")]
         public string SANCTIONING_AUTHORITY_MKEY { get; set; }
+
+        [JsonPropertyName("Status")]
+        public string Status { get; set; }
+
         [JsonPropertyName("Created_By")]
         public int CREATED_BY { get; set; }
         [JsonPropertyName("Delete_Flag")]

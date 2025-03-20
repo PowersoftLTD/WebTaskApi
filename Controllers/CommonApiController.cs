@@ -11,7 +11,7 @@ using System;
 using OfficeOpenXml;
 using TaskManagement.API.Repositories;
 using Newtonsoft.Json;
-using Azure;
+//using Azure;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using FastMember;
@@ -832,22 +832,20 @@ namespace TaskManagement.API.Controllers
         }
 
         // Helper method to convert DataTable to a list of dictionaries
-        private List<Dictionary<string, object>> DataTableToList(DataTable dt)
-        {
-            var rows = new List<Dictionary<string, object>>();
-
-            foreach (DataRow row in dt.Rows)
-            {
-                var dict = new Dictionary<string, object>();
-                foreach (DataColumn column in dt.Columns)
-                {
-                    dict[column.ColumnName] = row[column];
-                }
-                rows.Add(dict);
-            }
-
-            return rows;
-        }
+        //private List<Dictionary<string, object>> DataTableToList(DataTable dt)
+        //{
+        //    var rows = new List<Dictionary<string, object>>();
+        //    foreach (DataRow row in dt.Rows)
+        //    {
+        //        var dict = new Dictionary<string, object>();
+        //        foreach (DataColumn column in dt.Columns)
+        //        {
+        //            dict[column.ColumnName] = row[column];
+        //        }
+        //        rows.Add(dict);
+        //    }
+        //    return rows;
+        //}
 
         [HttpPost("Task-Management/Get_Project_Details")]
         [Authorize]
