@@ -19,13 +19,13 @@ namespace TaskManagement.API.Repositories
             this.configuration = configuration;
             this._configure = jWTConfigure;
         }
-        public async Task<string> CreateJWTToken(EMPLOYEE_MST user)
+        public async Task<string> CreateJWTToken(string LoginUser)
         {
             var JWTtokens = await _configure.JWTToken();
             var JWTKEY = JWTtokens.FirstOrDefault();
             var claims = new List<Claim>();
 
-            claims.Add(new Claim(ClaimTypes.Email, user.LOGIN_NAME, JWTKEY.ClientID, JWTKEY.ClientSecret));
+            claims.Add(new Claim(ClaimTypes.Email, LoginUser, JWTKEY.ClientID, JWTKEY.ClientSecret));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JWTKEY.Key));
 

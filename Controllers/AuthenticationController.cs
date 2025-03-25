@@ -29,15 +29,15 @@ namespace TaskManagement.API.Controllers
         [Route("Login")]
         public async Task<ActionResult<EMPLOYEE_MST>> Login([FromBody] EMPLOYEE_MST eMPLOYEE_MST)
         {
-            var user = await userManager.LoginAsync(eMPLOYEE_MST.LOGIN_NAME.Trim());
-            if (user != null)
+
+            try
             {
-                var checkPasswordResult = await userManager.CheckPasswordAsync(eMPLOYEE_MST.LOGIN_NAME.Trim() ,eMPLOYEE_MST.LOGIN_PASSWORD.Trim());
+                var checkPasswordResult = await userManager.CheckPasswordAsync(eMPLOYEE_MST.LOGIN_NAME.Trim(), eMPLOYEE_MST.LOGIN_PASSWORD.Trim());
 
                 if (checkPasswordResult != null)
                 {
                     //create token
-                    var jwtToken = await tokenRepository.CreateJWTToken(user);
+                    var jwtToken = await tokenRepository.CreateJWTToken(eMPLOYEE_MST.LOGIN_NAME.Trim());
                     if (IsValid(jwtToken))
                     {
                         var response = new LoginResponse
@@ -50,9 +50,18 @@ namespace TaskManagement.API.Controllers
                     {
                         return Ok("Session expired");
                     }
+                    return BadRequest("Username or Password incorrect");
+                }
+                else
+                {
+                    return BadRequest("Username or Password incorrect");
                 }
             }
-            return BadRequest("Username or Password incorrect");
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
         }
 
         [HttpPost]
@@ -100,7 +109,6 @@ namespace TaskManagement.API.Controllers
             //}
             //return BadRequest("Username or Password incorrect");
         }
-
 
         private bool IsValid(string token)
         {

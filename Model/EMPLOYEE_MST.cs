@@ -8,10 +8,10 @@ namespace TaskManagement.API.Model
     public class EMPLOYEE_MST 
     {
         [Required]
-        [DataType(DataType.Text)]
+        //[DataType(DataType.Text)]
         public string LOGIN_NAME { get; set; }
         [Required]
-        [DataType(DataType.Password)]
+        //[DataType(DataType.Password)]
         public string LOGIN_PASSWORD { get; set; }
     }
 

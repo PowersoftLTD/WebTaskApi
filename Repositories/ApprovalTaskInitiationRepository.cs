@@ -206,7 +206,7 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@TASK_TYPE", "359");
                         parmetersSubtask.Add("@STATUS", SubTask.STATUS);
                         parmetersSubtask.Add("@STATUS_PERC", "0.0");
-                        parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY);
+                        parmetersSubtask.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY); // header of task
                         parmetersSubtask.Add("@APPROVER_ID", 0);
                         parmetersSubtask.Add("@IS_ARCHIVE", 'N');
                         parmetersSubtask.Add("@ATTRIBUTE1", null);
@@ -253,97 +253,6 @@ namespace TaskManagement.API.Repositories
 
                         var UpadteSubTaskNo = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_UPDATE_APPROVAL_TASK_NO", parmetersSubTaskNo, commandType: CommandType.StoredProcedure, transaction: transaction);
                     }
-
-                    //try
-                    //{
-                    //    var SanctioningDataTable = new DataTable();
-                    //    SanctioningDataTable.Columns.Add("MKEY", typeof(int));
-                    //    SanctioningDataTable.Columns.Add("SR_NO", typeof(int));
-                    //    SanctioningDataTable.Columns.Add("LEVEL", typeof(string));
-                    //    SanctioningDataTable.Columns.Add("SANCTIONING_DEPARTMENT", typeof(string));
-                    //    SanctioningDataTable.Columns.Add("SANCTIONING_AUTHORITY", typeof(string));
-                    //    SanctioningDataTable.Columns.Add("START_DATE", typeof(DateTime));
-                    //    SanctioningDataTable.Columns.Add("END_DATE", typeof(DateTime));
-                    //    SanctioningDataTable.Columns.Add("CREATED_BY", typeof(int));
-                    //    SanctioningDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
-                    //    SanctioningDataTable.Columns.Add("DELETE_FLAG", typeof(char));
-                    //    bool flagID = false;
-                    //    if (aPPROVAL_TASK_INITIATION.SANCTIONING_DEPARTMENT_LIST.Count > 0)
-                    //    {
-                    //        var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT t" +
-                    //            " WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';", new { MKEY = aPPROVAL_TASK_INITIATION.MKEY }, commandType: CommandType.Text,
-                    //            transaction: transaction);
-
-                    //        // Populate the DataTable with subtasks
-                    //        foreach (var SANCTIONING_DEPARTMENT in aPPROVAL_TASK_INITIATION.SANCTIONING_DEPARTMENT_LIST) // Assuming SUBTASK_LIST is a list of subtasks
-                    //        {
-                    //            SanctioningDataTable.Rows.Add(aPPROVAL_TASK_INITIATION.MKEY, SR_No, SANCTIONING_DEPARTMENT.LEVEL
-                    //                , SANCTIONING_DEPARTMENT.SANCTIONING_DEPARTMENT, SANCTIONING_DEPARTMENT.SANCTIONING_AUTHORITY
-                    //                , SANCTIONING_DEPARTMENT.START_DATE, SANCTIONING_DEPARTMENT.END_DATE, aPPROVAL_TASK_INITIATION.CREATED_BY
-                    //                , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
-                    //            SR_No = SR_No + 1;
-                    //        }
-
-                    //        // Use SqlBulkCopy to insert subtasks
-                    //        using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
-                    //        {
-                    //            DestinationTableName = "APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT"  // Ensure this matches your table name
-                    //        };
-
-                    //        bulkCopy.ColumnMappings.Add("MKEY", "MKEY");
-                    //        bulkCopy.ColumnMappings.Add("SR_NO", "SR_NO");
-                    //        bulkCopy.ColumnMappings.Add("LEVEL", "LEVEL");
-                    //        bulkCopy.ColumnMappings.Add("SANCTIONING_DEPARTMENT", "SANCTIONING_DEPARTMENT");
-                    //        bulkCopy.ColumnMappings.Add("SANCTIONING_AUTHORITY", "SANCTIONING_AUTHORITY");
-                    //        bulkCopy.ColumnMappings.Add("START_DATE", "START_DATE");
-                    //        bulkCopy.ColumnMappings.Add("END_DATE", "END_DATE");
-                    //        bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
-                    //        bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
-
-                    //        await bulkCopy.WriteToServerAsync(SanctioningDataTable);
-
-                    //        // Commit the transactionSubTask
-                    //        // await transactionSubTask.CommitAsync();
-
-                    //        // Optionally, fetch the inserted values (if necessary)
-                    //        string sql = "SELECT * from APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT WHERE MKEY = @MKEY " +
-                    //            "AND DELETE_FLAG = 'N';";
-                    //        var SANCTIONING_DEPARTMENT_TRL = await db.QueryAsync(sql, new { MKEY = aPPROVAL_TASK_INITIATION.MKEY }, transaction: transaction);
-
-                    //        // Assuming the model has a SUBTASK_LIST dictionary to hold these values
-                    //        aPPROVAL_TASK_INITIATION.SANCTIONING_DEPARTMENT_LIST = new List<OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>();  // Assuming Subtask is a class for this data
-
-                    //        foreach (var item in SANCTIONING_DEPARTMENT_TRL)
-                    //        {
-                    //            aPPROVAL_TASK_INITIATION.SANCTIONING_DEPARTMENT_LIST.Add(new OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT
-                    //            {
-                    //                MKEY = item.MKEY,
-                    //                LEVEL = item.LEVEL,
-                    //                SANCTIONING_DEPARTMENT = item.SANCTIONING_DEPARTMENT,
-                    //                SANCTIONING_AUTHORITY = item.SANCTIONING_AUTHORITY,
-                    //                START_DATE = item.START_DATE,
-                    //                END_DATE = item.END_DATE
-                    //            });
-                    //        }
-                    //    }
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    if (transaction != null && !transactionCompleted)
-                    //    {
-                    //        try
-                    //        {
-                    //            // Rollback only if the transaction is not yet completed
-                    //            transaction.Rollback();
-                    //        }
-                    //        catch (InvalidOperationException rollbackEx)
-                    //        {
-                    //            // Handle rollback exception (may occur if transaction is already completed)
-                    //            // Log or handle the rollback failure if needed
-                    //            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                    //        }
-                    //    }
-                    //}
 
                     // Commit the transaction if everything is successful
                     var sqlTransaction = (SqlTransaction)transaction;
