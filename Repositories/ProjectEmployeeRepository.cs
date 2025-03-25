@@ -715,14 +715,15 @@ namespace TaskManagement.API.Repositories
                         parmetersCheckList.Add("@API_METHOD", "Get");
                         var GetCheckList = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>("SP_GET_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                        foreach (var TaskMaster in TaskDashDetails)
+                        if (GetCheckList.Any())
                         {
-                            TaskMaster.tASK_CHECKLIST_TABLE_INPUT_NT = GetCheckList.ToList();
+                            foreach (var TaskMaster in TaskDashDetails)
+                            {
+                                TaskMaster.tASK_CHECKLIST_TABLE_INPUT_NT = GetCheckList.ToList();
+                            }
                         }
 
-
                         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
                         var parmetersEndList = new DynamicParameters();
                         parmetersEndList.Add("@PROPERTY_MKEY", 0);
@@ -752,25 +753,25 @@ namespace TaskManagement.API.Repositories
                             {
                                 TaskMaster.tASK_ENDLIST_TABLE_INPUT_NTs = GetTaskEndList.ToList();
                             }
-
-                            //////////////////////////////////////////////////////////////////////////////////////////////////
-                            var parmetersSanctioning = new DynamicParameters();
-                            parmetersSanctioning.Add("@PROPERTY_MKEY", 0);
-                            parmetersSanctioning.Add("@BUILDING_MKEY", 0);
-                            parmetersSanctioning.Add("@MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
-                            parmetersSanctioning.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
-                            parmetersSanctioning.Add("@API_NAME", "GetTaskCompliance");
-                            parmetersSanctioning.Add("@API_METHOD", "Get");
-                            var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutput_NT>("SP_GET_TASK_SANCTIONING_DEPARTMENT", parmetersSanctioning, commandType: CommandType.StoredProcedure, transaction: transaction);
-                            if (GetTaskSanDepart.Any())
+                        }
+                        //////////////////////////////////////////////////////////////////////////////////////////////////
+                        var parmetersSanctioning = new DynamicParameters();
+                        parmetersSanctioning.Add("@PROPERTY_MKEY", 0);
+                        parmetersSanctioning.Add("@BUILDING_MKEY", 0);
+                        parmetersSanctioning.Add("@MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                        parmetersSanctioning.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                        parmetersSanctioning.Add("@API_NAME", "GetTaskCompliance");
+                        parmetersSanctioning.Add("@API_METHOD", "Get");
+                        var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutput_NT>("SP_GET_TASK_SANCTIONING_DEPARTMENT", parmetersSanctioning, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        if (GetTaskSanDepart.Any())
+                        {
+                            foreach (var TaskMaster in TaskDashDetails)
                             {
-                                foreach (var TaskMaster in TaskDashDetails)
-                                {
-                                    TaskMaster.tASK_SANCTIONING_INPUT_NT = GetTaskSanDepart.ToList();
-                                }
+                                TaskMaster.tASK_SANCTIONING_INPUT_NT = GetTaskSanDepart.ToList();
                             }
+                        }
 
-                            var SuccessResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                        var SuccessResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
                             {
                                 new TASK_DETAILS_BY_MKEY_list_NT
                                 {
@@ -779,20 +780,20 @@ namespace TaskManagement.API.Repositories
                                     Data = TaskDashDetails
                                 }
                             };
-                            return SuccessResult;
-                        }
-                        else
-                        {
-                            var errorResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
-                                {
-                                    new TASK_DETAILS_BY_MKEY_list_NT
-                                    {
-                                        Status = "Error",
-                                        Message = "Error occurd"
-                                    }
-                                };
-                            return errorResult;
-                        }
+                        return SuccessResult;
+
+                        //else
+                        //{
+                        //    var errorResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
+                        //        {
+                        //            new TASK_DETAILS_BY_MKEY_list_NT
+                        //            {
+                        //                Status = "Error",
+                        //                Message = "Error occurd"
+                        //            }
+                        //        };
+                        //    return errorResult;
+                        //}
                     }
                     else
                     {
@@ -1561,7 +1562,7 @@ namespace TaskManagement.API.Repositories
                                     parmetersCheckList.Add("@OUT_STATUS", null);
                                     parmetersCheckList.Add("@OUT_MESSAGE", null);
 
-                                    var GetTaskCheckList = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                    var GetTaskCheckList = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                     if (GetTaskCheckList.Any())
                                     {
