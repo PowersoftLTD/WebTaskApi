@@ -713,7 +713,7 @@ namespace TaskManagement.API.Repositories
                         parmetersCheckList.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
                         parmetersCheckList.Add("@API_NAME", "GetTaskCompliance");
                         parmetersCheckList.Add("@API_METHOD", "Get");
-                        var GetCheckList = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>("SP_GET_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        var GetCheckList = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>("SP_GET_TASK_CHECKLIST_NT", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         if (GetCheckList.Any())
                         {
@@ -802,7 +802,7 @@ namespace TaskManagement.API.Repositories
                                 new TASK_DETAILS_BY_MKEY_list_NT
                                 {
                                     Status = "Error",
-                                    Message = "Error Occured"
+                                    Message = "Task not found"
                                 }
                             };
                         return errorResult;
@@ -1760,12 +1760,41 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@Actual_Start_Date", add_TaskInput_NT.Actual_Start_Date);
                         parmeters.Add("@Actual_End_Date", add_TaskInput_NT.Actual_End_Date);
                         parmeters.Add("@TAGS", add_TaskInput_NT.TAGS);
-                        parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.LAST_UPDATED_BY);
+                        parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.CREATED_BY);
 
                         var UpdateTaskHDR = await db.QueryAsync<Add_TaskOutPut_NT>("UPDATE_TASK_DETAILS_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         if (UpdateTaskHDR.Any())
                         {
+                            foreach (var ResponseStatus in UpdateTaskHDR)
+                            {
+                                if (ResponseStatus.Status != "Ok")
+                                {
+                                    if (transaction != null && !transactionCompleted)
+                                    {
+                                        try
+                                        {
+                                            // Rollback only if the transaction is not yet completed
+                                            transaction.Rollback();
+                                        }
+                                        catch (InvalidOperationException rollbackEx)
+                                        {
+                                            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                        }
+                                    }
+                                    // If neither "A" nor "M", you should return an appropriate result.
+                                    var errorResult = new List<Add_TaskOutPut_List_NT>
+                                    {
+                                        new Add_TaskOutPut_List_NT
+                                        {
+                                            Status = "Error",
+                                            Message = ResponseStatus.Message
+                                        }
+                                    };
+                                    return errorResult;
+                                }
+                            }
+
                             if (add_TaskInput_NT.tASK_CHECKLIST_TABLE_INPUT_NT != null)
                             {
                                 foreach (var TCheckList in add_TaskInput_NT.tASK_CHECKLIST_TABLE_INPUT_NT)
@@ -1865,7 +1894,7 @@ namespace TaskManagement.API.Repositories
                                                         new Add_TaskOutPut_List_NT
                                                         {
                                                             Status = "Error",
-                                                            Message = Response.OUT_MESSAGE,
+                                                            Message = "End List "+ Response.OUT_MESSAGE,
                                                             Data = null
                                                         }
                                                     };
@@ -1922,7 +1951,7 @@ namespace TaskManagement.API.Repositories
                                                 new Add_TaskOutPut_List_NT
                                                 {
                                                     Status = "Error",
-                                                    Message = Response.OUT_MESSAGE,
+                                                    Message = "The Sanctioning "+ TSanctioning.SANCTIONING_AUTHORITY_MKEY+ " " + Response.OUT_MESSAGE,
                                                     Data = null
                                                 }
                                             };
@@ -1955,7 +1984,7 @@ namespace TaskManagement.API.Repositories
                                 new Add_TaskOutPut_List_NT
                                 {
                                     Status = "Error",
-                                    Message = "Invalid mode or TASK_NO not set"
+                                    Message = "Invalid mode or Task No not set"
                                 }
                             };
                             return errorResult;

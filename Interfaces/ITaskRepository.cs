@@ -10,6 +10,6 @@ namespace TaskManagement.API.Interfaces
         Task<TASK_RECURSIVE_HDR> CreateTASKAsync(TASK_RECURSIVE_HDR  tASK_RECURSIVE_HDR);
         Task<bool> UpdateTASKAsync(TASK_RECURSIVE_HDR tASK_RECURSIVE_HDR);
         Task<bool> DeleteTASKAsync(int id,int LastUpatedBy);
-        Task<int> TASKFileUpoadAsync(FileUploadAPI fileUploadAPI);
+        Task<IEnumerable<FileUploadAPIOutPut>> TASKFileUpoadAsync(FileUploadAPI fileUploadAPI);
     }
 }

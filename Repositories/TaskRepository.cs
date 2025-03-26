@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Extensions;
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Data.Common;
+using System.Reflection.Metadata;
 
 namespace TaskManagement.API.Repositories
 {
@@ -163,24 +164,10 @@ namespace TaskManagement.API.Repositories
             {
                 return false;
             }
-            
+
         }
-        public async Task<int> TASKFileUpoadAsync(FileUploadAPI fileUploadAPI)
+        public async Task<IEnumerable<FileUploadAPIOutPut>> TASKFileUpoadAsync(FileUploadAPI fileUploadAPI)
         {
-            //using (IDbConnection db = _dapperDbConnection.CreateConnection())
-            //{
-            //    var parameters = new DynamicParameters();
-            //    parameters.Add("@MKEY", fileUploadAPI.TASK_MKEY);
-            //    parameters.Add("@FILE_NAME", fileUploadAPI.FILE_NAME);
-            //    parameters.Add("@FILE_PATH", fileUploadAPI.FILE_PATH);
-            //    parameters.Add("@CREATED_BY", fileUploadAPI.CREATED_BY);
-            //    parameters.Add("@ATTRIBUTE14", fileUploadAPI.ATTRIBUTE14);
-            //    parameters.Add("@ATTRIBUTE15", fileUploadAPI.ATTRIBUTE15);
-            //    parameters.Add("@ATTRIBUTE16", fileUploadAPI.ATTRIBUTE16);
-            //    return await db.ExecuteScalarAsync<int>("SP_INSERT_TASK_RECURSIVE_FILE_UPLOAD", parameters, commandType: CommandType.StoredProcedure);
-
-            //}
-
             IDbTransaction transaction = null;
             bool transactionCompleted = false;
 
@@ -198,6 +185,7 @@ namespace TaskManagement.API.Repositories
                     {
                         await sqlConnection.OpenAsync();  // Ensure the connection is open
                     }
+
                     transaction = db.BeginTransaction();
                     transactionCompleted = false;  // Reset transaction state
 
@@ -206,43 +194,58 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@FILE_NAME", fileUploadAPI.FILE_NAME);
                     parameters.Add("@FILE_PATH", fileUploadAPI.FILE_PATH);
                     parameters.Add("@CREATED_BY", fileUploadAPI.CREATED_BY);
-                    parameters.Add("@ATTRIBUTE14", fileUploadAPI.ATTRIBUTE14);
-                    parameters.Add("@ATTRIBUTE15", fileUploadAPI.ATTRIBUTE15);
-                    parameters.Add("@ATTRIBUTE16", fileUploadAPI.ATTRIBUTE16);
-                    var taskRecursive = await db.ExecuteScalarAsync<int>("SP_INSERT_TASK_RECURSIVE_FILE_UPLOAD", parameters, commandType: CommandType.StoredProcedure,transaction :transaction);
-                    
-                    if (taskRecursive == -1)
-                    {
-                        // Handle other unexpected exceptions
-                        if (transaction != null && !transactionCompleted)
-                        {
-                            try
-                            {
-                                // Rollback only if the transaction is not yet completed
-                                transaction.Rollback();
-                            }
-                            catch (InvalidOperationException rollbackEx)
-                            {
+                    parameters.Add("@METHODNAME", "RecursiveFileUpload");
+                    parameters.Add("@METHOD", "Add");
 
-                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                //TranError.Message = ex.Message;
-                                //return TranError;
+                    // Execute stored procedure and get the result
+                    //var taskRecursive = await db.QueryAsync<FileUploadAPIOutPut>("SP_INSERT_TASK_RECURSIVE_FILE_UPLOAD", parameters, transaction: transaction);
+                    var taskRecursive = await db.QueryAsync<FileUploadAPIOutPut>("SP_INSERT_TASK_RECURSIVE_FILE_UPLOAD", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    if (taskRecursive != null)
+                    {
+                        foreach (var item in taskRecursive)
+                        {
+                            if (item.Status != "OK")
+                            {
+                                // Handle rollback in case of an error
+                                if (transaction != null && !transactionCompleted)
+                                {
+                                    try
+                                    {
+                                        transaction.Rollback();
+                                    }
+                                    catch (InvalidOperationException rollbackEx)
+                                    {
+                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                    }
+                                }
+
+                                // Return error if task status is not Ok
+                                var ErroResult = new List<FileUploadAPIOutPut>
+                                        {
+                                        new FileUploadAPIOutPut
+                                            {
+                                            Status = "Error",
+                                            Message = item.Message
+                                            }
+                                    };
+                                return ErroResult;
                             }
                         }
-
-                        var TemplateError = new DOC_TEMPLATE_HDR();
-                        TemplateError.Status = "Error";
-                        TemplateError.Message = "Error Occurd";
                         return taskRecursive;
                     }
-                    else 
+                    else
                     {
-                        var sqlTransaction = (SqlTransaction)transaction;
-                        await sqlTransaction.CommitAsync();
-                        transactionCompleted = true;
-                        return taskRecursive;
+                        // Return error if no data was returned from the stored procedure
+                        var ErroResult = new List<FileUploadAPIOutPut>
+                        {
+                        new FileUploadAPIOutPut
+                            {
+                            Status = "Error",
+                            Message = "Not found"
+                            }
+                    };
+                        return ErroResult;
                     }
-                    
                 }
             }
             catch (Exception ex)
@@ -251,24 +254,24 @@ namespace TaskManagement.API.Repositories
                 {
                     try
                     {
-                        // Rollback only if the transaction is not yet completed
                         transaction.Rollback();
                     }
                     catch (InvalidOperationException rollbackEx)
                     {
-                        // Handle rollback exception (may occur if transaction is already completed)
-                        // Log or handle the rollback failure if needed
                         Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                        //var TranError = new APPROVAL_TASK_INITIATION();
-                        //TranError.ResponseStatus = "Error";
-                        //TranError.Message = ex.Message;
-                        //return TranError;
                     }
                 }
-                var doc_update = new DOC_TEMPLATE_HDR();
-                doc_update.Status = "Error";
-                doc_update.Message = ex.Message;
-                return 0;
+
+                // Return error if an exception occurs during processing
+                var ErroResult = new List<FileUploadAPIOutPut>
+                        {
+                        new FileUploadAPIOutPut
+                            {
+                            Status = "Error",
+                            Message = ex.Message
+                            }
+                    };
+                return ErroResult;
             }
         }
     }

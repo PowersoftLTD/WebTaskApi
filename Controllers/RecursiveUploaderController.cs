@@ -32,7 +32,7 @@ namespace TaskManagement.API.Controllers
 
         [Authorize]
         [HttpPost, DisableRequestSizeLimit]
-        public async Task<IActionResult> Post([FromForm] FileUploadAPI objFile)
+        public async Task<IEnumerable<FileUploadAPIOutPut>> Post([FromForm] FileUploadAPI objFile)
         {
             try
             {
@@ -62,51 +62,34 @@ namespace TaskManagement.API.Controllers
                     objFile.FILE_NAME = fileName;// objFile.files.FileName;
                     objFile.FILE_PATH = "\\" + filePathOpen;//  "\\Attachment\\" + objFile.TASK_MKEY;
                     var taskAttach = await _repository.TASKFileUpoadAsync(objFile);
-                    if (taskAttach == 0)
-                    {
-
-                        return Ok("File Updated Successfuly");
-                    }
-                    else
-                    {
-                        return Ok("File not uploded");
-                    }
+                    return taskAttach;
                 }
                 else
                 {
-                    return Ok("File not attach");
+                    var ErroResult = new List<FileUploadAPIOutPut>
+                        {
+                        new FileUploadAPIOutPut
+                            {
+                            Status = "Error",
+                            Message = "Not found"
+                            }
+                    };
+                    return ErroResult;
                 }
 
             }
             catch (Exception ex)
             {
-                return Ok(ex.Message);
+                var ErroResult = new List<FileUploadAPIOutPut>
+                        {
+                        new FileUploadAPIOutPut
+                            {
+                            Status = "Error",
+                            Message = ex.Message
+                            }
+                    };
+                return ErroResult;
             }
-
-            //try
-            //{
-            //    if (objFile.files.Length > 0)
-            //    {
-            //        if (!Directory.Exists(objFile.FILE_PATH + "\\Attachment\\" + objFile.TASK_MKEY))
-            //        {
-            //            Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachment\\" + objFile.TASK_MKEY);
-            //        }
-            //        using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachment\\" + objFile.TASK_MKEY + "\\" + objFile.files.FileName))
-            //        {
-            //            objFile.files.CopyTo(filestream);
-            //            filestream.Flush();
-            //        }
-            //        objFile.FILE_NAME = objFile.files.FileName;
-            //        objFile.FILE_PATH = objFile.FILE_PATH + "\\Attachment\\" + objFile.TASK_MKEY;
-            //        await _repository.TASKFileUpoadAsync(objFile);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw;
-            //}
-            //return Ok(objFile);
-
         }
     }
 }

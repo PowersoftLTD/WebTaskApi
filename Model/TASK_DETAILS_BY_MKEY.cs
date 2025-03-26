@@ -218,8 +218,8 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Building_Mkey")]
         public int BUILDING_MKEY { get; set; }
 
-        [JsonPropertyName("Document_Mkey")]
-        public string DOCUMENT_MKEY { get; set; }
+        [JsonPropertyName("Document_Category")]
+        public string Document_Category { get; set; }
 
         [JsonPropertyName("Type_Code")]
         public string TYPE_CODE { get; set; }

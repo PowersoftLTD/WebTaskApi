@@ -64,6 +64,11 @@ namespace TaskManagement.API.Model
         public string TASK_MAIN_NODE_ID { get; set; }
         [JsonPropertyName("Task_No")]
         public string TASK_NO { get; set; }
+
+        [JsonIgnore]
+        public string Status { get; set; }
+        [JsonIgnore]
+        public string Message { get; set; }
     }
 
     public class TaskPostActionFileUploadAPI_NT

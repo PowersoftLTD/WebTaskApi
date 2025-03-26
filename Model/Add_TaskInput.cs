@@ -85,7 +85,7 @@ namespace TaskManagement.API.Model
         public string? COMPLETION_DATE { get; set; }
         [JsonPropertyName("Assigned_To")]
         public string? ASSIGNED_TO { get; set; }
-        [JsonPropertyName("Tage")]
+        [JsonPropertyName("Tags")]
         public string? TAGS { get; set; }
         [JsonPropertyName("Isnode")]
         public string? ISNODE { get; set; }
