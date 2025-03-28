@@ -935,6 +935,48 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<IEnumerable<GET_ACTIONS_TYPE_FILE_NT>> GetActionsAsync_NT(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_MKEY", TASK_MKEY);
+                    parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
+                    parmeters.Add("@CURR_ACTION", CURR_ACTION);
+                    var TaskTreeDetails = await db.QueryMultipleAsync("SP_GET_ACTIONS", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var data = TaskTreeDetails.Read<GetActionsListTypeDesc_NT>().ToList();
+                    var data1 = TaskTreeDetails.Read<GetActionsListFile_NT>().ToList();
+
+                    var successsResult = new List<GET_ACTIONS_TYPE_FILE_NT>
+                    {
+                        new GET_ACTIONS_TYPE_FILE_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= data,
+                            Data1= data1
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<GET_ACTIONS_TYPE_FILE_NT>
+                    {
+                        new GET_ACTIONS_TYPE_FILE_NT
+                        {
+                           Status = "Error",
+                            Message= ex.Message
+                        }
+                    };
+                return errorResult;
+            }
+        }
         public async Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskTreeAsync(string Mkey)
         {
             try
@@ -1480,7 +1522,7 @@ namespace TaskManagement.API.Repositories
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
-            bool transactionCompleted = false;  // Track the transaction state
+            bool transactionCompleted = false;
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -1811,7 +1853,7 @@ namespace TaskManagement.API.Repositories
                                     parmetersCheckList.Add("@OUT_STATUS", null);
                                     parmetersCheckList.Add("@OUT_MESSAGE", null);
 
-                                    var GetTaskCheckList = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                    var GetTaskCheckList = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                     if (GetTaskCheckList.Any())
                                     {
@@ -1868,7 +1910,7 @@ namespace TaskManagement.API.Repositories
                                             parametersEndList.Add("@OUT_STATUS", null);
                                             parametersEndList.Add("@OUT_MESSAGE", null);
 
-                                            var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                            var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                             if (GetTaskEndList.Any())
                                             {
@@ -1890,19 +1932,19 @@ namespace TaskManagement.API.Repositories
                                                         }
 
                                                         var errorResult = new List<Add_TaskOutPut_List_NT>
-                                                    {
-                                                        new Add_TaskOutPut_List_NT
                                                         {
-                                                            Status = "Error",
-                                                            Message = "End List "+ Response.OUT_MESSAGE,
-                                                            Data = null
-                                                        }
-                                                    };
+                                                            new Add_TaskOutPut_List_NT
+                                                            {
+                                                                Status = "Error",
+                                                                Message = "End List "+ Response.OUT_MESSAGE,
+                                                                Data = null
+                                                            }
+                                                        };
                                                         return errorResult;
                                                     }
                                                 }
-                                            }
 
+                                            }
                                         }
                                     }
                                 }
@@ -1947,14 +1989,14 @@ namespace TaskManagement.API.Repositories
                                                     }
                                                 }
                                                 var errorResult = new List<Add_TaskOutPut_List_NT>
-                                            {
-                                                new Add_TaskOutPut_List_NT
-                                                {
-                                                    Status = "Error",
-                                                    Message = "The Sanctioning "+ TSanctioning.SANCTIONING_AUTHORITY_MKEY+ " " + Response.OUT_MESSAGE,
-                                                    Data = null
-                                                }
-                                            };
+                                                    {
+                                                        new Add_TaskOutPut_List_NT
+                                                        {
+                                                            Status = "Error",
+                                                            Message = "The Sanctioning "+ TSanctioning.SANCTIONING_AUTHORITY_MKEY+ " " + Response.OUT_MESSAGE,
+                                                            Data = null
+                                                        }
+                                                    };
                                                 return errorResult;
                                             }
                                         }
@@ -4649,6 +4691,43 @@ namespace TaskManagement.API.Repositories
                         DATA = null
                     }
                 };
+                return errorResult;
+            }
+        }
+
+        public async Task<IEnumerable<GET_TASK_TREEOutPut_List_NT>> GetTaskTreeAsync_NT(string TASK_MKEY)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_MKEY", TASK_MKEY);
+                    parmeters.Add("@Completed", null);
+                    var TaskTreeDetails = (await db.QueryAsync<GetTaskTreeOutPut_NT>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    var successsResult = new List<GET_TASK_TREEOutPut_List_NT>
+                    {
+                        new GET_TASK_TREEOutPut_List_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= TaskTreeDetails
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<GET_TASK_TREEOutPut_List_NT>
+                    {
+                        new GET_TASK_TREEOutPut_List_NT
+                        {
+                           Status = "Error",
+                            Message= ex.Message
+                        }
+                    };
                 return errorResult;
             }
         }

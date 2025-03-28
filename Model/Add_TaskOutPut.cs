@@ -71,14 +71,6 @@ namespace TaskManagement.API.Model
         public string Message { get; set; }
     }
 
-    public class TaskPostActionFileUploadAPI_NT
-    {
-        [JsonPropertyName("Files")]
-        public IFormFile? files { get; set; }
-        [JsonPropertyName("Task_Main_Node_Id")]
-        public int TASK_MAIN_NODE_ID { get; set; }
-    }
-
     public class TaskFileUploadAPI_NT
     {
         [JsonPropertyName("Files")]

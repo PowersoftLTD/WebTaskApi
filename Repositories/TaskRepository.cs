@@ -194,6 +194,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@FILE_NAME", fileUploadAPI.FILE_NAME);
                     parameters.Add("@FILE_PATH", fileUploadAPI.FILE_PATH);
                     parameters.Add("@CREATED_BY", fileUploadAPI.CREATED_BY);
+                    parameters.Add("@DELETE_FLAG", fileUploadAPI.DELETE_FLAG);
                     parameters.Add("@METHODNAME", "RecursiveFileUpload");
                     parameters.Add("@METHOD", "Add");
 

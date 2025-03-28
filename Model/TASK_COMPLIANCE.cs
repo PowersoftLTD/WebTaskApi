@@ -100,6 +100,8 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
+        [JsonPropertyName("SR_NO")]
+        public int SR_NO { get; set; }
 
         [JsonPropertyName("PROPERTY_MKEY")]
         public int PROPERTY_MKEY { get; set; }

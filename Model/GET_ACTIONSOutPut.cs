@@ -51,6 +51,51 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("FILE_PATH")]
         public string? FILE_PATH { get; set; }
     }
+    /// <summary>
+    /// 
+    /// </summary>
+
+    public class GET_ACTIONS_TYPE_FILE_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<GetActionsListTypeDesc_NT> Data { get; set; }
+        [JsonPropertyName("Data1")]
+        public IEnumerable<GetActionsListFile_NT> Data1 { get; set; }
+    }
+
+    public class GetActionsListTypeDesc_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Type_Desc")]
+        public String TYPE_DESC { get; set; }
+    }
+    public class GetActionsListFile_NT
+    {
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+        [JsonPropertyName("Progress_Perc")]
+        public decimal? PROGRESS_PERC { get; set; }
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Action_Type")]
+        public string? ACTION_TYPE { get; set; }
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
+        [JsonPropertyName("File_Name")]
+        public string? FILE_NAME { get; set; }
+        [JsonPropertyName("File_Path")]
+        public string? FILE_PATH { get; set; }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+
 
 
     public class GET_ACTIONSOutPut

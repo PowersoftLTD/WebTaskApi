@@ -467,6 +467,27 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Management/Get-Actions_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GET_ACTIONS_TYPE_FILE_NT>>> GET_ACTIONS_NT([FromBody] GET_ACTIONSInput_NT gET_ACTIONSInput)
+        {
+            try
+            {
+                var TaskAction = await _repository.GetActionsAsync_NT(gET_ACTIONSInput.TASK_MKEY, gET_ACTIONSInput.CURRENT_EMP_MKEY, gET_ACTIONSInput.CURR_ACTION);
+                return Ok(TaskAction);
+            }
+            catch (Exception ex)
+            {
+                var response = new GET_ACTIONS_TYPE_FILE_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
         [HttpPost("Task-Management/GET-TASK_TREE")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List>>> GET_TASK_TREE([FromBody] GET_TASK_TREEInput gET_TASK_TREEInput)
@@ -502,6 +523,40 @@ namespace TaskManagement.API.Controllers
             catch (Exception ex)
             {
                 var response = new GET_ACTIONSOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Get-Task_Tree_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List_NT>>> GET_TASK_TREE_NT([FromBody] GET_TASK_TREEInput_NT gET_TASK_TREEInput)
+        {
+            try
+            {
+                var TaskTree = await _repository.GetTaskTreeAsync_NT(gET_TASK_TREEInput.TASK_MKEY);
+                foreach (var checkerror in TaskTree)
+                {
+                    if (checkerror.Status != "Ok")
+                    {
+                        var response = new GET_TASK_TREEOutPut_List_NT
+                        {
+                            Status = "Error",
+                            Message = checkerror.Message,
+                            Data = null
+                        };
+                        return Ok(response);
+                    }
+                }
+                return Ok(TaskTree);
+            }
+            catch (Exception ex)
+            {
+                var response = new GET_TASK_TREEOutPut_List_NT
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -1392,103 +1447,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        //[HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
-        //[Authorize]
-        //public async Task<IActionResult> Post_TASK_ACTION([FromForm] TaskPostActionFileUploadAPI objFile)
-        //{
-        //    try
-        //    {
-        //        int srNo = 0;
-        //        string filePathOpen = string.Empty;
-        //        if (objFile.files != null)
-        //        {
-        //            if (objFile.files.Length > 0)
-        //            {
-        //                srNo = srNo + 1;
-        //                //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
-        //                objFile.FILE_PATH = _fileSettings.FilePath;
-        //                if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
-        //                {
-        //                    Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
-        //                }
-        //                using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
-        //                {
-        //                    objFile.files.CopyTo(filestream);
-        //                    filestream.Flush();
-        //                }
-        //                objFile.FILE_NAME = objFile.files.FileName;
-        //                filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_")
-        //                    + "_" + objFile.files.FileName;
-        //                int ResultCount = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-        //                    objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-        //                    objFile.TASK_MAIN_NODE_ID.ToString(), objFile.FILE_NAME, filePathOpen);
-        //                objFile.FILE_PATH = filePathOpen;
-        //                if (ResultCount > 0)
-        //                {
-        //                    var Successresponse = new Add_TaskOutPut_List
-        //                    {
-        //                        Status = "ok",
-        //                        Message = "File Uploaded",
-        //                        Data1 = objFile
-        //                    };
-        //                    return Ok(Successresponse);
-        //                }
-        //                else
-        //                {
-        //                    filePathOpen = null;
-        //                    int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-        //                        objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-        //                        objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
-        //                    objFile.FILE_PATH = filePathOpen;
-
-        //                    var Errorresponse = new Add_TaskOutPut_List
-        //                    {
-        //                        Status = "Error",
-        //                        Message = "Error occurred",
-        //                        Data1 = null
-        //                    };
-        //                    return Ok(Errorresponse);
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            filePathOpen = null;
-        //            int Result = await _repository.GetPostTaskActionAsync(objFile.Mkey.ToString(), objFile.TASK_MKEY.ToString(), objFile.TASK_PARENT_ID.ToString(),
-        //                objFile.ACTION_TYPE, objFile.DESCRIPTION_COMMENT, objFile.PROGRESS_PERC, objFile.STATUS, objFile.CREATED_BY.ToString(),
-        //                objFile.TASK_MAIN_NODE_ID.ToString(), null, null);
-        //            objFile.FILE_PATH = filePathOpen;
-
-        //            var Successresponse = new Add_TaskOutPut_List
-        //            {
-        //                Status = "Ok",
-        //                Message = "Updated Successfuly",
-        //                Data1 = null
-        //            };
-        //            return Ok(Successresponse);
-        //        }
-
-        //        var response = new Add_TaskOutPut_List
-        //        {
-        //            Status = "Error",
-        //            Message = "Please attach the file!!!",
-        //            Data1 = null
-        //        };
-        //        return Ok(response);
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var response = new Add_TaskOutPut_List
-        //        {
-        //            Status = "Error",
-        //            Message = ex.Message,
-        //            Data1 = null
-        //        };
-        //        return Ok(response);
-        //    }
-        //}
-
         [HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update"), DisableRequestSizeLimit]
         [Authorize]
         public async Task<ActionResult<TaskPostActionFileUploadAPIOutPut_List>> Post_TASK_ACTION([FromForm] TaskPostActionFileUploadAPI objFile)
@@ -1543,6 +1501,69 @@ namespace TaskManagement.API.Controllers
             catch (Exception ex)
             {
                 var response = new TaskPostActionFileUploadAPIOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/TASK-ACTION-TRL-Insert-Update_NT"), DisableRequestSizeLimit]
+        [Authorize]
+        public async Task<ActionResult<TaskPostActionFileUploadAPIOutPut_List_NT>> Post_TASK_ACTION_NT([FromForm] TaskPostActionFileUploadAPI_NT objFile)
+        {
+            try
+            {
+                int srNo = 0;
+                string filePathOpen = string.Empty;
+                if (objFile.files != null)
+                {
+                    if (objFile.files.Length > 0)
+                    {
+                        srNo = srNo + 1;
+                        string FilePath = _fileSettings.FilePath;
+                        if (!Directory.Exists(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
+                        {
+                            Directory.CreateDirectory(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
+                        }
+                        using (FileStream filestream = System.IO.File.Create(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
+                        {
+                            objFile.files.CopyTo(filestream);
+                            filestream.Flush();
+                        }
+
+                        filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName;
+                        var FileUploadDetails = new TaskPostActionFileUploadAPIOutPut_NT
+                        {
+                            FILE_NAME = objFile.files.FileName,
+                            FILE_PATH = filePathOpen,
+                            TASK_MAIN_NODE_ID = objFile.TASK_MAIN_NODE_ID
+                        };
+
+                        var SuccessResult = new TaskPostActionFileUploadAPIOutPut_List_NT
+                        {
+                            Status = "Ok",
+                            Message = "Uploaded file",
+                            Data = new List<TaskPostActionFileUploadAPIOutPut_NT> { FileUploadDetails }
+                        };
+
+                        return SuccessResult;
+                    }
+                }
+                var response = new TaskPostActionFileUploadAPIOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = "Please attach the file!!!",
+                    Data = null
+                };
+                return Ok(response);
+
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskPostActionFileUploadAPIOutPut_List_NT
                 {
                     Status = "Error",
                     Message = ex.Message,
@@ -1613,6 +1634,69 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+        [HttpPost("Task-Management/Task-Action-Trl-Update_NT"), DisableRequestSizeLimit]
+        [Authorize]
+        public async Task<ActionResult<TaskPostActionAPIOutPut_List_NT>> UPDATE_TASK_ACTION_NT([FromBody] TaskPostActionInput_NT taskPostActionInput)
+        {
+            try
+            {
+                if (taskPostActionInput.FILE_NAME != null)
+                {
+                    taskPostActionInput.FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME;
+                }
+                else
+                {
+                    taskPostActionInput.FILE_PATH = string.Empty;
+                }
+
+                int ResultCount = await _repository.GetPostTaskActionAsync(taskPostActionInput.Mkey.ToString(), taskPostActionInput.TASK_MKEY.ToString(),
+                    taskPostActionInput.TASK_PARENT_ID.ToString(),
+                    taskPostActionInput.ACTION_TYPE, taskPostActionInput.DESCRIPTION_COMMENT, taskPostActionInput.PROGRESS_PERC, taskPostActionInput.STATUS,
+                    taskPostActionInput.CREATED_BY.ToString(),
+                    taskPostActionInput.TASK_MAIN_NODE_ID.ToString(), taskPostActionInput.FILE_NAME, taskPostActionInput.FILE_PATH);
+
+                if (ResultCount > 0)
+                {
+                    var objFileDetails = new TaskPostActionOutput_NT()
+                    {
+
+                        FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME,
+                        FILE_NAME = taskPostActionInput.FILE_NAME
+                    };
+
+                    var response = new TaskPostActionAPIOutPut_List_NT
+                    {
+                        Status = "Ok",
+                        Message = "File attach successfuly!!!",
+                        Data = objFileDetails
+                    };
+                    return Ok(response);
+                }
+                else
+                {
+                    var response = new TaskPostActionAPIOutPut_List_NT
+                    {
+                        Status = "Error",
+                        Message = "Please attach the file!!!",
+                        Data = null
+                    };
+                    return Ok(response);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskPostActionAPIOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
 
         [HttpPost("Task-Management/Get-Task-Compliance")]
         [Authorize]
