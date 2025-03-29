@@ -419,7 +419,13 @@ namespace TaskManagement.API.Repositories
                             {
                                 foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
                                 {
-                                    if (objOutPutApprovalTemplates.MKEY == subtask.SUBTASK_MKEY)
+                                    var parametersApproval = new DynamicParameters();
+                                    parametersApproval.Add("@APPROVAL_MKEY", objOutPutApprovalTemplates.MKEY);
+                                    parametersApproval.Add("@MKEY", subtask.SUBTASK_MKEY);
+                                    var ApprovalTemplates = await db.QueryFirstOrDefaultAsync<OutPutApprovalTemplates>("SP_GET_CHECK_APPROVAL", parametersApproval,
+                                        commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    if (objOutPutApprovalTemplates.MKEY == subtask.SUBTASK_MKEY || ApprovalTemplates.Status != "Ok")
                                     {
                                         if (transaction != null && !transactionCompleted)
                                         {
@@ -881,8 +887,6 @@ namespace TaskManagement.API.Repositories
                     #region Insert SUBTASK_LIST
                     if (objAPPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null)
                     {
-
-
                         var subtaskDataTable = new DataTable();
                         subtaskDataTable.Columns.Add("HEADER_MKEY", typeof(int));
                         subtaskDataTable.Columns.Add("SEQ_NO", typeof(string));
@@ -896,11 +900,11 @@ namespace TaskManagement.API.Repositories
                         foreach (var subtask in updateApprovalTemplates.SUBTASK_LIST)
                         {
                             var parametersApprovalCheck = new DynamicParameters();
+                            parametersApprovalCheck.Add("@HEADER_KMEY", objAPPROVAL_TEMPLATE_HDR.MKEY);
+                            parametersApprovalCheck.Add("@MKEY_SUBAPPROVAL", subtask.SUBTASK_MKEY);
                             parametersApprovalCheck.Add("@BUILDING_TYPE", objAPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
                             parametersApprovalCheck.Add("@BUILDING_STANDARD", objAPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
                             parametersApprovalCheck.Add("@STATUTORY_AUTHORITY", objAPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
-                            parametersApprovalCheck.Add("@HEADER_KMEY", objAPPROVAL_TEMPLATE_HDR.MKEY);
-                            parametersApprovalCheck.Add("@MKEY_SUBAPPROVAL", subtask.SUBTASK_MKEY);
                             parametersApprovalCheck.Add("@STATUS", null);
                             parametersApprovalCheck.Add("@MESSAGE", null);
                             var ApprovalSub = await db.QueryFirstOrDefaultAsync<OutPutApprovalTemplates>("SP_GET_APPROVAL_HEADER_CHECK_SUBAPPROVAL", parametersApprovalCheck,
