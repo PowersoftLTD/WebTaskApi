@@ -4,6 +4,7 @@ using Microsoft.Owin.Security.Provider;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
@@ -905,62 +906,78 @@ namespace TaskManagement.API.Repositories
                             parametersApprovalCheck.Add("@BUILDING_TYPE", objAPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
                             parametersApprovalCheck.Add("@BUILDING_STANDARD", objAPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
                             parametersApprovalCheck.Add("@STATUTORY_AUTHORITY", objAPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
-                            parametersApprovalCheck.Add("@STATUS", null);
-                            parametersApprovalCheck.Add("@MESSAGE", null);
-                            var ApprovalSub = await db.QueryFirstOrDefaultAsync<OutPutApprovalTemplates>("SP_GET_APPROVAL_HEADER_CHECK_SUBAPPROVAL", parametersApprovalCheck,
+                            parametersApprovalCheck.Add("@STATUS", string.Empty);
+                            parametersApprovalCheck.Add("@MESSAGE", string.Empty);
+                            //var parametersApprovalCheck = new DynamicParameters();
+                            //parametersApprovalCheck.Add("@HEADER_KMEY", 91);
+                            //parametersApprovalCheck.Add("@MKEY_SUBAPPROVAL", 92);
+                            //parametersApprovalCheck.Add("@BUILDING_TYPE", objAPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
+                            //parametersApprovalCheck.Add("@BUILDING_STANDARD", objAPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
+                            //parametersApprovalCheck.Add("@STATUTORY_AUTHORITY", objAPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
+                            //parametersApprovalCheck.Add("@STATUS", string.Empty);
+                            //parametersApprovalCheck.Add("@MESSAGE", string.Empty);
+
+                            var ApprovalSubStr = await db.QueryAsync<string>("SP_GET_APPROVAL_HEADER_CHECK_SUBAPPROVAL", parametersApprovalCheck,
                                 commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                            if (ApprovalSub != null)
+
+                            var ApprovalSub = await db.QueryAsync<OutPutApprovalTemplates>("SP_GET_APPROVAL_HEADER_CHECK_SUBAPPROVAL", parametersApprovalCheck,
+                                commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                            if (ApprovalSub.Any())
                             {
-                                if (ApprovalSub.Status != "Ok")
+                                foreach (var ResponseStatus in ApprovalSub)
                                 {
-                                    if (transaction != null && !transactionCompleted)
+                                    if (ResponseStatus.Status != "Ok")
                                     {
-                                        try
+                                        if (transaction != null && !transactionCompleted)
                                         {
-                                            // Rollback only if the transaction is not yet completed
-                                            transaction.Rollback();
+                                            try
+                                            {
+                                                // Rollback only if the transaction is not yet completed
+                                                transaction.Rollback();
+                                            }
+                                            catch (InvalidOperationException rollbackEx)
+                                            {
+                                                // Handle rollback exception (may occur if transaction is already completed)
+                                                // Log or handle the rollback failure if needed
+                                                objAPPROVAL_TEMPLATE_HDR.Status = "Error";
+                                                objAPPROVAL_TEMPLATE_HDR.Message = rollbackEx.Message;
+                                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                            }
+                                            return ResponseStatus;
                                         }
-                                        catch (InvalidOperationException rollbackEx)
-                                        {
-                                            // Handle rollback exception (may occur if transaction is already completed)
-                                            // Log or handle the rollback failure if needed
-                                            objAPPROVAL_TEMPLATE_HDR.Status = "Error";
-                                            objAPPROVAL_TEMPLATE_HDR.Message = rollbackEx.Message;
-                                            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                        }
-                                        return ApprovalSub;
                                     }
                                 }
+
+                                subtaskDataTable.Rows.Add(objAPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY,
+                               objAPPROVAL_TEMPLATE_HDR.MKEY,
+                                                     updateApprovalTemplates.CREATED_BY, dateTime,
+                                                     'N');
+
+                                using var bulkCopySubtask = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
+                                {
+                                    DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"
+                                };
+
+                                bulkCopySubtask.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
+                                bulkCopySubtask.ColumnMappings.Add("SUBTASK_ABBR", "SUBTASK_ABBR");
+                                bulkCopySubtask.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
+                                bulkCopySubtask.ColumnMappings.Add("SUBTASK_MKEY", "SUBTASK_MKEY");
+                                bulkCopySubtask.ColumnMappings.Add("SUBTASK_PARENT_ID", "SUBTASK_PARENT_ID");
+                                bulkCopySubtask.ColumnMappings.Add("LAST_UPDATED_BY", "LAST_UPDATED_BY");
+                                bulkCopySubtask.ColumnMappings.Add("LAST_UPDATE_DATE", "LAST_UPDATE_DATE");
+                                bulkCopySubtask.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+
+                                await bulkCopySubtask.WriteToServerAsync(subtaskDataTable);
+
+                                var subtasks = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>(
+                               "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
+                               new { HEADER_MKEY = objAPPROVAL_TEMPLATE_HDR.MKEY }, transaction: transaction);
+
+                                objAPPROVAL_TEMPLATE_HDR.SUBTASK_LIST = subtasks.ToList();
                             }
-
-                            subtaskDataTable.Rows.Add(objAPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY,
-                                objAPPROVAL_TEMPLATE_HDR.MKEY,
-                                                      updateApprovalTemplates.CREATED_BY, dateTime,
-                                                      'N');
                         }
-
-                        using var bulkCopySubtask = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
-                        {
-                            DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"
-                        };
-
-                        bulkCopySubtask.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
-                        bulkCopySubtask.ColumnMappings.Add("SUBTASK_ABBR", "SUBTASK_ABBR");
-                        bulkCopySubtask.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
-                        bulkCopySubtask.ColumnMappings.Add("SUBTASK_MKEY", "SUBTASK_MKEY");
-                        bulkCopySubtask.ColumnMappings.Add("SUBTASK_PARENT_ID", "SUBTASK_PARENT_ID");
-                        bulkCopySubtask.ColumnMappings.Add("LAST_UPDATED_BY", "LAST_UPDATED_BY");
-                        bulkCopySubtask.ColumnMappings.Add("LAST_UPDATE_DATE", "LAST_UPDATE_DATE");
-                        bulkCopySubtask.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
-
-                        await bulkCopySubtask.WriteToServerAsync(subtaskDataTable);
-
-                        var subtasks = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>(
-                       "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
-                       new { HEADER_MKEY = objAPPROVAL_TEMPLATE_HDR.MKEY }, transaction: transaction);
-
-                        objAPPROVAL_TEMPLATE_HDR.SUBTASK_LIST = subtasks.ToList();
                     }
 
                     try
