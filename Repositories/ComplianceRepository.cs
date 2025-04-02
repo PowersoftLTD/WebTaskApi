@@ -8,6 +8,8 @@ using TaskManagement.API.Model;
 using System.Data.SqlClient;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Reflection.Metadata;
+using System.Linq.Expressions;
+using System.Linq;
 
 namespace TaskManagement.API.Repositories
 {
@@ -227,6 +229,125 @@ namespace TaskManagement.API.Repositories
                 return GenerateErrorResponse(ex.Message);
             }
         }
+        public async Task<ActionResult<IEnumerable<ComplianceOutput_LIST_NT>>> InsertUpdateComplianceNTAsync(ComplianceInsertUpdateInputNT complianceInsertUpdateInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    try
+                    {
+                        transaction = db.BeginTransaction();
+                        transactionCompleted = false;  // Reset transaction state
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@MKEY", complianceInsertUpdateInput.MKEY);  // TASK_NO
+                        parameters.Add("@PROPERTY_MKEY", complianceInsertUpdateInput.PROPERTY_MKEY); // PROJECT_ID
+                        parameters.Add("@BUILDING_MKEY", complianceInsertUpdateInput.BUILDING_MKEY); // SUBPROJECT_ID
+                        parameters.Add("@SHORT_DESCRIPTION", complianceInsertUpdateInput.SHORT_DESCRIPTION); // TASK_NAME
+                        parameters.Add("@LONG_DESCRIPTION", complianceInsertUpdateInput.LONG_DESCRIPTION); // TASK_DESCRIPTION
+                        parameters.Add("@CATEGORY", complianceInsertUpdateInput.CAREGORY);   //CATEGORY
+                        parameters.Add("@RAISED_AT", complianceInsertUpdateInput.RAISED_AT);
+                        parameters.Add("@RAISED_AT_BEFORE", complianceInsertUpdateInput.RAISED_AT_BEFORE);
+                        parameters.Add("@RESPONSIBLE_DEPARTMENT", complianceInsertUpdateInput.RESPONSIBLE_DEPARTMENT);
+                        parameters.Add("@JOB_ROLE", complianceInsertUpdateInput.JOB_ROLE);
+                        parameters.Add("@RESPONSIBLE_PERSON", complianceInsertUpdateInput.RESPONSIBLE_PERSON); //ASSIGNED_TO
+                        parameters.Add("@TAGS", complianceInsertUpdateInput.TAGS);  //TAGS
+                        parameters.Add("@TASK_TYPE", complianceInsertUpdateInput.TASK_TYPE);  //TAGS
+                        parameters.Add("@TO_BE_COMPLETED_BY", complianceInsertUpdateInput.TO_BE_COMPLETED_BY); //COMPLETION_DATE
+                        parameters.Add("@NO_DAYS", complianceInsertUpdateInput.NO_DAYS);
+                        parameters.Add("@STATUS", complianceInsertUpdateInput.STATUS);
+                        parameters.Add("@CREATED_BY", complianceInsertUpdateInput.CREATED_BY); //TASK_CREATED_BY
+                        parameters.Add("@DELETE_FLAG", complianceInsertUpdateInput.DELETE_FLAG);
+                        parameters.Add("@RESPONSE_STATUS", null);
+                        parameters.Add("@MESSAGE", null);
+
+                        var GetCompliance = await db.QueryAsync<ComplianceOutPutNT>("SP_COMPLIANCE_INSERT_UPDATE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        if (GetCompliance.Any())
+                        {
+                            //if (GetCompliance)
+
+                            var ResponseStatus = GetCompliance.Select(x => x.ResponseStatus.ToString().First());
+                            var sqlTransaction = (SqlTransaction)transaction;
+                            await sqlTransaction.CommitAsync();
+                            transactionCompleted = true;
+
+                            return new List<ComplianceOutput_LIST_NT>
+                                {
+                                    new ComplianceOutput_LIST_NT
+                                    {
+                                        STATUS = "Ok",
+                                        MESSAGE = "Successfully Done",
+                                        DATA = GetCompliance
+                                    }
+                                };
+                        }
+                        else
+                        {
+                            return new List<ComplianceOutput_LIST_NT>
+                            {
+                                new ComplianceOutput_LIST_NT
+                                {
+                                    STATUS = "Error",
+                                    MESSAGE = "Error occured",
+                                    DATA = null
+                                }
+                            };
+
+                        }
+                    }
+                    catch (SqlException ex)
+                    {
+                        return new List<ComplianceOutput_LIST_NT>
+                                {
+                                    new ComplianceOutput_LIST_NT
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = ex.Message,
+                                        DATA = null
+                                    }
+                                };
+
+                    }
+
+                }
+
+                // Ensure that this method always returns a value
+                return new List<ComplianceOutput_LIST_NT>
+                    {
+                        new ComplianceOutput_LIST_NT
+                        {
+                            STATUS = "Error",
+                            MESSAGE = "No compliance data found or processed.",
+                            DATA = null
+                        }
+                    };
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    RollbackTransaction(transaction);
+                }
+
+                return GenerateErrorResponseNT(ex.Message);
+            }
+        }
         private void RollbackTransaction(IDbTransaction transaction)
         {
             try
@@ -243,6 +364,18 @@ namespace TaskManagement.API.Repositories
             return new List<ComplianceOutput_LIST>
             {
                 new ComplianceOutput_LIST
+                {
+                    STATUS = "Error",
+                    MESSAGE = message,
+                    DATA = null
+                }
+            };
+        }
+        private List<ComplianceOutput_LIST_NT> GenerateErrorResponseNT(string message)
+        {
+            return new List<ComplianceOutput_LIST_NT>
+            {
+                new ComplianceOutput_LIST_NT
                 {
                     STATUS = "Error",
                     MESSAGE = message,

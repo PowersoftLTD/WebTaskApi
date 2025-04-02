@@ -432,7 +432,8 @@ namespace TaskManagement.API.Model
         public string? TASKTYPE { get; set; }
         [JsonPropertyName("Tasktype_Desc")]
         public string? TASKTYPE_DESC { get; set; }
-       
+        [JsonPropertyName("Priority")]
+        public string? Priority { get; set; }
         [JsonPropertyName("Unique_Id")]
         public int unique_id { get; set; }
 

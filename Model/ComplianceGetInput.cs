@@ -85,6 +85,90 @@ namespace TaskManagement.API.Model
         [JsonIgnore]
         public string? Message { get; set; }
     }
+
+    public class ComplianceOutput_LIST_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<ComplianceOutPutNT> DATA { get; set; }
+    }
+
+    public class ComplianceOutPutNT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("Short_Description")]
+        public string SHORT_DESCRIPTION { get; set; }
+        [JsonPropertyName("Long_Description")]
+        public string LONG_DESCRIPTION { get; set; }
+        [JsonPropertyName("Raised_At")]
+        public string RAISED_AT { get; set; }
+
+        [JsonPropertyName("Raised_At_Before")]
+        public string RAISED_AT_BEFORE { get; set; }
+
+        [JsonPropertyName("Responsible_Department")]
+        public int RESPONSIBLE_DEPARTMENT { get; set; }
+        [JsonPropertyName("Responsible_Department_Name")]
+        public string RESPONSIBLE_DEPARTMENT_NAME { get; set; }
+
+        [JsonPropertyName("Job_Role")]
+        public int JOB_ROLE { get; set; }
+        [JsonPropertyName("Job_Role_Name")]
+        public string JOB_ROLE_NAME { get; set; }
+        [JsonPropertyName("Tags")]
+        public string? TAGS { get; set; }
+        [JsonPropertyName("Responsible_Person")]
+        public int RESPONSIBLE_PERSON { get; set; }
+
+        [JsonPropertyName("Responsible_Person_Name")]
+        public string RESPONSIBLE_PERSON_NAME { get; set; }
+
+        [JsonPropertyName("To_Be_Completed_By")]
+        public DateTime TO_BE_COMPLETED_BY { get; set; }
+        [JsonPropertyName("No_Days")]
+        public int NO_DAYS { get; set; }
+        [JsonPropertyName("Display_Status")]
+        public string DISPLAY_STATUS { get; set; }
+
+        [JsonPropertyName("Status")]
+        public string STATUS { get; set; }
+
+        [JsonPropertyName("Task_Type")]
+        public int? TASK_TYPE { get; set; }
+
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+
+        [JsonIgnore]
+        public string? ResponseStatus { get; set; }
+        [JsonIgnore]
+        public string? Message { get; set; }
+    }
+
+
     public class ComplianceInsertUpdateInput
     {
         [JsonPropertyName("MKEY")]
@@ -130,6 +214,59 @@ namespace TaskManagement.API.Model
         [JsonIgnore]
         public string? Response_Message { get; set; }
     }
+
+    public class ComplianceInsertUpdateInputNT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("Short_Description")]
+        public string SHORT_DESCRIPTION { get; set; }
+        [JsonPropertyName("Long_Description")]
+        public string LONG_DESCRIPTION { get; set; }
+        [JsonPropertyName("Raised_At")]
+        public int? RAISED_AT { get; set; }
+        [JsonPropertyName("Raised_At_Before")]
+        public int? RAISED_AT_BEFORE { get; set; }
+        [JsonPropertyName("Responsible_Department")]
+        public int? RESPONSIBLE_DEPARTMENT { get; set; }
+        [JsonPropertyName("Category")]
+        public int? CAREGORY { get; set; }
+        [JsonPropertyName("Task_Type")]
+        public int? TASK_TYPE { get; set; }
+        [JsonPropertyName("Job_Role")]
+        public int? JOB_ROLE { get; set; }
+        [JsonPropertyName("Responsible_Person")]
+        public int? RESPONSIBLE_PERSON { get; set; }
+        [JsonPropertyName("To_Be_Completed_By")]
+        public DateTime? TO_BE_COMPLETED_BY { get; set; }
+        [JsonPropertyName("No_Days")]
+        public int? NO_DAYS { get; set; }
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Tags")]
+        public string? TAGS { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public char? DELETE_FLAG { get; set; }
+        [JsonPropertyName("Created_By")]
+        public int CREATED_BY { get; set; }
+
+        [JsonIgnore]
+        public string? Response_Status { get; set; }
+
+        [JsonIgnore]
+        public string? Response_Message { get; set; }
+
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+
+    }
+
     public class ComplianceGetInput
     {
         [JsonPropertyName("MKEY")]

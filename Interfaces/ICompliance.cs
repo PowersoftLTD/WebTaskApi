@@ -7,5 +7,6 @@ namespace TaskManagement.API.Interfaces
     {
         Task<ActionResult<IEnumerable<ComplianceOutput_LIST>>> GetComplianceAsync(ComplianceGetInput  complianceGetInput);
         Task<ActionResult<IEnumerable<ComplianceOutput_LIST>>> InsertUpdateComplianceAsync(ComplianceInsertUpdateInput complianceInsertUpdateInput);
+        Task<ActionResult<IEnumerable<ComplianceOutput_LIST_NT>>> InsertUpdateComplianceNTAsync(ComplianceInsertUpdateInputNT complianceInsertUpdateInput);
     }
 }

@@ -1759,6 +1759,67 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Management/Get-Task-Compliance_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_list_NT>>> GetTaskCompliance_NT(Task_Compliance_Input_NT task_Compliance_Input_NT)
+        {
+            bool FlagError = false;
+            string ErrorMessage = string.Empty;
+            try
+            {
+                if (task_Compliance_Input_NT == null)
+                {
+                    var response = new TASK_COMPLIANCE_list_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+                if (task_Compliance_Input_NT.PROPERTY_MKEY == null || task_Compliance_Input_NT.PROPERTY_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                }
+                if (task_Compliance_Input_NT.BUILDING_MKEY == null || task_Compliance_Input_NT.BUILDING_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                }
+
+                if (task_Compliance_Input_NT.USER_ID == null || task_Compliance_Input_NT.USER_ID == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "User ID is required,";
+                }
+
+                if (FlagError == true)
+                {
+                    var response = new TASK_COMPLIANCE_list_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ErrorMessage,
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.GetTaskComplianceNTAsync(task_Compliance_Input_NT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TASK_COMPLIANCE_list_NT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
+
         [HttpPost("Task-Management/Get-Task-EndList")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskEndList(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)

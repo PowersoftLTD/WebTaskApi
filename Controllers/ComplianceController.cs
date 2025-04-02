@@ -85,5 +85,37 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+        [HttpPost("Insert-Update-Compliance_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<ComplianceOutput_LIST_NT>>> InsertUpdateComplianceNT(ComplianceInsertUpdateInputNT complianceInsertUpdateInputNT)
+        {
+            try
+            {
+                if (complianceInsertUpdateInputNT == null)
+                {
+                    var response = new ComplianceOutput_LIST_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.InsertUpdateComplianceNTAsync(complianceInsertUpdateInputNT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new ComplianceOutput_LIST_NT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
     }
 }
