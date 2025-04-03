@@ -121,8 +121,14 @@ namespace TaskManagement.API.Model
         public string? CAREGORY { get; set; }
         [JsonPropertyName("Project_Mkey")]
         public string PROJECT_MKEY { get; set; }
+        [JsonPropertyName("Project_Name")]
+        public string PROJECT_NAME { get; set; }
+
         [JsonPropertyName("Building_Mkey")]
         public int BUILDING_MKEY { get; set; }
+
+        [JsonPropertyName("Building_Name")]
+        public string BUILDING_NAME { get; set; }
         [JsonPropertyName("Project")]
         public string? PROJECT { get; set; }
         [JsonPropertyName("Sub_Project")]
@@ -141,6 +147,8 @@ namespace TaskManagement.API.Model
         public DateTime? DUE_DATE { get; set; }
         [JsonPropertyName("Assigned_To")]
         public decimal? ASSIGNED_TO { get; set; }
+        [JsonPropertyName("Assigned_To_Name")]
+        public string? ASSIGNED_TO_NAME { get; set; }
         [JsonPropertyName("Tags")]
         public string? TAGS { get; set; }
         [JsonPropertyName("Creation_Date")]

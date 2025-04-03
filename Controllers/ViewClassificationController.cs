@@ -240,9 +240,46 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("Raised-AT")]
+        [HttpPost("Raised-AT_NT")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<RAISED_AT_OUTPUT_LIST>>> GetRaiseAT(RAISED_AT_INPUT rAISED_AT_INPUT)
+        public async Task<ActionResult<IEnumerable<RAISED_AT_OUTPUT_LIST_NT>>> GetRaiseAT(RAISED_AT_INPUT_NT rAISED_AT_INPUT)
+        {
+            try
+            {
+                if (rAISED_AT_INPUT.PROPERTY_MKEY == 0 || rAISED_AT_INPUT.BUILDING_MKEY == 0)
+                {
+                    var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST_NT>
+                        {
+                            new RAISED_AT_OUTPUT_LIST_NT
+                            {
+                                Status = "Error",
+                                Message = "Please enter the details",
+                                Data= null
+                            }
+                        };
+                    return ErrorResponse;
+                }
+                var classifications = await _repository.GetRaiseATNTAsync(rAISED_AT_INPUT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST_NT>
+                {
+                    new RAISED_AT_OUTPUT_LIST_NT
+                    {
+                        Status = "Error",
+                        Message =ex.Message,
+                        Data= null
+                    }
+                };
+                return ErrorResponse;
+            }
+        }
+
+        [HttpPost("Raised-At")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<RAISED_AT_OUTPUT_LIST>>> GetRaiseAT_NT(RAISED_AT_INPUT rAISED_AT_INPUT)
         {
             try
             {
@@ -331,6 +368,30 @@ namespace TaskManagement.API.Controllers
                             {
                                 Status = "Error",
                                 Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+        }
+
+        [HttpGet("Compliance-Status_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST_NT>>> GetComplianceStatus_NT()
+        {
+            try
+            {
+                var classifications = await _repository.GetComplianceStatusNTAsync();
+                return classifications;
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<COMPLIANCE_STATUS_OUTPUT_LIST_NT>
+                        {
+                            new COMPLIANCE_STATUS_OUTPUT_LIST_NT
+                            {
+                                Status = "Error",
+                                Message = ex.Message,
                                 Data= null
                             }
                         };

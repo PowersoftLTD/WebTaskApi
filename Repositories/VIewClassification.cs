@@ -244,6 +244,62 @@ namespace TaskManagement.API.Repositories
                 return ErrorResponse;
             }
         }
+        public async Task<IEnumerable<RAISED_AT_OUTPUT_LIST_NT>> GetRaiseATNTAsync(RAISED_AT_INPUT_NT rAISED_AT_INPUT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@PROPERTY_MKEY", rAISED_AT_INPUT.PROPERTY_MKEY);
+                    parameters.Add("@BUILDING_MKEY", rAISED_AT_INPUT.BUILDING_MKEY);
+
+                    var GetRaisetAT = await db.QueryAsync<RAISED_AT_OUTPUT_NT>("SP_GET_RAISED_AT", parameters, commandType: CommandType.StoredProcedure);
+
+                    if (GetRaisetAT != null)
+                    {
+                        var successsResult = new List<RAISED_AT_OUTPUT_LIST_NT>
+                            {
+                                new RAISED_AT_OUTPUT_LIST_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= GetRaisetAT
+
+                                }
+                            };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST_NT>
+                            {
+                                new RAISED_AT_OUTPUT_LIST_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= null
+
+                                }
+                            };
+                        return ErrorResponse;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST_NT>
+                {
+                    new RAISED_AT_OUTPUT_LIST_NT
+                    {
+                        Status = "Error",
+                        Message =ex.Message,
+                        Data= null
+                    }
+                };
+                return ErrorResponse;
+            }
+        }
         public async Task<IEnumerable<RAISED_AT_OUTPUT_LIST>> GetRaiseATBeforeAsync(RAISED_AT_INPUT rAISED_AT_INPUT)
         {
             try
@@ -411,6 +467,53 @@ namespace TaskManagement.API.Repositories
                                 Data= null
                             }
                         };
+                return ErrorResponse;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST_NT>>> GetComplianceStatusNTAsync()
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var GetComplianceStatus = await db.QueryAsync<COMPLIANCE_STATUS_OUTPUT_NT>("SELECT * FROM V_COMPLIANCE_STATUS ");
+
+                    if (!GetComplianceStatus.Any())
+                    {
+                        var ErrorResponse = new List<COMPLIANCE_STATUS_OUTPUT_LIST_NT>
+                        {
+                            new COMPLIANCE_STATUS_OUTPUT_LIST_NT
+                            {
+                                Status = "Error",
+                                Message = "No data found",
+                                Data = null
+                            }
+                        };
+                        return ErrorResponse;
+                    }
+                    var SuccessResponse = new List<COMPLIANCE_STATUS_OUTPUT_LIST_NT>
+                        {
+                            new COMPLIANCE_STATUS_OUTPUT_LIST_NT
+                            {
+                                Status = "Ok",
+                                Message = "Data Get Successfuly",
+                                Data= GetComplianceStatus
+                            }
+                        };
+                    return SuccessResponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<COMPLIANCE_STATUS_OUTPUT_LIST_NT>
+                {
+                    new COMPLIANCE_STATUS_OUTPUT_LIST_NT
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data= null
+                    }
+                };
                 return ErrorResponse;
             }
         }
