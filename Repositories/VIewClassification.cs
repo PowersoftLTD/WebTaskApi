@@ -178,6 +178,65 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Department");
             }
         }
+
+        public async Task<IEnumerable<V_Department_NT_OutPut>> GetAllDepartmentNTAsync(V_Department_NT_Input v_Department_NT_Input)
+        {
+             try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@PROPERTY_MKEY", v_Department_NT_Input.Session_User_Id);
+                    parameters.Add("@BUILDING_MKEY", v_Department_NT_Input.Business_Group_Id);
+
+                    var GetRaisetAT = await db.QueryAsync<V_Department_NT>("SP_GET_DEPARTMENT_NT", parameters, commandType: CommandType.StoredProcedure);
+
+                    if (GetRaisetAT != null)
+                    {
+                        var successsResult = new List<V_Department_NT_OutPut>
+                            {
+                                new V_Department_NT_OutPut
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= GetRaisetAT
+
+                                }
+                            };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var ErrorResponse = new List<V_Department_NT_OutPut>
+                            {
+                                new V_Department_NT_OutPut
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= null
+
+                                }
+                            };
+                        return ErrorResponse;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<V_Department_NT_OutPut>
+                        {
+                            new V_Department_NT_OutPut
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+
+        }
+
         public async Task<IEnumerable<V_Building_Classification>> GetViewResponsibleDepartment()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
