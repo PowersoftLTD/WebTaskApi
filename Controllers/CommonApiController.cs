@@ -2345,5 +2345,38 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Management/Task-Sanctioning-Movment-History")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskSanctioningMovmentOutputList>>> PostTaskSanctioningMovmentHistory(TASK_SANCTIONING_MOVMENT tASK_SANCTIONING_INPUT)
+        {
+            try
+            {
+                if (tASK_SANCTIONING_INPUT == null)
+                {
+                    var response = new TaskSanctioningMovmentOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.PostTaskSanctioningMovmentAsync(tASK_SANCTIONING_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskSanctioningMovmentOutputList
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
+
+
     }
 }

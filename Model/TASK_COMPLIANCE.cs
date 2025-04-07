@@ -49,6 +49,17 @@ namespace TaskManagement.API.Model
         public char DELETE_FLAG { get; set; }
     }
 
+    public class TASK_SANCTIONING_MOVMENT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int? SR_NO { get; set; }
+        [JsonPropertyName("CREATED_BY")]
+        public int? CREATED_BY { get; set; }
+    }
+
+
 
     public class TASK_SANCTIONING_AUTHORITY_INPUT
     {
@@ -79,7 +90,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("USER_ID")]
         public int USER_ID { get; set; }
     }
-  
+
     public class TASK_COMPLIANCE_END_CHECK_LIST
     {
         [JsonPropertyName("STATUS")]
@@ -225,7 +236,7 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("BUILDING_MKEY")]
         public int BUILDING_MKEY { get; set; }
-     
+
         [JsonPropertyName("DOCUMENT_MKEY")]
         public int DOCUMENT_MKEY { get; set; }
 
@@ -444,9 +455,6 @@ namespace TaskManagement.API.Model
         public IEnumerable<TaskSanctioningDepartmentOutput> DATA { get; set; }
     }
 
-
-
-
     public class TaskSanctioningDepartmentOutput
     {
         [JsonPropertyName("MKEY")]
@@ -560,7 +568,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("DATA")]
         public IEnumerable<TASK_COMPLIANCE_OUTPUT> DATA { get; set; }
     }
-
     public class TASK_COMPLIANCE_OUTPUT
     {
         [JsonPropertyName("MKEY")]
@@ -630,8 +637,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("LAST_UPDATE_DATE")]
         public string? LAST_UPDATE_DATE { get; set; }
     }
-
-
     public class TASK_COMPLIANCE_list_NT
     {
         [JsonPropertyName("Status")]
@@ -712,4 +717,66 @@ namespace TaskManagement.API.Model
         public string? LAST_UPDATE_DATE { get; set; }
     }
 
+
+    public class TaskSanctioningMovmentOutputList
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TaskSanctioningMovmentOutput> DATA { get; set; }
+    }
+
+    public class TaskSanctioningMovmentOutput
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Task_Mkey")]
+        public int TASK_MKEY { get; set; }
+        [JsonPropertyName("From_Sr_No")]
+        public int TRLFROM_SRNO { get; set; }
+        [JsonPropertyName("From_Level")]
+        public int FROM_LEVEL { get; set; }
+        [JsonPropertyName("From_Sanctioning_Department")]
+        public string SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("From_Sanctioning_Authority_Mkey")]
+        public int SANCTIONING_AUTHORITY_MKEY { get; set; }
+        [JsonPropertyName("From_Sanctioning_Authority")]
+        public string SANCTIONING_AUTHORITY { get; set; }
+        [JsonPropertyName("From_Current_Status")]
+        public string CURRENT_STATUS { get; set; }
+        [JsonPropertyName("To_Sr_No")]
+        public int TRLTO_SRNO { get; set; }
+        [JsonPropertyName("To_Level")]
+        public int TO_LEVEL { get; set; }
+        [JsonPropertyName("To_Sanctioning_Department")]
+        public string TO_SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("To_Sanctioning_Authority_Mkey")]
+        public int TO_SANCTIONING_AUTHORITY_MKEY { get; set; }
+        [JsonPropertyName("To_Sanctioning_Authority")]
+        public string TO_SANCTIONING_AUTHORITY { get; set; }
+        [JsonPropertyName("To_Updated_Status")]
+        public string UPDATED_STATUS { get; set; }
+        
+        [JsonPropertyName("Created_By_Id")]
+        public int CREATED_BY_ID { get; set; }
+        [JsonPropertyName("Created_By_Name")]
+        public string CREATED_BY_NAME { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public string CREATION_DATE { get; set; }
+        [JsonPropertyName("Last_Updated_By")]
+        public string LAST_UPDATED_BY { get; set; }
+        [JsonPropertyName("Updated_By_Name")]
+        public string UPDATED_BY_NAME { get; set; }
+        [JsonPropertyName("Last_Update_Date")]
+        public string LAST_UPDATE_DATE { get; set; }
+
+        [JsonIgnore]
+        public string? OUT_STATUS { get; set; }
+        [JsonIgnore]
+        public string? OUT_MESSAGE { get; set; }
+    }
 }

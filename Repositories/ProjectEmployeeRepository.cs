@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using Azure;
+using Dapper;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -4763,6 +4764,159 @@ namespace TaskManagement.API.Repositories
                 var errorResult = new List<TaskSanctioningDepartmentOutputList>
                 {
                     new TaskSanctioningDepartmentOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ex.Message,
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<TaskSanctioningMovmentOutputList>>> PostTaskSanctioningMovmentAsync(TASK_SANCTIONING_MOVMENT tASK_SANCTIONING_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false; 
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_MKEY", tASK_SANCTIONING_INPUT.MKEY);
+                    parmeters.Add("@SR_NO", tASK_SANCTIONING_INPUT.SR_NO);
+                    parmeters.Add("@METHOD_NAME", "Task-Sanctioning-Table-Insert-Update");
+                    parmeters.Add("@METHOD", "Insert/Update");
+                    parmeters.Add("@OUT_STATUS", null);
+                    parmeters.Add("@OUT_MESSAGE", null);
+
+                    var GetTaskEnd = await db.QueryAsync<TaskSanctioningMovmentOutput>("SP_GET_SANCTIONING_MOVMENT_HISTORY", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (GetTaskEnd.Any())
+                    {
+                        foreach (var ResponseOk in GetTaskEnd)
+                        {
+                            if (ResponseOk.OUT_STATUS != "OK")
+                            {
+                                if (transaction != null && !transactionCompleted)
+                                {
+                                    try
+                                    {
+                                        // Rollback only if the transaction is not yet completed
+                                        transaction.Rollback();
+                                    }
+                                    catch (InvalidOperationException rollbackEx)
+                                    {
+                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                    }
+                                }
+
+                                // Log the SQL error
+                                var errorResult = new List<TaskSanctioningMovmentOutputList>
+                                    {
+                                        new TaskSanctioningMovmentOutputList
+                                        {
+                                            STATUS = "Error",
+                                            MESSAGE = ResponseOk.OUT_MESSAGE,
+                                            DATA = null
+                                        }
+                                    };
+                                return errorResult;
+                            }
+                        }
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+
+                        var SuccessResult = new List<TaskSanctioningMovmentOutputList>
+                        {
+                            new TaskSanctioningMovmentOutputList
+                            {
+                                STATUS = "OK",
+                                MESSAGE = "New record created successfully",
+                                DATA = GetTaskEnd
+                            }
+                        };
+                        return SuccessResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<TaskSanctioningMovmentOutputList>
+                                    {
+                                        new TaskSanctioningMovmentOutputList
+                                        {
+                                            STATUS = "Error",
+                                            MESSAGE = "Not found",
+                                            DATA = null
+                                        }
+                                    };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<TaskSanctioningMovmentOutputList>
+                {
+                    new TaskSanctioningMovmentOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = $"SQL Error: {sqlEx.Message}",
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<TaskSanctioningMovmentOutputList>
+                {
+                    new TaskSanctioningMovmentOutputList
                     {
                         STATUS = "Error",
                         MESSAGE = ex.Message,

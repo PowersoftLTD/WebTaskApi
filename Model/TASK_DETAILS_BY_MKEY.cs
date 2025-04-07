@@ -226,6 +226,15 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Building_Mkey")]
         public int BUILDING_MKEY { get; set; }
 
+        [JsonPropertyName("Doc_Cat_Mkey")]
+        public int Doc_Cat_Mkey { get; set; }
+        [JsonPropertyName("Doc_Cat_Name")]
+        public string Doc_Cat_Name { get; set; }
+        [JsonPropertyName("Doc_Type_Mkey")]
+        public int Doc_Type_Mkey { get; set; }
+        [JsonPropertyName("Doc_Type_Name")]
+        public string Doc_Type_Name { get; set; }
+
         [JsonPropertyName("Document_Category")]
         public string Document_Category { get; set; }
 
@@ -297,6 +306,15 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Building_Mkey")]
         public int BUILDING_MKEY { get; set; }
+
+        [JsonPropertyName("Doc_Cat_Mkey")]
+        public int Doc_Cat_Mkey { get; set; }
+        [JsonPropertyName("Doc_Cat_Name")]
+        public string Doc_Cat_Name { get; set; }
+        [JsonPropertyName("Doc_Type_Mkey")]
+        public int Doc_Type_Mkey { get; set; }
+        [JsonPropertyName("Doc_Type_Name")]
+        public string Doc_Type_Name { get; set; }
 
         [JsonPropertyName("Doc_Mkey")]
         public string DOC_MKEY { get; set; }
