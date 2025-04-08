@@ -4436,6 +4436,177 @@ namespace TaskManagement.API.Repositories
                 }
             }
         }
+
+        public async Task<ActionResult<IEnumerable<TaskCheckListNTOutputList>>> PostTaskCheckListTableInsertUpdateNTAsync(TASK_CHECKLIST_INPUT_NT tASK_CHECKLIST_TABLE_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_MKEY", tASK_CHECKLIST_TABLE_INPUT.TASK_MKEY);
+                    parmeters.Add("@SR_NO", tASK_CHECKLIST_TABLE_INPUT.SR_NO);
+                    parmeters.Add("@DOCUMENT_MKEY", tASK_CHECKLIST_TABLE_INPUT.DOC_MKEY);
+                    parmeters.Add("@DOCUMENT_CATEGORY", tASK_CHECKLIST_TABLE_INPUT.DOCUMENT_CATEGORY);
+                    parmeters.Add("@CREATED_BY", tASK_CHECKLIST_TABLE_INPUT.CREATED_BY);
+                    parmeters.Add("@DELETE_FLAG", tASK_CHECKLIST_TABLE_INPUT.DELETE_FLAG);
+                    parmeters.Add("@METHOD_NAME", "Task-CheckList-Doc-Insert-Update");
+                    parmeters.Add("@METHOD", "Insert/Update");
+                    parmeters.Add("@OUT_STATUS", null);
+                    parmeters.Add("@OUT_MESSAGE", null);
+
+                    var GetTaskEnd = await db.QueryAsync<TASK_CHECKLIST_TABLE_NT_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (GetTaskEnd.Any())
+                    {
+                        foreach (var Response in GetTaskEnd)
+                        {
+                            if (Response.OUT_STATUS != "OK")
+                            {
+                                if (transaction != null && !transactionCompleted)
+                                {
+                                    try
+                                    {
+                                        // Rollback only if the transaction is not yet completed
+                                        transaction.Rollback();
+                                    }
+                                    catch (InvalidOperationException rollbackEx)
+                                    {
+                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                    }
+                                }
+
+                                var errorResult = new List<TaskCheckListNTOutputList>
+                                {
+                                    new TaskCheckListNTOutputList
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = Response.OUT_MESSAGE,
+                                        DATA = GetTaskEnd
+                                    }
+                                };
+                                return errorResult;
+                            }
+                        }
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+                        var successsResult = new List<TaskCheckListNTOutputList>
+                                {
+                                    new TaskCheckListNTOutputList
+                                    {
+                                        STATUS = "Ok",
+                                        MESSAGE = "Get data successfully!!!",
+                                        DATA = GetTaskEnd
+                                    }
+                                };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<TaskCheckListNTOutputList>
+                                {
+                                    new TaskCheckListNTOutputList
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Data not found",
+                                        DATA = null
+                                    }
+                                };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<TaskCheckListNTOutputList>
+                {
+                    new TaskCheckListNTOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = $"SQL Error: {sqlEx.Message}",
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<TaskCheckListNTOutputList>
+                        {
+                            new TaskCheckListNTOutputList
+                            {
+                                STATUS = "Error",
+                                MESSAGE = ex.Message,
+                                DATA = null
+                            }
+                        };
+                return errorResult;
+            }
+            finally
+            {
+                // Ensure transaction is committed or rolled back appropriately
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        transaction.Rollback();  // Rollback in case of any issues
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
+                    }
+                }
+            }
+        }
+
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> PostTaskEndListTableInsertUpdateAsync(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -4795,7 +4966,7 @@ namespace TaskManagement.API.Repositories
                     }
 
                     transaction = db.BeginTransaction();
-                    transactionCompleted = false; 
+                    transactionCompleted = false;
 
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@TASK_MKEY", tASK_SANCTIONING_INPUT.MKEY);

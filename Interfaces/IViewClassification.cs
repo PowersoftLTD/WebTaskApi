@@ -16,6 +16,8 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<V_Building_Classification>> GetViewStandard_TypeAsync();
         Task<IEnumerable<V_Building_Classification>> GetViewStatutory_AuthAsync();
         Task<IEnumerable<V_Building_Classification>> GetViewJOB_ROLEAsync();
+
+        Task<IEnumerable<V_Job_Role_NT_OutPut>> GetViewJOB_ROLE_NTAsync(V_Department_NT_Input v_Department_NT_Input);
         Task<IEnumerable<V_Building_Classification>> GetViewDepartment();
 
         Task<IEnumerable<V_Department_NT_OutPut>> GetAllDepartmentNTAsync(V_Department_NT_Input v_Department_NT_Input);

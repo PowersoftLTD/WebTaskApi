@@ -171,6 +171,69 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_JOB_ROLE");
             }
         }
+
+        public async Task<IEnumerable<V_Job_Role_NT_OutPut>> GetViewJOB_ROLE_NTAsync(V_Department_NT_Input v_Department_NT_Input)
+        {
+            //using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            //{
+            //    return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_JOB_ROLE");
+            //}
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Session_User_Id", v_Department_NT_Input.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", v_Department_NT_Input.Business_Group_Id);
+
+                    var GetRaisetAT = await db.QueryAsync<V_JobRole_NT>("SP_GET_JOBROLE_NT", parameters, commandType: CommandType.StoredProcedure);
+
+                    if (GetRaisetAT != null)
+                    {
+                        var successsResult = new List<V_Job_Role_NT_OutPut>
+                            {
+                                new V_Job_Role_NT_OutPut
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= GetRaisetAT
+
+                                }
+                            };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var ErrorResponse = new List<V_Job_Role_NT_OutPut>
+                            {
+                                new V_Job_Role_NT_OutPut
+                                {
+                                    Status = "Error",
+                                    Message = "Data Not found",
+                                    Data= null
+
+                                }
+                            };
+                        return ErrorResponse;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<V_Job_Role_NT_OutPut>
+                        {
+                            new V_Job_Role_NT_OutPut
+                            {
+                                Status = "Error",
+                                Message = ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+
+        }
+
         public async Task<IEnumerable<V_Building_Classification>> GetViewDepartment()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -178,16 +241,15 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Department");
             }
         }
-
         public async Task<IEnumerable<V_Department_NT_OutPut>> GetAllDepartmentNTAsync(V_Department_NT_Input v_Department_NT_Input)
         {
-             try
+            try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parameters = new DynamicParameters();
-                    parameters.Add("@PROPERTY_MKEY", v_Department_NT_Input.Session_User_Id);
-                    parameters.Add("@BUILDING_MKEY", v_Department_NT_Input.Business_Group_Id);
+                    parameters.Add("@Session_User_Id", v_Department_NT_Input.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", v_Department_NT_Input.Business_Group_Id);
 
                     var GetRaisetAT = await db.QueryAsync<V_Department_NT>("SP_GET_DEPARTMENT_NT", parameters, commandType: CommandType.StoredProcedure);
 
@@ -211,8 +273,8 @@ namespace TaskManagement.API.Repositories
                             {
                                 new V_Department_NT_OutPut
                                 {
-                                    Status = "Ok",
-                                    Message = "Message",
+                                    Status = "Error",
+                                    Message = "Data Not found",
                                     Data= null
 
                                 }
@@ -228,7 +290,7 @@ namespace TaskManagement.API.Repositories
                             new V_Department_NT_OutPut
                             {
                                 Status = "Error",
-                                Message =ex.Message,
+                                Message = ex.Message,
                                 Data= null
                             }
                         };
@@ -236,7 +298,6 @@ namespace TaskManagement.API.Repositories
             }
 
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewResponsibleDepartment()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())

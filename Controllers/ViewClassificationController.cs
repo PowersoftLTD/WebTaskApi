@@ -46,7 +46,7 @@ namespace TaskManagement.API.Controllers
                 return StatusCode(400, ex.Message);
             }
         }
-       
+
         [HttpGet("doc-type-Instruction")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllViewDoc_Type_CheckList()
@@ -165,6 +165,44 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Job-Role-Type_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Job_Role_NT_OutPut>>> GetAllViewJOB_ROLE_NT(V_Department_NT_Input v_Department_NT_Input)
+        {
+            try
+            {
+                if (v_Department_NT_Input.Business_Group_Id == 0 || v_Department_NT_Input.Session_User_Id == 0)
+                {
+                    var ErrorResponse = new List<V_Job_Role_NT_OutPut>
+                        {
+                            new V_Job_Role_NT_OutPut
+                            {
+                                Status = "Error",
+                                Message = "Please enter the details",
+                                Data= null
+                            }
+                        };
+                    return ErrorResponse;
+                }
+                var classifications = await _repository.GetViewJOB_ROLE_NTAsync(v_Department_NT_Input);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<V_Job_Role_NT_OutPut>
+                {
+                    new V_Job_Role_NT_OutPut
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data= null
+                    }
+                };
+                return ErrorResponse;
+            }
+        }
+
+
         [HttpGet("DEPARTMENT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllDepartment()
@@ -177,6 +215,43 @@ namespace TaskManagement.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(400, ex.Message);
+            }
+        }
+
+        [HttpPost("Department_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<V_Department_NT_OutPut>>> GetAllDepartmentNT(V_Department_NT_Input v_Department_NT_Input)
+        {
+            try
+            {
+                if (v_Department_NT_Input.Business_Group_Id == 0 || v_Department_NT_Input.Session_User_Id == 0)
+                {
+                    var ErrorResponse = new List<V_Department_NT_OutPut>
+                        {
+                            new V_Department_NT_OutPut
+                            {
+                                Status = "Error",
+                                Message = "Please enter the details",
+                                Data= null
+                            }
+                        };
+                    return ErrorResponse;
+                }
+                var classifications = await _repository.GetAllDepartmentNTAsync(v_Department_NT_Input);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<V_Department_NT_OutPut>
+                {
+                    new V_Department_NT_OutPut
+                    {
+                        Status = "Error",
+                        Message =ex.Message,
+                        Data= null
+                    }
+                };
+                return ErrorResponse;
             }
         }
 

@@ -2281,6 +2281,40 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-CheckList-Table-Insert-Update_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskCheckListNTOutputList>>> PostTaskCheckListTableInsertUpdate_NT(TASK_CHECKLIST_INPUT_NT tASK_CHECKLIST_TABLE_INPUT)
+        {
+            bool FlagError = false;
+            string ErrorMessage = string.Empty;
+            try
+            {
+                if (tASK_CHECKLIST_TABLE_INPUT == null)
+                {
+                    var response = new TaskCheckListNTOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.PostTaskCheckListTableInsertUpdateNTAsync(tASK_CHECKLIST_TABLE_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskCheckListNTOutputList
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
+
         [HttpPost("Task-Management/Task-Output-Table-Insert-Update")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> PostTaskOutputTableInsertUpdate(TASK_ENDLIST_TABLE_INPUT tASK_ENDLIST_TABLE_INPUT)

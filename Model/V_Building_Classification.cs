@@ -222,9 +222,9 @@ namespace TaskManagement.API.Model
     {
 
         [JsonPropertyName("Session_User_Id")]
-        public int Session_User_Id { get; set; }
+        public int? Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]
-        public int Business_Group_Id { get; set; }
+        public int? Business_Group_Id { get; set; }
     }
     public class V_Department_NT_OutPut
     {
@@ -238,57 +238,70 @@ namespace TaskManagement.API.Model
     public class V_Department_NT
     {
         [JsonPropertyName("Mkey")]
-        public decimal? MKEY { get; set; }
-        [JsonPropertyName("Company_Id")]
-        public decimal? COMPANY_ID { get; set; }
-        [JsonPropertyName("Data")]
-        public string? TYPE_CODE { get; set; }
-        [JsonPropertyName("Data")]
-        public string? TYPE_DESC { get; set; }
-        [JsonPropertyName("Data")]
-        public string? TYPE_ABBR { get; set; }
-        [JsonPropertyName("Data")]
-        public decimal? PARENT_ID { get; set; }
-        [JsonPropertyName("Data")]
-        public decimal? MASTER_MKEY { get; set; }
-        [JsonPropertyName("Data")]
-        public DateTime? EFFECTIVE_START_DATE { get; set; }
-        [JsonPropertyName("Data")]
-        public DateTime? EFFECTIVE_END_DATE { get; set; }
-        [JsonPropertyName("Data")]
-        public char? ENABLE_FLAG { get; set; }
-        [JsonPropertyName("Data")]
-        public string? ATTRIBUTE1 { get; set; }
-        [JsonPropertyName("Data")]
-        public string? ATTRIBUTE2 { get; set; }
-        [JsonPropertyName("Data")]
-        public string? ATTRIBUTE3 { get; set; }
-        [JsonPropertyName("Data")]
-        public string? ATTRIBUTE4 { get; set; }
-        [JsonPropertyName("Data")]
-        public string? ATTRIBUTE5 { get; set; }
+        public int MKEY { get; set; }
 
-        [JsonPropertyName("CREATED_BY_ID")]
+        [JsonPropertyName("Department")]
+        public string? TYPE_CODE { get; set; }
+        [JsonPropertyName("Department_Type")]
+        public string? TYPE_DESC { get; set; }
+        [JsonPropertyName("Master_Mkey")]
+        public int MASTER_MKEY { get; set; }
+        [JsonPropertyName("Created_By_Id")]
         public string? CREATED_BY_ID { get; set; }
 
-        [JsonPropertyName("CREATED_BY_NAME")]
+        [JsonPropertyName("Created_By_Name")]
         public string? CREATED_BY_NAME { get; set; }
 
-        [JsonPropertyName("CREATION_DATE")]
+        [JsonPropertyName("Creation_Date")]
         public string? CREATION_DATE { get; set; }
 
-        [JsonPropertyName("LAST_UPDATED_BY")]
+        [JsonPropertyName("Last_Updated_By")]
         public string? LAST_UPDATED_BY { get; set; }
 
-        [JsonPropertyName("UPDATED_BY_NAME")]
+        [JsonPropertyName("Updated_By_Name")]
         public string? UPDATED_BY_NAME { get; set; }
 
-        [JsonPropertyName("LAST_UPDATE_DATE")]
+        [JsonPropertyName("Last_Update_Date")]
         public string? LAST_UPDATE_DATE { get; set; }
-
-        public char? DELETE_FLAG { get; set; }
     }
 
+    public class V_Job_Role_NT_OutPut
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<V_JobRole_NT> Data { get; set; }
+    }
+    public class V_JobRole_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Job_Role")]
+        public string? TYPE_CODE { get; set; }
+        [JsonPropertyName("Job_Role_Type")]
+        public string? TYPE_DESC { get; set; }
+        [JsonPropertyName("Master_Mkey")]
+        public int MASTER_MKEY { get; set; }
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+    }
 
 
     public class V_Doc_Type_OutPut_NT
