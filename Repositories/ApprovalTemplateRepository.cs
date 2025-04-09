@@ -908,19 +908,6 @@ namespace TaskManagement.API.Repositories
                             parametersApprovalCheck.Add("@STATUTORY_AUTHORITY", objAPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
                             parametersApprovalCheck.Add("@STATUS", string.Empty);
                             parametersApprovalCheck.Add("@MESSAGE", string.Empty);
-                           
-                            //var parametersApprovalCheck = new DynamicParameters();
-                            //parametersApprovalCheck.Add("@HEADER_KMEY", 91);
-                            //parametersApprovalCheck.Add("@MKEY_SUBAPPROVAL", 92);
-                            //parametersApprovalCheck.Add("@BUILDING_TYPE", objAPPROVAL_TEMPLATE_HDR.BUILDING_TYPE);
-                            //parametersApprovalCheck.Add("@BUILDING_STANDARD", objAPPROVAL_TEMPLATE_HDR.BUILDING_STANDARD);
-                            //parametersApprovalCheck.Add("@STATUTORY_AUTHORITY", objAPPROVAL_TEMPLATE_HDR.STATUTORY_AUTHORITY);
-                            //parametersApprovalCheck.Add("@STATUS", string.Empty);
-                            //parametersApprovalCheck.Add("@MESSAGE", string.Empty);
-
-                            var ApprovalSubStr = await db.QueryAsync<string>("SP_GET_APPROVAL_HEADER_CHECK_SUBAPPROVAL", parametersApprovalCheck,
-                                commandType: CommandType.StoredProcedure, transaction: transaction);
-
 
                             var ApprovalSub = await db.QueryAsync<OutPutApprovalTemplates>("SP_GET_APPROVAL_HEADER_CHECK_SUBAPPROVAL", parametersApprovalCheck,
                                 commandType: CommandType.StoredProcedure, transaction: transaction);
@@ -950,132 +937,35 @@ namespace TaskManagement.API.Repositories
                                         }
                                     }
                                 }
-
-                                subtaskDataTable.Rows.Add(objAPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY,
-                               objAPPROVAL_TEMPLATE_HDR.MKEY,
-                                                     updateApprovalTemplates.CREATED_BY, dateTime,
-                                                     'N');
-
-                                using var bulkCopySubtask = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
-                                {
-                                    DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"
-                                };
-
-                                bulkCopySubtask.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
-                                bulkCopySubtask.ColumnMappings.Add("SUBTASK_ABBR", "SUBTASK_ABBR");
-                                bulkCopySubtask.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
-                                bulkCopySubtask.ColumnMappings.Add("SUBTASK_MKEY", "SUBTASK_MKEY");
-                                bulkCopySubtask.ColumnMappings.Add("SUBTASK_PARENT_ID", "SUBTASK_PARENT_ID");
-                                bulkCopySubtask.ColumnMappings.Add("LAST_UPDATED_BY", "LAST_UPDATED_BY");
-                                bulkCopySubtask.ColumnMappings.Add("LAST_UPDATE_DATE", "LAST_UPDATE_DATE");
-                                bulkCopySubtask.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
-
-                                await bulkCopySubtask.WriteToServerAsync(subtaskDataTable);
-
-                                var subtasks = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>(
-                               "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
-                               new { HEADER_MKEY = objAPPROVAL_TEMPLATE_HDR.MKEY }, transaction: transaction);
-
-                                objAPPROVAL_TEMPLATE_HDR.SUBTASK_LIST = subtasks.ToList();
                             }
+                            subtaskDataTable.Rows.Add(objAPPROVAL_TEMPLATE_HDR.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY,
+                           objAPPROVAL_TEMPLATE_HDR.MKEY,
+                                                 updateApprovalTemplates.CREATED_BY, dateTime,
+                                                 'N');
                         }
-                    }
-
-                    try
-                    {
-                        var SanctioningDataTable = new DataTable();
-                        SanctioningDataTable.Columns.Add("MKEY", typeof(int));
-                        SanctioningDataTable.Columns.Add("SR_NO", typeof(int));
-                        SanctioningDataTable.Columns.Add("LEVEL", typeof(string));
-                        SanctioningDataTable.Columns.Add("SANCTIONING_DEPARTMENT", typeof(string));
-                        SanctioningDataTable.Columns.Add("SANCTIONING_AUTHORITY", typeof(string));
-                        SanctioningDataTable.Columns.Add("START_DATE", typeof(DateTime));
-                        SanctioningDataTable.Columns.Add("END_DATE", typeof(DateTime));
-                        SanctioningDataTable.Columns.Add("LAST_UPDATED_BY", typeof(int));
-                        SanctioningDataTable.Columns.Add("LAST_UPDATE_DATE", typeof(DateTime));
-                        SanctioningDataTable.Columns.Add("DELETE_FLAG", typeof(char));
-
-                        bool flagID = false;
-
-                        if (objAPPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST != null)
+                        using var bulkCopySubtask = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
                         {
-                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t " +
-                                "WHERE MKEY = @MKEY AND DELETE_FLAG = 'N'", new { MKEY = objAPPROVAL_TEMPLATE_HDR.MKEY }, commandType: CommandType.Text,
-                                transaction: transaction);
+                            DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"
+                        };
 
-                            // Populate the DataTable with subtasks
-                            foreach (var SANCTIONING_DEPARTMENT in updateApprovalTemplates.SANCTIONING_DEPARTMENT_LIST) // Assuming SUBTASK_LIST is a list of subtasks
-                            {
-                                SanctioningDataTable.Rows.Add(updateApprovalTemplates.MKEY, SR_No, SANCTIONING_DEPARTMENT.LEVEL
-                                    , SANCTIONING_DEPARTMENT.SANCTIONING_DEPARTMENT, SANCTIONING_DEPARTMENT.SANCTIONING_AUTHORITY
-                                    , SANCTIONING_DEPARTMENT.START_DATE, SANCTIONING_DEPARTMENT.END_DATE == null ? null : SANCTIONING_DEPARTMENT.END_DATE, updateApprovalTemplates.CREATED_BY
-                                    , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
-                                SR_No = SR_No + 1;
-                            }
+                        bulkCopySubtask.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
+                        bulkCopySubtask.ColumnMappings.Add("SUBTASK_ABBR", "SUBTASK_ABBR");
+                        bulkCopySubtask.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
+                        bulkCopySubtask.ColumnMappings.Add("SUBTASK_MKEY", "SUBTASK_MKEY");
+                        bulkCopySubtask.ColumnMappings.Add("SUBTASK_PARENT_ID", "SUBTASK_PARENT_ID");
+                        bulkCopySubtask.ColumnMappings.Add("LAST_UPDATED_BY", "LAST_UPDATED_BY");
+                        bulkCopySubtask.ColumnMappings.Add("LAST_UPDATE_DATE", "LAST_UPDATE_DATE");
+                        bulkCopySubtask.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
 
-                            // Use SqlBulkCopy to insert subtasks
-                            using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
-                            {
-                                DestinationTableName = "APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT"  // Ensure this matches your table name
-                            };
+                        await bulkCopySubtask.WriteToServerAsync(subtaskDataTable);
 
-                            bulkCopy.ColumnMappings.Add("MKEY", "MKEY");
-                            bulkCopy.ColumnMappings.Add("SR_NO", "SR_NO");
-                            bulkCopy.ColumnMappings.Add("LEVEL", "LEVEL");
-                            bulkCopy.ColumnMappings.Add("SANCTIONING_DEPARTMENT", "SANCTIONING_DEPARTMENT");
-                            bulkCopy.ColumnMappings.Add("SANCTIONING_AUTHORITY", "SANCTIONING_AUTHORITY");
-                            bulkCopy.ColumnMappings.Add("START_DATE", "START_DATE");
-                            bulkCopy.ColumnMappings.Add("END_DATE", "END_DATE");
-                            bulkCopy.ColumnMappings.Add("LAST_UPDATED_BY", "LAST_UPDATED_BY");
-                            bulkCopy.ColumnMappings.Add("LAST_UPDATE_DATE", "LAST_UPDATE_DATE");
-                            bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+                        var subtasks = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>(
+                       "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
+                       new { HEADER_MKEY = objAPPROVAL_TEMPLATE_HDR.MKEY }, transaction: transaction);
 
-                            await bulkCopy.WriteToServerAsync(SanctioningDataTable);
-
-                            // Commit the transactionSubTask
-                            // await transactionSubTask.CommitAsync();
-
-                            // Optionally, fetch the inserted values (if necessary)
-                            string sql = "SELECT * FROM V_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
-                            var SANCTIONING_DEPARTMENT_TRL = await db.QueryAsync(sql, new { MKEY = objAPPROVAL_TEMPLATE_HDR.MKEY }, transaction: transaction);
-
-                            // Assuming the model has a SUBTASK_LIST dictionary to hold these values
-                            objAPPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST = new List<OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>();  // Assuming Subtask is a class for this data
-
-                            foreach (var item in SANCTIONING_DEPARTMENT_TRL)
-                            {
-                                objAPPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST.Add(new OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT
-                                {
-                                    MKEY = item.MKEY,
-                                    LEVEL = item.LEVEL,
-                                    SANCTIONING_DEPARTMENT = item.SANCTIONING_DEPARTMENT,
-                                    SANCTIONING_AUTHORITY = item.SANCTIONING_AUTHORITY,
-                                    START_DATE = item.START_DATE,
-                                    END_DATE = item.END_DATE
-                                });
-                            }
-                        }
+                        objAPPROVAL_TEMPLATE_HDR.SUBTASK_LIST = subtasks.ToList();
                     }
-                    catch (Exception ex)
-                    {
-                        if (transaction != null && !transactionCompleted)
-                        {
-                            try
-                            {
-                                // Rollback only if the transaction is not yet completed
-                                transaction.Rollback();
-                            }
-                            catch (InvalidOperationException rollbackEx)
-                            {
-                                // Handle rollback exception (may occur if transaction is already completed)
-                                // Log or handle the rollback failure if needed
-                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                            }
-                        }
-                    }
-
                     #endregion
-
                     var sqlTransaction = transaction as SqlTransaction;
                     if (sqlTransaction != null)
                     {

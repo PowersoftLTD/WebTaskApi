@@ -15,6 +15,21 @@ namespace TaskManagement.API.Model
         public int? USER_ID { get; set; }
     }
 
+    public class TASK_COMPLIANCE_INPUT_NT
+    {
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("Task_Mkey")]
+        public int TASK_MKEY { get; set; }
+        [JsonPropertyName("User_Id")]
+        public int? USER_ID { get; set; }
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
     public class Task_Compliance_Input_NT
     {
         [JsonPropertyName("Property_Mkey")]
@@ -195,7 +210,35 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("CREATED_BY")]
         public string? CREATED_BY { get; set; }
     }
+    public class TASK_CHECKLIST_CHECK_INPUT_NT
+    {
+        [JsonPropertyName("Task_Mkey")]
+        public int? TASK_MKEY { get; set; }
+        [JsonPropertyName("Doc_Mkey")]
+        public int DOC_MKEY { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
 
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+
+        [JsonPropertyName("Doc_Name")]
+        public string? DOC_NAME { get; set; }
+
+        [JsonPropertyName("App_Check")]
+        public char? APP_CHECK { get; set; }
+
+        [JsonPropertyName("Created_By")]
+        public int CREATED_BY { get; set; }
+
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
     public class TaskCheckListOutputList
     {
         [JsonPropertyName("STATUS")]
@@ -205,7 +248,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("DATA")]
         public IEnumerable<TASK_CHECKLIST_TABLE_OUTPUT> DATA { get; set; }
     }
-
     public class TASK_CHECKLIST_TABLE_INPUT
     {
         [JsonPropertyName("TASK_MKEY")]
@@ -223,7 +265,6 @@ namespace TaskManagement.API.Model
         public string? CREATED_BY { get; set; }
 
     }
-
     public class TASK_CHECKLIST_INPUT_NT
     {
         [JsonPropertyName("Task_Mkey")]
@@ -245,9 +286,6 @@ namespace TaskManagement.API.Model
 
 
     }
-
-
-
     public class TaskCheckListNTOutputList
     {
         [JsonPropertyName("STATUS")]
@@ -257,7 +295,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("DATA")]
         public IEnumerable<TASK_CHECKLIST_TABLE_NT_OUTPUT> DATA { get; set; }
     }
-
     public class TASK_CHECKLIST_TABLE_NT_OUTPUT
     {
         [JsonPropertyName("Task_Mkey")]
@@ -309,8 +346,6 @@ namespace TaskManagement.API.Model
         [JsonIgnore]
         public string? OUT_MESSAGE { get; set; }
     }
-
-
     public class TASK_CHECKLIST_TABLE_NT_INPUT
     {
         [JsonPropertyName("TASK_MKEY")]
@@ -328,7 +363,6 @@ namespace TaskManagement.API.Model
         public string? CREATED_BY { get; set; }
 
     }
-
     public class TASK_CHECKLIST_TABLE_OUTPUT
     {
         [JsonPropertyName("TASK_MKEY")]
@@ -380,9 +414,6 @@ namespace TaskManagement.API.Model
         [JsonIgnore]
         public string? OUT_MESSAGE { get; set; }
     }
-
-
-
     public class TASK_ENDLIST_INPUT
     {
         [JsonPropertyName("PROJECT_DOC_FILES")]
@@ -420,8 +451,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("FILE_DELETE_FLAG")]
         public string? FILE_DELETE_FLAG { get; set; }
     }
-
-
     public class TASK_ENDLIST_TABLE_INPUT
     {
         [JsonPropertyName("MKEY")]
@@ -437,8 +466,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("DELETE_FLAG")]
         public string? DELETE_FLAG { get; set; }
     }
-
-
     public class TASK_OUTPUT_MEDIA
     {
         [JsonPropertyName("MKEY")]
@@ -470,7 +497,6 @@ namespace TaskManagement.API.Model
         public string? LAST_UPDATE_DATE { get; set; }
 
     }
-
     public class TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT
     {
         [JsonPropertyName("MKEY")]
@@ -885,4 +911,217 @@ namespace TaskManagement.API.Model
         [JsonIgnore]
         public string? OUT_MESSAGE { get; set; }
     }
+
+
+    public class TASK_COMPLIANCE_CHECK_LIST_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TASK_COMPLIANCE_CHECK_LIST_OUTPUT_NT> DATA { get; set; }
+    }
+
+    public class TASK_COMPLIANCE_CHECK_LIST_OUTPUT_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+
+        [JsonPropertyName("Document_Mkey")]
+        public int DOCUMENT_MKEY { get; set; }
+
+        [JsonPropertyName("Document_Category")]
+        public int DOCUMENT_CATEGORY { get; set; }
+
+        [JsonPropertyName("Type_Desc")]
+        public string TYPE_DESC { get; set; }
+
+        [JsonPropertyName("Document_Name")]
+        public string DOCUMENT_NAME { get; set; }
+
+        [JsonPropertyName("App_Check")]
+        public char APP_CHECK { get; set; }
+
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+    }
+
+    public class TASK_COMPLIANCE_END_CHECK_LIST_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT> DATA { get; set; }
+    }
+
+    public class TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT> DATA { get; set; }
+    }
+
+    //public class TASK_ENDLIST_DETAILS_OUTPUT_NT
+    //{
+    //    [JsonPropertyName("MKEY")]
+    //    public int MKEY { get; set; }
+    //    [JsonPropertyName("SR_NO")]
+    //    public int SR_NO { get; set; }
+
+    //    [JsonPropertyName("PROPERTY_MKEY")]
+    //    public int PROPERTY_MKEY { get; set; }
+
+    //    [JsonPropertyName("BUILDING_MKEY")]
+    //    public int BUILDING_MKEY { get; set; }
+
+    //    [JsonPropertyName("DOC_MKEY")]
+    //    public string DOC_MKEY { get; set; }
+
+    //    [JsonPropertyName("DOC_NUMBER")]
+    //    public string DOC_NUMBER { get; set; }
+
+    //    [JsonPropertyName("DOC_DATE")]
+    //    public string DOC_DATE { get; set; }
+
+    //    [JsonPropertyName("VALIDITY_DATE")]
+    //    public string? VALIDITY_DATE { get; set; }
+
+    //    [JsonPropertyName("TASK_OUTPUT_ATTACHMENT")]
+    //    public List<TASK_OUTPUT_MEDIA>? TASK_OUTPUT_ATTACHMENT { get; set; }
+
+    //    [JsonPropertyName("DOC_NUM_APP_FLAG")]
+    //    public string? DOC_NUM_APP_FLAG { get; set; }
+    //    [JsonPropertyName("DOC_NUM_VALID_FLAG")]
+    //    public string? DOC_NUM_VALID_FLAG { get; set; }
+    //    [JsonPropertyName("DOC_NUM_DATE_APP_FLAG")]
+    //    public string? DOC_NUM_DATE_APP_FLAG { get; set; }
+    //    [JsonPropertyName("DOC_ATTACH_APP_FLAG")]
+    //    public string? DOC_ATTACH_APP_FLAG { get; set; }
+
+    //    [JsonPropertyName("CREATED_BY_ID")]
+    //    public string? CREATED_BY_ID { get; set; }
+
+    //    [JsonPropertyName("CREATED_BY_NAME")]
+    //    public string? CREATED_BY_NAME { get; set; }
+
+    //    [JsonPropertyName("CREATION_DATE")]
+    //    public string? CREATION_DATE { get; set; }
+
+    //    [JsonPropertyName("LAST_UPDATED_BY")]
+    //    public string? LAST_UPDATED_BY { get; set; }
+
+    //    [JsonPropertyName("UPDATED_BY_NAME")]
+    //    public string? UPDATED_BY_NAME { get; set; }
+
+    //    [JsonPropertyName("LAST_UPDATE_DATE")]
+    //    public string? LAST_UPDATE_DATE { get; set; }
+
+    //    [JsonIgnore]
+    //    public string? OUT_STATUS { get; set; }
+    //    [JsonIgnore]
+    //    public string? OUT_MESSAGE { get; set; }
+    //}
+
+    //public class TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT
+    //{
+    //    [JsonPropertyName("Mkey")]
+    //    public int MKEY { get; set; }
+
+    //    [JsonPropertyName("Sr_No")]
+    //    public int SR_NO { get; set; }
+
+    //    [JsonPropertyName("Property_Mkey")]
+    //    public int PROPERTY_MKEY { get; set; }
+
+    //    [JsonPropertyName("Building_Mkey")]
+    //    public int BUILDING_MKEY { get; set; }
+
+    //    [JsonPropertyName("Document_Mkey")]
+    //    public string DOCUMENT_MKEY { get; set; }
+
+    //    [JsonPropertyName("Type_Code")]
+    //    public string TYPE_CODE { get; set; }
+
+    //    [JsonPropertyName("Type_Desc")]
+    //    public string TYPE_DESC { get; set; }
+
+    //    [JsonPropertyName("Doc_Mkey")]
+    //    public int? DOC_MKEY { get; set; }
+
+    //    [JsonPropertyName("Doc_Number")]
+    //    public string? DOC_NUMBER { get; set; }
+
+    //    [JsonPropertyName("Doc_Date")]
+    //    public string? DOC_DATE { get; set; }
+
+    //    [JsonPropertyName("Validity_Date")]
+    //    public string? VALIDITY_DATE { get; set; }
+
+    //    [JsonPropertyName("Doc_Num_App_Flag")]
+    //    public string? DOC_NUM_APP_FLAG { get; set; }
+    //    [JsonPropertyName("Doc_Num_Valid_Flag")]
+    //    public string? DOC_NUM_VALID_FLAG { get; set; }
+    //    [JsonPropertyName("Doc_Num_Date_App_Flag")]
+    //    public string? DOC_NUM_DATE_APP_FLAG { get; set; }
+    //    [JsonPropertyName("Doc_Attach_App_Flag")]
+    //    public string? DOC_ATTACH_APP_FLAG { get; set; }
+
+    //    [JsonPropertyName("Task_Output_Attachment")]
+    //    public List<TASK_OUTPUT_MEDIA>? TASK_OUTPUT_ATTACHMENT { get; set; }
+
+    //    [JsonPropertyName("Attribute1")]
+    //    public string? ATTRIBUTE1 { get; set; }
+
+    //    [JsonPropertyName("Attribute2")]
+    //    public string? ATTRIBUTE2 { get; set; }
+
+    //    [JsonPropertyName("Created_By_Id")]
+    //    public string? CREATED_BY_ID { get; set; }
+
+    //    [JsonPropertyName("Created_By_Name")]
+    //    public string? CREATED_BY_NAME { get; set; }
+
+    //    [JsonPropertyName("Creation_Date")]
+    //    public string? CREATION_DATE { get; set; }
+
+    //    [JsonPropertyName("Last_Updated_By")]
+    //    public string? LAST_UPDATED_BY { get; set; }
+
+    //    [JsonPropertyName("Updated_By_Name")]
+    //    public string? UPDATED_BY_NAME { get; set; }
+
+    //    [JsonPropertyName("Last_Update_Date")]
+    //    public string? LAST_UPDATE_DATE { get; set; }
+    //}
+
 }
