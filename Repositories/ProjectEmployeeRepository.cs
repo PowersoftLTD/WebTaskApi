@@ -10,6 +10,7 @@ using System.Data.SqlClient;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -237,8 +238,9 @@ namespace TaskManagement.API.Repositories
                     var parameters = new DynamicParameters();
                     parameters.Add("@TYPE_CODE", v_Building_Classification.Type_Code);
                     parameters.Add("@MASTER_MKEY", v_Building_Classification.Master_mkey);
-
-                    var result = await db.QueryAsync<V_Building_Classification_TMS_NT>("SP_GET_PROJECT", parameters, commandType: CommandType.StoredProcedure);
+                    parameters.Add("@Session_User_Id", v_Building_Classification.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", v_Building_Classification.Business_Group_Id);
+                    var result = await db.QueryAsync<V_Building_Classification_TMS_NT>("SP_GET_PROJECT_NT", parameters, commandType: CommandType.StoredProcedure);
 
                     var successsResult = new List<V_Building_Classification_NT>
                     {
@@ -314,7 +316,9 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@PROJECT_MKEY", getSubProjectInput_NT.Project_Mkey);
-                    var ProjectDetails = (await db.QueryAsync<V_Building_Classification_TMS_SESSION_NT>("SP_GET_SUBPROJECT", parmeters, commandType: CommandType.StoredProcedure));
+                    parmeters.Add("@Session_User_Id", getSubProjectInput_NT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", getSubProjectInput_NT.Business_Group_ID);
+                    var ProjectDetails = (await db.QueryAsync<V_Building_Classification_TMS_SESSION_NT>("SP_GET_SUBPROJECT_NT", parmeters, commandType: CommandType.StoredProcedure));
                     //  return ProjectDetails;
                     var successsResult = new List<V_Building_Classification_New_NT>
                     {
@@ -391,7 +395,9 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", get_EmpInput_NT.CURRENT_EMP_MKEY);
                     parmeters.Add("@FILTER", get_EmpInput_NT.FILTER);
-                    var EmployeeDetails = await db.QueryAsync<EmployeeLoginOutput_NT>("SP_GET_EMP", parmeters, commandType: CommandType.StoredProcedure);
+                    parmeters.Add("@Session_User_Id", get_EmpInput_NT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", get_EmpInput_NT.Business_Group_ID);
+                    var EmployeeDetails = await db.QueryAsync<EmployeeLoginOutput_NT>("SP_GET_EMP_NT", parmeters, commandType: CommandType.StoredProcedure);
                     var successsResult = new List<EmployeeLoginOutput_LIST_Session_NT>
                     {
                         new EmployeeLoginOutput_LIST_Session_NT
@@ -512,8 +518,9 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@EMP_MKEY", eMP_TAGSInput_NT.EMP_TAGS);
-
-                    var EmployeeDetails = await db.QueryAsync<EmployeeTagsOutPut_NT>("sp_EMP_TAGS", parmeters, commandType: CommandType.StoredProcedure);
+                    parmeters.Add("@Session_User_Id", eMP_TAGSInput_NT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", eMP_TAGSInput_NT.Business_Group_ID);
+                    var EmployeeDetails = await db.QueryAsync<EmployeeTagsOutPut_NT>("sp_EMP_TAGS_NT", parmeters, commandType: CommandType.StoredProcedure);
 
                     if (EmployeeDetails.Any())
                     {
@@ -703,6 +710,8 @@ namespace TaskManagement.API.Repositories
 
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@HDR_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                    parmeters.Add("@Session_User_Id", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", tASK_DETAILS_BY_MKEYInput_NT.Business_Group_Id);
                     var TaskDashDetails = await db.QueryAsync<TASK_DETAILS_BY_MKEY_NT>("SP_TASK_DETAILS_BY_MKEY_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (TaskDashDetails.Any())
@@ -712,6 +721,8 @@ namespace TaskManagement.API.Repositories
                         parmetersCheckList.Add("@BUILDING_MKEY", 0);
                         parmetersCheckList.Add("@TASK_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
                         parmetersCheckList.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                        parmetersCheckList.Add("@Session_User_Id", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                        parmetersCheckList.Add("@Business_Group_Id", tASK_DETAILS_BY_MKEYInput_NT.Business_Group_Id);
                         parmetersCheckList.Add("@API_NAME", "GetTaskCompliance");
                         parmetersCheckList.Add("@API_METHOD", "Get");
                         var GetCheckList = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>("SP_GET_TASK_CHECKLIST_NT", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
@@ -733,7 +744,9 @@ namespace TaskManagement.API.Repositories
                         parmetersEndList.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
                         parmetersEndList.Add("@API_NAME", "GetTaskCompliance");
                         parmetersEndList.Add("@API_METHOD", "Get");
-                        var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT_NT>("SP_GET_TASK_ENDLIST", parmetersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        parmetersEndList.Add("@Session_User_Id", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                        parmetersEndList.Add("@Business_Group_Id", tASK_DETAILS_BY_MKEYInput_NT.Business_Group_Id);
+                        var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT_NT>("SP_GET_TASK_ENDLIST_NT", parmetersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                         if (GetTaskEndList.Any())
                         {
@@ -743,6 +756,8 @@ namespace TaskManagement.API.Repositories
                                 parmetersMedia.Add("@TASK_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
                                 parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.DOC_MKEY);
                                 parmetersMedia.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                                parmetersEndList.Add("@Session_User_Id", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                                parmetersEndList.Add("@Business_Group_Id", tASK_DETAILS_BY_MKEYInput_NT.Business_Group_Id);
                                 var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA_NT>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                 foreach (var EndListAttch in GetTaskEndList)
@@ -3110,6 +3125,101 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList_NT>>> GetTaskSanctioningAuthorityNTAsync(TASK_COMPLIANCE_INPUT_NT tASK_COMPLIANCE_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@PROPERTY_MKEY", tASK_COMPLIANCE_INPUT.PROPERTY_MKEY);
+                    parmeters.Add("@BUILDING_MKEY", tASK_COMPLIANCE_INPUT.BUILDING_MKEY);
+                    parmeters.Add("@MKEY", tASK_COMPLIANCE_INPUT.TASK_MKEY);
+                    parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
+                    parmeters.Add("@API_NAME", "GetTaskCompliance");
+                    parmeters.Add("@API_METHOD", "Get");
+                    var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutputNT>("SP_GET_TASK_SANCTIONING_DEPARTMENT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    if (GetTaskSanDepart.Count<TaskSanctioningDepartmentOutputNT>() == 0)
+                    {
+                        var errorResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                            {
+                                new TaskSanctioningDepartmentOutputList_NT
+                                {
+                                    STATUS = "Error",
+                                    MESSAGE = "No data found",
+                                    DATA = null
+                                }
+                            };
+                        return errorResult;
+                    }
+                    else
+                    {
+                        foreach (var TaskCompliance in GetTaskSanDepart)
+                        {
+                            if (TaskCompliance.MKEY < 1)
+                            {
+                                var errorResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                                {
+                                    new TaskSanctioningDepartmentOutputList_NT
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Data not found",
+                                        DATA = null
+                                    }
+                                };
+                                return errorResult;
+                            }
+                        }
+                        var successsResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                            {
+                            new TaskSanctioningDepartmentOutputList_NT
+                                {
+                                STATUS = "Ok",
+                                MESSAGE = "Get data successfully!!!",
+                                DATA= GetTaskSanDepart
+                                }
+                        };
+                        return successsResult;
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                    {
+                        new TaskSanctioningDepartmentOutputList_NT
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            DATA = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST>>> GetTaskEndListAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -3213,7 +3323,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST_NT>>> GetTaskEndListNTAsync(TASK_COMPLIANCE_INPUT_NT tASK_COMPLIANCE_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -3317,7 +3426,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> GetTaskEndListDetailsAsync(TASK_END_LIST_DETAILS tASK_END_LIST_DETAILS)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -3673,7 +3781,7 @@ namespace TaskManagement.API.Repositories
 
                                 // Create directory for file storage if it doesn't exist
                                 string filePath = _fileSettings.FilePath;
-                                string directoryPath = Path.Combine(filePath, "Attachments", "Document Depository", ProjectDAttach.ToString());
+                                string directoryPath = Path.Combine(filePath, "Attachments", ProjectDAttach.ToString());
                                 if (!Directory.Exists(directoryPath))
                                 {
                                     Directory.CreateDirectory(directoryPath);
@@ -3688,7 +3796,7 @@ namespace TaskManagement.API.Repositories
                                     fileStream.Flush();
                                 }
 
-                                filePathOpen = Path.Combine("Attachments", "Document Depository", ProjectDAttach.ToString(), fileName);
+                                filePathOpen = Path.Combine("Attachments", ProjectDAttach.ToString(), fileName);
 
                                 // Insert file metadata into the database
                                 var parametersFiles = new DynamicParameters();
@@ -3735,25 +3843,6 @@ namespace TaskManagement.API.Repositories
                                 OutputMedia.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
                             }
                         }
-
-                        //else
-                        //{
-                        //    var parametersFiles = new DynamicParameters();
-                        //    parametersFiles.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
-                        //    parametersFiles.Add("@SR_NO", tASK_ENDLIST_INPUT.SR_NO);
-                        //    parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
-                        //    parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-                        //    parametersFiles.Add("@DELETE_FLAG", "Y");
-                        //    parametersFiles.Add("@APINAME", "CreateTaskEndlistAttach");
-                        //    parametersFiles.Add("@API_METHOD", "Create/Update");
-
-                        //    // Execute stored procedure for file insert
-                        //    var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_INSERT_TASK_ENDLIST_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
-                        //    foreach (var OutputMedia in GetTaskEnd)
-                        //    {
-                        //        OutputMedia.TASK_OUTPUT_ATTACHMENT = null;
-                        //    }
-                        //}
 
                         // Commit the transaction after database operations and file handling
                         var sqlTransaction = (SqlTransaction)transaction;
@@ -3813,369 +3902,215 @@ namespace TaskManagement.API.Repositories
                     };
             }
         }
-        //public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskEndListInsertUpdateAsync(TASK_ENDLIST_INPUT tASK_ENDLIST_INPUT)
-        //{
-        //    DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
-        //    IDbTransaction transaction = null;
-        //    int ProjectDAttach = 0;
-        //    bool transactionCompleted = false;
-        //    try
-        //    {
-        //        using (IDbConnection db = _dapperDbConnection.CreateConnection())
-        //        {
-        //            var sqlConnection = db as SqlConnection;
-        //            if (sqlConnection == null)
-        //            {
-        //                throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
-        //            }
+        public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT>>> PostTaskEndListInsertUpdateNTAsync(TASK_ENDLIST_INPUT_NT tASK_ENDLIST_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            int ProjectDAttach = 0;
+            bool transactionCompleted = false;
+            string FilePathNT = string.Empty;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
 
-        //            if (sqlConnection.State != ConnectionState.Open)
-        //            {
-        //                await sqlConnection.OpenAsync();
-        //            }
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();
+                    }
 
-        //            transaction = db.BeginTransaction();
-        //            transactionCompleted = false;
+                    // Start a new transaction
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;
 
-        //            var parameters = new DynamicParameters();
-        //            parameters.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
-        //            parameters.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
-        //            parameters.Add("@PROPERTY_MKEY", tASK_ENDLIST_INPUT.PROPERTY_MKEY);
-        //            parameters.Add("@BUILDING_MKEY", tASK_ENDLIST_INPUT.BUILDING_MKEY);
-        //            parameters.Add("@DOC_NUMBER", tASK_ENDLIST_INPUT.DOC_NUMBER);
-        //            parameters.Add("@DOC_DATE", tASK_ENDLIST_INPUT.DOC_DATE);
-        //            parameters.Add("@VALIDITY_DATE", tASK_ENDLIST_INPUT.VALIDITY_DATE);
-        //            parameters.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-        //            parameters.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.DELETE_FLAG);
-        //            parameters.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
-        //            parameters.Add("@API_METHOD", "Insert/Update");
+                    //FilePathNT
+                    var parametersConfigure = new DynamicParameters();
+                    parametersConfigure.Add("@Session_User_Id", tASK_ENDLIST_INPUT.CREATED_BY);
+                    var FilePath = await db.QueryAsync<ConfigureTbl>("SP_GET_CONFIGURATION", parametersConfigure, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-        //            var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSET_UPDATE_TASK_ENDLIST", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    foreach (var FileConfig in FilePath)
+                    {
+                        if (FileConfig.Configure.ToString().ToLower() == "FilePathNT".ToString().ToLower())
+                        {
+                            FilePathNT = FileConfig.ConfigureValue;
+                        }
+                    }
 
-        //            // Handle single file upload
-        //            if (tASK_ENDLIST_INPUT.PROJECT_DOC_FILES != null)
-        //            {
-        //                var descriptions = GetTaskEnd
-        //                .Select(x =>
-        //                {
-        //                    var value = x.GetType().GetProperty("MKEY").GetValue(x);
-        //                    return value is int ? (int)value : 0;  // Default to 0 if not an int
-        //                })
-        //                .ToList();
-        //                ProjectDAttach = Convert.ToInt32(descriptions[0]);
-        //                int srNo = 0;
-        //                string filePathOpen = string.Empty;
 
-        //                // Create directory if it doesn't exist
-        //                string filePath = _fileSettings.FilePath;
-        //                if (!Directory.Exists(filePath + "\\Attachments\\" + "Document Depository\\" + ProjectDAttach))
-        //                {
-        //                    Directory.CreateDirectory(filePath + "\\Attachments\\" + "Document Depository\\" + ProjectDAttach);
-        //                }
+                    // Prepare the parameters for the stored procedure
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
+                    parameters.Add("@SR_NO", tASK_ENDLIST_INPUT.SR_NO);
+                    parameters.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
+                    parameters.Add("@PROPERTY_MKEY", tASK_ENDLIST_INPUT.PROPERTY_MKEY);
+                    parameters.Add("@BUILDING_MKEY", tASK_ENDLIST_INPUT.BUILDING_MKEY);
+                    parameters.Add("@DOC_NUMBER", tASK_ENDLIST_INPUT.DOC_NUMBER);
+                    parameters.Add("@DOC_DATE", tASK_ENDLIST_INPUT.DOC_DATE);
+                    parameters.Add("@VALIDITY_DATE", tASK_ENDLIST_INPUT.VALIDITY_DATE);
+                    parameters.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
+                    parameters.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.DELETE_FLAG);
+                    parameters.Add("@Session_User_Id", tASK_ENDLIST_INPUT.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", tASK_ENDLIST_INPUT.Business_Group_Id);
+                    parameters.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
+                    parameters.Add("@API_METHOD", "Insert/Update");
 
-        //                using (FileStream filestream = System.IO.File.Create(filePath + "\\Attachments\\" + "Document Depository\\" +
-        //                    ProjectDAttach + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName))
-        //                {
-        //                    await tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.CopyToAsync(filestream);
-        //                    filestream.Flush();
-        //                }
+                    var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT_NT>("SP_INSET_UPDATE_TASK_ENDLIST_NT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-        //                filePathOpen = "\\Attachments\\" + "Document Depository\\" + ProjectDAttach + "\\" +
-        //                    DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName;
+                    if (GetTaskEnd.Any())
+                    {
+                        if (tASK_ENDLIST_INPUT.FILE_DELETE_FLAG == "N")
+                        {
+                            if (tASK_ENDLIST_INPUT.PROJECT_DOC_FILES != null)
+                            {
+                                var descriptions = GetTaskEnd
+                              .Select(x =>
+                              {
+                                  var value = x.GetType().GetProperty("MKEY").GetValue(x);
+                                  return value is int ? (int)value : 0; // Default to 0 if not an int
+                              })
+                              .ToList();
 
-        //                // Insert file metadata into the database
-        //                var parametersFiles = new DynamicParameters();
-        //                parametersFiles.Add("@PROJECT_DOC_MKEY", ProjectDAttach);
-        //                parametersFiles.Add("@FILE_NAME", tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName);
-        //                parametersFiles.Add("@FILE_PATH", filePathOpen);
-        //                parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-        //                parametersFiles.Add("@DELETE_FLAG", "N");
-        //                parametersFiles.Add("@APINAME", "CreateProjectDocDeositoryAsync");
-        //                parametersFiles.Add("@API_METHOD", "Create");
+                                ProjectDAttach = Convert.ToInt32(descriptions[0]);
+                                string filePathOpen = string.Empty;
 
-        //                //var InsertProjectDocFile = await db.QueryAsync<DocFileUploadOutPut>("SP_INSERT_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                // Create directory for file storage if it doesn't exist
+                                string filePath = FilePathNT;
+                                string directoryPath = Path.Combine(filePath, "Attachments", ProjectDAttach.ToString());
+                                if (!Directory.Exists(directoryPath))
+                                {
+                                    Directory.CreateDirectory(directoryPath);
+                                }
 
-        //                //foreach (var OutputMedia in GetTaskEnd)
-        //                //{
-        //                //    OutputMedia.TASK_OUTPUT_ATTACHMENT = InsertProjectDocFile.ToList();
-        //                //}
+                                // Save the file to the directory
+                                string fileName = $"{DateTime.Now.Day}_{DateTime.Now.ToShortTimeString().Replace(":", "_")}_{tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName}";
+                                string fullFilePath = Path.Combine(directoryPath, fileName);
+                                using (FileStream fileStream = new FileStream(fullFilePath, FileMode.Create))
+                                {
+                                    await tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.CopyToAsync(fileStream);
+                                    fileStream.Flush();
+                                }
 
-        //                var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_INSERT_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                filePathOpen = Path.Combine("Attachments", ProjectDAttach.ToString(), fileName);
 
-        //                foreach (var OutputMedia in GetTaskEnd)
-        //                {
-        //                    OutputMedia.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
-        //                }
+                                // Insert file metadata into the database
+                                var parametersFiles = new DynamicParameters();
+                                parametersFiles.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
+                                parametersFiles.Add("@SR_NO", tASK_ENDLIST_INPUT.SR_NO);
+                                parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
+                                parametersFiles.Add("@FILE_NAME", tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName);
+                                parametersFiles.Add("@FILE_PATH", filePathOpen);
+                                parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
+                                parametersFiles.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.FILE_DELETE_FLAG);
+                                parametersFiles.Add("@Session_User_Id", tASK_ENDLIST_INPUT.Session_User_Id);
+                                parametersFiles.Add("@Business_Group_Id", tASK_ENDLIST_INPUT.Business_Group_Id);
+                                parametersFiles.Add("@APINAME", "CreateTaskEndlistAttach");
+                                parametersFiles.Add("@API_METHOD", "Create/Update");
 
-        //            }
+                                // Execute stored procedure for file insert
+                                var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA_NT>("SP_INSERT_TASK_ENDLIST_ATTACHMENT_NT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                foreach(var FileUrl in TaskEndListMedia)
+                                {
+                                    FileUrl.FileURL = FilePathNT;
+                                }
+                                // Assign the file metadata to the task end list output
+                                foreach (var OutputMedia in GetTaskEnd)
+                                {
+                                    OutputMedia.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
+                                }
+                            }
+                        }
 
-        //            // Commit the transaction if everything is successful
-        //            var sqlTransaction = (SqlTransaction)transaction;
-        //            await sqlTransaction.CommitAsync();
-        //            transactionCompleted = true;
+                        else if (tASK_ENDLIST_INPUT.FILE_DELETE_FLAG == "Y")
+                        {
+                            var parametersFiles = new DynamicParameters();
+                            parametersFiles.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
+                            parametersFiles.Add("@SR_NO", tASK_ENDLIST_INPUT.SR_NO);
+                            parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
+                            parametersFiles.Add("@FILE_NAME", "");
+                            parametersFiles.Add("@FILE_PATH", "");
+                            parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
+                            parametersFiles.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.FILE_DELETE_FLAG);
+                            parametersFiles.Add("@Session_User_Id", tASK_ENDLIST_INPUT.Session_User_Id);
+                            parametersFiles.Add("@Business_Group_Id", tASK_ENDLIST_INPUT.Business_Group_Id);
+                            parametersFiles.Add("@APINAME", "CreateTaskEndlistAttach");
+                            parametersFiles.Add("@API_METHOD", "Create/Update");
 
-        //            // Return success
-        //            return new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-        //            {
-        //                new TASK_ENDLIST_DETAILS_OUTPUT_LIST
-        //                {
-        //                    STATUS = "Ok",
-        //                    MESSAGE = "Data processed successfully",
-        //                    DATA = GetTaskEnd
-        //                }
-        //            };
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (transaction != null && !transactionCompleted)
-        //        {
-        //            transaction.Rollback();
-        //        }
+                            // Execute stored procedure for file insert
+                            var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA_NT>("SP_INSERT_TASK_ENDLIST_ATTACHMENT_NT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
+                            foreach (var FileUrl in TaskEndListMedia)
+                            {
+                                FileUrl.FileURL = FilePathNT;
+                            }
+                            // Assign the file metadata to the task end list output
+                            foreach (var OutputMedia in GetTaskEnd)
+                            {
+                                OutputMedia.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
+                            }
+                        }
 
-        //        return new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-        //        {
-        //            new TASK_ENDLIST_DETAILS_OUTPUT_LIST
-        //            {
-        //                STATUS = "Error",
-        //                MESSAGE = ex.Message,
-        //                DATA = null
-        //            }
-        //        };
-        //    }
-        //}
+                        // Commit the transaction after database operations and file handling
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
 
-        //public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskEndListInsertUpdateAsync(TASK_ENDLIST_INPUT tASK_ENDLIST_INPUT)
-        //{
-        //    DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
-        //    IDbTransaction transaction = null;
-        //    int ProjectDAttach = 0;
-        //    bool transactionCompleted = false;  // Track the transaction state
-        //    try
-        //    {
-        //        using (IDbConnection db = _dapperDbConnection.CreateConnection())
-        //        {
-        //            var sqlConnection = db as SqlConnection;
-        //            if (sqlConnection == null)
-        //            {
-        //                throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
-        //            }
+                        // Return success response
+                        return new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT>
+                        {
+                            new TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT
+                            {
+                                STATUS = "Ok",
+                                MESSAGE = "Data processed successfully",
+                                DATA = GetTaskEnd
+                            }
+                        };
+                    }
+                    else
+                    {
+                        // If an error occurs, rollback the transaction
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            transaction.Rollback();
+                        }
 
-        //            if (sqlConnection.State != ConnectionState.Open)
-        //            {
-        //                await sqlConnection.OpenAsync();  // Ensure the connection is open
-        //            }
+                        // Return error response
+                        return new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT>
+                            {
+                                new TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT
+                                {
+                                    STATUS = "Error",
+                                    MESSAGE = "Data not found",
+                                    DATA = null
+                                }
+                            };
+                    }
 
-        //            transaction = db.BeginTransaction();
-        //            transactionCompleted = false;  // Reset transaction state
+                }
+            }
+            catch (Exception ex)
+            {
+                // If an error occurs, rollback the transaction
+                if (transaction != null && !transactionCompleted)
+                {
+                    transaction.Rollback();
+                }
 
-        //            var parmeters = new DynamicParameters();
-        //            parmeters.Add("@MKEY", tASK_ENDLIST_INPUT.MKEY);
-        //            parmeters.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
-        //            parmeters.Add("@PROPERTY_MKEY", tASK_ENDLIST_INPUT.PROPERTY_MKEY);
-        //            parmeters.Add("@BUILDING_MKEY", tASK_ENDLIST_INPUT.BUILDING_MKEY);
-        //            parmeters.Add("@DOC_NUMBER", tASK_ENDLIST_INPUT.DOC_NUMBER);
-        //            parmeters.Add("@DOC_DATE", tASK_ENDLIST_INPUT.DOC_DATE);
-        //            parmeters.Add("@VALIDITY_DATE", tASK_ENDLIST_INPUT.VALIDITY_DATE);
-        //            parmeters.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-        //            parmeters.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.DELETE_FLAG);
-        //            parmeters.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
-        //            parmeters.Add("@API_METHOD", "Insert/Update");
-
-        //            var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSET_UPDATE_TASK_ENDLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-        //            var descriptions = GetTaskEnd
-        //                .Select(x =>
-        //                {
-        //                    var value = x.GetType().GetProperty("MKEY").GetValue(x);
-        //                    return value is int ? (int)value : 0;  // Default to 0 if not an int
-        //                })
-        //                .ToList();
-        //            ProjectDAttach = Convert.ToInt32(descriptions[0]);
-        //            if (GetTaskEnd.Any())
-        //            {
-        //                try
-        //                {
-        //                    int srNo = 0;
-        //                    string filePathOpen = string.Empty;
-
-        //                    if (tASK_ENDLIST_INPUT.PROJECT_DOC_FILES != null)
-        //                    {
-
-        //                        var parametersProjectAttachMkey = new DynamicParameters();
-        //                        parametersProjectAttachMkey.Add("@PROJECT_DOC_MKEY", ProjectDAttach);
-        //                        parametersProjectAttachMkey.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-        //                        parametersProjectAttachMkey.Add("@APINAME", "Task-Output-Doc-Insert-Update");
-        //                        parametersProjectAttachMkey.Add("@APIMETHOD", "Insert");
-
-        //                        var ProjectAttachMkey = await db.QueryAsync<PROJECT_DOC_DEPOSITORY_HDR>("SP_UPDATE_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersProjectAttachMkey, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-        //                        foreach (var ProjectDocFile in tASK_ENDLIST_INPUT.PROJECT_DOC_FILES)
-        //                        {
-        //                            if (ProjectDocFile.Length > 0)
-        //                            {
-        //                                srNo = srNo + 1;
-        //                                string FilePath = _fileSettings.FilePath;
-        //                                if (!Directory.Exists(FilePath + "\\Attachments\\" + "Document Depository\\" + ProjectDAttach))
-        //                                {
-        //                                    Directory.CreateDirectory(FilePath + "\\Attachments\\" + "Document Depository\\" + ProjectDAttach);
-        //                                }
-        //                                using (FileStream filestream = System.IO.File.Create(FilePath + "\\Attachments\\" + "Document Depository\\"
-        //                                    + ProjectDAttach + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + ProjectDocFile.FileName))
-        //                                {
-        //                                    ProjectDocFile.CopyTo(filestream);
-        //                                    filestream.Flush();
-        //                                }
-
-        //                                filePathOpen = "\\Attachments\\" + "Document Depository\\" + ProjectDAttach + "\\"
-        //                                    + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_"
-        //                                    + ProjectDocFile.FileName;
-
-        //                                var parametersFiles = new DynamicParameters();
-        //                                parametersFiles.Add("@PROJECT_DOC_MKEY", ProjectDAttach);
-        //                                parametersFiles.Add("@FILE_NAME", ProjectDocFile.FileName);
-        //                                parametersFiles.Add("@FILE_PATH", filePathOpen);
-        //                                parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-        //                                parametersFiles.Add("@DELETE_FLAG", "N");
-        //                                parametersFiles.Add("@APINAME", "CreateProjectDocDeositoryAsync");
-        //                                parametersFiles.Add("@API_METHOD", "Create");
-
-        //                                var InsertProjectDocFile = await db.QueryAsync<DocFileUploadOutPut>("SP_INSERT_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-        //                                if (InsertProjectDocFile.Any())
-        //                                {
-
-        //                                }
-        //                                if (InsertProjectDocFile == null)
-        //                                {
-        //                                    // Handle other unexpected exceptions
-        //                                    RollbackTransaction(transaction);
-        //                                    var errorResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-        //                                    {
-        //                                        new TASK_ENDLIST_DETAILS_OUTPUT_LIST
-        //                                        {
-        //                                            STATUS = "Error",
-        //                                            MESSAGE = "An error occurred",
-        //                                            DATA = null
-        //                                        }
-        //                                    };
-        //                                    return errorResult;
-        //                                }
-        //                            }
-        //                        }
-        //                    }
-
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    RollbackTransaction(transaction);
-
-        //                    var errorResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-        //                    {
-        //                        new TASK_ENDLIST_DETAILS_OUTPUT_LIST
-        //                        {
-        //                            STATUS = "Error",
-        //                            MESSAGE = ex.Message,
-        //                            DATA = null
-        //                        }
-        //                    };
-        //                    return errorResult;
-        //                }
-
-        //                if (tASK_ENDLIST_INPUT.PROJECT_DOC_FILES != null)
-        //                {
-        //                    //var parametersDepost = new DynamicParameters();
-        //                    //parametersDepost.Add("@PROJECT_DOC_MKEY", ProjectDAttach);
-        //                    //parametersDepost.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
-        //                    //parametersDepost.Add("@APINAME", "CreateProjectDocDeositoryAsync");
-        //                    //parametersDepost.Add("@API_METHOD", "Create");
-        //                    //var GetProjectDocFile = await db.QueryAsync<DocFileUploadOutPut>("SP_GET_PROJECT_DOC_DEPOSITORY_ATTACHMENT", parametersDepost, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-        //                    var parmetersMedia = new DynamicParameters();
-        //                    parmetersMedia.Add("@MKEY", ProjectDAttach);
-        //                    parmetersMedia.Add("@USER_ID", tASK_ENDLIST_INPUT.CREATED_BY);
-        //                    var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-        //                    foreach (var OutputMedia in GetTaskEnd)
-        //                    {
-        //                        OutputMedia.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
-        //                    }
-        //                }
-
-        //                var sqlTransaction = (SqlTransaction)transaction;
-        //                await sqlTransaction.CommitAsync();
-        //                transactionCompleted = true;
-
-        //                var successsResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-        //                    {
-        //                    new TASK_ENDLIST_DETAILS_OUTPUT_LIST
-        //                        {
-        //                        STATUS = "Ok",
-        //                        MESSAGE = "Get data successfully!!!",
-        //                        DATA= GetTaskEnd
-        //                        }
-        //                };
-        //                return successsResult;
-        //            }
-        //            else
-        //            {
-        //                if (transaction != null && !transactionCompleted)
-        //                {
-        //                    try
-        //                    {
-        //                        // Rollback only if the transaction is not yet completed
-        //                        transaction.Rollback();
-        //                    }
-        //                    catch (InvalidOperationException rollbackEx)
-        //                    {
-
-        //                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-        //                        //TranError.Message = ex.Message;
-        //                        //return TranError;
-        //                    }
-        //                }
-        //                var errorResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-        //                {
-        //                    new TASK_ENDLIST_DETAILS_OUTPUT_LIST
-        //                    {
-        //                        STATUS = "Error",
-        //                        MESSAGE = "An Error occured",
-        //                        DATA = null
-        //                    }
-        //                };
-        //                return errorResult;
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (transaction != null && !transactionCompleted)
-        //        {
-        //            try
-        //            {
-        //                // Rollback only if the transaction is not yet completed
-        //                transaction.Rollback();
-        //            }
-        //            catch (InvalidOperationException rollbackEx)
-        //            {
-
-        //                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-        //                //TranError.Message = ex.Message;
-        //                //return TranError;
-        //            }
-        //        }
-        //        var errorResult = new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST>
-        //            {
-        //                new TASK_ENDLIST_DETAILS_OUTPUT_LIST
-        //                {
-        //                    STATUS = "Error",
-        //                    MESSAGE = ex.Message,
-        //                    DATA = null
-        //                }
-        //            };
-        //        return errorResult;
-        //    }
-        //}
+                // Return error response
+                return new List<TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT>
+                    {
+                        new TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            DATA = null
+                        }
+                    };
+            }
+        }
         private void RollbackTransaction(IDbTransaction transaction)
         {
             try
@@ -4439,6 +4374,88 @@ namespace TaskManagement.API.Repositories
                 var errorResult = new List<TaskSanctioningDepartmentOutputList>
                     {
                         new TaskSanctioningDepartmentOutputList
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            DATA = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList_NT>>> PostTaskSanctioningAuthorityNTAsync(TASK_SANCTIONING_AUTHORITY_INPUT_NT tASK_SANCTIONING_AUTHORITY_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@MKEY", tASK_SANCTIONING_AUTHORITY_INPUT.MKEY);
+                    parmeters.Add("@SR_NO", tASK_SANCTIONING_AUTHORITY_INPUT.SR_NO);
+                    parmeters.Add("@LEVEL", tASK_SANCTIONING_AUTHORITY_INPUT.LEVEL);
+                    parmeters.Add("@PROPERTY_MKEY", tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY);
+                    parmeters.Add("@BUILDING_MKEY", tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY);
+                    parmeters.Add("@Session_User_Id", tASK_SANCTIONING_AUTHORITY_INPUT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", tASK_SANCTIONING_AUTHORITY_INPUT.Business_Group_Id);
+                    parmeters.Add("@STATUS", tASK_SANCTIONING_AUTHORITY_INPUT.STATUS);
+                    parmeters.Add("@APINAME", "UPDATE SANSACTING DEPARTMENT");
+                    parmeters.Add("@APIMETHOD", "UPDATE");
+                    parmeters.Add("@CREATED_BY", tASK_SANCTIONING_AUTHORITY_INPUT.CREATED_BY);
+
+                    var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutputNT>("SP_INERT_TASK_SANCTIONING_AUTHORITY_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (GetTaskSanDepart.Any())
+                    {
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+                        var successsResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                            {
+                            new TaskSanctioningDepartmentOutputList_NT
+                                {
+                                STATUS = "Ok",
+                                MESSAGE = "Inserted data successfully!!!",
+                                DATA= GetTaskSanDepart
+                                }
+                        };
+                        return successsResult;
+                    }
+                    RollbackTransaction(transaction);
+                    var errorResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                                {
+                                    new TaskSanctioningDepartmentOutputList_NT
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = "Error occured",
+                                        DATA = null
+                                    }
+                                };
+                    return errorResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                RollbackTransaction(transaction);
+                var errorResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                    {
+                        new TaskSanctioningDepartmentOutputList_NT
                         {
                             STATUS = "Error",
                             MESSAGE = ex.Message,
@@ -4997,7 +5014,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST_NT>>> PostTaskEndListTableInsertUpdateNTAsync(TASK_ENDLIST_TABLE_INPUT_NT tASK_ENDLIST_TABLE_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -5191,7 +5207,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> PostTaskSanctioningTableInsertUpdateAsync(TASK_SANCTIONING_INPUT tASK_SANCTIONING_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -5327,6 +5342,152 @@ namespace TaskManagement.API.Repositories
                 var errorResult = new List<TaskSanctioningDepartmentOutputList>
                 {
                     new TaskSanctioningDepartmentOutputList
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ex.Message,
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList_NT>>> PostTaskSanctioningTableInsertUpdateNTAsync(TASK_SANCTIONING_TABLE_INPUT_NT tASK_SANCTIONING_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@TASK_MKEY", tASK_SANCTIONING_INPUT.MKEY);
+                    parmeters.Add("@SR_NO", tASK_SANCTIONING_INPUT.SR_NO);
+                    parmeters.Add("@LEVEL", tASK_SANCTIONING_INPUT.LEVEL);
+                    parmeters.Add("@SANCTIONING_DEPARTMENT", tASK_SANCTIONING_INPUT.SANCTIONING_DEPARTMENT);
+                    parmeters.Add("@SANCTIONING_AUTHORITY_MKEY", tASK_SANCTIONING_INPUT.SANCTIONING_AUTHORITY_MKEY);
+                    parmeters.Add("@CREATED_BY", tASK_SANCTIONING_INPUT.CREATED_BY);
+                    parmeters.Add("@DELETE_FLAG", tASK_SANCTIONING_INPUT.DELETE_FLAG);
+                    parmeters.Add("@Session_User_Id", tASK_SANCTIONING_INPUT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", tASK_SANCTIONING_INPUT.Business_Group_ID);
+                    parmeters.Add("@METHOD_NAME", "Task-Sanctioning-Table-Insert-Update");
+                    parmeters.Add("@METHOD", "Insert/Update");
+                    parmeters.Add("@OUT_STATUS", null);
+                    parmeters.Add("@OUT_MESSAGE", null);
+
+                    var GetTaskEnd = await db.QueryAsync<TaskSanctioningDepartmentOutputNT>("Sp_insert_update_table_sanctioning_department_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (GetTaskEnd.Any())
+                    {
+                        foreach (var ResponseOk in GetTaskEnd)
+                        {
+                            if (ResponseOk.OUT_STATUS != "OK")
+                            {
+                                if (transaction != null && !transactionCompleted)
+                                {
+                                    try
+                                    {
+                                        // Rollback only if the transaction is not yet completed
+                                        transaction.Rollback();
+                                    }
+                                    catch (InvalidOperationException rollbackEx)
+                                    {
+                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                    }
+                                }
+
+                                // Log the SQL error
+                                var errorResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                                    {
+                                        new TaskSanctioningDepartmentOutputList_NT
+                                        {
+                                            STATUS = "Error",
+                                            MESSAGE = ResponseOk.OUT_MESSAGE,
+                                            DATA = null
+                                        }
+                                    };
+                                return errorResult;
+                            }
+                        }
+                    }
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var SuccessResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                    {
+                        new TaskSanctioningDepartmentOutputList_NT
+                        {
+                            STATUS = "OK",
+                            MESSAGE = "New record created successfully",
+                            DATA = GetTaskEnd
+                        }
+                    };
+                    return SuccessResult;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                {
+                    new TaskSanctioningDepartmentOutputList_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = $"SQL Error: {sqlEx.Message}",
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<TaskSanctioningDepartmentOutputList_NT>
+                {
+                    new TaskSanctioningDepartmentOutputList_NT
                     {
                         STATUS = "Error",
                         MESSAGE = ex.Message,

@@ -15,6 +15,7 @@ namespace TaskManagement.API.Model
         public int? USER_ID { get; set; }
     }
 
+
     public class TASK_COMPLIANCE_INPUT_NT
     {
         [JsonPropertyName("Property_Mkey")]
@@ -64,6 +65,30 @@ namespace TaskManagement.API.Model
         public char DELETE_FLAG { get; set; }
     }
 
+
+    public class TASK_SANCTIONING_TABLE_INPUT_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Level")]
+        public int LEVEL { get; set; }
+        [JsonPropertyName("Sanctioning_Department")]
+        public string SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("Sanctioning_Authority_Mkey")]
+        public string SANCTIONING_AUTHORITY_MKEY { get; set; }
+        [JsonPropertyName("Created_By")]
+        public int CREATED_BY { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public char DELETE_FLAG { get; set; }
+        [JsonPropertyName("Session_User_ID")]
+        public int Session_User_ID { get; set; }
+        [JsonPropertyName("Business_Group_ID")]
+        public int Business_Group_ID { get; set; }
+    }
+
+
     public class TASK_SANCTIONING_MOVMENT
     {
         [JsonPropertyName("Mkey")]
@@ -93,6 +118,31 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("CREATED_BY")]
         public int CREATED_BY { get; set; }
     }
+
+    public class TASK_SANCTIONING_AUTHORITY_INPUT_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Level")]
+        public string LEVEL { get; set; }
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("Status")]
+        public string STATUS { get; set; }
+        [JsonPropertyName("Created_By")]
+        public int CREATED_BY { get; set; }
+
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
+
+
 
     public class TASK_END_LIST_DETAILS
     {
@@ -450,6 +500,47 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("FILE_DELETE_FLAG")]
         public string? FILE_DELETE_FLAG { get; set; }
+    }
+    public class TASK_ENDLIST_INPUT_NT
+    {
+        [JsonPropertyName("Project_Doc_Files")]
+        public IFormFile? PROJECT_DOC_FILES { get; set; }
+
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+
+        [JsonPropertyName("Doc_Mkey")]
+        public int DOC_MKEY { get; set; }
+
+        [JsonPropertyName("Doc_Number")]
+        public string? DOC_NUMBER { get; set; }
+
+        [JsonPropertyName("Doc_Date")]
+        public string? DOC_DATE { get; set; }
+
+        [JsonPropertyName("Validity_Date")]
+        public string? VALIDITY_DATE { get; set; }
+
+        [JsonPropertyName("Created_By")]
+        public string? CREATED_BY { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public string? DELETE_FLAG { get; set; }
+
+        [JsonPropertyName("File_Delete_Flag")]
+        public string? FILE_DELETE_FLAG { get; set; }
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
     }
     public class TASK_ENDLIST_TABLE_INPUT
     {
@@ -988,140 +1079,71 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Message")]
         public string? MESSAGE { get; set; }
         [JsonPropertyName("Data")]
-        public IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT> DATA { get; set; }
+        public IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_NT> DATA { get; set; }
     }
 
-    //public class TASK_ENDLIST_DETAILS_OUTPUT_NT
-    //{
-    //    [JsonPropertyName("MKEY")]
-    //    public int MKEY { get; set; }
-    //    [JsonPropertyName("SR_NO")]
-    //    public int SR_NO { get; set; }
+    public class TaskSanctioningDepartmentOutputList_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TaskSanctioningDepartmentOutputNT> DATA { get; set; }
+    }
 
-    //    [JsonPropertyName("PROPERTY_MKEY")]
-    //    public int PROPERTY_MKEY { get; set; }
+    public class TaskSanctioningDepartmentOutputNT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
 
-    //    [JsonPropertyName("BUILDING_MKEY")]
-    //    public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
 
-    //    [JsonPropertyName("DOC_MKEY")]
-    //    public string DOC_MKEY { get; set; }
+        [JsonPropertyName("Type_Desc")]
+        public string TYPE_DESC { get; set; }
+        [JsonPropertyName("Type_Code")]
+        public string TYPE_CODE { get; set; }
 
-    //    [JsonPropertyName("DOC_NUMBER")]
-    //    public string DOC_NUMBER { get; set; }
+        [JsonPropertyName("Sanctioning_Department")]
+        public string SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("Sanctioning_Authority")]
+        public string SANCTIONING_AUTHORITY { get; set; }
 
-    //    [JsonPropertyName("DOC_DATE")]
-    //    public string DOC_DATE { get; set; }
+        [JsonPropertyName("Sanctioning_Authority_Mkey")]
+        public int SANCTIONING_AUTHORITY_MKEY { get; set; }
 
-    //    [JsonPropertyName("VALIDITY_DATE")]
-    //    public string? VALIDITY_DATE { get; set; }
+        [JsonPropertyName("Level")]
+        public int LEVEL { get; set; }
 
-    //    [JsonPropertyName("TASK_OUTPUT_ATTACHMENT")]
-    //    public List<TASK_OUTPUT_MEDIA>? TASK_OUTPUT_ATTACHMENT { get; set; }
+        [JsonPropertyName("Status")]
+        public string STATUS { get; set; }
 
-    //    [JsonPropertyName("DOC_NUM_APP_FLAG")]
-    //    public string? DOC_NUM_APP_FLAG { get; set; }
-    //    [JsonPropertyName("DOC_NUM_VALID_FLAG")]
-    //    public string? DOC_NUM_VALID_FLAG { get; set; }
-    //    [JsonPropertyName("DOC_NUM_DATE_APP_FLAG")]
-    //    public string? DOC_NUM_DATE_APP_FLAG { get; set; }
-    //    [JsonPropertyName("DOC_ATTACH_APP_FLAG")]
-    //    public string? DOC_ATTACH_APP_FLAG { get; set; }
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
 
-    //    [JsonPropertyName("CREATED_BY_ID")]
-    //    public string? CREATED_BY_ID { get; set; }
+        [JsonPropertyName("Sanctioning_Authority_Name")]
+        public string SANCTIONING_AUTHORITY_NAME { get; set; }
 
-    //    [JsonPropertyName("CREATED_BY_NAME")]
-    //    public string? CREATED_BY_NAME { get; set; }
+        [JsonPropertyName("Created_By_Id")]
+        public int CREATED_BY_ID { get; set; }
+        [JsonPropertyName("Created_By_Name")]
+        public string CREATED_BY_NAME { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public string CREATION_DATE { get; set; }
+        [JsonPropertyName("Last_Updated_By")]
+        public string LAST_UPDATED_BY { get; set; }
+        [JsonPropertyName("Updated_By_Name")]
+        public string UPDATED_BY_NAME { get; set; }
+        [JsonPropertyName("Last_Update_Date")]
+        public string LAST_UPDATE_DATE { get; set; }
 
-    //    [JsonPropertyName("CREATION_DATE")]
-    //    public string? CREATION_DATE { get; set; }
-
-    //    [JsonPropertyName("LAST_UPDATED_BY")]
-    //    public string? LAST_UPDATED_BY { get; set; }
-
-    //    [JsonPropertyName("UPDATED_BY_NAME")]
-    //    public string? UPDATED_BY_NAME { get; set; }
-
-    //    [JsonPropertyName("LAST_UPDATE_DATE")]
-    //    public string? LAST_UPDATE_DATE { get; set; }
-
-    //    [JsonIgnore]
-    //    public string? OUT_STATUS { get; set; }
-    //    [JsonIgnore]
-    //    public string? OUT_MESSAGE { get; set; }
-    //}
-
-    //public class TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT
-    //{
-    //    [JsonPropertyName("Mkey")]
-    //    public int MKEY { get; set; }
-
-    //    [JsonPropertyName("Sr_No")]
-    //    public int SR_NO { get; set; }
-
-    //    [JsonPropertyName("Property_Mkey")]
-    //    public int PROPERTY_MKEY { get; set; }
-
-    //    [JsonPropertyName("Building_Mkey")]
-    //    public int BUILDING_MKEY { get; set; }
-
-    //    [JsonPropertyName("Document_Mkey")]
-    //    public string DOCUMENT_MKEY { get; set; }
-
-    //    [JsonPropertyName("Type_Code")]
-    //    public string TYPE_CODE { get; set; }
-
-    //    [JsonPropertyName("Type_Desc")]
-    //    public string TYPE_DESC { get; set; }
-
-    //    [JsonPropertyName("Doc_Mkey")]
-    //    public int? DOC_MKEY { get; set; }
-
-    //    [JsonPropertyName("Doc_Number")]
-    //    public string? DOC_NUMBER { get; set; }
-
-    //    [JsonPropertyName("Doc_Date")]
-    //    public string? DOC_DATE { get; set; }
-
-    //    [JsonPropertyName("Validity_Date")]
-    //    public string? VALIDITY_DATE { get; set; }
-
-    //    [JsonPropertyName("Doc_Num_App_Flag")]
-    //    public string? DOC_NUM_APP_FLAG { get; set; }
-    //    [JsonPropertyName("Doc_Num_Valid_Flag")]
-    //    public string? DOC_NUM_VALID_FLAG { get; set; }
-    //    [JsonPropertyName("Doc_Num_Date_App_Flag")]
-    //    public string? DOC_NUM_DATE_APP_FLAG { get; set; }
-    //    [JsonPropertyName("Doc_Attach_App_Flag")]
-    //    public string? DOC_ATTACH_APP_FLAG { get; set; }
-
-    //    [JsonPropertyName("Task_Output_Attachment")]
-    //    public List<TASK_OUTPUT_MEDIA>? TASK_OUTPUT_ATTACHMENT { get; set; }
-
-    //    [JsonPropertyName("Attribute1")]
-    //    public string? ATTRIBUTE1 { get; set; }
-
-    //    [JsonPropertyName("Attribute2")]
-    //    public string? ATTRIBUTE2 { get; set; }
-
-    //    [JsonPropertyName("Created_By_Id")]
-    //    public string? CREATED_BY_ID { get; set; }
-
-    //    [JsonPropertyName("Created_By_Name")]
-    //    public string? CREATED_BY_NAME { get; set; }
-
-    //    [JsonPropertyName("Creation_Date")]
-    //    public string? CREATION_DATE { get; set; }
-
-    //    [JsonPropertyName("Last_Updated_By")]
-    //    public string? LAST_UPDATED_BY { get; set; }
-
-    //    [JsonPropertyName("Updated_By_Name")]
-    //    public string? UPDATED_BY_NAME { get; set; }
-
-    //    [JsonPropertyName("Last_Update_Date")]
-    //    public string? LAST_UPDATE_DATE { get; set; }
-    //}
+        [JsonIgnore]
+        public string? OUT_STATUS { get; set; }
+        [JsonIgnore]
+        public string? OUT_MESSAGE { get; set; }
+    }
 
 }

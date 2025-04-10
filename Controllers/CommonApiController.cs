@@ -2198,7 +2198,68 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("Task-Management/Task-Output-Doc-Insert-Update")]  /// hsjdfhjashdfjhs df
+        [HttpPost("Get-Task-Sanctioning-Authority_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList_NT>>> GetTaskSanctioningAuthorityNT(TASK_COMPLIANCE_INPUT_NT tASK_COMPLIANCE_INPUT)
+        {
+            bool FlagError = false;
+            string ErrorMessage = string.Empty;
+            try
+            {
+                if (tASK_COMPLIANCE_INPUT == null)
+                {
+                    var response = new TaskSanctioningDepartmentOutputList_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                }
+                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                }
+
+                if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "User ID is required,";
+                }
+
+                if (FlagError == true)
+                {
+                    var response = new TaskSanctioningDepartmentOutputList_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ErrorMessage,
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.GetTaskSanctioningAuthorityNTAsync(tASK_COMPLIANCE_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskSanctioningDepartmentOutputList_NT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Task-Output-Doc-Insert-Update")]  
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskOutputDocInsertUpdate([FromForm] TASK_ENDLIST_INPUT tASK_ENDLIST_INPUT)
         {
@@ -2259,9 +2320,9 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("Task-Output-Doc-Insert-Update_NT")]  /// hsjdfhjashdfjhs df
+        [HttpPost("Task-Output-Doc-Insert-Update_NT")]  
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskOutputDocInsertUpdateNT([FromForm] TASK_ENDLIST_INPUT tASK_ENDLIST_INPUT)
+        public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT>>> PostTaskOutputDocInsertUpdateNT([FromForm] TASK_ENDLIST_INPUT_NT tASK_ENDLIST_INPUT)
         {
             bool FlagError = false;
             string ErrorMessage = string.Empty;
@@ -2269,7 +2330,7 @@ namespace TaskManagement.API.Controllers
             {
                 if (tASK_ENDLIST_INPUT == null)
                 {
-                    var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                    var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT
                     {
                         STATUS = "Error",
                         MESSAGE = "Please Enter the details",
@@ -2296,7 +2357,7 @@ namespace TaskManagement.API.Controllers
 
                 if (FlagError == true)
                 {
-                    var response = new TASK_COMPLIANCE_CHECK_LIST
+                    var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT
                     {
                         STATUS = "Error",
                         MESSAGE = ErrorMessage,
@@ -2305,12 +2366,12 @@ namespace TaskManagement.API.Controllers
                     return Ok(response);
                 }
 
-                var RsponseStatus = await _repository.PostTaskEndListInsertUpdateAsync(tASK_ENDLIST_INPUT);
+                var RsponseStatus = await _repository.PostTaskEndListInsertUpdateNTAsync(tASK_ENDLIST_INPUT);
                 return RsponseStatus;
             }
             catch (Exception ex)
             {
-                var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST
+                var response = new TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT
                 {
                     STATUS = "Error",
                     MESSAGE = ex.Message,
@@ -2442,7 +2503,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("Task-Management/Task-Sanctioning-Authority-Insert-Update")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> PostSanctioningAuthority(TASK_SANCTIONING_AUTHORITY_INPUT tASK_SANCTIONING_AUTHORITY_INPUT)
@@ -2504,6 +2564,66 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Sanctioning-Authority-Insert-Update_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList_NT>>> PostSanctioningAuthorityNT(TASK_SANCTIONING_AUTHORITY_INPUT_NT tASK_SANCTIONING_AUTHORITY_INPUT)
+        {
+            bool FlagError = false;
+            string ErrorMessage = string.Empty;
+            try
+            {
+                if (tASK_SANCTIONING_AUTHORITY_INPUT == null)
+                {
+                    var response = new TaskSanctioningDepartmentOutputList_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+                if (tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                }
+                if (tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                }
+
+                if (tASK_SANCTIONING_AUTHORITY_INPUT.CREATED_BY == null || tASK_SANCTIONING_AUTHORITY_INPUT.CREATED_BY == 0)
+                {
+                    FlagError = true;
+                    ErrorMessage = ErrorMessage + "Created BY is required,";
+                }
+
+                if (FlagError == true)
+                {
+                    var response = new TaskSanctioningDepartmentOutputList_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ErrorMessage,
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.PostTaskSanctioningAuthorityNTAsync(tASK_SANCTIONING_AUTHORITY_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskSanctioningDepartmentOutputList_NT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
         [HttpPost("Task-Management/Task-CheckList-Table-Insert-Update")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TaskCheckListOutputList>>> PostTaskCheckListTableInsertUpdate(TASK_CHECKLIST_TABLE_INPUT tASK_CHECKLIST_TABLE_INPUT )
@@ -2668,6 +2788,38 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Sanctioning-Table-Insert-Update_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList_NT>>> PostTaskSanctioningTableInsertUpdateNT(TASK_SANCTIONING_TABLE_INPUT_NT tASK_SANCTIONING_INPUT)
+        {
+            try
+            {
+                if (tASK_SANCTIONING_INPUT == null)
+                {
+                    var response = new TaskSanctioningDepartmentOutputList_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        DATA = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.PostTaskSanctioningTableInsertUpdateNTAsync(tASK_SANCTIONING_INPUT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskSanctioningDepartmentOutputList_NT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    DATA = null
+                };
+                return Ok(response);
+            }
+        }
+
         [HttpPost("Task-Management/Task-Sanctioning-Movment-History")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TaskSanctioningMovmentOutputList>>> PostTaskSanctioningMovmentHistory(TASK_SANCTIONING_MOVMENT tASK_SANCTIONING_INPUT)
@@ -2699,7 +2851,5 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
-
     }
 }
