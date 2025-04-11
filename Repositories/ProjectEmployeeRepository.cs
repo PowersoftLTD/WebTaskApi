@@ -4686,8 +4686,10 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@METHOD", "Insert/Update");
                     parmeters.Add("@OUT_STATUS", null);
                     parmeters.Add("@OUT_MESSAGE", null);
+                    parmeters.Add("@Session_User_Id", tASK_CHECKLIST_TABLE_INPUT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", tASK_CHECKLIST_TABLE_INPUT.Business_Group_ID);
 
-                    var GetTaskEnd = await db.QueryAsync<TASK_CHECKLIST_TABLE_NT_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var GetTaskEnd = await db.QueryAsync<TASK_CHECKLIST_TABLE_NT_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (GetTaskEnd.Any())
                     {
@@ -5712,7 +5714,6 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@PROPERTY_MKEY", tASK_CHECKLIST_INPUT.PROPERTY_MKEY);
                     parmeters.Add("@BUILDING_MKEY", tASK_CHECKLIST_INPUT.BUILDING_MKEY);
                     parmeters.Add("@SR_NO", tASK_CHECKLIST_INPUT.SR_NO);
-                    //parmeters.Add("@DOC_NAME", tASK_CHECKLIST_INPUT.DOC_NAME);
                     parmeters.Add("@DOC_MKEY", tASK_CHECKLIST_INPUT.DOC_MKEY);
                     parmeters.Add("@APP_CHECK", tASK_CHECKLIST_INPUT.APP_CHECK);
                     parmeters.Add("@TASK_MKEY", tASK_CHECKLIST_INPUT.TASK_MKEY);

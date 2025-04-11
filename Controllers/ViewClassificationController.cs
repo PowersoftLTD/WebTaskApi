@@ -543,5 +543,53 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Authority-Status")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GetAuthorityStatus>>> GetAuthorityStatus()
+        {
+            try
+            {
+                var classifications = await _repository.GetAuthorityStatusAsync();
+                return classifications;
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<GetAuthorityStatus>
+                {
+                    new GetAuthorityStatus
+                    {
+                        Status = "Error",
+                        Message =ex.Message,
+                        Data= null
+                    }
+                };
+                return ErrorResponse;
+            }
+        }
+
+        [HttpPost("Authority-Status-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GetAuthorityStatusNT>>> GetAuthorityStatusNT(GetTaskTypeInPut getTaskTypeInPut)
+        {
+            try
+            {
+                var classifications = await _repository.GetAuthorityStatusNTAsync(getTaskTypeInPut);
+                return classifications;
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<GetAuthorityStatusNT>
+                {
+                    new GetAuthorityStatusNT
+                    {
+                        Status = "Error",
+                        Message =ex.Message,
+                        Data= null
+                    }
+                };
+                return ErrorResponse;
+            }
+        }
+
     }
 }

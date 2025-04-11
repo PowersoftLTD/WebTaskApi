@@ -1037,6 +1037,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Type_Desc")]
         public string TYPE_DESC { get; set; }
 
+        [JsonPropertyName("Doc_Cat_Name")]
+        public string Doc_Cat_Name { get; set; }
+
         [JsonPropertyName("Document_Name")]
         public string DOCUMENT_NAME { get; set; }
 

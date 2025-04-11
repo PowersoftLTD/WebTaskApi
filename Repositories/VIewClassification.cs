@@ -785,5 +785,112 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<ActionResult<IEnumerable<GetAuthorityStatusNT>>> GetAuthorityStatusNTAsync(GetTaskTypeInPut getTaskTypeInPut)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_ID", getTaskTypeInPut.Session_User_ID);
+                    parmeters.Add("@Business_Group_ID", getTaskTypeInPut.Business_Group_ID);
+                    var AssignToDetails = await db.QueryAsync<V_AuthorityStatusNT>("SP_GET_AUHTORITY_STATUS", parmeters, commandType: CommandType.StoredProcedure);
+                    if (AssignToDetails.Any())
+                    {
+
+                        var successsResult = new List<GetAuthorityStatusNT>
+                    {
+                        new GetAuthorityStatusNT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= AssignToDetails
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<GetAuthorityStatusNT>
+                    {
+                        new GetAuthorityStatusNT
+                        {
+                            Status = "Error",
+                            Message = "No found",
+                            Data=null
+                        }
+                    };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<GetAuthorityStatusNT>
+                    {
+                        new GetAuthorityStatusNT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<GetAuthorityStatus>>> GetAuthorityStatusAsync()
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_ID", null);
+                    parmeters.Add("@Business_Group_ID", null);
+                    var AssignToDetails = await db.QueryAsync<V_AuthorityStatus>("SP_GET_AUHTORITY_STATUS", parmeters, commandType: CommandType.StoredProcedure);
+                    if (AssignToDetails.Any())
+                    {
+
+                        var successsResult = new List<GetAuthorityStatus>
+                    {
+                        new GetAuthorityStatus
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= AssignToDetails
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<GetAuthorityStatus>
+                    {
+                        new GetAuthorityStatus
+                        {
+                            Status = "Error",
+                            Message = "No found",
+                            Data=null
+                        }
+                    };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<GetAuthorityStatus>
+                    {
+                        new GetAuthorityStatus
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+                        }
+                    };
+                return errorResult;
+            }
+        }
     }
 }

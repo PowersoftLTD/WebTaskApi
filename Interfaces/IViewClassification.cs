@@ -39,5 +39,7 @@ namespace TaskManagement.API.Interfaces
         Task<ActionResult<IEnumerable<GetTaskTypeList>>> GetTaskTypeAsync();
         Task<ActionResult<IEnumerable<GetTaskTypeListNT>>> GetTaskTypeNTAsync(GetTaskTypeInPut getTaskTypeInPut);
         Task<IEnumerable<EmployeeLoginOutput_LIST>> GetResponsiblePersonByJobRoleDepartmentAsync(RESPONSIBLE_PERSON_INPUT rESPONSIBLE_PERSON_INPUT);
+        Task<ActionResult<IEnumerable<GetAuthorityStatusNT>>> GetAuthorityStatusNTAsync(GetTaskTypeInPut getTaskTypeInPut);
+        Task<ActionResult<IEnumerable<GetAuthorityStatus>>> GetAuthorityStatusAsync();
     }
 }
