@@ -59,6 +59,7 @@ namespace TaskManagement.API.Model
         public string SANCTIONING_DEPARTMENT { get; set; }
         [JsonPropertyName("SANCTIONING_AUTHORITY_MKEY")]
         public string SANCTIONING_AUTHORITY_MKEY { get; set; }
+
         [JsonPropertyName("CREATED_BY")]
         public int CREATED_BY { get; set; }
         [JsonPropertyName("DELETE_FLAG")]
@@ -78,6 +79,8 @@ namespace TaskManagement.API.Model
         public string SANCTIONING_DEPARTMENT { get; set; }
         [JsonPropertyName("Sanctioning_Authority_Mkey")]
         public string SANCTIONING_AUTHORITY_MKEY { get; set; }
+        [JsonPropertyName("Mode")]
+        public string Mode { get; set; }
         [JsonPropertyName("Created_By")]
         public int CREATED_BY { get; set; }
         [JsonPropertyName("Delete_Flag")]
@@ -131,6 +134,8 @@ namespace TaskManagement.API.Model
         public int PROPERTY_MKEY { get; set; }
         [JsonPropertyName("Building_Mkey")]
         public int BUILDING_MKEY { get; set; }
+        [JsonPropertyName("Mode")]
+        public string Mode { get; set; }
         [JsonPropertyName("Status")]
         public string STATUS { get; set; }
         [JsonPropertyName("Created_By")]
@@ -1121,6 +1126,9 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Status")]
         public string STATUS { get; set; }
+
+        [JsonPropertyName("Mode")]
+        public string MODE { get; set; }
 
         [JsonPropertyName("Property_Mkey")]
         public int PROPERTY_MKEY { get; set; }

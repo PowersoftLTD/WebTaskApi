@@ -91,5 +91,20 @@ namespace TaskManagement.API.Controllers
                 return ErroResult;
             }
         }
+
+        [HttpPost("files/download")]
+        [Authorize]
+        public IActionResult DownloadFile(string fileName)
+        {
+            //var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "UploadedFiles");
+            var folderPath = @"D:\Application\TaskDeployment\Attachments";
+            var filePath = Path.Combine(folderPath, fileName);
+
+            if (!System.IO.File.Exists(filePath))
+                return NotFound("File not found");
+
+            var contentType = "application/octet-stream";
+            return PhysicalFile(filePath, contentType, fileName);
+        }
     }
 }

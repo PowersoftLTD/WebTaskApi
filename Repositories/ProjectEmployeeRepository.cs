@@ -1818,6 +1818,7 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@Actual_Start_Date", add_TaskInput_NT.Actual_Start_Date);
                         parmeters.Add("@Actual_End_Date", add_TaskInput_NT.Actual_End_Date);
                         parmeters.Add("@TAGS", add_TaskInput_NT.TAGS);
+                        parmeters.Add("@DELETE_FLAG", add_TaskInput_NT.Delete_Flag);
                         parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.CREATED_BY);
 
                         var UpdateTaskHDR = await db.QueryAsync<Add_TaskOutPut_NT>("UPDATE_TASK_DETAILS_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
@@ -4013,7 +4014,7 @@ namespace TaskManagement.API.Repositories
 
                                 // Execute stored procedure for file insert
                                 var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA_NT>("SP_INSERT_TASK_ENDLIST_ATTACHMENT_NT", parametersFiles, commandType: CommandType.StoredProcedure, transaction: transaction);
-                                foreach(var FileUrl in TaskEndListMedia)
+                                foreach (var FileUrl in TaskEndListMedia)
                                 {
                                     FileUrl.FileURL = FilePathNT;
                                 }
@@ -4414,6 +4415,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@BUILDING_MKEY", tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY);
                     parmeters.Add("@Session_User_Id", tASK_SANCTIONING_AUTHORITY_INPUT.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", tASK_SANCTIONING_AUTHORITY_INPUT.Business_Group_Id);
+                    parmeters.Add("@Mode", tASK_SANCTIONING_AUTHORITY_INPUT.Mode);
                     parmeters.Add("@STATUS", tASK_SANCTIONING_AUTHORITY_INPUT.STATUS);
                     parmeters.Add("@APINAME", "UPDATE SANSACTING DEPARTMENT");
                     parmeters.Add("@APIMETHOD", "UPDATE");
@@ -4536,23 +4538,6 @@ namespace TaskManagement.API.Repositories
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();
                         transactionCompleted = true;
-
-                        //foreach (var TaskCompliance in GetTaskEnd)
-                        //{
-                        //    if (TaskCompliance.TASK_MKEY < 1)
-                        //    {
-                        //        var errorResult = new List<TaskCheckListOutputList>
-                        //        {
-                        //            new TaskCheckListOutputList
-                        //            {
-                        //                STATUS = "Error",
-                        //                MESSAGE = "Data not found",
-                        //                DATA = null
-                        //            }
-                        //        };
-                        //        return errorResult;
-                        //    }
-                        //}
 
                         var successsResult = new List<TaskCheckListOutputList>
                                 {
@@ -5382,6 +5367,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@LEVEL", tASK_SANCTIONING_INPUT.LEVEL);
                     parmeters.Add("@SANCTIONING_DEPARTMENT", tASK_SANCTIONING_INPUT.SANCTIONING_DEPARTMENT);
                     parmeters.Add("@SANCTIONING_AUTHORITY_MKEY", tASK_SANCTIONING_INPUT.SANCTIONING_AUTHORITY_MKEY);
+                    parmeters.Add("@Mode", tASK_SANCTIONING_INPUT.Mode);
                     parmeters.Add("@CREATED_BY", tASK_SANCTIONING_INPUT.CREATED_BY);
                     parmeters.Add("@DELETE_FLAG", tASK_SANCTIONING_INPUT.DELETE_FLAG);
                     parmeters.Add("@Session_User_Id", tASK_SANCTIONING_INPUT.Session_User_ID);
@@ -5718,10 +5704,12 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@APP_CHECK", tASK_CHECKLIST_INPUT.APP_CHECK);
                     parmeters.Add("@TASK_MKEY", tASK_CHECKLIST_INPUT.TASK_MKEY);
                     parmeters.Add("@CREATED_BY", tASK_CHECKLIST_INPUT.CREATED_BY);
+                    parmeters.Add("@Session_User_Id", tASK_CHECKLIST_INPUT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", tASK_CHECKLIST_INPUT.Business_Group_Id);
                     parmeters.Add("@API_NAME", "Task-CheckList-Doc-Insert-Update");
                     parmeters.Add("@API_METHOD", "Insert/Update");
 
-                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_LIST_OUTPUT_NT>("SP_INSERT_UPDATE_TASK_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_LIST_OUTPUT_NT>("SP_INSERT_UPDATE_TASK_CHECKLIST_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (GetTaskEnd.Any())
                     {

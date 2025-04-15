@@ -68,11 +68,10 @@ namespace TaskManagement.API.Model
         public string MODE { get; set; }
         [JsonPropertyName("Task_No")]
         public string TASK_NO { get; set; }
-      
         [JsonPropertyName("Task_Name")]
-        public string TASK_NAME { get; set; }
+        public string? TASK_NAME { get; set; }
         [JsonPropertyName("Task_Description")]
-        public string TASK_DESCRIPTION { get; set; }
+        public string? TASK_DESCRIPTION { get; set; }
         [JsonPropertyName("Category")]
         public int? CATEGORY { get; set; }
         [JsonPropertyName("Task_Type")]
@@ -146,9 +145,9 @@ namespace TaskManagement.API.Model
         public string? Delete_Flag { get; set; }
 
         [JsonPropertyName("Session_User_ID")]
-        public string? Session_User_ID { get; set; }
+        public int? Session_User_ID { get; set; }
         [JsonPropertyName("Business_Group_ID")]
-        public string? Business_Group_ID { get; set; }
+        public int? Business_Group_ID { get; set; }
     }
 
     public class TASK_CHECKLIST_TABLE_INPUT_NT
