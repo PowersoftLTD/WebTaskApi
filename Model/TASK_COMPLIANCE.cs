@@ -129,15 +129,15 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Sr_No")]
         public int SR_NO { get; set; }
         [JsonPropertyName("Level")]
-        public string LEVEL { get; set; }
+        public string? LEVEL { get; set; }
         [JsonPropertyName("Property_Mkey")]
-        public int PROPERTY_MKEY { get; set; }
+        public int? PROPERTY_MKEY { get; set; }
         [JsonPropertyName("Building_Mkey")]
-        public int BUILDING_MKEY { get; set; }
+        public int? BUILDING_MKEY { get; set; }
         [JsonPropertyName("Mode")]
-        public string Mode { get; set; }
+        public string? Mode { get; set; }
         [JsonPropertyName("Status")]
-        public string STATUS { get; set; }
+        public string? STATUS { get; set; }
         [JsonPropertyName("Created_By")]
         public int CREATED_BY { get; set; }
 

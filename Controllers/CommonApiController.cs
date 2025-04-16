@@ -17,6 +17,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using FastMember;
 using Microsoft.Extensions.Options;
 using System.Collections;
+using System.Transactions;
+using Azure;
 
 namespace TaskManagement.API.Controllers
 {
@@ -108,7 +110,7 @@ namespace TaskManagement.API.Controllers
             {
                 // Get the project classifications (a collection)
                 var classifications = await _repository.GetProjectNTAsync(v_Building_Classification);
-              
+
                 return Ok(classifications);
             }
             catch (Exception ex)
@@ -1342,7 +1344,7 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                
+
                 var modelTask = await _repository.CreateAddTaskNTAsync(add_TaskInput_NT);
                 return Ok(modelTask);
             }
@@ -1391,7 +1393,8 @@ namespace TaskManagement.API.Controllers
                 {
                     srNo = srNo + 1;
                     //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
-                    objFile.FILE_PATH = _fileSettings.FilePath;
+                    var RsponseStatus = await _repository.FileDownload();
+                    objFile.FILE_PATH = RsponseStatus.Value;
                     if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
                     {
                         Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
@@ -1523,7 +1526,9 @@ namespace TaskManagement.API.Controllers
                     if (objFile.files.Length > 0)
                     {
                         srNo = srNo + 1;
-                        string FilePath = _fileSettings.FilePath;
+                        var RsponseStatus = await _repository.FileDownload();
+                        string FilePath = RsponseStatus.Value.ToString();
+
                         if (!Directory.Exists(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
                         {
                             Directory.CreateDirectory(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
@@ -2259,7 +2264,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("Task-Management/Task-Output-Doc-Insert-Update")]  
+        [HttpPost("Task-Management/Task-Output-Doc-Insert-Update")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> PostTaskOutputDocInsertUpdate([FromForm] TASK_ENDLIST_INPUT tASK_ENDLIST_INPUT)
         {
@@ -2320,7 +2325,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("Task-Output-Doc-Insert-Update_NT")]  
+        [HttpPost("Task-Output-Doc-Insert-Update_NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT>>> PostTaskOutputDocInsertUpdateNT([FromForm] TASK_ENDLIST_INPUT_NT tASK_ENDLIST_INPUT)
         {
@@ -2624,10 +2629,10 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-        
+
         [HttpPost("Task-Management/Task-CheckList-Table-Insert-Update")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TaskCheckListOutputList>>> PostTaskCheckListTableInsertUpdate(TASK_CHECKLIST_TABLE_INPUT tASK_CHECKLIST_TABLE_INPUT )
+        public async Task<ActionResult<IEnumerable<TaskCheckListOutputList>>> PostTaskCheckListTableInsertUpdate(TASK_CHECKLIST_TABLE_INPUT tASK_CHECKLIST_TABLE_INPUT)
         {
             bool FlagError = false;
             string ErrorMessage = string.Empty;
@@ -2756,7 +2761,7 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-        
+
         [HttpPost("Task-Management/Task-Sanctioning-Table-Insert-Update")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> PostTaskSanctioningTableInsertUpdate(TASK_SANCTIONING_INPUT tASK_SANCTIONING_INPUT)
@@ -2850,6 +2855,34 @@ namespace TaskManagement.API.Controllers
                     DATA = null
                 };
                 return Ok(response);
+            }
+        }
+
+        [HttpPost("Files/Download_NT")]
+        [Authorize]
+        public async Task<ActionResult<string>> DownloadFile(FileDownloadNT fileDownloadNT)
+        {
+            try
+            {
+                if (fileDownloadNT == null)
+                {
+                    return Ok("Please Enter the file name");
+                }
+
+                var RsponseStatus = await _repository.FileDownload(fileDownloadNT);
+                var folderPathstr = RsponseStatus?.Value?.ToString();
+                if (string.IsNullOrEmpty(folderPathstr))
+                {
+                    return NotFound("Folder path not found");
+                }
+
+                var filePath = Path.Combine(folderPathstr, fileDownloadNT.File_Name);
+                var contentType = "application/octet-stream";
+                return PhysicalFile(filePath, contentType, fileDownloadNT.File_Name);
+            }
+            catch (Exception ex)
+            {
+                return Ok(ex.Message);
             }
         }
     }

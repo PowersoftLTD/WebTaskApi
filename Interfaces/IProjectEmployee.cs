@@ -37,9 +37,9 @@ namespace TaskManagement.API.Interfaces
 
         Task<IEnumerable<TASK_NESTED_GRIDOutPut_List>> GetTaskNestedGridAsync(string Mkey);
         Task<IEnumerable<GET_ACTIONS_TYPE_FILE>> GetActionsAsync(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION);
-        Task<IEnumerable<GET_ACTIONS_TYPE_FILE_NT>> GetActionsAsync_NT(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION);
+        Task<IEnumerable<GET_ACTIONS_TYPE_FILE_NT>> GetActionsAsync_NT(GET_ACTIONSInput_NT gET_ACTIONSInput_NT);
         Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskTreeAsync(string TASK_MKEY);
-        Task<IEnumerable<GET_TASK_TREEOutPut_List_NT>> GetTaskTreeAsync_NT(string TASK_MKEY);
+        Task<IEnumerable<GET_TASK_TREEOutPut_List_NT>> GetTaskTreeAsync_NT(GET_TASK_TREEInput_NT gET_TASK_TREEInput);
         Task<IEnumerable<PutChangePasswordOutPut_List>> PutChangePasswordAsync(string LoginName, string Old_Password, string New_Password);
         Task<IEnumerable<ForgotPasswordOutPut_List>> GetForgotPasswordAsync(string LoginName);
         Task<IEnumerable<ResetPasswordOutPut_List>> GetResetPasswordAsync(string TEMPPASSWORD, string LoginName);
@@ -95,5 +95,8 @@ namespace TaskManagement.API.Interfaces
         Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList_NT>>> PostTaskSanctioningTableInsertUpdateNTAsync(TASK_SANCTIONING_TABLE_INPUT_NT tASK_SANCTIONING_INPUT);
 
         Task<ActionResult<IEnumerable<TaskSanctioningMovmentOutputList>>> PostTaskSanctioningMovmentAsync(TASK_SANCTIONING_MOVMENT tASK_SANCTIONING_INPUT);
+
+        Task<ActionResult<string>> FileDownload(FileDownloadNT fileDownloadNT);
+        Task<ActionResult<string>> FileDownload();
     }
 }

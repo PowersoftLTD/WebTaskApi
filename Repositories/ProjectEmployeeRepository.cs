@@ -951,18 +951,19 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-        public async Task<IEnumerable<GET_ACTIONS_TYPE_FILE_NT>> GetActionsAsync_NT(string TASK_MKEY, string CURRENT_EMP_MKEY, string CURR_ACTION)
+        public async Task<IEnumerable<GET_ACTIONS_TYPE_FILE_NT>> GetActionsAsync_NT(GET_ACTIONSInput_NT getActionsAsync_NT)
         {
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
-                    parmeters.Add("@TASK_MKEY", TASK_MKEY);
-                    parmeters.Add("@CURRENT_EMP_MKEY", CURRENT_EMP_MKEY);
-                    parmeters.Add("@CURR_ACTION", CURR_ACTION);
-                    var TaskTreeDetails = await db.QueryMultipleAsync("SP_GET_ACTIONS", parmeters, commandType: CommandType.StoredProcedure);
-
+                    parmeters.Add("@TASK_MKEY", getActionsAsync_NT.TASK_MKEY);
+                    parmeters.Add("@CURRENT_EMP_MKEY", getActionsAsync_NT.CURRENT_EMP_MKEY);
+                    parmeters.Add("@CURR_ACTION", getActionsAsync_NT.CURR_ACTION);
+                    parmeters.Add("@Session_User_Id", getActionsAsync_NT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", getActionsAsync_NT.Business_Group_ID);
+                    var TaskTreeDetails = await db.QueryMultipleAsync("SP_GET_ACTIONS_NT", parmeters, commandType: CommandType.StoredProcedure);
                     var data = TaskTreeDetails.Read<GetActionsListTypeDesc_NT>().ToList();
                     var data1 = TaskTreeDetails.Read<GetActionsListFile_NT>().ToList();
 
@@ -3154,9 +3155,11 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@BUILDING_MKEY", tASK_COMPLIANCE_INPUT.BUILDING_MKEY);
                     parmeters.Add("@MKEY", tASK_COMPLIANCE_INPUT.TASK_MKEY);
                     parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
+                    parmeters.Add("@Session_User_Id", tASK_COMPLIANCE_INPUT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", tASK_COMPLIANCE_INPUT.Business_Group_Id);
                     parmeters.Add("@API_NAME", "GetTaskCompliance");
                     parmeters.Add("@API_METHOD", "Get");
-                    var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutputNT>("SP_GET_TASK_SANCTIONING_DEPARTMENT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var GetTaskSanDepart = await db.QueryAsync<TaskSanctioningDepartmentOutputNT>("SP_GET_TASK_SANCTIONING_DEPARTMENT_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
@@ -3656,7 +3659,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
                     parmeters.Add("@API_NAME", "GetTaskCompliance");
                     parmeters.Add("@API_METHOD", "Get");
-                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_LIST_OUTPUT_NT>("SP_GET_TASK_CHECKLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_LIST_OUTPUT_NT>("SP_GET_TASK_CHECKLIST_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (GetTaskEnd.Any())
                     {
@@ -5637,16 +5640,18 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-        public async Task<IEnumerable<GET_TASK_TREEOutPut_List_NT>> GetTaskTreeAsync_NT(string TASK_MKEY)
+        public async Task<IEnumerable<GET_TASK_TREEOutPut_List_NT>> GetTaskTreeAsync_NT(GET_TASK_TREEInput_NT gET_TASK_TREEInput)
         {
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
-                    parmeters.Add("@TASK_MKEY", TASK_MKEY);
+                    parmeters.Add("@TASK_MKEY", gET_TASK_TREEInput.TASK_MKEY);
+                    parmeters.Add("@Session_User_Id", gET_TASK_TREEInput.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", gET_TASK_TREEInput.Business_Group_ID);
                     parmeters.Add("@Completed", null);
-                    var TaskTreeDetails = (await db.QueryAsync<GetTaskTreeOutPut_NT>("SP_GET_TASK_TREE", parmeters, commandType: CommandType.StoredProcedure)).ToList();
+                    var TaskTreeDetails = (await db.QueryAsync<GetTaskTreeOutPut_NT>("SP_GET_TASK_TREE_NT", parmeters, commandType: CommandType.StoredProcedure)).ToList();
                     var successsResult = new List<GET_TASK_TREEOutPut_List_NT>
                     {
                         new GET_TASK_TREEOutPut_List_NT
@@ -5841,6 +5846,108 @@ namespace TaskManagement.API.Repositories
                         Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
                     }
                 }
+            }
+        }
+        public async Task<ActionResult<string>> FileDownload(FileDownloadNT fileDownloadNT)
+        {
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+            try
+            {
+                string strFilePath = string.Empty;
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  
+                    var parametersConfigure = new DynamicParameters();
+                    parametersConfigure.Add("@Session_User_Id", fileDownloadNT.Session_User_Id);
+                    var FilePath = await db.QueryAsync<ConfigureTbl>("SP_GET_CONFIGURATION", parametersConfigure, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    foreach (var FileConfig in FilePath)
+                    {
+                        if (FileConfig.Configure.ToString().ToLower() == "FilePathNT".ToString().ToLower())
+                        {
+                            strFilePath = FileConfig.ConfigureValue;
+                        }
+                    }
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+                    if (FilePath != null)
+                    {
+                        return strFilePath;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+        public async Task<ActionResult<string>> FileDownload()
+        {
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+            try
+            {
+                string strFilePath = string.Empty;
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;
+                    var parametersConfigure = new DynamicParameters();
+                    parametersConfigure.Add("@Session_User_Id", null);
+                    var FilePath = await db.QueryAsync<ConfigureTbl>("SP_GET_CONFIGURATION", parametersConfigure, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    foreach (var FileConfig in FilePath)
+                    {
+                        if (FileConfig.Configure.ToString().ToLower() == "FilePathNT".ToString().ToLower())
+                        {
+                            strFilePath = FileConfig.ConfigureValue;
+                        }
+                    }
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+                    if (FilePath != null)
+                    {
+                        return strFilePath;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
             }
         }
     }

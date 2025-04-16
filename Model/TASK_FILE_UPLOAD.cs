@@ -57,4 +57,15 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Message")]
         public string? MESSAGE { get; set; }
     }
+
+    public class FileDownloadNT
+    {
+        [JsonPropertyName("File_Name")]
+        public string File_Name { get; set; }
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
+
 }
