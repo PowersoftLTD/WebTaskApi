@@ -475,7 +475,7 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                var TaskAction = await _repository.GetActionsAsync_NT(gET_ACTIONSInput.TASK_MKEY, gET_ACTIONSInput.CURRENT_EMP_MKEY, gET_ACTIONSInput.CURR_ACTION);
+                var TaskAction = await _repository.GetActionsAsync_NT(gET_ACTIONSInput);
                 return Ok(TaskAction);
             }
             catch (Exception ex)
@@ -540,7 +540,7 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                var TaskTree = await _repository.GetTaskTreeAsync_NT(gET_TASK_TREEInput.TASK_MKEY);
+                var TaskTree = await _repository.GetTaskTreeAsync_NT(gET_TASK_TREEInput);
                 foreach (var checkerror in TaskTree)
                 {
                     if (checkerror.Status != "Ok")

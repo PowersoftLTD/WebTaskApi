@@ -76,8 +76,9 @@ namespace TaskManagement.API.Model
     }
     public class GetActionsListFile_NT
     {
-        [JsonPropertyName("Creation_Date")]
-        public string? CREATION_DATE { get; set; }
+        [JsonPropertyName("Type")]
+        public string? Type { get; set; }
+
         [JsonPropertyName("Progress_Perc")]
         public decimal? PROGRESS_PERC { get; set; }
         [JsonPropertyName("Status")]
@@ -90,6 +91,23 @@ namespace TaskManagement.API.Model
         public string? FILE_NAME { get; set; }
         [JsonPropertyName("File_Path")]
         public string? FILE_PATH { get; set; }
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
     }
 
     /// <summary>

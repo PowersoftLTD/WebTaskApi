@@ -16,6 +16,7 @@ namespace TaskManagement.API.Model
         public string LONG_DESCRIPTION { get; set; }
         public int? AUTHORITY_DEPARTMENT { get; set; }
         public int? RESPOSIBLE_EMP_MKEY { get; set; }
+        public string? RESPOSIBLE_EMP_NAME { get; set; }
         public int? JOB_ROLE { get; set; }
         public string? TAGS { get; set; }
         public int? DAYS_REQUIERD { get; set; }

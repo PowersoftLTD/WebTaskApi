@@ -385,37 +385,71 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("Mkey")]
         public int MKEY { get; set; }
-        [JsonPropertyName("Category")]
-        public string? CATEGORY { get; set; }
-
-        [JsonPropertyName("Task_Mkey")]
-        public string TASK_MKEY { get; set; }
+        [JsonPropertyName("Unique_Id")]
+        public int unique_id { get; set; }
+        [JsonPropertyName("Task_Parent_Id")]
+        public int TASK_PARENT_ID { get; set; }
 
         [JsonPropertyName("Task_No")]
         public string TASK_NO { get; set; }
+        [JsonPropertyName("Task_Name")]
+        public string? TASK_NAME { get; set; }
+
+        [JsonPropertyName("Task_Description")]
+        public string? TASK_DESCRIPTION { get; set; }
+        [JsonPropertyName("Completion_Date")]
+        public string? COMPLETION_DATE { get; set; }
+
+        [JsonPropertyName("Assigned_To")]
+        public int assigned_to { get; set; }
+        [JsonPropertyName("Resposible_Emp_Mkey")]
+        public int resposible_emp_mkey { get; set; }
+        [JsonPropertyName("Status_Perc")]
+        public decimal status_perc { get; set; }
+
+        [JsonPropertyName("Priority")]
+        public string? Priority { get; set; }
+        [JsonPropertyName("Responsible_Tag")]
+        public string? RESPONSIBLE_TAG { get; set; }
+
+        [JsonPropertyName("Actionable")]
+        public string? ACTIONABLE { get; set; }
+        [JsonPropertyName("End_Date")]
+        public string? END_DATE { get; set; }
+        [JsonPropertyName("Start_Date")]
+        public string START_DATE { get; set; }
+
+        [JsonPropertyName("Actual_Completion_Date")]
+        public string ACTUAL_COMPLETION_DATE { get; set; }
         [JsonPropertyName("Creator")]
         public string? CREATOR { get; set; }
+        [JsonPropertyName("Progress_Perc")]
+        public string? progress_perc { get; set; }
+
+        [JsonPropertyName("Action_Type")]
+        public string? ACTION_TYPE { get; set; }
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
+        [JsonPropertyName("File_Name")]
+        public string? FILE_NAME { get; set; }
+
+        [JsonPropertyName("File_Path")]
+        public string? FILE_PATH { get; set; }
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Category")]
+        public string? CATEGORY { get; set; }
+        [JsonPropertyName("Task_Mkey")]
+        public string TASK_MKEY { get; set; }
 
         [JsonPropertyName("Statusval")]
         public string? StatusVal { get; set; }
 
-        [JsonPropertyName("Actionable")]
-        public string? ACTIONABLE { get; set; }
         [JsonPropertyName("Creation_Date")]
         public string CREATION_DATE { get; set; }
-        [JsonPropertyName("Completion_Date")]
-        public string? COMPLETION_DATE { get; set; }
-        [JsonPropertyName("Task_Name")]
-        public string? TASK_NAME { get; set; }
-        [JsonPropertyName("Task_Description")]
-        public string? TASK_DESCRIPTION { get; set; }
+
         [JsonPropertyName("Tags")]
         public string? TAGS { get; set; }
-        [JsonPropertyName("Status")]
-        public string? STATUS { get; set; }
-        [JsonPropertyName("Responsible_Tag")]
-        public string? RESPONSIBLE_TAG { get; set; }
-
         [JsonPropertyName("Assignee")]
         public string? ASSIGNEE { get; set; }
 
@@ -432,30 +466,13 @@ namespace TaskManagement.API.Model
         public string? TASKTYPE { get; set; }
         [JsonPropertyName("Tasktype_Desc")]
         public string? TASKTYPE_DESC { get; set; }
-        [JsonPropertyName("Priority")]
-        public string? Priority { get; set; }
-        [JsonPropertyName("Unique_Id")]
-        public int unique_id { get; set; }
 
-        [JsonPropertyName("Task_Parent_Id")]
-        public int TASK_PARENT_ID { get; set; }
-        [JsonPropertyName("Assigned_To")]
-        public int assigned_to { get; set; }
-        [JsonPropertyName("Resposible_Emp_Mkey")]
-        public int resposible_emp_mkey { get; set; }
-        [JsonPropertyName("Status_Perc")]
-        public decimal status_perc { get; set; }
         [JsonPropertyName("Responsible")]
         public string? RESPONSIBLE { get; set; }
-        [JsonPropertyName("End_Date")]
-        public string? END_DATE { get; set; }
-        [JsonPropertyName("Start_Date")]
-        public string START_DATE { get; set; }
-        [JsonPropertyName("Actual_Completion_Date")]
-        public string ACTUAL_COMPLETION_DATE { get; set; }
         [JsonPropertyName("Respone_Status")]
         public string? RESPONE_STATUS { get; set; }
         [JsonPropertyName("Response_Message")]
         public string? RESPONSE_MESSAGE { get; set; }
     }
+
 }
