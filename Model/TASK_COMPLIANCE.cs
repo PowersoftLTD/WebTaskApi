@@ -311,7 +311,8 @@ namespace TaskManagement.API.Model
         public int DOC_MKEY { get; set; }
         [JsonPropertyName("DOCUMENT_CATEGORY")]
         public int DOCUMENT_CATEGORY { get; set; }
-        //public Dictionary<string, object>? CHECKLIST_DOC_LST { get; set; }
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("SR_NO")]
         public int SR_NO { get; set; }
         [JsonPropertyName("DELETE_FLAG")]
@@ -324,10 +325,16 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("Task_Mkey")]
         public int? TASK_MKEY { get; set; }
-        [JsonPropertyName("Doc_Mkey")]
-        public int DOC_MKEY { get; set; }
-        [JsonPropertyName("Document_Category")]
-        public int DOCUMENT_CATEGORY { get; set; }
+        //[JsonPropertyName("Doc_Mkey")]
+        //public int DOC_MKEY { get; set; }
+        //[JsonPropertyName("Document_Category")]
+        //public int DOCUMENT_CATEGORY { get; set; }
+       
+        [JsonPropertyName("Check_Doc_List")]
+        public Dictionary<string, string>? CHECKLIST_DOC_LST { get; set; }
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
+
         [JsonPropertyName("Sr_No")]
         public int SR_NO { get; set; }
         [JsonPropertyName("Delete_Flag")]
@@ -338,8 +345,6 @@ namespace TaskManagement.API.Model
         public int Session_User_ID { get; set; }
         [JsonPropertyName("Business_Group_ID")]
         public int Business_Group_ID { get; set; }
-
-
     }
     public class TaskCheckListNTOutputList
     {
@@ -988,7 +993,7 @@ namespace TaskManagement.API.Model
         public string TO_SANCTIONING_AUTHORITY { get; set; }
         [JsonPropertyName("To_Updated_Status")]
         public string UPDATED_STATUS { get; set; }
-        
+
         [JsonPropertyName("Created_By_Id")]
         public int CREATED_BY_ID { get; set; }
         [JsonPropertyName("Created_By_Name")]
