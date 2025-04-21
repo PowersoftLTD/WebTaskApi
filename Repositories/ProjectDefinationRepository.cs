@@ -274,9 +274,9 @@ namespace TaskManagement.API.Repositories
                     //parameters.Add("@ATTRIBUTE1", pROJECT_HDR.ATTRIBUTE1);  // LoggedIN user
                     //parameters.Add("@ATTRIBUTE2", pROJECT_HDR.ATTRIBUTE2);  // FormName
                     //parameters.Add("@ATTRIBUTE3", pROJECT_HDR.ATTRIBUTE3);  // Method Name/ Function Name
-                    var UpdateProjectHDR = await db.ExecuteAsync("SP_UPDATE_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var UpdateProjectHDR = await db.QueryAsync<PROJECT_HDR>("SP_UPDATE_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                    if (UpdateProjectHDR == null)
+                    if (UpdateProjectHDR.Any() == null)
                     {
                         if (transaction != null && !transactionCompleted)
                         {
@@ -453,8 +453,8 @@ namespace TaskManagement.API.Repositories
                         else
                         {
                             var parametersDeleteABBR = new DynamicParameters();
-                            parameters.Add("@HEADER_MKEY", pROJECT_HDR.MKEY);
-                            parameters.Add("@LAST_UPDATED_BY", pROJECT_HDR.CREATED_BY);
+                            parametersDeleteABBR.Add("@HEADER_MKEY", pROJECT_HDR.MKEY);
+                            parametersDeleteABBR.Add("@LAST_UPDATED_BY", pROJECT_HDR.CREATED_BY);
                             await db.ExecuteAsync("SP_DELETE_PROJECT_TRL_APPROVAL_ABBR", parametersDeleteABBR, commandType: CommandType.StoredProcedure, transaction: transaction);
                         }
 

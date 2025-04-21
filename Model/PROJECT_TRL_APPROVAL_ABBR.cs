@@ -54,6 +54,9 @@ namespace TaskManagement.API.Model
         [Column("RESPOSIBLE_EMP_MKEY")]
         public int? RESPOSIBLE_EMP_MKEY { get; set; }
 
+        [Column("RESPOSIBLE_EMP_NAME")]
+        public string? RESPOSIBLE_EMP_NAME { get; set; }
+
         [Column("OUTPUT_DOCUMENT")]
         public string? OUTPUT_DOCUMENT { get; set; }
 

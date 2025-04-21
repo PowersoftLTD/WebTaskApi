@@ -59,7 +59,8 @@ namespace TaskManagement.API.Model
         public string SANCTIONING_DEPARTMENT { get; set; }
         [JsonPropertyName("SANCTIONING_AUTHORITY_MKEY")]
         public string SANCTIONING_AUTHORITY_MKEY { get; set; }
-
+        [JsonPropertyName("COMMENT")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("CREATED_BY")]
         public int CREATED_BY { get; set; }
         [JsonPropertyName("DELETE_FLAG")]
@@ -113,9 +114,11 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("LEVEL")]
         public string LEVEL { get; set; }
         [JsonPropertyName("PROPERTY_MKEY")]
-        public int PROPERTY_MKEY { get; set; }
+        public int? PROPERTY_MKEY { get; set; }
         [JsonPropertyName("BUILDING_MKEY")]
-        public int BUILDING_MKEY { get; set; }
+        public int? BUILDING_MKEY { get; set; }
+        [JsonPropertyName("COMMENT")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("STATUS")]
         public string STATUS { get; set; }
         [JsonPropertyName("CREATED_BY")]
@@ -251,10 +254,12 @@ namespace TaskManagement.API.Model
         public int SR_NO { get; set; }
 
         [JsonPropertyName("PROPERTY_MKEY")]
-        public int PROPERTY_MKEY { get; set; }
+        public int? PROPERTY_MKEY { get; set; }
 
         [JsonPropertyName("BUILDING_MKEY")]
-        public int BUILDING_MKEY { get; set; }
+        public int? BUILDING_MKEY { get; set; }
+        [JsonPropertyName("COMMENT")]
+        public string? COMMENT { get; set; }
 
         [JsonPropertyName("DOC_NAME")]
         public string? DOC_NAME { get; set; }
@@ -311,7 +316,7 @@ namespace TaskManagement.API.Model
         public int DOC_MKEY { get; set; }
         [JsonPropertyName("DOCUMENT_CATEGORY")]
         public int DOCUMENT_CATEGORY { get; set; }
-        [JsonPropertyName("Comment")]
+        [JsonPropertyName("COMMENT")]
         public string? COMMENT { get; set; }
         [JsonPropertyName("SR_NO")]
         public int SR_NO { get; set; }
@@ -502,7 +507,8 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("VALIDITY_DATE")]
         public string? VALIDITY_DATE { get; set; }
-
+        [JsonPropertyName("COMMENT")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("CREATED_BY")]
         public string? CREATED_BY { get; set; }
         [JsonPropertyName("DELETE_FLAG")]
@@ -561,6 +567,8 @@ namespace TaskManagement.API.Model
         public int SR_NO { get; set; }
         [JsonPropertyName("OUTPUT_DOC_LST")]
         public Dictionary<string, object>? OUTPUT_DOC_LST { get; set; }
+        [JsonPropertyName("COMMENT")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("CREATED_BY")]
         public string? CREATED_BY { get; set; }
 

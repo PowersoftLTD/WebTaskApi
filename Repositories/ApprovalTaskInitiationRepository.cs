@@ -145,6 +145,7 @@ namespace TaskManagement.API.Repositories
                     parmetersTaskNo.Add("@APPROVAL_MKEY", aPPROVAL_TASK_INITIATION.MKEY);
                     parmetersTaskNo.Add("@TASK_NO_MKEY", approvalTemplate.MKEY);
                     parmetersTaskNo.Add("@TENTATIVE_START_DATE", aPPROVAL_TASK_INITIATION.TENTATIVE_START_DATE);
+                    parmetersTaskNo.Add("@RESPOSIBLE_EMP_MKEY", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY);
                     parmetersTaskNo.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
                     parmetersTaskNo.Add("@INITIATOR", aPPROVAL_TASK_INITIATION.INITIATOR);
                     parmetersTaskNo.Add("@TAGS", aPPROVAL_TASK_INITIATION.TAGS);
