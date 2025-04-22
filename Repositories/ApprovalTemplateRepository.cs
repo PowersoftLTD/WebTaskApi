@@ -966,6 +966,102 @@ namespace TaskManagement.API.Repositories
                         objAPPROVAL_TEMPLATE_HDR.SUBTASK_LIST = subtasks.ToList();
                     }
                     #endregion
+                    try
+                    {
+                        var SanctioningDataTable = new DataTable();
+                        SanctioningDataTable.Columns.Add("MKEY", typeof(int));
+                        SanctioningDataTable.Columns.Add("SR_NO", typeof(int));
+                        SanctioningDataTable.Columns.Add("LEVEL", typeof(string));
+                        SanctioningDataTable.Columns.Add("SANCTIONING_DEPARTMENT", typeof(string));
+                        SanctioningDataTable.Columns.Add("SANCTIONING_AUTHORITY", typeof(string));
+                        SanctioningDataTable.Columns.Add("START_DATE", typeof(DateTime));
+                        SanctioningDataTable.Columns.Add("END_DATE", typeof(DateTime));
+                        SanctioningDataTable.Columns.Add("CREATED_BY", typeof(int));
+                        SanctioningDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
+                        SanctioningDataTable.Columns.Add("DELETE_FLAG", typeof(char));
+                        bool flagID = false;
+                        if (updateApprovalTemplates.SANCTIONING_DEPARTMENT_LIST.Count > 0)
+                        {
+                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT t" +
+                                " WHERE MKEY = @MKEY;", new { MKEY = updateApprovalTemplates.MKEY }, commandType: CommandType.Text,
+                                transaction: transaction);
+
+                            // Populate the DataTable with subtasks
+                            foreach (var SANCTIONING_DEPARTMENT in updateApprovalTemplates.SANCTIONING_DEPARTMENT_LIST) 
+                            {
+
+                                SanctioningDataTable.Rows.Add(updateApprovalTemplates.MKEY, SR_No, SANCTIONING_DEPARTMENT.LEVEL
+                                    , SANCTIONING_DEPARTMENT.SANCTIONING_DEPARTMENT, SANCTIONING_DEPARTMENT.SANCTIONING_AUTHORITY
+                                    , SANCTIONING_DEPARTMENT.START_DATE
+                                    , SANCTIONING_DEPARTMENT.END_DATE == null ? null : SANCTIONING_DEPARTMENT.END_DATE
+                                    , updateApprovalTemplates.CREATED_BY
+                                    , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                SR_No = SR_No + 1;
+                            }
+
+                            // Use SqlBulkCopy to insert subtasks
+                            using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
+                            {
+                                DestinationTableName = "APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT"  // Ensure this matches your table name
+                            };
+
+                            bulkCopy.ColumnMappings.Add("MKEY", "MKEY");
+                            bulkCopy.ColumnMappings.Add("SR_NO", "SR_NO");
+                            bulkCopy.ColumnMappings.Add("LEVEL", "LEVEL");
+                            bulkCopy.ColumnMappings.Add("SANCTIONING_DEPARTMENT", "SANCTIONING_DEPARTMENT");
+                            bulkCopy.ColumnMappings.Add("SANCTIONING_AUTHORITY", "SANCTIONING_AUTHORITY");
+                            bulkCopy.ColumnMappings.Add("START_DATE", "START_DATE");
+                            bulkCopy.ColumnMappings.Add("END_DATE", "END_DATE");
+                            bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
+                            bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+
+                            await bulkCopy.WriteToServerAsync(SanctioningDataTable);
+
+                            // Commit the transactionSubTask
+                            // await transactionSubTask.CommitAsync();
+
+                            // Optionally, fetch the inserted values (if necessary)
+                            string sql = "SELECT * from APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT WHERE MKEY = @MKEY " +
+                                "AND DELETE_FLAG = 'N';";
+                            var SANCTIONING_DEPARTMENT_TRL = await db.QueryAsync(sql, new { MKEY = updateApprovalTemplates.MKEY }, transaction: transaction);
+
+                            // Assuming the model has a SUBTASK_LIST dictionary to hold these values
+                            objAPPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST = new List<OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>();  // Assuming Subtask is a class for this data
+
+                            foreach (var item in SANCTIONING_DEPARTMENT_TRL)
+                            {
+                                objAPPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST.Add(new OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT
+                                {
+                                    MKEY = item.MKEY,
+                                    LEVEL = item.LEVEL,
+                                    SANCTIONING_DEPARTMENT = item.SANCTIONING_DEPARTMENT,
+                                    SANCTIONING_AUTHORITY = item.SANCTIONING_AUTHORITY,
+                                    START_DATE = item.START_DATE,
+                                    END_DATE = item.END_DATE
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                                // Handle rollback exception (may occur if transaction is already completed)
+                                // Log or handle the rollback failure if needed
+                                objAPPROVAL_TEMPLATE_HDR.Status = "Error";
+                                objAPPROVAL_TEMPLATE_HDR.Message = rollbackEx.Message;
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            }
+                        }
+                    }
+
                     var sqlTransaction = transaction as SqlTransaction;
                     if (sqlTransaction != null)
                     {
