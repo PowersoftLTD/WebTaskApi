@@ -177,6 +177,9 @@ namespace TaskManagement.API.Model
         public int SR_NO { get; set; }
         [JsonPropertyName("Output_Doc_List")]
         public Dictionary<string, object>? OUTPUT_DOC_LST { get; set; }
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
+
         [JsonPropertyName("Created_By")]
         public string? CREATED_BY { get; set; }
 

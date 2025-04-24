@@ -60,26 +60,7 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-        //[HttpPost("Task-Management/Login_NT")]
-        //public async Task<ActionResult<EmployeeLoginOutput_LIST_NT>> Login_Validate_NT([FromBody] EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT)
-        //{
-        //    try
-        //    {
-        //        var LoginValidate = await _repository.Login_Validate_NT(employeeCompanyMSTInput_NT);
-        //        return Ok(LoginValidate);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var response = new EmployeeLoginOutput_LIST
-        //        {
-        //            Status = "Error",
-        //            Message = ex.Message,
-        //            Data = null
-        //        };
-        //        return Ok(response);
-        //    }
-        //}
-
+        
         [HttpPost("Task-Management/Get-Option")]
         [Authorize]
         public async Task<ActionResult<V_Building_Classification_new>> Get_Project([FromBody] BuildingClassInput v_Building_Classification)
@@ -1701,7 +1682,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
 
         [HttpPost("Task-Management/Get-Task-Compliance")]
         [Authorize]

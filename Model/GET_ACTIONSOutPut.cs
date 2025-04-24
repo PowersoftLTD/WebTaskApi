@@ -36,8 +36,9 @@ namespace TaskManagement.API.Model
     }
     public class GetActionsListFile
     {
-        [JsonPropertyName("CREATION_DATE")]
-        public string? CREATION_DATE { get; set; }
+        [JsonPropertyName("TYPE")]
+        public string? Type { get; set; }
+
         [JsonPropertyName("PROGRESS_PERC")]
         public decimal? PROGRESS_PERC { get; set; }
         [JsonPropertyName("STATUS")]
@@ -50,6 +51,38 @@ namespace TaskManagement.API.Model
         public string? FILE_NAME { get; set; }
         [JsonPropertyName("FILE_PATH")]
         public string? FILE_PATH { get; set; }
+        [JsonPropertyName("CREATED_BY_ID")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("CREATED_BY_NAME")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("CREATION_DATE")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("LAST_UPDATED_BY")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("UPDATED_BY_NAME")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("LAST_UPDATE_DATE")]
+        public string? LAST_UPDATE_DATE { get; set; }
+
+        //[JsonPropertyName("CREATION_DATE")]
+        //public string? CREATION_DATE { get; set; }
+        //[JsonPropertyName("PROGRESS_PERC")]
+        //public decimal? PROGRESS_PERC { get; set; }
+        //[JsonPropertyName("STATUS")]
+        //public string? STATUS { get; set; }
+        //[JsonPropertyName("ACTION_TYPE")]
+        //public string? ACTION_TYPE { get; set; }
+        //[JsonPropertyName("COMMENT")]
+        //public string? COMMENT { get; set; }
+        //[JsonPropertyName("FILE_NAME")]
+        //public string? FILE_NAME { get; set; }
+        //[JsonPropertyName("FILE_PATH")]
+        //public string? FILE_PATH { get; set; }
     }
     /// <summary>
     /// 

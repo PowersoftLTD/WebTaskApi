@@ -57,7 +57,7 @@ namespace TaskManagement.API.Repositories
                 JWTKEY.Issuer,
                 JWTKEY.Audience,
                 claims,
-                expires: DateTime.Now.AddMinutes(240),
+                expires: DateTime.Now.AddMinutes(120),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

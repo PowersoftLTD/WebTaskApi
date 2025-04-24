@@ -363,6 +363,8 @@ namespace TaskManagement.API.Repositories
                     //var approvalTemplateSubtask2 = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select * from  PROJECT_TRL_APPROVAL_ABBR where APPROVAL_MKEY  = 31 ", commandType: CommandType.Text, transaction: transaction);
                     //var approvalTemplateSubtask3 = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("select * from  PROJECT_HDR where mkey = 31", commandType: CommandType.Text, transaction: transaction);
 
+
+
                     if (approvalTemplateSubtask == null)
                     {
                         // Handle other unexpected exceptions
@@ -386,6 +388,8 @@ namespace TaskManagement.API.Repositories
                         aPPROVAL_TASK_INITIATION_TRL_SUBTASK.Message = "Error Occurd";
                         return aPPROVAL_TASK_INITIATION_TRL_SUBTASK;
                     }
+
+                    TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
 
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();

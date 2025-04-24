@@ -132,17 +132,6 @@ namespace TaskManagement.API.Repositories
                             };
                             return errorResult;
                         }
-                        //var successsResult = new List<EmployeeLoginOutput_LIST_NT>
-                        //    {
-                        //        new EmployeeLoginOutput_LIST_NT
-                        //        {
-                        //            Status = "Ok",
-                        //            Message = "Message",
-                        //            Data= dtReponse
-
-                        //        }
-                        //    };
-                        //return successsResult;
                     }
                     else
                     {
@@ -3359,7 +3348,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
                     parmeters.Add("@API_NAME", "GetTaskCompliance");
                     parmeters.Add("@API_METHOD", "Get");
-                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>("SP_GET_TASK_ENDLIST", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var GetTaskEnd = await db.QueryAsync<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>("SP_GET_TASK_ENDLIST_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (GetTaskEnd.Any())
                     {
@@ -3958,6 +3947,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@DOC_NUMBER", tASK_ENDLIST_INPUT.DOC_NUMBER);
                     parameters.Add("@DOC_DATE", tASK_ENDLIST_INPUT.DOC_DATE);
                     parameters.Add("@VALIDITY_DATE", tASK_ENDLIST_INPUT.VALIDITY_DATE);
+                    parameters.Add("@COMMENT", tASK_ENDLIST_INPUT.COMMENT);
                     parameters.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
                     parameters.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.DELETE_FLAG);
                     parameters.Add("@Session_User_Id", tASK_ENDLIST_INPUT.Session_User_Id);
@@ -4010,6 +4000,7 @@ namespace TaskManagement.API.Repositories
                                 parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
                                 parametersFiles.Add("@FILE_NAME", tASK_ENDLIST_INPUT.PROJECT_DOC_FILES.FileName);
                                 parametersFiles.Add("@FILE_PATH", filePathOpen);
+                                parametersFiles.Add("@COMMENT", tASK_ENDLIST_INPUT.COMMENT);
                                 parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
                                 parametersFiles.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.FILE_DELETE_FLAG);
                                 parametersFiles.Add("@Session_User_Id", tASK_ENDLIST_INPUT.Session_User_Id);
@@ -4039,6 +4030,7 @@ namespace TaskManagement.API.Repositories
                             parametersFiles.Add("@DOC_MKEY", tASK_ENDLIST_INPUT.DOC_MKEY);
                             parametersFiles.Add("@FILE_NAME", "");
                             parametersFiles.Add("@FILE_PATH", "");
+                            parametersFiles.Add("@COMMENT", tASK_ENDLIST_INPUT.COMMENT);
                             parametersFiles.Add("@CREATED_BY", tASK_ENDLIST_INPUT.CREATED_BY);
                             parametersFiles.Add("@DELETE_FLAG", tASK_ENDLIST_INPUT.FILE_DELETE_FLAG);
                             parametersFiles.Add("@Session_User_Id", tASK_ENDLIST_INPUT.Session_User_Id);
@@ -4420,6 +4412,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@BUILDING_MKEY", tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY);
                     parmeters.Add("@Session_User_Id", tASK_SANCTIONING_AUTHORITY_INPUT.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", tASK_SANCTIONING_AUTHORITY_INPUT.Business_Group_Id);
+                    parmeters.Add("@COMMENT", tASK_SANCTIONING_AUTHORITY_INPUT.COMMENT);
                     parmeters.Add("@Mode", tASK_SANCTIONING_AUTHORITY_INPUT.Mode);
                     parmeters.Add("@STATUS", tASK_SANCTIONING_AUTHORITY_INPUT.STATUS);
                     parmeters.Add("@APINAME", "UPDATE SANSACTING DEPARTMENT");
@@ -4666,6 +4659,7 @@ namespace TaskManagement.API.Repositories
                         parameters.Add("@DOCUMENT_CATEGORY", doc.Key);
                         parameters.Add("@CREATED_BY", input.CREATED_BY);
                         parameters.Add("@DELETE_FLAG", input.DELETE_FLAG);
+                        parameters.Add("@COMMENT", input.COMMENT);
                         parameters.Add("@METHOD_NAME", "Task-CheckList-Doc-Insert-Update");
                         parameters.Add("@METHOD", "Insert/Update");
                         parameters.Add("@OUT_STATUS", dbType: DbType.String, direction: ParameterDirection.Output, size: 10);
@@ -4957,6 +4951,7 @@ namespace TaskManagement.API.Repositories
                             parameters.Add("@SR_NO", tASK_ENDLIST_TABLE_INPUT.SR_NO);
                             parameters.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
                             parameters.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                            parameters.Add("@COMMENT", tASK_ENDLIST_TABLE_INPUT.COMMENT);
                             parameters.Add("@CREATED_BY", tASK_ENDLIST_TABLE_INPUT.CREATED_BY);
                             parameters.Add("@DELETE_FLAG", tASK_ENDLIST_TABLE_INPUT.DELETE_FLAG);
                             parameters.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
@@ -4964,7 +4959,7 @@ namespace TaskManagement.API.Repositories
                             parameters.Add("@OUT_STATUS", null);
                             parameters.Add("@OUT_MESSAGE", null);
 
-                            var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT_NT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                            var GetTaskEnd = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT_NT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                             if (GetTaskEnd.Any())
                             {
                                 foreach (var ErrorRespo in GetTaskEnd)
@@ -5287,6 +5282,7 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@SANCTIONING_DEPARTMENT", SanLIst.SANCTIONING_DEPARTMENT);
                         parmeters.Add("@SANCTIONING_AUTHORITY_MKEY", SanLIst.SANCTIONING_AUTHORITY_MKEY);
                         parmeters.Add("@Mode", SanLIst.Mode);
+                        parmeters.Add("@Comment", tASK_SANCTIONING_INPUT.COMMENT);
                         parmeters.Add("@CREATED_BY", tASK_SANCTIONING_INPUT.CREATED_BY);
                         parmeters.Add("@DELETE_FLAG", tASK_SANCTIONING_INPUT.DELETE_FLAG);
                         parmeters.Add("@Session_User_Id", tASK_SANCTIONING_INPUT.Session_User_ID);
@@ -5627,6 +5623,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@DOC_MKEY", tASK_CHECKLIST_INPUT.DOC_MKEY);
                     parmeters.Add("@APP_CHECK", tASK_CHECKLIST_INPUT.APP_CHECK);
                     parmeters.Add("@TASK_MKEY", tASK_CHECKLIST_INPUT.TASK_MKEY);
+                    parmeters.Add("@COMMENT", tASK_CHECKLIST_INPUT.COMMENT);
                     parmeters.Add("@CREATED_BY", tASK_CHECKLIST_INPUT.CREATED_BY);
                     parmeters.Add("@Session_User_Id", tASK_CHECKLIST_INPUT.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", tASK_CHECKLIST_INPUT.Business_Group_Id);
@@ -5637,16 +5634,6 @@ namespace TaskManagement.API.Repositories
 
                     if (GetTaskEnd.Any())
                     {
-                        //foreach (var item in GetTaskEnd)
-                        //{
-                        //    if (item.CHECK_DOC_LST == null)
-                        //    {
-                        //        item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
-                        //    }
-                        //    // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-                        //    item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-                        //}
-
                         // Commit the transaction if everything is successful
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();

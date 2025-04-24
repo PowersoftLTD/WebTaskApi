@@ -72,16 +72,20 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("Mkey")]
         public int MKEY { get; set; }
-        [JsonPropertyName("Sr_No")]
-        public int SR_NO { get; set; }
-        [JsonPropertyName("Level")]
-        public int LEVEL { get; set; }
-        [JsonPropertyName("Sanctioning_Department")]
-        public string SANCTIONING_DEPARTMENT { get; set; }
-        [JsonPropertyName("Sanctioning_Authority_Mkey")]
-        public string SANCTIONING_AUTHORITY_MKEY { get; set; }
-        [JsonPropertyName("Mode")]
-        public string Mode { get; set; }
+
+        //[JsonPropertyName("Level")]
+        //public int LEVEL { get; set; }
+        //[JsonPropertyName("Sanctioning_Department")]
+        //public string SANCTIONING_DEPARTMENT { get; set; }
+        //[JsonPropertyName("Sanctioning_Authority_Mkey")]
+        //public string SANCTIONING_AUTHORITY_MKEY { get; set; }
+        //[JsonPropertyName("Mode")]
+        //public string? Mode { get; set; }
+        
+        [JsonPropertyName("Authority_List")]
+        public List<ARRAY_TASK_SANCTIONING_NT>? Authority_List { get; set; }
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("Created_By")]
         public int CREATED_BY { get; set; }
         [JsonPropertyName("Delete_Flag")]
@@ -92,6 +96,19 @@ namespace TaskManagement.API.Model
         public int Business_Group_ID { get; set; }
     }
 
+    public class ARRAY_TASK_SANCTIONING_NT
+    {
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Level")]
+        public int LEVEL { get; set; }
+        [JsonPropertyName("Sanctioning_Department")]
+        public string SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("Sanctioning_Authority_Mkey")]
+        public string SANCTIONING_AUTHORITY_MKEY { get; set; }
+        [JsonPropertyName("Mode")]
+        public string Mode { get; set; }
+    }
 
     public class TASK_SANCTIONING_MOVMENT
     {
@@ -139,6 +156,8 @@ namespace TaskManagement.API.Model
         public int? BUILDING_MKEY { get; set; }
         [JsonPropertyName("Mode")]
         public string? Mode { get; set; }
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("Status")]
         public string? STATUS { get; set; }
         [JsonPropertyName("Created_By")]
@@ -290,7 +309,8 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("App_Check")]
         public char? APP_CHECK { get; set; }
-
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("Created_By")]
         public int CREATED_BY { get; set; }
 
@@ -334,7 +354,7 @@ namespace TaskManagement.API.Model
         //public int DOC_MKEY { get; set; }
         //[JsonPropertyName("Document_Category")]
         //public int DOCUMENT_CATEGORY { get; set; }
-       
+
         [JsonPropertyName("Check_Doc_List")]
         public Dictionary<string, string>? CHECKLIST_DOC_LST { get; set; }
         [JsonPropertyName("Comment")]
@@ -545,7 +565,8 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Validity_Date")]
         public string? VALIDITY_DATE { get; set; }
-
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
         [JsonPropertyName("Created_By")]
         public string? CREATED_BY { get; set; }
         [JsonPropertyName("Delete_Flag")]
