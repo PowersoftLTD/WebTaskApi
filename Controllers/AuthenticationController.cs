@@ -63,7 +63,6 @@ namespace TaskManagement.API.Controllers
             }
             
         }
-
         [HttpPost]
         [Route("Login_NT")]
         public async Task<ActionResult<EmployeeLoginOutput_LIST_NT>> Login_NT([FromBody] EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT)
@@ -84,7 +83,26 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
+        [HttpPost]
+        [Route("LoginMobile_NT")]
+        public async Task<ActionResult<EmployeeLoginOutput_LIST_NT>> LoginMobile_NT([FromBody] EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        {
+            try
+            {
+                var LoginValidate = await _repository.Login_Mobile_Validate_NT(employeeCompanyMSTInput_NT);
+                return Ok(LoginValidate);
+            }
+            catch (Exception ex)
+            {
+                var response = new EmployeeLoginOutput_LIST
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
         private bool IsValid(string token)
         {
             JwtSecurityToken jwtSecurityToken;
@@ -99,7 +117,6 @@ namespace TaskManagement.API.Controllers
 
             return jwtSecurityToken.ValidTo > DateTime.UtcNow;
         }
-
         [HttpPost]
         public IActionResult GenerateClientCredentials()
         {

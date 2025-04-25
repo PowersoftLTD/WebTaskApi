@@ -10,6 +10,7 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<EmployeeLoginOutput_LIST>> Login_Validate(string Login_ID, string LOGIN_PASSWORD);
 
         Task<IEnumerable<EmployeeLoginOutput_LIST_NT>> Login_Validate_NT(EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT);
+        Task<IEnumerable<EmployeeLoginOutput_LIST_NT>> Login_Mobile_Validate_NT(EmployeeMobileMSTInput_NT employeeMobileMSTInput_NT);
 
         Task<IEnumerable<V_Building_Classification_new>> GetProjectAsync(string TYPE_CODE, string MASTER_MKEY);
 

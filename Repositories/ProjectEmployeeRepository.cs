@@ -165,6 +165,82 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<IEnumerable<EmployeeLoginOutput_LIST_NT>> Login_Mobile_Validate_NT(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
+
+                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput__Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    if (dtReponse.Any())
+                    {
+                        //create token
+                        var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
+                        if (IsValid(jwtToken))
+                        {
+                            var successsResult = new List<EmployeeLoginOutput_LIST_NT>
+                            {
+                                new EmployeeLoginOutput_LIST_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    JwtToken = jwtToken,
+                                    Data= dtReponse
+
+                                }
+                            };
+                            return successsResult;
+                        }
+                        else
+                        {
+                            var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                            {
+                                new EmployeeLoginOutput_LIST_NT
+                                {
+                                    Status = "Error",
+                                    Message = "Session expired!!!",
+                                    JwtToken = null,
+                                    Data=null
+                                }
+                            };
+                            return errorResult;
+                        }
+                    }
+                    else
+                    {
+                        var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                            {
+                                new EmployeeLoginOutput_LIST_NT
+                                {
+                                    Status = "Error",
+                                    Message = "Username or password is incorrect.",
+                                    JwtToken = null,
+                                    Data=null
+
+                                }
+                            };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                    {
+                        new EmployeeLoginOutput_LIST_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            JwtToken = null,
+                            Data=null
+                        }
+                    };
+                return errorResult;
+            }
+        }
         private bool IsValid(string token)
         {
             JwtSecurityToken jwtSecurityToken;
@@ -941,7 +1017,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<GET_ACTIONS_TYPE_FILE_NT>> GetActionsAsync_NT(GET_ACTIONSInput_NT getActionsAsync_NT)
         {
             try

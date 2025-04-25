@@ -10,6 +10,16 @@ namespace TaskManagement.API.Model
         public string Login_Password { get; set; }
     }
 
+    public class EmployeeMobileMSTInput
+    {
+        [JsonPropertyName("Login_ID")]
+        public string Login_ID { get; set; }
+    }
+    public class EmployeeMobileMSTInput_NT
+    {
+        [JsonPropertyName("Login_Name")]
+        public string Login_ID { get; set; }
+    }
 
     public class EmployeeCompanyMSTInput_NT
     {
