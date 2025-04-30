@@ -98,7 +98,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
                     parmeters.Add("@P_LOGIN_PASSWORD", employeeCompanyMSTInput_NT.Login_Password);
 
-                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput__Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
                     if (dtReponse.Any())
                     {
                         //create token
@@ -174,7 +174,7 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
 
-                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput__Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
                     if (dtReponse.Any())
                     {
                         //create token

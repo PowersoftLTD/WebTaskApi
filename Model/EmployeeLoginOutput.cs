@@ -201,92 +201,13 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Jwttoken")]
         public string JwtToken { get; set; }
         [JsonPropertyName("Data")]
-        public IEnumerable<EmployeeLoginOutput__Session_NT> Data { get; set; }
+        public IEnumerable<EmployeeLoginOutput_Session_NT> Data { get; set; }
     }
 
-    public class EmployeeLoginOutput__Session_NT
+    public class EmployeeLoginOutput_Session_NT
     {
 
-        [JsonPropertyName("Mkey")]
-        public int MKEY { get; set; }
-        [JsonPropertyName("Company_Id")]
-        public int? COMPANY_ID { get; set; }
-        [JsonPropertyName("Emp_Code")]
-        public string? EMP_CODE { get; set; }
-        [JsonPropertyName("Emp_Full_Name")]
-        public string? EMP_FULL_NAME { get; set; }
-        [JsonPropertyName("First_Name")]
-        public string? FIRST_NAME { get; set; }
-        [JsonPropertyName("Last_Name")]
-        public string? LAST_NAME { get; set; }
-        [JsonPropertyName("Role_Id")]
-        public string? ROLE_ID { get; set; }
-        [JsonPropertyName("Project_Id")]
-        public string? PROJECT_ID { get; set; }
-        [JsonPropertyName("Designation_Id")]
-        public int? DESIGNATION_ID { get; set; }
-        [JsonPropertyName("Department_Id")]
-        public int? DEPARTMENT_ID { get; set; }
-        [JsonPropertyName("Contact_No")]
-        public string? CONTACT_NO { get; set; }
-        [JsonPropertyName("Email_Id_Official")]
-        public string? EMAIL_ID_OFFICIAL { get; set; }
-        [JsonPropertyName("Email_Id_Personl")]
-        public string? EMAIL_ID_PERSONAL { get; set; }
-        [JsonPropertyName("Login_Name")]
-        public string? LOGIN_NAME { get; set; }
-        [JsonPropertyName("Login_Password")]
-        public object LOGIN_PASSWORD { get; set; }
-        [JsonPropertyName("Ra1_Mkey")]
-        public int? RA1_MKEY { get; set; }
-        [JsonPropertyName("Ra2_Mkey")]
-        public int? RA2_MKEY { get; set; }
-        [JsonPropertyName("Effective_Start_Date")]
-        public DateTime? EFFECTIVE_START_DATE { get; set; }
-        [JsonPropertyName("Effective_End_Date")]
-        public DateTime? EFFECTIVE_END_DATE { get; set; }
-        [JsonPropertyName("Email_Frequency")]
-        public string? EMAIL_FREQUENCY { get; set; }
-        [JsonPropertyName("Browser_Notification")]
-        public string? BROWSER_NOTIFICATION { get; set; }
-        [JsonPropertyName("Web_Token")]
-        public string? WEB_TOKEN { get; set; }
-        [JsonPropertyName("Mobile_Token")]
-        public string? MOBILE_TOKEN { get; set; }
-        [JsonPropertyName("Attribute1")]
-        public string? ATTRIBUTE1 { get; set; }
-        [JsonPropertyName("Attribute2")]
-        public string? ATTRIBUTE2 { get; set; }
-        [JsonPropertyName("Attribute3")]
-        public string? ATTRIBUTE3 { get; set; }
-        [JsonPropertyName("Attribute4")]
-        public string? ATTRIBUTE4 { get; set; }
-        [JsonPropertyName("Attribute5")]
-        public string? ATTRIBUTE5 { get; set; }
-        [JsonPropertyName("Created_By")]
-        public int? CREATED_BY { get; set; }
-        [JsonPropertyName("Creation_Date")]
-        public DateTime CREATION_DATE { get; set; }
-        [JsonPropertyName("Last_Updated_By")]
-        public int? LAST_UPDATED_BY { get; set; }
-        [JsonPropertyName("Last_Update_Date")]
-        public DateTime? LAST_UPDATE_DATE { get; set; }
-        [JsonPropertyName("Delete_Flag")]
-        public char? DELETE_FLAG { get; set; }
-        [JsonPropertyName("Isforgotpassword")]
-        public bool? ISFORGOTPASSWORD { get; set; }
-        [JsonPropertyName("Session_User_Id")]
-        public int Session_User_ID { get; set; }
-
-        [JsonPropertyName("Business_Group_Id")]
-        public int? BUSINESS_GROUP_ID { get; set; }
-        [JsonPropertyName("Business_Groups_Name")]
-        public string? BUSINESS_GROUPS_NAME { get; set; }
-        [JsonPropertyName("Company_Name")]
-        public string? COMPANY_NAME { get; set; }
-        [JsonPropertyName("Resset_Flag")]
-        public char? RESSET_FLAG { get; set; }
-
-       
+        [JsonPropertyName("Active_Mobile")]
+        public string Active_Mobile { get; set; }
     }
 }
