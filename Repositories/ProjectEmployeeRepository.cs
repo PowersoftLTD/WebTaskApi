@@ -25,7 +25,8 @@ namespace TaskManagement.API.Repositories
         private readonly string _connectionString;
         private readonly FileSettings _fileSettings;
         private readonly ITokenRepository _tokenRepository;
-        public ProjectEmployeeRepository(IDapperDbConnection dapperDbConnection, string connectionString, IOptions<FileSettings> fileSettings, ITokenRepository tokenRepository)
+        public ProjectEmployeeRepository(IDapperDbConnection dapperDbConnection, string connectionString
+            , IOptions<FileSettings> fileSettings, ITokenRepository tokenRepository)
         {
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
@@ -136,16 +137,15 @@ namespace TaskManagement.API.Repositories
                     else
                     {
                         var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                        {
+                            new EmployeeLoginOutput_LIST_NT
                             {
-                                new EmployeeLoginOutput_LIST_NT
-                                {
-                                    Status = "Error",
-                                    Message = "Username or password is incorrect.",
-                                    JwtToken = null,
-                                    Data=null
-
-                                }
-                            };
+                                Status = "Error",
+                                Message = "Username or password is incorrect.",
+                                JwtToken = null,
+                                Data = null
+                            }
+                        };
                         return errorResult;
                     }
                 }
@@ -165,7 +165,76 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-        public async Task<IEnumerable<EmployeeLoginOutput_LIST_NT>> Login_Mobile_Validate_NT(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        public async Task<IEnumerable<EmployeeMobile_NT>> Login_Mobile_Validate_NT(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
+
+                    var dtReponse = await db.QueryAsync<string>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    if (dtReponse.Count() == 1)
+                    {
+                        var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
+                        if (IsValid(jwtToken))
+                        {
+                            var successsResult = new List<EmployeeMobile_NT>
+                            {
+                                new EmployeeMobile_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    JwtToken = jwtToken
+                                }
+                            };
+                            return successsResult;
+                        }
+                        else
+                        {
+                            var errorResult = new List<EmployeeMobile_NT>
+                            {
+                                new EmployeeMobile_NT
+                                {
+                                    Status = "Error",
+                                    Message = "Session expired!!!",
+                                    JwtToken = null
+                                }
+                            };
+                            return errorResult;
+                        }
+                    }
+                    else
+                    {
+                        var errorResult = new List<EmployeeMobile_NT>
+                            {
+                                new EmployeeMobile_NT
+                                {
+                                    Status = "Error",
+                                    Message = "User is incorrect.",
+                                    JwtToken = null
+                                }
+                            };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<EmployeeMobile_NT>
+                    {
+                        new EmployeeMobile_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            JwtToken = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+        public async Task<IEnumerable<LoginMobileEmail_NT>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
         {
             try
             {
@@ -177,49 +246,54 @@ namespace TaskManagement.API.Repositories
                     var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
                     if (dtReponse.Any())
                     {
-                        //create token
-                        var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
-                        if (IsValid(jwtToken))
-                        {
-                            var successsResult = new List<EmployeeLoginOutput_LIST_NT>
+                        var successsResult = new List<LoginMobileEmail_NT>
                             {
-                                new EmployeeLoginOutput_LIST_NT
+                                new LoginMobileEmail_NT
                                 {
                                     Status = "Ok",
                                     Message = "Message",
-                                    JwtToken = jwtToken,
-                                    Data= dtReponse
+                                    Data = dtReponse
+                                }
+                            };
+                        return successsResult;
 
-                                }
-                            };
-                            return successsResult;
-                        }
-                        else
-                        {
-                            var errorResult = new List<EmployeeLoginOutput_LIST_NT>
-                            {
-                                new EmployeeLoginOutput_LIST_NT
-                                {
-                                    Status = "Error",
-                                    Message = "Session expired!!!",
-                                    JwtToken = null,
-                                    Data=null
-                                }
-                            };
-                            return errorResult;
-                        }
+                        //var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
+                        //if (IsValid(jwtToken))
+                        //{
+                        //    var successsResult = new List<LoginMobileEmail_NT>
+                        //    {
+                        //        new LoginMobileEmail_NT
+                        //        {
+                        //            Status = "Ok",
+                        //            Message = "Message",
+                        //            Data = dtReponse
+                        //        }
+                        //    };
+                        //    return successsResult;
+                        //}
+                        //else
+                        //{
+                        //    var errorResult = new List<LoginMobileEmail_NT>
+                        //    {
+                        //        new LoginMobileEmail_NT
+                        //        {
+                        //            Status = "Error",
+                        //            Message = "Session expired!!!",
+                        //            Data = null
+                        //        }
+                        //    };
+                        //    return errorResult;
+                        //}
                     }
                     else
                     {
-                        var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                        var errorResult = new List<LoginMobileEmail_NT>
                             {
-                                new EmployeeLoginOutput_LIST_NT
+                                new LoginMobileEmail_NT
                                 {
                                     Status = "Error",
-                                    Message = "Username or password is incorrect.",
-                                    JwtToken = null,
-                                    Data=null
-
+                                    Message = "User is incorrect.",
+                                    Data = null
                                 }
                             };
                         return errorResult;
@@ -228,14 +302,13 @@ namespace TaskManagement.API.Repositories
             }
             catch (Exception ex)
             {
-                var errorResult = new List<EmployeeLoginOutput_LIST_NT>
+                var errorResult = new List<LoginMobileEmail_NT>
                     {
-                        new EmployeeLoginOutput_LIST_NT
+                        new LoginMobileEmail_NT
                         {
                             Status = "Error",
                             Message = ex.Message,
-                            JwtToken = null,
-                            Data=null
+                            Data = null
                         }
                     };
                 return errorResult;
@@ -685,6 +758,7 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", task_DetailsInputNT.CURRENT_EMP_MKEY);
                     parmeters.Add("@FILTER", task_DetailsInputNT.FILTER);
+                    parmeters.Add("@STATUS_FILTER", task_DetailsInputNT.Status_Filter);
                     var result = await db.QueryMultipleAsync("SP_TASK_DASHBOARD_NT", parmeters, commandType: CommandType.StoredProcedure);
 
                     var data = result.Read<Task_DetailsOutPutNT>().ToList();
@@ -1302,6 +1376,69 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<IEnumerable<GET_TASK_TREEOutPut_List_NT>> GetTaskDashboardDetailsAsyncNT(Task_Dashboard_DetailsInput_NT task_Dashboard_DetailsInput)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@CURRENT_EMP_MKEY", task_Dashboard_DetailsInput.CURRENT_EMP_MKEY);
+                    parmeters.Add("@CURR_ACTION", task_Dashboard_DetailsInput.CURR_ACTION);
+                    var ValidateEmail = await db.QueryMultipleAsync("SP_Get_Overall_DB", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var Data = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+                    var Data1 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+                    var Data2 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+                    var Data3 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+                    var Data4 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+                    var Data5 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+                    var Data6 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+                    var Data7 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+                    var Data8 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
+
+                    var successsResult = new List<GET_TASK_TREEOutPut_List_NT>
+                    {
+                        new GET_TASK_TREEOutPut_List_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                             Table = Data,
+                             Table1 = Data1,
+                             Table2 = Data2,
+                             Table3 = Data3,
+                             Table4 = Data4,
+                             Table5 = Data5,
+                             Table6 = Data6,
+                             Table7 = Data7,
+                             Table8 = Data8
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<GET_TASK_TREEOutPut_List_NT>
+                    {
+                        new GET_TASK_TREEOutPut_List_NT
+                        {
+                           Status = "Error",
+                            Message= ex.Message,
+                            Table = null,
+                             Table1 = null,
+                             Table2 = null,
+                             Table3 = null,
+                             Table4 = null,
+                             Table5 = null,
+                             Table6 = null,
+                             Table7 = null,
+                             Table8 = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
         public async Task<IEnumerable<GetTaskTeamOutPut_List>> GetTeamTaskAsync(string CURRENT_EMP_MKEY)
         {
             try
@@ -1333,6 +1470,49 @@ namespace TaskManagement.API.Repositories
                 var errorResult = new List<GetTaskTeamOutPut_List>
                     {
                         new GetTaskTeamOutPut_List
+                        {
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null,
+                            Data1 = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+        public async Task<IEnumerable<GetTaskTeamOutPut_ListNT>> GetTeamTaskAsyncNT(TeamTaskInputNT teamTaskInput)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@CURRENT_EMP_MKEY", teamTaskInput.CURRENT_EMP_MKEY);
+                    parmeters.Add("@Session_User_Id", teamTaskInput.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", teamTaskInput.Business_Group_Id);
+                    var TeamTask = await db.QueryMultipleAsync("SP_GET_TEAM_PROGRESS_NT", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var Data = TeamTask.Read<GET_TASK_DepartmentOutPutNT>().ToList();
+                    var Data1 = TeamTask.Read<TEAM_PROGRESSOutPutNT>().ToList();
+
+                    var successsResult = new List<GetTaskTeamOutPut_ListNT>
+                    {
+                        new GetTaskTeamOutPut_ListNT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= Data,
+                            Data1= Data1
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<GetTaskTeamOutPut_ListNT>
+                    {
+                        new GetTaskTeamOutPut_ListNT
                         {
                            Status = "Error",
                             Message= ex.Message,
@@ -2883,7 +3063,7 @@ namespace TaskManagement.API.Repositories
 
                     var TaskFile = await db.ExecuteAsync("SP_TASK_ACTION_TRL_Insert_Update", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                    if (TaskFile == null)
+                    if (TaskFile == null || TaskFile == 0)
                     {
                         // Handle other unexpected exceptions
                         if (transaction != null && !transactionCompleted)

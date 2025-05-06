@@ -729,6 +729,39 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+
+        [HttpPost("Task-Management/Task-Dashboard-Details-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List_NT>>> Task_Dashboard_DetailsNT([FromBody] Task_Dashboard_DetailsInput_NT task_Dashboard_DetailsInput)
+        {
+            try
+            {
+                var TaskDashboardDetails = await _repository.GetTaskDashboardDetailsAsyncNT(task_Dashboard_DetailsInput);
+               
+                return Ok(TaskDashboardDetails);
+            }
+            catch (Exception ex)
+            {
+                var response = new GET_TASK_TREEOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Table = null,
+                    Table1 = null,
+                    Table2 = null,
+                    Table3 = null,
+                    Table4 = null,
+                    Table5 = null,
+                    Table6 = null,
+                    Table7 = null,
+                    Table8 = null
+                };
+                return Ok(response);
+            }
+        }
+
+
+
         [HttpPost("Task-Management/TeamTask")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<GetTaskTeamOutPut_List>>> TeamTask([FromBody] TeamTaskInput teamTaskInput)
@@ -761,6 +794,31 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+
+        [HttpPost("Task-Management/TeamTask-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GetTaskTeamOutPut_ListNT>>> TeamTaskNT([FromBody] TeamTaskInputNT teamTaskInput)
+        {
+            try
+            {
+                var TaskTeamTask = await _repository.GetTeamTaskAsyncNT(teamTaskInput);
+                
+                return Ok(TaskTeamTask);
+            }
+            catch (Exception ex)
+            {
+                var response = new GetTaskTeamOutPut_ListNT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null,
+                    Data1 = null
+                };
+                return Ok(response);
+            }
+        }
+
 
         [HttpPost("Task-Management/Team_Task_Details")]
         [Authorize]

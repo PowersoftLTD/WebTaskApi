@@ -122,6 +122,102 @@ namespace TaskManagement.API.Model
 
     }
 
+
+     public class GetTaskTeamOutPut_ListNT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<GET_TASK_DepartmentOutPutNT> Data { get; set; }
+        [JsonPropertyName("Data1")]
+        public IEnumerable<TEAM_PROGRESSOutPutNT> Data1 { get; set; }
+    }
+
+    public class GET_TASK_DepartmentOutPutNT
+    {
+        [JsonPropertyName("Current_Emp_Mkey")]
+        public int CURRENT_EMP_MKEY { get; set; }
+        [JsonPropertyName("Department_Id")]
+        public int DEPARTMENT_ID { get; set; }
+        [JsonPropertyName("Erp_Emp_Mkey")]
+        public int ERP_EMP_MKEY { get; set; }
+        [JsonPropertyName("Member_Name")]
+        public string MEMBER_NAME { get; set; }
+        [JsonPropertyName("Ra1_Mkey")]
+        public int RA1_MKEY { get; set; }
+        [JsonPropertyName("Level")]
+        public int Level { get; set; }
+        [JsonPropertyName("Depttoday")]
+        public int DEPTTODAY { get; set; }
+        [JsonPropertyName("Deptoverdue")]
+        public int DEPTOVERDUE { get; set; }
+        [JsonPropertyName("Deptfuture")]
+        public int DEPTFUTURE { get; set; }
+        [JsonPropertyName("Interdepttoday")]
+        public int INTERDEPTTODAY { get; set; }
+        [JsonPropertyName("Interdeptoverdue")]
+        public int INTERDEPTOVERDUE { get; set; }
+        [JsonPropertyName("Interdeptfuture")]
+        public int INTERDEPTFUTURE { get; set; }
+    }
+
+    public class TEAM_PROGRESSOutPutNT
+    {
+        [JsonPropertyName("Current_Emp_Mkey")]
+        public int CURRENT_EMP_MKEY { get; set; }
+        [JsonPropertyName("Department_Id")]
+        public int DEPARTMENT_ID { get; set; }
+        [JsonPropertyName("Erp_Emp_Mkey")]
+        public int ERP_EMP_MKEY { get; set; }
+        [JsonPropertyName("Member_Name")]
+        public string MEMBER_NAME { get; set; }
+        [JsonPropertyName("Ra1_Mkey")]
+        public int RA1_MKEY { get; set; }
+        [JsonPropertyName("Level")]
+        public int Level { get; set; }
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+        [JsonPropertyName("Category")]
+        public string CATEGORY { get; set; }
+        [JsonPropertyName("Task_No")]
+        public string TASK_NO { get; set; }
+        [JsonPropertyName("Creator")]
+        public string CREATOR { get; set; }
+        [JsonPropertyName("Responsible")]
+        public string RESPONSIBLE { get; set; }
+        [JsonPropertyName("Actionable")]
+        public string ACTIONABLE { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public string CREATION_DATE { get; set; }
+        [JsonPropertyName("Completion_Date")]
+        public string COMPLETION_DATE { get; set; }
+        [JsonPropertyName("Task_Name")]
+        public string TASK_NAME { get; set; }
+        [JsonPropertyName("Task_Description")]
+        public string TASK_DESCRIPTION { get; set; }
+        [JsonPropertyName("Tags")]
+        public string TAGS { get; set; }
+        [JsonPropertyName("Status")]
+        public string STATUS { get; set; }
+        [JsonPropertyName("Responsible_Tag")]
+        public string RESPONSIBLE_TAG { get; set; }
+        [JsonPropertyName("Assignee")]
+        public string ASSIGNEE { get; set; }
+        [JsonPropertyName("Assignee_Department_Id")]
+        public int ASSIGNEE_DEPARTMENT_ID { get; set; }
+        [JsonPropertyName("Tasktype")]
+        public string TASKTYPE { get; set; }
+        [JsonPropertyName("Tasktype_Desc")]
+        public string TASKTYPE_DESC { get; set; }
+        [JsonPropertyName("Project_Name")]
+        public string PROJECT_NAME { get; set; }
+
+    }
+
+
+
     public class GetTaskTreeOutPut
     {
         [JsonPropertyName("MKEY")]

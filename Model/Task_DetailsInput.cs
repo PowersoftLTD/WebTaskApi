@@ -16,6 +16,9 @@ namespace TaskManagement.API.Model
         public int CURRENT_EMP_MKEY { get; set; }
         [JsonPropertyName("Filter")]
         public string FILTER { get; set; }
+        [JsonPropertyName("Status_Filter")]
+        public string Status_Filter { get; set; }
+
         [JsonPropertyName("Session_User_ID")]
         public int Session_User_ID { get; set; }
         [JsonPropertyName("Business_Group_ID")]

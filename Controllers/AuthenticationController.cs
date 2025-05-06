@@ -84,8 +84,8 @@ namespace TaskManagement.API.Controllers
             }
         }
         [HttpPost]
-        [Route("LoginMobile_NT")]
-        public async Task<ActionResult<EmployeeLoginOutput_LIST_NT>> LoginMobile_NT([FromBody] EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        [Route("LoginMobileEmailCheck_NT")]
+        public async Task<ActionResult<EmployeeMobile_NT>> LoginMobile_NT([FromBody] EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
         {
             try
             {
@@ -94,15 +94,35 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new EmployeeLoginOutput_LIST
+                var response = new EmployeeMobile_NT
                 {
                     Status = "Error",
-                    Message = ex.Message,
-                    Data = null
+                    Message = ex.Message
                 };
                 return Ok(response);
             }
         }
+
+        [HttpPost]
+        [Route("LoginMobileEmail_NT")]
+        public async Task<ActionResult<LoginMobileEmail_NT>> LoginMobileEmail_NT([FromBody] EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        {
+            try
+            {
+                var LoginValidate = await _repository.LoginMobileEmailNTAsync(employeeCompanyMSTInput_NT);
+                return Ok(LoginValidate);
+            }
+            catch (Exception ex)
+            {
+                var response = new LoginMobileEmail_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message
+                };
+                return Ok(response);
+            }
+        }
+
         private bool IsValid(string token)
         {
             JwtSecurityToken jwtSecurityToken;
