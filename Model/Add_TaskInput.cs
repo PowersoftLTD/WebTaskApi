@@ -68,6 +68,14 @@ namespace TaskManagement.API.Model
         public string MODE { get; set; }
         [JsonPropertyName("Task_No")]
         public string TASK_NO { get; set; }
+
+        [JsonPropertyName("Assign_By_Email")]
+        public string? Assign_By_Email { get; set; }
+
+        [JsonPropertyName("Created_By_Email")]
+        public string? Created_By_Email { get; set; }
+
+
         [JsonPropertyName("Task_Name")]
         public string? TASK_NAME { get; set; }
         [JsonPropertyName("Task_Description")]

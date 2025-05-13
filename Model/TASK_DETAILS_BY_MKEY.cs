@@ -155,10 +155,14 @@ namespace TaskManagement.API.Model
         public DateTime? CREATION_DATE { get; set; }
         [JsonPropertyName("Emp_Full_Name")]
         public string? EMP_FULL_NAME { get; set; }
-        [JsonPropertyName("File_Name")]
-        public string? FILE_NAME { get; set; }
-        [JsonPropertyName("File_Path")]
-        public string? FILE_PATH { get; set; }
+        //[JsonPropertyName("File_Name")]
+        //public string? FILE_NAME { get; set; }
+        //[JsonPropertyName("File_Path")]
+        //public string? FILE_PATH { get; set; }
+
+        [JsonPropertyName("Task_Attachment")]
+        public List<TASK_MEDIA_NT> tASK_MEDIA_NTs {get;set;}
+
         [JsonPropertyName("Task_Checklist")]
         public List<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>? tASK_CHECKLIST_TABLE_INPUT_NT { get; set; }
         [JsonPropertyName("Task_Endlist")]
@@ -167,6 +171,10 @@ namespace TaskManagement.API.Model
         public List<TaskSanctioningDepartmentOutput_NT>? tASK_SANCTIONING_INPUT_NT { get; set; }
         [JsonPropertyName("Resposible_Emp_Mkey")]
         public string? RESPOSIBLE_EMP_MKEY { get; set; }
+
+        [JsonPropertyName("Responsible_Emp_Name")]
+        public string? Responsible_Emp_Name { get; set; }
+        
         [JsonPropertyName("Priority")]
         public string? Priority { get; set; }
         [JsonPropertyName("Tentative_Start_Date")]
@@ -177,6 +185,46 @@ namespace TaskManagement.API.Model
         public DateTime? Actual_Start_Date { get; set; }
         [JsonPropertyName("Actual_End_Date")]
         public DateTime? Actual_End_Date { get; set; }
+    }
+
+    public class TASK_MEDIA_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int? MKEY { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int? SR_NO { get; set; }
+        [JsonPropertyName("Task_Mkey")]
+        public int? TASK_MKEY { get; set; }
+
+        [JsonPropertyName("Task_Parent_Id")]
+        public int? Task_Parent_Id { get; set; }
+
+        [JsonPropertyName("Task_Main_Node_Id")]
+        public int? Task_Main_Node_Id { get; set; }
+
+        [JsonPropertyName("File_Name")]
+        public string? FILE_NAME { get; set; }
+        [JsonPropertyName("File_Path")]
+        public string? FILE_PATH { get; set; }
+       
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+
     }
 
     public class TASK_OUTPUT_MEDIA_NT

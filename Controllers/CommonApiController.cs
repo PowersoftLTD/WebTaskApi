@@ -11,14 +11,13 @@ using System;
 using OfficeOpenXml;
 using TaskManagement.API.Repositories;
 using Newtonsoft.Json;
-//using Azure;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using FastMember;
 using Microsoft.Extensions.Options;
 using System.Collections;
 using System.Transactions;
-using Azure;
+
 
 namespace TaskManagement.API.Controllers
 {
@@ -60,7 +59,7 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-        
+
         [HttpPost("Task-Management/Get-Option")]
         [Authorize]
         public async Task<ActionResult<V_Building_Classification_new>> Get_Project([FromBody] BuildingClassInput v_Building_Classification)
@@ -737,7 +736,7 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var TaskDashboardDetails = await _repository.GetTaskDashboardDetailsAsyncNT(task_Dashboard_DetailsInput);
-               
+
                 return Ok(TaskDashboardDetails);
             }
             catch (Exception ex)
@@ -803,7 +802,7 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var TaskTeamTask = await _repository.GetTeamTaskAsyncNT(teamTaskInput);
-                
+
                 return Ok(TaskTeamTask);
             }
             catch (Exception ex)
@@ -1422,60 +1421,89 @@ namespace TaskManagement.API.Controllers
 
         [Authorize]
         [HttpPost("Task-Management/FileUpload_NT"), DisableRequestSizeLimit]
-        public async Task<IActionResult> Post([FromForm] TaskFileUploadAPI_NT objFile)
+        public async Task<ActionResult<Add_TaskOutPut_List_NT>> Post([FromForm] TaskFileUploadAPI_NT objFile)
         {
             try
             {
                 int srNo = 0;
                 string filePathOpen = string.Empty;
-                if (objFile.files.Length > 0)
+                bool flagAttachment = false;
+                if(objFile.files == null)
                 {
-                    srNo = srNo + 1;
-                    //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
-                    var RsponseStatus = await _repository.FileDownload();
-                    objFile.FILE_PATH = RsponseStatus.Value;
-                    if (!Directory.Exists(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
+                    var response = new Add_TaskOutPut_List_NT
                     {
-                        Directory.CreateDirectory(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
-                    }
-                    using (FileStream filestream = System.IO.File.Create(objFile.FILE_PATH + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName))
+                        Status = "Error",
+                        Message = "please attach the file!!!",
+                        Data1 = null
+                    };
+                    return Ok(response);
+                }
+                foreach (var TaskFiles in objFile.files)
+                {
+                    if (TaskFiles.Length > 0)
                     {
-                        objFile.files.CopyTo(filestream);
-                        filestream.Flush();
-                    }
-                    objFile.FILE_NAME = objFile.files.FileName;
-                    filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + objFile.files.FileName;
-                    int ResultCount = await _repository.TASKFileUpoadNTAsync(srNo, objFile.TASK_MKEY, objFile.TASK_PARENT_ID, objFile.FILE_NAME, filePathOpen, objFile.CREATED_BY, Convert.ToChar(objFile.DELETE_FLAG), objFile.TASK_MAIN_NODE_ID);
-                    objFile.FILE_PATH = filePathOpen;
-                    if (ResultCount > 0)
-                    {
-                        var Successresponse = new Add_TaskOutPut_List_NT
+                        srNo = srNo + 1;
+                        //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
+                        var RsponseStatus = await _repository.FileDownload();
+                        string FilePath = RsponseStatus.Value;
+                        if (!Directory.Exists(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID))
                         {
-                            Status = "ok",
-                            Message = "File Uploaded",
-                            Data2 = objFile
-                        };
-                        return Ok(Successresponse);
-                    }
-                    else
-                    {
-                        var Errorresponse = new Add_TaskOutPut_List_NT
+                            Directory.CreateDirectory(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID);
+                        }
+                        using (FileStream filestream = System.IO.File.Create(FilePath + "\\Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + TaskFiles.FileName))
                         {
-                            Status = "Error",
-                            Message = "Error occurred",
-                            Data1 = null
-                        };
-                        return Ok(Errorresponse);
+                            TaskFiles.CopyTo(filestream);
+                            filestream.Flush();
+                        }
+
+                        filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + TaskFiles.FileName;
+                        var ResultCount = await _repository.TASKFileUpoadNTAsync(srNo, objFile.TASK_MKEY, objFile.TASK_PARENT_ID, TaskFiles.FileName, filePathOpen, objFile.CREATED_BY, Convert.ToChar(objFile.DELETE_FLAG), objFile.TASK_MAIN_NODE_ID);
+                        FilePath = filePathOpen;
+                        if (ResultCount != null)
+                        {
+                            var Successresponse = new Add_TaskOutPut_List_NT
+                            {
+                                Status = "ok",
+                                Message = "File Uploaded",
+                                Data2 = objFile
+                            };
+                            flagAttachment = true;
+                            // return Ok(Successresponse);
+                        }
+                        else
+                        {
+                            var Errorresponse = new Add_TaskOutPut_List_NT
+                            {
+                                Status = "Error",
+                                Message = "Error occurred",
+                                Data1 = null
+                            };
+                            return Ok(Errorresponse);
+                        }
                     }
                 }
-                var response = new Add_TaskOutPut_List_NT
-                {
-                    Status = "Error",
-                    Message = "please attach the file!!!",
-                    Data1 = null
-                };
-                return Ok(response);
 
+                if (flagAttachment == true)
+                {
+                    var Successresponse = new Add_TaskOutPut_List_NT
+                    {
+                        Status = "ok",
+                        Message = "File Uploaded",
+                        Data2 = objFile
+                    };
+                    flagAttachment = true;
+                    return Ok(Successresponse);
+                }
+                else
+                {
+                    var response = new Add_TaskOutPut_List_NT
+                    {
+                        Status = "Error",
+                        Message = "please attach the file!!!",
+                        Data1 = null
+                    };
+                    return Ok(response);
+                }
             }
             catch (Exception ex)
             {

@@ -74,7 +74,7 @@ namespace TaskManagement.API.Model
     public class TaskFileUploadAPI_NT
     {
         [JsonPropertyName("Files")]
-        public IFormFile? files { get; set; }
+        public List<IFormFile>? files { get; set; }
         [JsonPropertyName("File_Name")]
         public string? FILE_NAME { get; set; }
         [JsonPropertyName("File_Path")]
@@ -89,6 +89,6 @@ namespace TaskManagement.API.Model
         public char? DELETE_FLAG { get; set; }
         [JsonPropertyName("Created_By")]
         public int CREATED_BY { get; set; }
-    }
 
+    }
 }

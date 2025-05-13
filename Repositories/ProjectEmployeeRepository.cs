@@ -856,6 +856,20 @@ namespace TaskManagement.API.Repositories
 
                     if (TaskDashDetails.Any())
                     {
+                        var parmetersAttachment = new DynamicParameters();
+                        parmetersAttachment.Add("@HDR_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
+                        parmetersAttachment.Add("@Session_User_Id", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
+                        parmetersAttachment.Add("@Business_Group_Id", tASK_DETAILS_BY_MKEYInput_NT.Business_Group_Id);
+                        var TaskAttachmentDetails = await db.QueryAsync<TASK_MEDIA_NT>("SP_TASK_MEDIA_TRL_NT", parmetersAttachment, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        if (TaskAttachmentDetails.Any())
+                        {
+                            foreach (var TaskAttachment in TaskDashDetails)
+                            {
+                                TaskAttachment.tASK_MEDIA_NTs = TaskAttachmentDetails.ToList();
+                            }
+                        }
+
                         var parmetersCheckList = new DynamicParameters();
                         parmetersCheckList.Add("@PROPERTY_MKEY", 0);
                         parmetersCheckList.Add("@BUILDING_MKEY", 0);
@@ -937,19 +951,6 @@ namespace TaskManagement.API.Repositories
                                 }
                             };
                         return SuccessResult;
-
-                        //else
-                        //{
-                        //    var errorResult = new List<TASK_DETAILS_BY_MKEY_list_NT>
-                        //        {
-                        //            new TASK_DETAILS_BY_MKEY_list_NT
-                        //            {
-                        //                Status = "Error",
-                        //                Message = "Error occurd"
-                        //            }
-                        //        };
-                        //    return errorResult;
-                        //}
                     }
                     else
                     {
@@ -1821,6 +1822,8 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@ISNODE", add_TaskInput_NT.ISNODE);
                         parmeters.Add("@CLOSE_DATE", add_TaskInput_NT.CLOSE_DATE);
                         parmeters.Add("@DUE_DATE", add_TaskInput_NT.DUE_DATE);
+                        parmeters.Add("@ASSING_BY_EMAIL", add_TaskInput_NT.Assign_By_Email);
+                        parmeters.Add("@CREATED_BY_EMAIL", add_TaskInput_NT.Created_By_Email);
                         parmeters.Add("@TASK_PARENT_ID", add_TaskInput_NT.TASK_PARENT_ID);
                         parmeters.Add("@STATUS", add_TaskInput_NT.STATUS);
                         parmeters.Add("@STATUS_PERC", add_TaskInput_NT.STATUS_PERC);
@@ -2834,7 +2837,7 @@ namespace TaskManagement.API.Repositories
                 return 1;
             }
         }
-        public async Task<int> TASKFileUpoadNTAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId)
+        public async Task<ActionResult<Add_TaskOutPut_List_NT>> TASKFileUpoadNTAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -2896,15 +2899,16 @@ namespace TaskManagement.API.Repositories
                             }
                         }
 
-                        var TemplateError = new TASK_FILE_UPLOAD_NT();
-                        TemplateError.STATUS = "Error";
-                        TemplateError.MESSAGE = "Error Occurd";
-                        return 0;
+                        var TemplateError = new Add_TaskOutPut_List_NT();
+                        TemplateError.Status = "Error";
+                        TemplateError.Message = "Error Occurd";
+                        return TemplateError;
                     }
+                    var TemplateSuccess = new Add_TaskOutPut_List_NT();
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
-                    return 1;
+                    return TemplateSuccess;
                 }
 
             }
@@ -2929,10 +2933,10 @@ namespace TaskManagement.API.Repositories
                     }
                 }
 
-                var ErrorFileDetails = new TASK_FILE_UPLOAD_NT();
-                ErrorFileDetails.STATUS = "Error";
-                ErrorFileDetails.MESSAGE = ex.Message;
-                return 1;
+                var ErrorFileDetails = new Add_TaskOutPut_List_NT();
+                ErrorFileDetails.Status = "Error";
+                ErrorFileDetails.Message = ex.Message;
+                return ErrorFileDetails;
             }
         }
         public async Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag)

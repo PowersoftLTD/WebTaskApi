@@ -92,6 +92,9 @@ namespace TaskManagement.API.Model
         public string? Progress_Percentage { get; set; }
         [JsonPropertyName("Subtask_Count")]
         public string? Subtask_Count { get; set; }
+
+        [JsonPropertyName("Created_By")]
+        public string? CREATED_BY { get; set; }
     }
 
 }

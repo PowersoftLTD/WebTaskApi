@@ -17,7 +17,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Filter")]
         public string FILTER { get; set; }
         [JsonPropertyName("Status_Filter")]
-        public string Status_Filter { get; set; }
+        public string? Status_Filter { get; set; }
 
         [JsonPropertyName("Session_User_ID")]
         public int Session_User_ID { get; set; }

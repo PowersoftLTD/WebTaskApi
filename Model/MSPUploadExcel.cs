@@ -1,0 +1,82 @@
+﻿using System.Text.Json.Serialization;
+
+namespace TaskManagement.API.Model
+{
+    public class MSPUploadExcelOutPut
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<MSPUploadExcel> Data { get; set; }
+    }
+
+    public class MSPUploadExcel
+    {
+        [JsonPropertyName("Mkey")]
+        public int Mkey { get; set; }
+        [JsonPropertyName("WBS")]
+        public string WBS { get; set; }
+        [JsonPropertyName("Name")]
+        public string Name { get; set; }
+        [JsonPropertyName("Duration")]
+        public string Duration { get; set; }
+        [JsonPropertyName("Start_Date")]
+        public DateTime Start_Date { get; set; }
+        [JsonPropertyName("Finish_Date")]
+        public DateTime Finish_Date { get; set; }
+        [JsonPropertyName("Predecessors")]
+        public string Predecessors { get; set; }
+        [JsonPropertyName("Resource_Names")]
+        public string Resource_Names { get; set; }
+        [JsonPropertyName("Text1")]
+        public string Text1 { get; set; }
+        [JsonPropertyName("Outline_Level")]
+        public int Outline_Level { get; set; }
+        [JsonPropertyName("Number1")]
+        public int Number1 { get; set; }
+        [JsonPropertyName("Unique_ID")]
+        public int Unique_ID { get; set; }
+        [JsonPropertyName("Created_By")]
+        public int Created_By { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public DateTime Creation_Date { get; set; }
+        [JsonPropertyName("Updated_By")]
+        public int Updated_By { get; set; }
+        [JsonPropertyName("Updation_Date")]
+        public DateTime Updation_Date { get; set; }
+        [JsonPropertyName("Process_Flag")]
+        public string Process_Flag { get; set; }
+        [JsonPropertyName("Remarks")]
+        public string Remarks { get; set; }
+        [JsonPropertyName("FileName")]
+        public string FileName { get; set; }
+        [JsonPropertyName("Mpp_Name")]
+        public string mpp_name { get; set; }
+    }
+
+
+    public class MSPUploadExcelInput
+    {
+        public string WBS { get; set; }
+        public string Name { get; set; }
+        public string Duration { get; set; }
+        public DateTime Start_Date { get; set; }
+        public DateTime Finish_Date { get; set; }
+        public string Predecessors { get; set; }
+        public string Resource_Names { get; set; }
+        public string Text1 { get; set; }
+        public int Outline_Level { get; set; }
+        public int Number1 { get; set; }
+        public int Unique_ID { get; set; }
+        public int Created_By { get; set; }
+        public DateTime Creation_Date { get; set; }
+        public int Updated_By { get; set; }
+        public DateTime Updation_Date { get; set; }
+        public string Process_Flag { get; set; }
+        public string Remarks { get; set; }
+        public string FileName { get; set; }
+        public string mpp_name { get; set; }
+    }
+}

@@ -124,6 +124,7 @@ namespace TaskManagement.API.Model
         public string? FILE_NAME { get; set; }
         [JsonPropertyName("File_Path")]
         public string? FILE_PATH { get; set; }
+
         [JsonPropertyName("Created_By_Id")]
         public string? CREATED_BY_ID { get; set; }
 
