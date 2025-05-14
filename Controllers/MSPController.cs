@@ -18,12 +18,12 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("MSP/Upload-Excel")]
-        public async Task<ActionResult<MSPUploadExcelOutPut>> Upload_Excel(MSPUploadExcelInput mSPUploadExcelInput)
+        public async Task<ActionResult<MSPUploadExcelOutPut>> Upload_Excel(List<MSPUploadExcelInput> mSPUploadExcelInput)
         {
             try
             {
-                var LoginValidate = await _repository.UploadExcel(mSPUploadExcelInput);
-                return Ok(LoginValidate);
+                var UploadExcel = await _repository.UploadExcel(mSPUploadExcelInput);
+                return Ok(UploadExcel);
             }
             catch (Exception ex)
             {

@@ -174,7 +174,10 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Responsible_Emp_Name")]
         public string? Responsible_Emp_Name { get; set; }
-        
+
+        [JsonPropertyName("Process_Flag")]
+        public string? Process_Flag { get; set; }
+
         [JsonPropertyName("Priority")]
         public string? Priority { get; set; }
         [JsonPropertyName("Tentative_Start_Date")]
