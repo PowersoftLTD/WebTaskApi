@@ -52,6 +52,8 @@ namespace TaskManagement.API.Model
         public string? Message { get; set; }
         [JsonPropertyName("Data")]
         public IEnumerable<Task_DetailsOutPutNT> Data { get; set; }
+        [JsonPropertyName("Data1")]
+        public IEnumerable<TaskDashboardCount_NT> Data1 { get; set; }
     }
 
     public class Task_DetailsOutPutNT
@@ -95,6 +97,24 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Created_By")]
         public string? CREATED_BY { get; set; }
+    }
+
+    public class TaskDashboardCount_NT
+    {
+        [JsonPropertyName("DEFAULT")]
+        public int Default { get; set; }
+        [JsonPropertyName("ALLOCATEDBYME")]
+        public int ALLOCATEDBYME { get; set; }
+        [JsonPropertyName("ALLOCATEDTOME")]
+        public int ALLOCATEDTOME { get; set; }
+        [JsonPropertyName("COMPLETEDBYME")]
+        public int COMPLETEDBYME { get; set; }
+        [JsonPropertyName("COMPLETEDFORME")]
+        public int COMPLETEDFORME { get; set; }
+        [JsonPropertyName("CANCELCLOSE")]
+        public int CANCELCLOSE { get; set; }
+        [JsonPropertyName("ACTIVE")]
+        public int ACTIVE { get; set; }
     }
 
 }

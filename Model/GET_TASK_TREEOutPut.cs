@@ -55,7 +55,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("RA1_MKEY")]
         public int RA1_MKEY { get; set; }
         [JsonPropertyName("Level")]
-        public int Level { get; set; }
+        public string Level { get; set; }
         [JsonPropertyName("DEPTTODAY")]
         public int DEPTTODAY { get; set; }
         [JsonPropertyName("DEPTOVERDUE")]
@@ -82,7 +82,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("RA1_MKEY")]
         public int RA1_MKEY { get; set; }
         [JsonPropertyName("Level")]
-        public int Level { get; set; }
+        public string Level { get; set; }
         [JsonPropertyName("MKEY")]
         public int MKEY { get; set; }
         [JsonPropertyName("CATEGORY")]
@@ -148,7 +148,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Ra1_Mkey")]
         public int RA1_MKEY { get; set; }
         [JsonPropertyName("Level")]
-        public int Level { get; set; }
+        public string Level { get; set; }
         [JsonPropertyName("Depttoday")]
         public int DEPTTODAY { get; set; }
         [JsonPropertyName("Deptoverdue")]
@@ -176,7 +176,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Ra1_Mkey")]
         public int RA1_MKEY { get; set; }
         [JsonPropertyName("Level")]
-        public int Level { get; set; }
+        public string Level { get; set; }
         [JsonPropertyName("Mkey")]
         public int MKEY { get; set; }
         [JsonPropertyName("Category")]

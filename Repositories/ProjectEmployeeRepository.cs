@@ -762,7 +762,7 @@ namespace TaskManagement.API.Repositories
                     var result = await db.QueryMultipleAsync("SP_TASK_DASHBOARD_NT", parmeters, commandType: CommandType.StoredProcedure);
 
                     var data = result.Read<Task_DetailsOutPutNT>().ToList();
-                    //  var data1 = result.Read<TaskDashboardCount>().ToList();
+                    var data1 = result.Read<TaskDashboardCount_NT>().ToList();
 
                     var successsResult = new List<Task_DetailsOutPutNT_List>
                     {
@@ -770,7 +770,8 @@ namespace TaskManagement.API.Repositories
                         {
                             Status = "Ok",
                             Message = "Message",
-                            Data= data
+                            Data= data,
+                            Data1 = data1
                         }
                     };
                     return successsResult;
@@ -784,7 +785,8 @@ namespace TaskManagement.API.Repositories
                         {
                             Status = "Error",
                             Message = ex.Message,
-                            Data = null
+                            Data = null,
+                            Data1 = null
                         }
                     };
                 return errorResult;

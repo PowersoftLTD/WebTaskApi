@@ -208,7 +208,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Sr_No")]
         public int SR_NO { get; set; }
         [JsonPropertyName("Level")]
-        public int LEVEL { get; set; }
+        public string LEVEL { get; set; }
         [JsonPropertyName("Sanctioning_Department")]
         public string SANCTIONING_DEPARTMENT { get; set; }
         [JsonPropertyName("Sanctioning_Authority_Mkey")]
