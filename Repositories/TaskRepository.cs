@@ -222,13 +222,13 @@ namespace TaskManagement.API.Repositories
 
                                 // Return error if task status is not Ok
                                 return new List<FileUploadAPIOutPut>
-                        {
-                            new FileUploadAPIOutPut
-                            {
-                                Status = "Error",
-                                Message = item.Message
-                            }
-                        };
+                                {
+                                    new FileUploadAPIOutPut
+                                    {
+                                        Status = "Error",
+                                        Message = item.Message
+                                    }
+                                };
                             }
                         }
 

@@ -12694,3 +12694,856 @@ End
 GO
 EXEC sys.sp_addextendedproperty @name=N'MS_DiagramPaneCount', @value=1 , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'VIEW',@level1name=N'V_Doc_Type'
 GO
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_TASK_DASHBOARD_NT]    Script Date: 20-05-2025 15:09:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--  EXEC SP_TASK_DASHBOARD_NT 926,'CANCELCLOSE','Today'
+--  EXEC SP_TASK_DASHBOARD_NT 926,'DEFAULT','Overdue'
+--  EXEC SP_TASK_DASHBOARD_NT 926,'DEFAULT','Next 3 Days'
+--  EXEC SP_TASK_DASHBOARD_NT 926,'DEFAULT','Next 7 Days'
+--  EXEC SP_TASK_DASHBOARD_NT 926,'DEFAULT','Next 2 Weeks'
+--  EXEC SP_TASK_DASHBOARD_NT 926,'DEFAULT','Next Month'
+--  EXEC SP_TASK_DASHBOARD_NT 926,'ALLOCATEDBYME','Review'
+ALTER procedure [dbo].[SP_TASK_DASHBOARD_NT] (@CURRENT_EMP_MKEY INT,
+                                              @FILTER           NVARCHAR(100),
+                                              @STATUS_FILTER     NVARCHAR(255) = NULL)
+AS
+  BEGIN
+      DECLARE @DAY INT
+
+      SET @DAY=0
+
+      IF( @FILTER = NULL OR @FILTER = '' OR @FILTER = 'DEFAULT' )
+        BEGIN 
+		print '@FILTER = DEFAULT '
+            SELECT T_HDR.mkey,
+                   Isnull(TMST.type_desc, 'NA')
+                   CATEGORY
+                   ,
+                   T_HDR.task_no,
+                   dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))
+                   CREATOR,
+                   dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA'))
+                   RESPONSIBLE,
+                   dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))
+                   ACTIONABLE,
+                   T_HDR.creation_date,
+                   CASE
+                     WHEN T_HDR.status IN ( 'CREATED' ) THEN 'Not Started'
+                     WHEN T_HDR.status LIKE '%SUB TASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status LIKE '%SUBTASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status IN ( 'WORK IN PROGRESS',
+                                            'CLOSE INITIATED',
+                                            'CANCEL INITIATED',
+                                            'RE-WORK' ) THEN 'In Progress'
+                     WHEN T_HDR.status IN ( 'CLOSE', 'COMPLETED' ) THEN
+                     'Completed'
+                     ELSE 'Others'
+                   END                                                    AS
+                   Dashboard_Status,
+                   CONVERT(VARCHAR, T_HDR.completion_date, 103)
+                   COMPLETION_DATE,
+                   dbo.[Initcap](T_HDR.task_name)
+                   TASK_NAME,
+                   T_HDR.task_description,
+                   T_HDR.tags,
+                   dbo.[Initcap](T_HDR.status)                            STATUS
+                   ,
+                   CASE
+                     WHEN Isnull(CREATOR.first_name, 'NA') !=
+                          Isnull(RESPONSIBLE.first_name, 'NA')
+                   THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   + ' > '
+                   + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA') )
+                     ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   END
+                   RESPONSIBLE_TAG,
+                   dbo.[Initcap](Isnull(PMST.type_desc, ''))
+                   PROJECT_NAME
+                   ,
+                   dbo.Tasknamestring(T_HDR.mkey)
+                   AS
+                   'TASK_HISTORY',
+                   Isnull(Rtrim(T_HDR.[priority]), '')                    AS
+                   [Priority],
+                   Isnull(T_HDR.percent_complete, '0')                    AS
+                   Progress_Percentage,
+                   Isnull(parent_counts.parenttaskcount, 0)               AS
+                   SubTask_Count,
+				   T_HDR.CREATED_BY 
+            FROM   task_hdr T_HDR
+                   LEFT JOIN employee_mst CREATOR
+                          ON CREATOR.mkey = T_HDR.created_by
+                             AND CREATOR.delete_flag = 'N'
+                   LEFT JOIN employee_mst RESPONSIBLE
+                          ON RESPONSIBLE.mkey = T_HDR.assigned_to
+                             AND RESPONSIBLE.delete_flag = 'N'
+                   LEFT JOIN employee_mst ACTIONABLE
+                          ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+                             AND ACTIONABLE.delete_flag = 'N'
+                   --LEFT JOIN v_category CATEGORY
+                   --       ON CATEGORY.mkey = T_HDR.caregory and CATEGORY.DELETE_FLAG = 'N'
+                   LEFT JOIN type_mst TMST
+                          ON TMST.master_mkey = T_HDR.caregory
+                             AND TMST.type_code = 'CATEGORY'
+                             AND TMST.delete_flag = 'N'
+                   --LEFT JOIN v_project PROJ
+                   --       ON T_HDR.project_id = PROJ.master_mkey and PROJ.DELETE_FLAG = 'N' 
+                   LEFT JOIN type_mst PMST
+                          ON PMST.master_mkey = T_HDR.project_id
+                             AND PMST.type_code = 'PROJECT'
+                             AND PMST.delete_flag = 'N'
+                   LEFT JOIN (SELECT task_parent_id,
+                                     Count(*) AS ParentTaskCount
+                              FROM   task_hdr
+                              WHERE  task_parent_id IS NOT NULL
+                                     AND mkey NOT IN ( task_parent_id )
+                                     AND delete_flag = 'N'
+                              GROUP  BY task_parent_id) parent_counts
+                          ON T_HDR.mkey = parent_counts.task_parent_id
+            WHERE  (
+                   --T_HDR.Created_by=@CURRENT_EMP_MKEY  
+                   --OR  
+                   --T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+                   --OR  
+                   --T_HDR.RESPOSIBLE_EMP_MKEY=@CURRENT_EMP_MKEY  
+                   --T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+                   --OR  
+                   T_HDR.resposible_emp_mkey = @CURRENT_EMP_MKEY )
+                   AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED', 'Cancel')
+                   AND Isnull(T_HDR.status_flag, 'A') IN ( 'A' )
+                   AND T_HDR.delete_flag = 'N'
+				 --   And CASE
+					--	WHEN @STATUS_FILTER    = 'Today' and @STATUS_FILTER    IS NULL THEN 
+					--		CASE WHEN CONVERT(VARCHAR, T_HDR.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103) THEN 1 ELSE 0 END
+        
+					--	WHEN @STATUS_FILTER    = 'Overdue' THEN 
+					--		CASE WHEN T_HDR.completion_date < GETDATE() THEN 1 ELSE 0 END
+        
+					--	WHEN @STATUS_FILTER    = 'Next 3 Days' THEN 
+					--		CASE WHEN T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 3, GETDATE()) THEN 1 ELSE 0 END
+        
+					--	WHEN @STATUS_FILTER    = 'Next 7 Days' THEN 
+					--		CASE WHEN T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 7, GETDATE()) THEN 1 ELSE 0 END
+        
+					--	WHEN @STATUS_FILTER    = 'Next 2 Weeks' THEN 
+					--		CASE WHEN T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(WEEK, 2, GETDATE()) THEN 1 ELSE 0 END
+        
+					--	WHEN @STATUS_FILTER    = 'Next Month' THEN 
+					--		CASE WHEN T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(MONTH, 1, GETDATE()) THEN 1 ELSE 0 END
+        
+					--	WHEN @STATUS_FILTER    = 'Review' THEN 
+					--		CASE WHEN T_HDR.status IN ( 'CANCEL INITIATED', 'CLOSE INITIATED' ) THEN 1 ELSE 0 END
+        
+					--	WHEN @STATUS_FILTER    IS NULL THEN 
+					--		CASE WHEN CONVERT(VARCHAR, T_HDR.completion_date, 103) = 'S' THEN 1 ELSE 0 END
+        
+					--	ELSE 0  -- If none of the conditions match, return false
+					--END = 1
+            ORDER  BY creation_date DESC
+        END
+
+      IF( @FILTER = 'ALLOCATEDBYME' )
+        BEGIN
+				SELECT T_HDR.mkey,
+                   Isnull(TMST.type_desc, 'NA')
+                   CATEGORY
+                   ,
+                   T_HDR.task_no,
+                   dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))
+                   CREATOR,
+                   dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA'))
+                   RESPONSIBLE,
+                   dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))
+                   ACTIONABLE,
+                   T_HDR.creation_date,
+                   CASE
+                     WHEN T_HDR.status IN ( 'CREATED' ) THEN 'Not Started'
+                     WHEN T_HDR.status LIKE '%SUB TASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status LIKE '%SUBTASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status IN ( 'WORK IN PROGRESS',
+                                            'CLOSE INITIATED',
+                                            'CANCEL INITIATED',
+                                            'RE-WORK' ) THEN 'In Progress'
+                     WHEN T_HDR.status IN ( 'CLOSE', 'COMPLETED' ) THEN
+                     'Completed'
+                     ELSE 'Others'
+                   END                                                    AS
+                   Dashboard_Status,
+                   CONVERT(VARCHAR, T_HDR.completion_date, 103)           AS
+                   COMPLETION_DATE
+                   ,
+                   dbo.[Initcap](T_HDR.task_name)                         AS
+                   TASK_NAME,
+                   T_HDR.task_description,
+                   T_HDR.tags,
+                   dbo.[Initcap](T_HDR.status)                            AS
+                   STATUS,
+                   CASE
+                     WHEN Isnull(CREATOR.first_name, 'NA') !=
+                          Isnull(RESPONSIBLE.first_name, 'NA')
+                   THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   + ' > '
+                   + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA'))
+                     ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   END                                                    AS
+                   RESPONSIBLE_TAG
+                   ,
+                   dbo.[Initcap](Isnull(PMST.type_desc, ''))              AS
+                   PROJECT_NAME,
+                   dbo.Tasknamestring(T_HDR.mkey)                         AS
+                   TASK_HISTORY,
+                   Isnull(Rtrim(T_HDR.[priority]), '')                    AS
+                   [Priority],
+                   Isnull(T_HDR.percent_complete, '0')                    AS
+                   Progress_Percentage,
+                   Isnull(parent_counts.parenttaskcount, 0)               AS
+                   SubTask_Count,
+				   T_HDR.CREATED_BY
+            FROM   task_hdr T_HDR
+                   LEFT JOIN employee_mst CREATOR
+                          ON CREATOR.mkey = T_HDR.created_by
+                             AND CREATOR.delete_flag = 'N'
+                   LEFT JOIN employee_mst RESPONSIBLE
+                          ON RESPONSIBLE.mkey = T_HDR.assigned_to
+                             AND RESPONSIBLE.delete_flag = 'N'
+                   LEFT JOIN employee_mst ACTIONABLE
+                          ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+                             AND ACTIONABLE.delete_flag = 'N'
+                   --LEFT JOIN v_category CATEGORY
+                   --       ON CATEGORY.mkey = T_HDR.caregory and CATEGORY.DELETE_FLAG = 'N'
+                   LEFT JOIN type_mst TMST
+                          ON TMST.master_mkey = T_HDR.caregory
+                             AND TMST.type_code = 'CATEGORY'
+                             AND TMST.delete_flag = 'N'
+                   --LEFT JOIN v_project PROJ
+                   --       ON T_HDR.project_id = PROJ.master_mkey and PROJ.DELETE_FLAG = 'N' 
+                   LEFT JOIN type_mst PMST
+                          ON PMST.master_mkey = T_HDR.project_id
+                             AND PMST.type_code = 'PROJECT'
+                             AND PMST.delete_flag = 'N'
+                   LEFT JOIN (SELECT task_parent_id,
+                                     Count(*) AS ParentTaskCount
+                              FROM   task_hdr
+                              WHERE  task_parent_id IS NOT NULL
+                                     AND mkey NOT IN ( task_parent_id )
+                                     AND delete_flag = 'N'
+                              GROUP  BY task_parent_id) parent_counts
+                          ON T_HDR.mkey = parent_counts.task_parent_id
+            WHERE  ( T_HDR.created_by = @CURRENT_EMP_MKEY )
+                   AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED', 'Cancel'
+                                           )
+                   AND Isnull(T_HDR.status_flag, 'A') IN ( 'A' )
+                   AND T_HDR.delete_flag = 'N'
+				   AND (
+					@STATUS_FILTER    IS NULL
+					OR (
+							(@STATUS_FILTER    = 'Today' AND CONVERT(DATE, T_HDR.completion_date) = CONVERT(DATE, GETDATE()))
+							OR (@STATUS_FILTER    = 'Overdue' AND T_HDR.completion_date < GETDATE())
+							OR (@STATUS_FILTER    = 'Next 3 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 3, GETDATE()))
+							OR (@STATUS_FILTER    = 'Next 7 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 7, GETDATE()))
+							OR (@STATUS_FILTER    = 'Next 2 Weeks' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 14, GETDATE()))
+							OR (@STATUS_FILTER    = 'Next Month' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(MONTH, 1, GETDATE()))
+							OR (@STATUS_FILTER    = 'Review' AND T_HDR.status IN ('CANCEL INITIATED', 'CLOSE INITIATED'))
+						)
+					)
+            ORDER  BY creation_date DESC;
+        END
+
+      IF( @FILTER = 'ALLOCATEDTOME' )
+        BEGIN
+            SELECT T_HDR.mkey,
+                   Isnull(TMST.type_desc, 'NA')
+                   CATEGORY
+                   ,
+                   T_HDR.task_no,
+                   dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))
+                   CREATOR,
+                   dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA'))
+                   RESPONSIBLE,
+                   dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))
+                   ACTIONABLE,
+                   T_HDR.creation_date,
+                   CASE
+                     WHEN T_HDR.status IN ( 'CREATED' ) THEN 'Not Started'
+                     WHEN T_HDR.status LIKE '%SUB TASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status LIKE '%SUBTASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status IN ( 'WORK IN PROGRESS',
+                                            'CLOSE INITIATED',
+                                            'CANCEL INITIATED',
+                                            'RE-WORK' ) THEN 'In Progress'
+                     WHEN T_HDR.status IN ( 'CLOSE', 'COMPLETED' ) THEN
+                     'Completed'
+                     ELSE 'Others'
+                   END                                                    AS
+                   Dashboard_Status,
+                   CONVERT(VARCHAR, T_HDR.completion_date, 103)           AS
+                   COMPLETION_DATE
+                   ,
+                   dbo.[Initcap](T_HDR.task_name)                         AS
+                   TASK_NAME,
+                   T_HDR.task_description,
+                   T_HDR.tags,
+                   dbo.[Initcap](T_HDR.status)                            AS
+                   STATUS,
+                   CASE
+                     WHEN Isnull(CREATOR.first_name, 'NA') !=
+                          Isnull(RESPONSIBLE.first_name, 'NA')
+                   THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   + ' > '
+                   + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA'))
+                     ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   END                                                    AS
+                   RESPONSIBLE_TAG
+                   ,
+                   dbo.[Initcap](Isnull(PMST.type_desc, ''))              AS
+                   PROJECT_NAME,
+                   dbo.Tasknamestring(T_HDR.mkey)                         AS
+                   TASK_HISTORY,
+                   Isnull(Rtrim(T_HDR.[priority]), '')                    AS
+                   [Priority],
+                   Isnull(T_HDR.percent_complete, '0')                    AS
+                   Progress_Percentage,
+                   Isnull(parent_counts.parenttaskcount, 0)               AS
+                   SubTask_Count,
+				   T_HDR.CREATED_BY
+            FROM   task_hdr T_HDR
+                   LEFT JOIN employee_mst CREATOR
+                          ON CREATOR.mkey = T_HDR.created_by
+                             AND CREATOR.delete_flag = 'N'
+                   LEFT JOIN employee_mst RESPONSIBLE
+                          ON RESPONSIBLE.mkey = T_HDR.assigned_to
+                             AND RESPONSIBLE.delete_flag = 'N'
+                   LEFT JOIN employee_mst ACTIONABLE
+                          ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+                             AND ACTIONABLE.delete_flag = 'N'
+                   --LEFT JOIN v_category CATEGORY
+                   --       ON CATEGORY.mkey = T_HDR.caregory and CATEGORY.DELETE_FLAG = 'N'
+                   LEFT JOIN type_mst TMST
+                          ON TMST.master_mkey = T_HDR.caregory
+                             AND TMST.type_code = 'CATEGORY'
+                             AND TMST.delete_flag = 'N'
+                   --LEFT JOIN v_project PROJ
+                   --       ON T_HDR.project_id = PROJ.master_mkey and PROJ.DELETE_FLAG = 'N' 
+                   LEFT JOIN type_mst PMST
+                          ON PMST.master_mkey = T_HDR.project_id
+                             AND PMST.type_code = 'PROJECT'
+                             AND PMST.delete_flag = 'N'
+                   LEFT JOIN (SELECT task_parent_id,
+                                     Count(*) AS ParentTaskCount
+                              FROM   task_hdr
+                              WHERE  task_parent_id IS NOT NULL
+                                     AND mkey NOT IN ( task_parent_id )
+                                     AND delete_flag = 'N'
+                              GROUP  BY task_parent_id) parent_counts
+                          ON T_HDR.mkey = parent_counts.task_parent_id
+            WHERE  ( T_HDR.assigned_to = @CURRENT_EMP_MKEY
+                      OR T_HDR.resposible_emp_mkey = @CURRENT_EMP_MKEY )
+                   AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED', 'Cancel')
+                   AND Isnull(T_HDR.status_flag, 'A') IN ( 'A' )
+                   AND T_HDR.delete_flag = 'N'
+				   AND (
+						@STATUS_FILTER    IS NULL
+						OR (
+								(@STATUS_FILTER    = 'Today' AND CONVERT(DATE, T_HDR.completion_date) = CONVERT(DATE, GETDATE()))
+								OR (@STATUS_FILTER    = 'Overdue' AND T_HDR.completion_date < GETDATE())
+								OR (@STATUS_FILTER    = 'Next 3 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 3, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next 7 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 7, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next 2 Weeks' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 14, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next Month' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(MONTH, 1, GETDATE()))
+								OR (@STATUS_FILTER    = 'Review' AND T_HDR.status IN ('CANCEL INITIATED', 'CLOSE INITIATED'))
+							)
+						)
+            ORDER  BY creation_date DESC;
+        END
+
+      IF( @FILTER = 'COMPLETEDBYME' )
+        BEGIN
+            SELECT T_HDR.mkey,
+                   Isnull(TMST.type_desc, 'NA')
+                   CATEGORY
+                   ,
+                   T_HDR.task_no,
+                   dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))
+                   CREATOR,
+                   dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA'))
+                   RESPONSIBLE,
+                   dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))
+                   ACTIONABLE,
+                   T_HDR.creation_date,
+                   CASE
+                     WHEN T_HDR.status IN ( 'CREATED' ) THEN 'Not Started'
+                     WHEN T_HDR.status LIKE '%SUB TASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status LIKE '%SUBTASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status IN ( 'WORK IN PROGRESS',
+                                            'CLOSE INITIATED',
+                                            'CANCEL INITIATED',
+                                            'RE-WORK' ) THEN 'In Progress'
+                     WHEN T_HDR.status IN ( 'CLOSE', 'COMPLETED' ) THEN
+                     'Completed'
+                     ELSE 'Others'
+                   END                                                    AS
+                   Dashboard_Status,
+                   CONVERT(VARCHAR, T_HDR.completion_date, 103)           AS
+                   COMPLETION_DATE
+                   ,
+                   dbo.[Initcap](T_HDR.task_name)                         AS
+                   TASK_NAME,
+                   T_HDR.task_description,
+                   T_HDR.tags,
+                   dbo.[Initcap](T_HDR.status)                            AS
+                   STATUS,
+                   CASE
+                     WHEN Isnull(CREATOR.first_name, 'NA') !=
+                          Isnull(RESPONSIBLE.first_name, 'NA')
+                   THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   + ' > '
+                   + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA'))
+                     ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   END                                                    AS
+                   RESPONSIBLE_TAG
+                   ,
+                   dbo.[Initcap](Isnull(PMST.type_desc, ''))              AS
+                   PROJECT_NAME,
+                   dbo.Tasknamestring(T_HDR.mkey)                         AS
+                   TASK_HISTORY,
+                   Isnull(Rtrim(T_HDR.[priority]), '')                    AS
+                   [Priority],
+                   Isnull(T_HDR.percent_complete, '0')                    AS
+                   Progress_Percentage,
+                   Isnull(parent_counts.parenttaskcount, 0)               AS
+                   SubTask_Count,
+				   T_HDR.CREATED_BY
+            FROM   task_hdr T_HDR
+                   LEFT JOIN employee_mst CREATOR
+                          ON CREATOR.mkey = T_HDR.created_by
+                             AND CREATOR.delete_flag = 'N'
+                   LEFT JOIN employee_mst RESPONSIBLE
+                          ON RESPONSIBLE.mkey = T_HDR.assigned_to
+                             AND RESPONSIBLE.delete_flag = 'N'
+                   LEFT JOIN employee_mst ACTIONABLE
+                          ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+                             AND ACTIONABLE.delete_flag = 'N'
+                   --LEFT JOIN v_category CATEGORY
+                   --       ON CATEGORY.mkey = T_HDR.caregory and CATEGORY.DELETE_FLAG = 'N'
+                   LEFT JOIN type_mst TMST
+                          ON TMST.master_mkey = T_HDR.caregory
+                             AND TMST.type_code = 'CATEGORY'
+                             AND TMST.delete_flag = 'N'
+                   --LEFT JOIN v_project PROJ
+                   --       ON T_HDR.project_id = PROJ.master_mkey and PROJ.DELETE_FLAG = 'N' 
+                   LEFT JOIN type_mst PMST
+                          ON PMST.master_mkey = T_HDR.project_id
+                             AND PMST.type_code = 'PROJECT'
+                             AND PMST.delete_flag = 'N'
+                   LEFT JOIN (SELECT task_parent_id,
+                                     Count(*) AS ParentTaskCount
+                              FROM   task_hdr
+                              WHERE  task_parent_id IS NOT NULL
+                                     AND mkey NOT IN ( task_parent_id )
+                                     AND delete_flag = 'N'
+                              GROUP  BY task_parent_id) parent_counts
+                          ON T_HDR.mkey = parent_counts.task_parent_id
+            WHERE  ( T_HDR.assigned_to = @CURRENT_EMP_MKEY )
+                   AND T_HDR.status IN ( 'COMPLETED' )
+                   AND Isnull(T_HDR.status_flag, 'A') IN ( 'A' )
+                   AND T_HDR.delete_flag = 'N'
+				   AND (
+						@STATUS_FILTER    IS NULL
+						OR (
+								(@STATUS_FILTER    = 'Today' AND CONVERT(DATE, T_HDR.completion_date) = CONVERT(DATE, GETDATE()))
+								OR (@STATUS_FILTER    = 'Overdue' AND T_HDR.completion_date < GETDATE())
+								OR (@STATUS_FILTER    = 'Next 3 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 3, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next 7 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 7, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next 2 Weeks' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 14, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next Month' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(MONTH, 1, GETDATE()))
+								OR (@STATUS_FILTER    = 'Review' AND T_HDR.status IN ('CANCEL INITIATED', 'CLOSE INITIATED'))
+							)
+						)
+            ORDER  BY creation_date DESC;
+        END
+
+      IF( @FILTER = 'COMPLETEDFORME' )
+        BEGIN
+            SELECT T_HDR.mkey,
+                   Isnull(TMST.type_desc, 'NA')
+                   CATEGORY
+                   ,
+                   T_HDR.task_no,
+                   dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))
+                   CREATOR,
+                   dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA'))
+                   RESPONSIBLE,
+                   dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))
+                   ACTIONABLE,
+                   T_HDR.creation_date,
+                   CASE
+                     WHEN T_HDR.status IN ( 'CREATED' ) THEN 'Not Started'
+                     WHEN T_HDR.status LIKE '%SUB TASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status LIKE '%SUBTASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status IN ( 'WORK IN PROGRESS',
+                                            'CLOSE INITIATED',
+                                            'CANCEL INITIATED',
+                                            'RE-WORK' ) THEN 'In Progress'
+                     WHEN T_HDR.status IN ( 'CLOSE', 'COMPLETED' ) THEN
+                     'Completed'
+                     ELSE 'Others'
+                   END                                                    AS
+                   Dashboard_Status,
+                   CONVERT(VARCHAR, T_HDR.completion_date, 103)           AS
+                   COMPLETION_DATE
+                   ,
+                   dbo.[Initcap](T_HDR.task_name)                         AS
+                   TASK_NAME,
+                   T_HDR.task_description,
+                   T_HDR.tags,
+                   dbo.[Initcap](T_HDR.status)                            AS
+                   STATUS,
+                   CASE
+                     WHEN Isnull(CREATOR.first_name, 'NA') !=
+                          Isnull(RESPONSIBLE.first_name, 'NA')
+                   THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   + ' > '
+                   + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA'))
+                     ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   END                                                    AS
+                   RESPONSIBLE_TAG
+                   ,
+                   dbo.[Initcap](Isnull(PMST.type_desc, ''))              AS
+                   PROJECT_NAME,
+                   dbo.Tasknamestring(T_HDR.mkey)                         AS
+                   TASK_HISTORY,
+                   Isnull(Rtrim(T_HDR.[priority]), '')                    AS
+                   [Priority],
+                   Isnull(T_HDR.percent_complete, '0')                    AS
+                   Progress_Percentage,
+                   Isnull(parent_counts.parenttaskcount, 0)               AS
+                   SubTask_Count,
+				   T_HDR.CREATED_BY
+            FROM   task_hdr T_HDR
+                   LEFT JOIN employee_mst CREATOR
+                          ON CREATOR.mkey = T_HDR.created_by
+                             AND CREATOR.delete_flag = 'N'
+                   LEFT JOIN employee_mst RESPONSIBLE
+                          ON RESPONSIBLE.mkey = T_HDR.assigned_to
+                             AND RESPONSIBLE.delete_flag = 'N'
+                   LEFT JOIN employee_mst ACTIONABLE
+                          ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+                             AND ACTIONABLE.delete_flag = 'N'
+                   --LEFT JOIN v_category CATEGORY
+                   --       ON CATEGORY.mkey = T_HDR.caregory and CATEGORY.DELETE_FLAG = 'N'
+                   LEFT JOIN type_mst TMST
+                          ON TMST.master_mkey = T_HDR.caregory
+                             AND TMST.type_code = 'CATEGORY'
+                             AND TMST.delete_flag = 'N'
+                   --LEFT JOIN v_project PROJ
+                   --       ON T_HDR.project_id = PROJ.master_mkey and PROJ.DELETE_FLAG = 'N' 
+                   LEFT JOIN type_mst PMST
+                          ON PMST.master_mkey = T_HDR.project_id
+                             AND PMST.type_code = 'PROJECT'
+                             AND PMST.delete_flag = 'N'
+                   LEFT JOIN (SELECT task_parent_id,
+                                     Count(*) AS ParentTaskCount
+                              FROM   task_hdr
+                              WHERE  task_parent_id IS NOT NULL
+                                     AND mkey NOT IN ( task_parent_id )
+                                     AND delete_flag = 'N'
+                              GROUP  BY task_parent_id) parent_counts
+                          ON T_HDR.mkey = parent_counts.task_parent_id
+            WHERE  ( T_HDR.created_by = @CURRENT_EMP_MKEY
+                     AND T_HDR.assigned_to != @CURRENT_EMP_MKEY
+                    --OR  
+                    --T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+                    --OR  
+                    --T_HDR.RESPOSIBLE_EMP_MKEY=@CURRENT_EMP_MKEY  
+                    )
+                   AND T_HDR.status IN ( 'COMPLETED' )
+                   --and Isnull(T_HDR.STATUS_Flag,'A') in ('A')  
+                   AND T_HDR.delete_flag = 'N'
+					AND (
+						@STATUS_FILTER    IS NULL
+						OR (
+								(@STATUS_FILTER    = 'Today' AND CONVERT(DATE, T_HDR.completion_date) = CONVERT(DATE, GETDATE()))
+								OR (@STATUS_FILTER    = 'Overdue' AND T_HDR.completion_date < GETDATE())
+								OR (@STATUS_FILTER    = 'Next 3 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 3, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next 7 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 7, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next 2 Weeks' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 14, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next Month' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(MONTH, 1, GETDATE()))
+								OR (@STATUS_FILTER    = 'Review' AND T_HDR.status IN ('CANCEL INITIATED', 'CLOSE INITIATED'))
+							)
+						)
+            ORDER  BY creation_date DESC;
+        END
+
+      IF( @FILTER = 'CANCELCLOSE' )
+        BEGIN
+            SELECT T_HDR.mkey,
+                   Isnull(TMST.type_desc, 'NA')
+                   CATEGORY
+                   ,
+                   T_HDR.task_no,
+                   dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))
+                   CREATOR,
+                   dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA'))
+                   RESPONSIBLE,
+                   dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))
+                   ACTIONABLE,
+                   T_HDR.creation_date,
+                   CASE
+                     WHEN T_HDR.status IN ( 'CREATED' ) THEN 'Not Started'
+                     WHEN T_HDR.status LIKE '%SUB TASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status LIKE '%SUBTASK CREATED%' THEN
+                     'Not Started'
+                     WHEN T_HDR.status IN ( 'WORK IN PROGRESS',
+                                            'CLOSE INITIATED',
+                                            'CANCEL INITIATED',
+                                            'RE-WORK' ) THEN 'In Progress'
+                     WHEN T_HDR.status IN ( 'CLOSE', 'COMPLETED' ) THEN
+                     'Completed'
+                     ELSE 'Others'
+                   END                                                    AS
+                   Dashboard_Status,
+                   CONVERT(VARCHAR, T_HDR.completion_date, 103)           AS
+                   COMPLETION_DATE
+                   ,
+                   dbo.[Initcap](T_HDR.task_name)                         AS
+                   TASK_NAME,
+                   T_HDR.task_description,
+                   T_HDR.tags,
+                   dbo.[Initcap](T_HDR.status)                            AS
+                   STATUS,
+                   CASE
+                     WHEN Isnull(CREATOR.first_name, 'NA') !=
+                          Isnull(RESPONSIBLE.first_name, 'NA')
+                   THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   + ' > '
+                   + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA'))
+                     ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+                   END                                                    AS
+                   RESPONSIBLE_TAG
+                   ,
+                   dbo.[Initcap](Isnull(PMST.type_desc, ''))              AS
+                   PROJECT_NAME,
+                   dbo.Tasknamestring(T_HDR.mkey)                         AS
+                   TASK_HISTORY,
+                   Isnull(Rtrim(T_HDR.[priority]), '')                    AS
+                   [Priority],
+                   Isnull(T_HDR.percent_complete, '0')                    AS
+                   Progress_Percentage,
+                   Isnull(parent_counts.parenttaskcount, 0)               AS
+                   SubTask_Count,
+				   T_HDR.CREATED_BY
+            FROM   task_hdr T_HDR
+                   LEFT JOIN employee_mst CREATOR
+                          ON CREATOR.mkey = T_HDR.created_by
+                             AND CREATOR.delete_flag = 'N'
+                   LEFT JOIN employee_mst RESPONSIBLE
+                          ON RESPONSIBLE.mkey = T_HDR.assigned_to
+                             AND RESPONSIBLE.delete_flag = 'N'
+                   LEFT JOIN employee_mst ACTIONABLE
+                          ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+                             AND ACTIONABLE.delete_flag = 'N'
+                   --LEFT JOIN v_category CATEGORY
+                   --       ON CATEGORY.mkey = T_HDR.caregory and CATEGORY.DELETE_FLAG = 'N'
+                   LEFT JOIN type_mst TMST
+                          ON TMST.master_mkey = T_HDR.caregory
+                             AND TMST.type_code = 'CATEGORY'
+                             AND TMST.delete_flag = 'N'
+                   --LEFT JOIN v_project PROJ
+                   --       ON T_HDR.project_id = PROJ.master_mkey and PROJ.DELETE_FLAG = 'N' 
+                   LEFT JOIN type_mst PMST
+                          ON PMST.master_mkey = T_HDR.project_id
+                             AND PMST.type_code = 'PROJECT'
+                             AND PMST.delete_flag = 'N'
+                   LEFT JOIN (SELECT task_parent_id,
+                                     Count(*) AS ParentTaskCount
+                              FROM   task_hdr
+                              WHERE  task_parent_id IS NOT NULL
+                                     AND mkey NOT IN ( task_parent_id )
+                                     AND delete_flag = 'N'
+                              GROUP  BY task_parent_id) parent_counts
+                          ON T_HDR.mkey = parent_counts.task_parent_id
+            WHERE  ( T_HDR.created_by = @CURRENT_EMP_MKEY
+                      OR T_HDR.resposible_emp_mkey = @CURRENT_EMP_MKEY )
+                   AND T_HDR.status IN ( 'CANCEL', 'CANCELLED' )
+                   AND T_HDR.delete_flag = 'N'
+				   AND (
+						@STATUS_FILTER    IS NULL
+						OR (
+								(@STATUS_FILTER    = 'Today' AND CONVERT(DATE, T_HDR.completion_date) = CONVERT(DATE, GETDATE()))
+								OR (@STATUS_FILTER    = 'Overdue' AND T_HDR.completion_date < GETDATE())
+								OR (@STATUS_FILTER    = 'Next 3 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 3, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next 7 Days' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 7, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next 2 Weeks' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(DAY, 14, GETDATE()))
+								OR (@STATUS_FILTER    = 'Next Month' AND T_HDR.completion_date BETWEEN GETDATE() AND DATEADD(MONTH, 1, GETDATE()))
+								OR (@STATUS_FILTER    = 'Review' AND T_HDR.status IN ('CANCEL INITIATED', 'CLOSE INITIATED'))
+							)
+						)
+            ORDER  BY creation_date DESC;
+        END
+		--SELECT  T_HDR.MKEY,T_HDR.TASK_NO,T_HDR.CREATION_DATE,T_HDR.TASK_NAME,T_HDR.TASK_DESCRIPTION,E_MST.EMP_FULL_NAME,T_HDR.TAGS,T_HDR.STATUS FROM TASK_HDR  T_HDR  
+      --INNER JOIN EMPLOYEE_MST E_MST ON E_MST.MKEY= T_HDR.ASSIGNED_TO  
+      --  IF( @FILTER = NULL
+      --       OR @FILTER = '' )
+      --    BEGIN
+      --SELECT T_HDR.mkey,
+      --   Isnull(TMST.type_desc, 'NA')                           AS
+      --               CATEGORY,
+      --               T_HDR.task_no,
+      --               dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))     AS
+      --               CREATOR,
+      --               dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA')) AS
+      --               RESPONSIBLE
+      --               ,
+      --               dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))  AS
+      --               ACTIONABLE,
+      --               T_HDR.creation_date,
+      --               CASE
+      --                 WHEN T_HDR.status IN ( 'CREATED' ) THEN 'Not Started'
+      --                 WHEN T_HDR.status LIKE '%SUB TASK CREATED%' THEN
+      --                 'Not Started'
+      --                 WHEN T_HDR.status LIKE '%SUBTASK CREATED%' THEN
+      --                 'Not Started'
+      --                 WHEN T_HDR.status IN ( 'WORK IN PROGRESS',
+      --                                        'CLOSE INITIATED',
+      --                                        'CANCEL INITIATED',
+      --                                        'RE-WORK' ) THEN 'In Progress'
+      --                 WHEN T_HDR.status IN ( 'CLOSE', 'COMPLETED' ) THEN
+      --                 'Completed'
+      --                 ELSE 'Others'
+      --               END                                                    AS
+      --               Dashboard_Status,
+      --               CONVERT(VARCHAR, T_HDR.completion_date, 103)           AS
+      --               COMPLETION_DATE
+      --               ,
+      --               dbo.[Initcap](T_HDR.task_name)                         AS
+      --               TASK_NAME,
+      --               T_HDR.task_description,
+      --               T_HDR.tags,
+      --               dbo.[Initcap](T_HDR.status)                            AS
+      --               STATUS,
+      --               CASE
+      --                 WHEN Isnull(CREATOR.first_name, 'NA') !=
+      --                      Isnull(RESPONSIBLE.first_name, 'NA')
+      --               THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+      --               + ' > '
+      --               + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA'))
+      --                 ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+      --               END                                                    AS
+      --               RESPONSIBLE_TAG
+      --               ,
+      --               dbo.[Initcap](Isnull(PMST.type_desc, ''))              AS
+      --               PROJECT_NAME,
+      --               dbo.Tasknamestring(T_HDR.mkey)                         AS
+      --               TASK_HISTORY,
+      --               Isnull(Rtrim(T_HDR.[priority]), '')                    AS
+      --               [Priority],
+      --               Isnull(T_HDR.percent_complete, '0')                    AS
+      --               Progress_Percentage,
+      --               Isnull(parent_counts.parenttaskcount, 0)               AS
+      --               SubTask_Count
+      --        FROM   task_hdr T_HDR
+      --               LEFT JOIN employee_mst CREATOR
+      --                      ON CREATOR.mkey = T_HDR.created_by
+      --                         AND CREATOR.delete_flag = 'N'
+      --               LEFT JOIN employee_mst RESPONSIBLE
+      --                      ON RESPONSIBLE.mkey = T_HDR.assigned_to
+      --                         AND RESPONSIBLE.delete_flag = 'N'
+      --               LEFT JOIN employee_mst ACTIONABLE
+      --                      ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+      --                         AND ACTIONABLE.delete_flag = 'N'
+      --               --LEFT JOIN v_category CATEGORY
+      --               --       ON CATEGORY.mkey = T_HDR.caregory and CATEGORY.DELETE_FLAG = 'N'
+      --               LEFT JOIN type_mst TMST
+      --                      ON TMST.master_mkey = T_HDR.caregory
+      --                         AND TMST.type_code = 'CATEGORY'
+      --                         AND TMST.delete_flag = 'N'
+      --               --LEFT JOIN v_project PROJ
+      --               --       ON T_HDR.project_id = PROJ.master_mkey and PROJ.DELETE_FLAG = 'N' 
+      --               LEFT JOIN type_mst PMST
+      --                      ON PMST.master_mkey = T_HDR.project_id
+      --                         AND PMST.type_code = 'PROJECT'
+      --                         AND PMST.delete_flag = 'N'
+      --               LEFT JOIN (SELECT task_parent_id,
+      --                                 Count(*) AS ParentTaskCount
+      --                          FROM   task_hdr
+      --                          WHERE  task_parent_id IS NOT NULL
+      --                                 AND mkey NOT IN ( task_parent_id )
+      --                                 AND delete_flag = 'N'
+      --                          GROUP  BY task_parent_id) parent_counts
+      --                      ON T_HDR.mkey = parent_counts.task_parent_id
+      --        WHERE  T_HDR.resposible_emp_mkey = @CURRENT_EMP_MKEY
+      --                OR T_HDR.created_by = @CURRENT_EMP_MKEY
+      --                OR T_HDR.assigned_to = @CURRENT_EMP_MKEY
+      --                   AND T_HDR.delete_flag = 'N'
+      --        ORDER  BY T_HDR.creation_date DESC;
+      --    END
+      --  ELSE
+      --    BEGIN
+      
+      -- END
+      EXEC Sp_dashboard_count   @CURRENT_EMP_MKEY
+  --EXEC Sp_dashboard_count
+  --       @CURRENT_EMP_MKEY
+  --SELECT
+  --      T_HDR.mkey,
+  --      Isnull(CATEGORY.type_desc, 'NA')                       CATEGORY,
+  --      T_HDR.task_no,
+  --      dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))     CREATOR,
+  --      dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA')) RESPONSIBLE,
+  --      dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))  ACTIONABLE,
+  --      T_HDR.creation_date,
+  --'' as Dashboard_Status,
+  --      CONVERT(VARCHAR, T_HDR.completion_date, 103)           COMPLETION_DATE,
+  --      dbo.[Initcap](T_HDR.task_name)                         TASK_NAME,
+  --      T_HDR.task_description,
+  --      T_HDR.tags,
+  --      dbo.[Initcap](T_HDR.status)                            STATUS,
+  --      CASE
+  --        WHEN Isnull(CREATOR.first_name, 'NA') !=
+  --             Isnull(RESPONSIBLE.first_name, 'NA')
+  --      THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+  --      + ' > '
+  --      + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA') )
+  --        ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+  --      END
+  --      RESPONSIBLE_TAG,
+  --      dbo.[Initcap](Isnull(PROJ.type_desc, ''))              PROJECT_NAME,
+  --      dbo.Tasknamestring(T_HDR.mkey)                         AS
+  --      'TASK_HISTORY'
+  --,isnull(RTRIM(T_HDR.[Priority]),'') as [Priority]
+  ----,ISNULL(T_HDR.Percent_Complete,'1212') AS Percent_Complete
+  --,isnull(T_HDR.Percent_Complete,'0') as Progress_Percentage
+  --,'2' as SubTask_Count
+  --          FROM   task_hdr T_HDR
+  --                 LEFT JOIN employee_mst CREATOR
+  --                        ON CREATOR.mkey = T_HDR.created_by
+  --                 LEFT JOIN employee_mst RESPONSIBLE
+  --                        ON RESPONSIBLE.mkey = T_HDR.assigned_to
+  --                 LEFT JOIN employee_mst ACTIONABLE
+  --                        ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+  --                 LEFT JOIN v_category CATEGORY
+  --                        ON CATEGORY.mkey = T_HDR.caregory
+  --                 LEFT JOIN v_project PROJ
+  --                        ON T_HDR.project_id = PROJ.master_mkey
+  --          WHERE  (
+  --                 T_HDR.resposible_emp_mkey = @CURRENT_EMP_MKEY )
+  --          ORDER  BY creation_date DESC
+  END 
+

@@ -728,7 +728,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("Task-Management/Task-Dashboard-Details-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List_NT>>> Task_Dashboard_DetailsNT([FromBody] Task_Dashboard_DetailsInput_NT task_Dashboard_DetailsInput)
@@ -758,8 +757,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
-
 
         [HttpPost("Task-Management/TeamTask")]
         [Authorize]
@@ -794,7 +791,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("Task-Management/TeamTask-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<GetTaskTeamOutPut_ListNT>>> TeamTaskNT([FromBody] TeamTaskInputNT teamTaskInput)
@@ -817,7 +813,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
 
         [HttpPost("Task-Management/Team_Task_Details")]
         [Authorize]
