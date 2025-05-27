@@ -1191,4 +1191,40 @@ namespace TaskManagement.API.Model
         public string? OUT_MESSAGE { get; set; }
     }
 
+    public class TaskDashBoardFilterOutputListNT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("User_Filter")]
+        public IEnumerable<TaskDashBoardUserFilterNT> User_Filter { get; set; }
+    }
+
+    public class TaskDashBoardUserFilterNT
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+
+        [JsonPropertyName("Type_Code")]
+        public string? TYPE_CODE { get; set; }
+
+        [JsonPropertyName("Key")]
+        public string? Key { get; set; }
+        [JsonPropertyName("DisplayName")]
+        public string? DisplayName { get; set; }
+
+        [JsonPropertyName("Created_By_Id")]
+        public int CREATED_BY_ID { get; set; }
+        [JsonPropertyName("Created_By_Name")]
+        public string CREATED_BY_NAME { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public string CREATION_DATE { get; set; }
+        [JsonPropertyName("Last_Updated_By")]
+        public string LAST_UPDATED_BY { get; set; }
+        [JsonPropertyName("Updated_By_Name")]
+        public string UPDATED_BY_NAME { get; set; }
+        [JsonPropertyName("Last_Update_Date")]
+        public string LAST_UPDATE_DATE { get; set; }
+    }
 }

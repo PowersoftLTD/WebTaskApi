@@ -38,7 +38,7 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("BUILDING_MKEY")]
         public int? BUILDING_MKEY { get; set; }
-       
+
         [JsonPropertyName("DOC_MKEY")]
         public int? DOC_MKEY { get; set; }
 
@@ -96,9 +96,12 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("PROPERTY_MKEY")]
         public int? PROPERTY_MKEY { get; set; }
-
+        public string? propertY_NAME { get; set; }
+        
         [JsonPropertyName("BUILDING_MKEY")]
         public int? BUILDING_MKEY { get; set; }
+
+        public string? buildinG_NAME { get; set; }
 
         [JsonPropertyName("DOC_MKEY")]
         public int? DOC_MKEY { get; set; }
@@ -108,6 +111,8 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("DOC_DATE")]
         public string? DOC_DATE { get; set; }
+        [JsonPropertyName("DOC_NAME")]
+        public string? DOC_NAME { get; set; }
 
         [JsonPropertyName("VALIDITY_DATE")]
         public string? VALIDITY_DATE { get; set; }
@@ -141,16 +146,16 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("SR_NO")]
         public int SR_NO { get; set; }
-        
+
         [JsonPropertyName("PROJECT_DOC_MKEY")]
         public int PROJECT_DOC_MKEY { get; set; }
-        
+
         [JsonPropertyName("FILE_NAME")]
         public string FILE_NAME { get; set; }
-        
+
         [JsonPropertyName("FILE_PATH")]
         public string FILE_PATH { get; set; }
-        
+
         [JsonPropertyName("CREATED_BY_ID")]
         public string? CREATED_BY_ID { get; set; }
 

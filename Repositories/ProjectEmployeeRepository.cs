@@ -6121,6 +6121,131 @@ namespace TaskManagement.API.Repositories
                 return ex.Message;
             }
         }
+        public async Task<ActionResult<IEnumerable<TaskDashBoardFilterOutputListNT>>> TaskDashBoardFilterAsynNT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_Id", doc_Type_Doc_CategoryInput.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", doc_Type_Doc_CategoryInput.Business_Group_Id);
+
+                    var TaskDashFilter = await db.QueryAsync<TaskDashBoardUserFilterNT>("SP_GET_TASK_DASHBOARD_FILTER", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    //var UserFilter = TaskDashFilter.Read<TaskDashBoardUserFilterNT>().ToList();
+                    //var PriorityFilter = TaskDashFilter.Read<TaskDashBoardPriorityFilterNT>().ToList();
+                    //var DurationFilter = TaskDashFilter.Read<TaskDashBoardDurationFilterNT>().ToList();
+                    //var TaskType = TaskDashFilter.Read<TaskDashBoardTaskTypeNT>().ToList();
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new List<TaskDashBoardFilterOutputListNT>
+                    {
+                        new TaskDashBoardFilterOutputListNT
+                        {
+                            STATUS = "Ok",
+                            MESSAGE = "Get data successfully!!!",
+                            User_Filter = TaskDashFilter
+                            //Priority_Filter = PriorityFilter,
+                            //Duration_Filter = DurationFilter,
+                            //Task_Type = TaskType
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<TaskDashBoardFilterOutputListNT>
+                {
+                    new TaskDashBoardFilterOutputListNT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = $"SQL Error: {sqlEx.Message}",
+                        User_Filter = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<TaskDashBoardFilterOutputListNT>
+                        {
+                            new TaskDashBoardFilterOutputListNT
+                            {
+                                STATUS = "Error",
+                                MESSAGE = ex.Message,
+                                User_Filter = null
+                            }
+                        };
+                return errorResult;
+            }
+            finally
+            {
+                // Ensure transaction is committed or rolled back appropriately
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        transaction.Rollback();  // Rollback in case of any issues
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
+                    }
+                }
+            }
+        }
     }
 }
 

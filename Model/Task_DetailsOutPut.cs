@@ -60,6 +60,10 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("Mkey")]
         public string MKEY { get; set; }
+
+        [JsonPropertyName("Sr_No")]
+        public string Sr_No { get; set; }
+
         [JsonPropertyName("Task_No")]
         public string TASK_NO { get; set; }
         [JsonPropertyName("Category")]

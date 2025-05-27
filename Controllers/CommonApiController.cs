@@ -18,7 +18,6 @@ using Microsoft.Extensions.Options;
 using System.Collections;
 using System.Transactions;
 
-
 namespace TaskManagement.API.Controllers
 {
     [Route("api/[controller]")]
@@ -2008,7 +2007,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("Task-Management/Get-Task-EndList-Details")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_ENDLIST_DETAILS_OUTPUT_LIST>>> GetTaskEndListDetails(TASK_END_LIST_DETAILS tASK_END_LIST_DETAILS)
@@ -2946,5 +2944,38 @@ namespace TaskManagement.API.Controllers
                 return Ok(ex.Message);
             }
         }
+
+        [HttpPost("Task-Management/Task-Dashboard-Filter")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskDashBoardFilterOutputListNT>>> TaskDashBoardFilterNT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            try
+            {
+                if (doc_Type_Doc_CategoryInput == null)
+                {
+                    var response = new TaskDashBoardFilterOutputListNT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        User_Filter = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.TaskDashBoardFilterAsynNT(doc_Type_Doc_CategoryInput);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskDashBoardFilterOutputListNT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    User_Filter = null
+                };
+                return Ok(response);
+            }
+        }
+
     }
 }
