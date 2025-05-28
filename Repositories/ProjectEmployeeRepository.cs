@@ -758,9 +758,10 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", task_DetailsInputNT.CURRENT_EMP_MKEY);
                     parmeters.Add("@USER_FILTER", task_DetailsInputNT.FILTER);
-                    parmeters.Add("@STATUS_FILTER", task_DetailsInputNT.Status_Filter);
-                    parmeters.Add("@PriorityFilter", task_DetailsInputNT.PriorityFilter);
-                    parmeters.Add("@TypeFilter", task_DetailsInputNT.TypeFilter);
+                    //parmeters.Add("@DURATION_FILTER", task_DetailsInputNT.DURATION_FILTER);
+                    //parmeters.Add("@STATUS_FILTER", task_DetailsInputNT.Status_Filter);
+                    //parmeters.Add("@PriorityFilter", task_DetailsInputNT.PriorityFilter);
+                    //parmeters.Add("@TypeFilter", task_DetailsInputNT.TypeFilter);
                     parmeters.Add("@Session_User_Id", task_DetailsInputNT.Session_User_ID);
                     parmeters.Add("@Business_Group_Id", task_DetailsInputNT.Business_Group_ID);
                     var result = await db.QueryMultipleAsync("SP_TASK_DASHBOARD_NT", parmeters, commandType: CommandType.StoredProcedure);

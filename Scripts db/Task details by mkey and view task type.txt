@@ -1,0 +1,160 @@
+Date: 27-05-2025
+--------------------------------------
+GO
+ALTER View V_TASK_TYPE AS  
+Select  TMST.MKEY, tmst.TYPE_CODE,TMST.Company_Id,TMST.Type_Desc, tmst.TYPE_DESC as 'Key' 
+,TMST.Type_Abbr,TMST.Parent_Id,Master_Mkey,TMST.Effective_Start_Date,TMST.Effective_End_Date,Enable_Flag
+, Case when tmst.TYPE_DESC = 'RECURRING' THEN 'Recurring'   
+when tmst.TYPE_DESC = 'APPROVAL' THEN 'Approval'   
+when tmst.TYPE_DESC = 'COMPLIANCE' THEN 'Compliance'   
+when tmst.TYPE_DESC = 'APPROVAL' THEN 'APPROVAL'   
+when tmst.TYPE_DESC = 'GENERAL' THEN 'General'   
+when tmst.TYPE_DESC = 'SYSTEM' THEN 'System'   
+when tmst.TYPE_DESC = 'EMAIL' THEN 'Email'   
+when tmst.TYPE_DESC = 'RERA COMPLAIN' THEN 'Rera Complain'   
+ELSE tmst.TYPE_DESC  
+END AS 'DisplayName'  
+ ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,    
+    Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,    
+    CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,    
+    Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,    
+    Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,    
+    CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE    
+From TYPE_MST TMST INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY  
+LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = EMST.MKEY  
+where TYPE_CODE ='TASK_TYPE' and TMST.DELETE_FLAG = 'N';
+
+
+
+----------------------------------
+GO
+
+--	exec SP_TASK_DETAILS_BY_MKEY_NT 1039,2693,0
+ALTER procedure [dbo].[SP_TASK_DETAILS_BY_MKEY_NT](@HDR_MKEY VARCHAR(250),@Session_User_Id          INT = null,  
+@Business_Group_Id	  INT = null)
+AS
+  BEGIN
+      DECLARE @DAY INT
+
+      SET @DAY=0
+
+      SELECT T_HDR.mkey,
+             T_HDR.task_no,
+             T_HDR.isnode,
+             T_HDR.task_parent_id,
+             T_HDR.task_main_node_id,
+			 T_HDR.Task_Type,
+             T_HDR.status,
+             T_HDR.status_perc,
+             T_HDR.task_created_by,
+             T_HDR.approver_id,
+             T_HDR.approve_action_date,
+			 T_HDR.ASSIGNED_TO,
+			 E_MST.EMP_FULL_NAME			AS 'Assigned_To_Name',
+             T_MST.type_desc                           CAREGORY,
+             T_HDR.project_id                          PROJECT_MKEY,
+			 T_HDR.sub_project_id                    AS BUILDING_MKEY,
+             P_MST.type_desc                           'PROJECT',
+			 P_MST.type_desc                           'Project_Name',
+             S_P_MST.type_desc                         'Sub_PROJECT',
+			 S_P_MST.type_desc						AS 'Building_Name',
+             T_HDR.caregory                            CATEGORY_MKEY,
+             T_HDR.creation_date,
+             T_HDR.task_name,
+             T_HDR.task_description,
+             E_MST.emp_full_name,
+
+			 --When Task owner created the task
+			 case when T_HDR.TASK_CREATED_BY = @Session_User_Id  /* Inside Task Owner login*/
+			 and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') and T_HDR.STATUS_PERC = 0.0 then 'Y' 
+			 /*Task owner created the task and it is currently on created status and progress is 0%  then all tabs are enabled for task owner 
+			 and task owner can add tabs list like Checklist, Authority, Outcome and Compliance via remark but with 0%  progress and WIP status update.  
+			 Otherwise any progress between 0% to 100% with WIP status will lead to disable all tabs for task owner.*/ 
+
+			 --When Task owner created the task 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id) /* Inside assignee login */
+			 and T_HDR.STATUS_PERC between 0.0 and 100.0 /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change 
+			 the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side. 
+			 Assignee can able to update all tabs  */
+			 and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') Then 'Y'  
+
+			 --When Task owner created the task 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id and T_HDR.TASK_CREATED_BY = @Session_User_Id) /* Inside assignee login */
+			 --and T_HDR.STATUS_PERC between 0.0 and 100.0 
+			 /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change 
+			 the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side. 
+			 Assignee can able to update all tabs  */
+			 and T_HDR.STATUS not in  ('CANCEL','CANCELLED','CLOSE') Then 'Y'  
+			 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 /*When Assignee change to close initiate(100%) */
+							-- Inside assignee login 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id) 
+			 and T_HDR.STATUS_PERC = 100.0 
+			 and  T_HDR.STATUS in ('CLOSE INITIATED')  then 'N'
+			 /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so, 
+			 in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s 
+			 and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */
+			 
+			 /* When Assignee change to  cancel initiate (0%) Inside assignee login */
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS in ('CANCEL INITIATED')  then 'N' 
+			 /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so, 
+			 in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s 
+			 and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */
+
+			 /*When Assignee change to close initiate(100%) or cancel initiate (0%) */
+			  --Inside Task Owner login 
+			 when  T_HDR.TASK_CREATED_BY = @Session_User_Id	 
+			 and T_HDR.STATUS_PERC between 0.0 and 100.0 and T_HDR.STATUS in ('CLOSE INITIATED','CANCEL INITIATED')  then 'Y' 
+			 /* Now inside task owner log in all tabs are enabled and task owner can do all changes in tabs and the status which are visible 
+			 to the task owner is Cancel or Close and Re-work as per the assignee action if assignee triggered Close initiate then task owner can see 
+			 the Close or if Cancel Initiate is triggered by the assignee then task owner can see Cancel and re-work is by default */
+			 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 /*When Task owner change status to re-work  */
+			 ---Inside Task Owner login
+			 WHEN  T_HDR.TASK_CREATED_BY= @Session_User_Id	
+			 and T_HDR.STATUS in ('RE-WORK')  then 'N' /*-- When task owner change status to re-work instead of Close or Cancel then all tabs are disabled 
+														at task owner side now task owner is not able to do any changes inside any tab.*/
+			 /* When Task owner change status to re-work */
+			 --- Inside assignee login
+			 WHEN  (T_HDR.ASSIGNED_TO = @Session_User_Id) 
+			 and T_HDR.STATUS in ('RE-WORK')  then 'Y' /* When the task owner gives a task to re-work to the assignee then status will change to re-work for the assignee 
+														 and now all tabs are enabled for assignee and can do any changes inside any tab.*/
+	 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) or (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS in ('CANCEL','CANCELLED','CLOSE')  then 'N' /* When task owner can do Cancel or Close instead of re-work 
+																			 then all tabs are disabled for task owner as well as assignee */
+ ---------------------------------------------------------------------------------------------------------------------------------------------------
+			WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) and (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS not in ('CANCEL','CANCELLED','CLOSE')  then 'Y' /* When Task Owner and Assignee are same then enabled  */
+---------------------------------------------------------------------------------------------------------------------------------------------------
+			 ELSE 'N'
+			 end as 'Process_Flag',
+             T_HDR.tags,
+             CONVERT(VARCHAR(10), completion_date, 120)COMPLETION_DATE,
+             --Isnull(file_name, '')                     [FILE_NAME],
+             --Isnull(file_path, '')                     FILE_PATH,
+             T_HDR.resposible_emp_mkey
+			,ISNULL(RTrim(T_HDR.Priority),'') AS [Priority] 
+			,ISNULL(CONVERT(NVARCHAR(20), T_HDR.Tentative_Start_Date),null) AS Tentative_Start_Date
+			,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Tentative_End_Date),null) AS Tentative_End_Date
+			,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Actual_Start_Date),null) AS Actual_Start_Date
+			,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Actual_End_Date),null) AS Actual_End_Date
+      FROM   task_hdr T_HDR
+             JOIN employee_mst E_MST
+               ON E_MST.mkey = T_HDR.assigned_to
+             LEFT JOIN type_mst T_MST
+                    ON T_MST.master_mkey = T_HDR.caregory
+             --AND T_MST.TYPE_CODE='CATEGORY'
+             LEFT JOIN type_mst P_MST
+                    ON P_MST.master_mkey = T_HDR.project_id
+             LEFT JOIN type_mst S_P_MST
+                    ON S_P_MST.master_mkey = T_HDR.sub_project_id
+             --LEFT JOIN task_media_trl T_MEDIA
+             --       ON T_MEDIA.mkey = T_HDR.mkey
+             --          AND T_MEDIA.delete_flag = 'N'
+      WHERE  T_HDR.mkey = @HDR_MKEY;
+  END 
+
+
+
