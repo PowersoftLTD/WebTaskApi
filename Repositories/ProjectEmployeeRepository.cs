@@ -2331,7 +2331,6 @@ namespace TaskManagement.API.Repositories
                         };
                         return errorResult;
                     }
-
                 }
             }
             catch (Exception ex)
@@ -6227,6 +6226,244 @@ namespace TaskManagement.API.Repositories
                                 STATUS = "Error",
                                 MESSAGE = ex.Message,
                                 User_Filter = null
+                            }
+                        };
+                return errorResult;
+            }
+            finally
+            {
+                // Ensure transaction is committed or rolled back appropriately
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        transaction.Rollback();  // Rollback in case of any issues
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
+                    }
+                }
+            }
+        }
+        public async Task<ActionResult<IEnumerable<TaskOverduePriorityOutputNT>>> TaskOverDueByPriorityNTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_Id", doc_Type_Doc_CategoryInput.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", doc_Type_Doc_CategoryInput.Business_Group_Id);
+                    parmeters.Add("@OUT_STATUS", null);
+                    parmeters.Add("@OUT_MESSAGE", null);
+
+                    var taskOverduePriorityNTs = await db.QueryAsync<TaskOverduePriorityNT>("SP_GET_TASK_OVERDUE_BY_PRIORITY", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new List<TaskOverduePriorityOutputNT>
+                    {
+                        new TaskOverduePriorityOutputNT
+                        {
+                            STATUS = "Ok",
+                            MESSAGE = "Get data successfully!!!",
+                            Data = taskOverduePriorityNTs
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<TaskOverduePriorityOutputNT>
+                {
+                    new TaskOverduePriorityOutputNT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = $"SQL Error: {sqlEx.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<TaskOverduePriorityOutputNT>
+                        {
+                            new TaskOverduePriorityOutputNT
+                            {
+                                STATUS = "Error",
+                                MESSAGE = ex.Message,
+                                Data = null
+                            }
+                        };
+                return errorResult;
+            }
+            finally
+            {
+                // Ensure transaction is committed or rolled back appropriately
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        transaction.Rollback();  // Rollback in case of any issues
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
+                    }
+                }
+            }
+        }
+        public async Task<ActionResult<IEnumerable<TaskStatusDistributionOutputNT>>> TaskStatusDistributionNTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_Id", doc_Type_Doc_CategoryInput.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", doc_Type_Doc_CategoryInput.Business_Group_Id);
+                    parmeters.Add("@OUT_STATUS", null);
+                    parmeters.Add("@OUT_MESSAGE", null);
+
+                    var taskStatusDistributonNTs = await db.QueryAsync<TaskStatusDistributionNT>("SP_GET_TASK_STATUS_DISTRIBUTION", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new List<TaskStatusDistributionOutputNT>
+                    {
+                        new TaskStatusDistributionOutputNT
+                        {
+                            STATUS = "Ok",
+                            MESSAGE = "Get data successfully!!!",
+                            Data = taskStatusDistributonNTs
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<TaskStatusDistributionOutputNT>
+                {
+                    new TaskStatusDistributionOutputNT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = $"SQL Error: {sqlEx.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<TaskStatusDistributionOutputNT>
+                        {
+                            new TaskStatusDistributionOutputNT
+                            {
+                                STATUS = "Error",
+                                MESSAGE = ex.Message,
+                                Data = null
                             }
                         };
                 return errorResult;

@@ -89,6 +89,10 @@ namespace TaskManagement.API.Interfaces
 
         Task<ActionResult<IEnumerable<TaskDashBoardFilterOutputListNT>>> TaskDashBoardFilterAsynNT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput);
 
+        Task<ActionResult<IEnumerable<TaskOverduePriorityOutputNT>>> TaskOverDueByPriorityNTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput);
+
+        Task<ActionResult<IEnumerable<TaskStatusDistributionOutputNT>>> TaskStatusDistributionNTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput);
+
         Task<ActionResult<string>> FileDownload(FileDownloadNT fileDownloadNT);
         Task<ActionResult<string>> FileDownload();
     }

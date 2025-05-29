@@ -13581,3 +13581,50 @@ AS
 	--		END
 END
 
+--------------------------------------------------------------------------------------------------------------------
+29-05-2025
+
+
+-- EXEC SP_GET_TASK_OVERDUE_BY_PRIORITY 926,1,NULL,NULL
+-- =============================================
+Create PROCEDURE [dbo].[SP_GET_TASK_OVERDUE_BY_PRIORITY]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE
+  @Session_User_Id            INT = null,
+  @Business_Group_Id          int = null,
+  @OUT_STATUS                 NVARCHAR(200) output,
+  @OUT_MESSAGE                NVARCHAR(200) output
+AS
+  BEGIN
+      -- SET NOCOUNT ON ADDED TO PREVENT EXTRA RESULT SETS FROM
+      -- INTERFERING WITH SELECT STATEMENTS.
+      SET nocount ON;
+	BEGIN try
+		
+		Select LTRIM(Rtrim(Priority)) as Priority,Count(Priority) as 'PriorityCount' from TASK_HDR 
+		where DELETE_FLAG = 'N' and RESPOSIBLE_EMP_MKEY = @Session_User_Id
+		and Priority in ('High','Low','Medium')
+		Group By Priority;
+
+	END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------          
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+          -------------------------------------------------------------------------------------------------------------------------------
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+          SET @ERROR_MESSAGE = Error_message();
+          -------------------------------------------------------------------------------------------------------------------------------
+          EXEC Sp_p_tms_insert_error_des
+            @Session_User_Id,
+            'Get Task Overdue Priority',
+            'Get Over Due Task by Priority form',
+            @ERROR_MESSAGE,
+            'Over Due Task by Priority';
+      -------------------------------------------------------------------------------------------------------------------------------
+      END catch
+  END 

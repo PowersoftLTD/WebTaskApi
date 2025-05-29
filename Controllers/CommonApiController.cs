@@ -920,6 +920,29 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Management/Team_Task_Details-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<GetTaskTeamOutPut_ListNT>>> TeamTaskDetailsNT([FromBody] TeamTaskInputNT teamTaskInput)
+        {
+            try
+            {
+                var TaskTeamTask = await _repository.GetTeamTaskAsyncNT(teamTaskInput);
+
+                return Ok(TaskTeamTask);
+            }
+            catch (Exception ex)
+            {
+                var response = new GetTaskTeamOutPut_ListNT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null,
+                    Data1 = null
+                };
+                return Ok(response);
+            }
+        }
+
         // Helper method to convert DataTable to a list of dictionaries
         //private List<Dictionary<string, object>> DataTableToList(DataTable dt)
         //{
@@ -2976,6 +2999,72 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+
+        [HttpPost("Task-Management/Task-OverDue-By-Priority-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskOverduePriorityOutputNT>>> TaskOverDueByPriorityNT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            try
+            {
+                if (doc_Type_Doc_CategoryInput == null)
+                {
+                    var response = new TaskOverduePriorityOutputNT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.TaskOverDueByPriorityNTAsync(doc_Type_Doc_CategoryInput);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskOverduePriorityOutputNT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Task-Status-Distribution-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskStatusDistributionOutputNT>>> TaskStatusDistributionNT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        {
+            try
+            {
+                if (doc_Type_Doc_CategoryInput == null)
+                {
+                    var response = new TaskStatusDistributionOutputNT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.TaskStatusDistributionNTAsync(doc_Type_Doc_CategoryInput);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskStatusDistributionOutputNT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
 
     }
 }

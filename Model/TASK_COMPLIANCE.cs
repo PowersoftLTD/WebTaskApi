@@ -1227,4 +1227,40 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Last_Update_Date")]
         public string LAST_UPDATE_DATE { get; set; }
     }
+
+    public class TaskOverduePriorityOutputNT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TaskOverduePriorityNT> Data { get; set; }
+    }
+    public class TaskOverduePriorityNT
+    {
+        [JsonPropertyName("Priority")]
+        public string Priority { get; set; }
+
+        [JsonPropertyName("PriorityCount")]
+        public string? PriorityCount { get; set; }
+    }
+
+    public class TaskStatusDistributionOutputNT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TaskStatusDistributionNT> Data { get; set; }
+    }
+    public class TaskStatusDistributionNT
+    {
+        [JsonPropertyName("Status")]
+        public string Status { get; set; }
+
+        [JsonPropertyName("StatusCount")]
+        public string? StatusCount { get; set; }
+    }
 }
