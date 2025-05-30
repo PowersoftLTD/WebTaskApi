@@ -81,7 +81,7 @@ namespace TaskManagement.API.Model
         //public string SANCTIONING_AUTHORITY_MKEY { get; set; }
         //[JsonPropertyName("Mode")]
         //public string? Mode { get; set; }
-        
+
         [JsonPropertyName("Authority_List")]
         public List<ARRAY_TASK_SANCTIONING_NT>? Authority_List { get; set; }
         [JsonPropertyName("Comment")]
@@ -129,7 +129,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("SR_NO")]
         public int SR_NO { get; set; }
         [JsonPropertyName("LEVEL")]
-        public string LEVEL { get; set; }
+        public int LEVEL { get; set; }
         [JsonPropertyName("PROPERTY_MKEY")]
         public int? PROPERTY_MKEY { get; set; }
         [JsonPropertyName("BUILDING_MKEY")]
@@ -149,7 +149,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Sr_No")]
         public int SR_NO { get; set; }
         [JsonPropertyName("Level")]
-        public string? LEVEL { get; set; }
+        public int? LEVEL { get; set; }
         [JsonPropertyName("Property_Mkey")]
         public int? PROPERTY_MKEY { get; set; }
         [JsonPropertyName("Building_Mkey")]
@@ -1262,5 +1262,65 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("StatusCount")]
         public string? StatusCount { get; set; }
+    }
+
+    public class TaskProjectsDashboardOutputNT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TaskProjectsDashboardNT> Data { get; set; }
+        [JsonPropertyName("Data1")]
+        public IEnumerable<TaskProjectsDashboardCountNT> Data1 { get; set; }
+
+    }
+
+    public class TaskProjectsDashboardNT
+    {
+        [JsonPropertyName("Project_Mkey")]
+        public string? PROJECT_Mkey { get; set; }
+        [JsonPropertyName("Project_Name")]
+        public string? Project_Name { get; set; }
+
+        [JsonPropertyName("Building_Mkey")]
+        public string? Building_Mkey { get; set; }
+
+        [JsonPropertyName("Building_Name")]
+        public string? Building_Name { get; set; }
+
+        [JsonPropertyName("Task_Mkey")]
+        public string? MKEY { get; set; }
+        [JsonPropertyName("Task_No")]
+        public string? TASK_NO { get; set; }
+        [JsonPropertyName("Task_Name")]
+        public string? TASK_NAME { get; set; }
+        [JsonPropertyName("Task_Description")]
+        public string? TASK_DESCRIPTION { get; set; }
+        [JsonPropertyName("Status")]
+        public string? Status{ get; set; }
+        [JsonPropertyName("Status_Percentage")]
+        public string? STATUS_PERC { get; set; }
+        [JsonPropertyName("Priority")]
+        public string? Priority { get; set; }
+        [JsonPropertyName("Task_Parent_Id")]
+        public int? TASK_PARENT_ID { get; set; }
+        [JsonPropertyName("Task_Main_Node_Id")]
+        public int? TASK_MAIN_NODE_ID { get; set; }
+        [JsonPropertyName("Assigned_To")]
+        public int? ASSIGNED_TO { get; set; }
+        [JsonPropertyName("Assigned_To_Name")]
+        public string? Assigned_To_Name { get; set; }
+        [JsonPropertyName("Completion_Date")]
+        public string? COMPLETION_DATE { get; set; }
+    }
+
+    public class TaskProjectsDashboardCountNT
+    {
+        [JsonPropertyName("DurationFilter")]
+        public string? DurationFilter { get; set; }
+        [JsonPropertyName("DurationCount")]
+        public int? DurationCount { get; set; }
     }
 }

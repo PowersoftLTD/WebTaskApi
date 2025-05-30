@@ -440,7 +440,7 @@ namespace TaskManagement.API.Model
         public int SANCTIONING_AUTHORITY_MKEY { get; set; }
 
         [JsonPropertyName("Level")]
-        public int LEVEL { get; set; }
+        public string? LEVEL { get; set; }
 
         [JsonPropertyName("Status")]
         public string STATUS { get; set; }

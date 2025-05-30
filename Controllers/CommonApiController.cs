@@ -3066,5 +3066,38 @@ namespace TaskManagement.API.Controllers
         }
 
 
+        [HttpPost("Task-Management/Task-Projects-Dashboard-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskProjectsDashboardOutputNT>>> TaskProjectsDashboardNT(TaskProjectDashboardInput taskProjectDashboardInput)
+        {
+            try
+            {
+                if (taskProjectDashboardInput == null)
+                {
+                    var response = new TaskProjectsDashboardOutputNT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.TaskProjectsDashboardNTAsync(taskProjectDashboardInput);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskProjectsDashboardOutputNT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+
     }
 }
