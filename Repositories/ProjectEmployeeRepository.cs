@@ -1502,6 +1502,7 @@ namespace TaskManagement.API.Repositories
 
                     var Data = TeamTask.Read<GET_TASK_DepartmentOutPutNT>().ToList();
                     var Data1 = TeamTask.Read<TEAM_PROGRESSOutPutNT>().ToList();
+                    var Data2 = TeamTask.Read<Team_Count>().ToList();
 
                     var successsResult = new List<GetTaskTeamOutPut_ListNT>
                     {
@@ -1510,7 +1511,8 @@ namespace TaskManagement.API.Repositories
                             Status = "Ok",
                             Message = "Message",
                             Data= Data,
-                            Data1= Data1
+                            Data1= Data1,
+                            Data2 =Data2
                         }
                     };
                     return successsResult;
@@ -1525,7 +1527,8 @@ namespace TaskManagement.API.Repositories
                            Status = "Error",
                             Message= ex.Message,
                             Data= null,
-                            Data1 = null
+                            Data1 = null,
+                            Data2 = null
                         }
                     };
                 return errorResult;

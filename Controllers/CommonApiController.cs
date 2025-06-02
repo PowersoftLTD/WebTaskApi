@@ -807,7 +807,8 @@ namespace TaskManagement.API.Controllers
                     Status = "Error",
                     Message = ex.Message,
                     Data = null,
-                    Data1 = null
+                    Data1 = null,
+                    Data2 = null
                 };
                 return Ok(response);
             }
