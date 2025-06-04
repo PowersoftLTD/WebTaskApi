@@ -133,6 +133,7 @@ namespace TaskManagement.API.Model
         public IEnumerable<GET_TASK_DepartmentOutPutNT> Data { get; set; }
         [JsonPropertyName("Data1")]
         public IEnumerable<TEAM_PROGRESSOutPutNT> Data1 { get; set; }
+        [JsonPropertyName("Data2")]
         public IEnumerable<Team_Count> Data2 { get; set; }
     }
 

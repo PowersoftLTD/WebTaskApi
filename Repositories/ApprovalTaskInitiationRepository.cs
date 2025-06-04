@@ -364,7 +364,6 @@ namespace TaskManagement.API.Repositories
                     //var approvalTemplateSubtask3 = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("select * from  PROJECT_HDR where mkey = 31", commandType: CommandType.Text, transaction: transaction);
 
 
-
                     if (approvalTemplateSubtask == null)
                     {
                         // Handle other unexpected exceptions

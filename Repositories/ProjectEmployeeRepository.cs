@@ -1393,7 +1393,9 @@ namespace TaskManagement.API.Repositories
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", task_Dashboard_DetailsInput.CURRENT_EMP_MKEY);
                     parmeters.Add("@CURR_ACTION", task_Dashboard_DetailsInput.CURR_ACTION);
-                    var ValidateEmail = await db.QueryMultipleAsync("SP_Get_Overall_DB", parmeters, commandType: CommandType.StoredProcedure);
+                    parmeters.Add("@Session_User_ID", task_Dashboard_DetailsInput.Session_User_ID);
+                    parmeters.Add("@Business_Group_ID", task_Dashboard_DetailsInput.Business_Group_ID);
+                    var ValidateEmail = await db.QueryMultipleAsync("SP_Get_Overall_DB_NT", parmeters, commandType: CommandType.StoredProcedure);
 
                     var Data = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
                     var Data1 = ValidateEmail.Read<GET_TASK_TREEOutPut_NT>().ToList();
@@ -1496,6 +1498,9 @@ namespace TaskManagement.API.Repositories
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@CURRENT_EMP_MKEY", teamTaskInput.CURRENT_EMP_MKEY);
+                    parmeters.Add("@TASKTYPE", teamTaskInput.TASKTYPE);
+                    parmeters.Add("@TASKTYPE_DESC", teamTaskInput.TASKTYPE_DESC);
+                    parmeters.Add("@Filter", teamTaskInput.Filter);
                     parmeters.Add("@Session_User_Id", teamTaskInput.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", teamTaskInput.Business_Group_Id);
                     var TeamTask = await db.QueryMultipleAsync("SP_GET_TEAM_PROGRESS_NT", parmeters, commandType: CommandType.StoredProcedure);
