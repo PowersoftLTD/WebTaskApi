@@ -120,6 +120,10 @@ namespace TaskManagement.API.Model
         public string? ACTION_TYPE { get; set; }
         [JsonPropertyName("Comment")]
         public string? COMMENT { get; set; }
+        [JsonPropertyName("Task_Type")]
+        public string? Task_Type { get; set; }
+        [JsonPropertyName("Task_Type_Name")]
+        public string? Task_Type_Name { get; set; }
         [JsonPropertyName("File_Name")]
         public string? FILE_NAME { get; set; }
         [JsonPropertyName("File_Path")]
@@ -143,12 +147,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Last_Update_Date")]
         public string? LAST_UPDATE_DATE { get; set; }
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-
-
 
     public class GET_ACTIONSOutPut
     {

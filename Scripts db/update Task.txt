@@ -16181,3 +16181,400 @@ AS
   END
 --EXEC [SP_GET_TEAM_PROGRESS] 9  
 --select * from EMPLOYEE_MST where emp_name like '%vyom%'  
+
+
+-----------------------------------------------------------------------------------------------------------
+05-06-2025
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[UPDATE_TASK_DETAILS_NT]    Script Date: 05-06-2025 17:05:59 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[UPDATE_TASK_DETAILS_NT] (@TASK_MKEY            VARCHAR(250),
+                                                @TASK_NAME            VARCHAR(250),
+                                                @TASK_DESCRIPTION     VARCHAR(250),
+                                                @PROJECT_ID           VARCHAR(250),
+                                                @SUBPROJECT_ID        VARCHAR(250),
+                                                @COMPLETION_DATE      DATETIME,
+                                                @ASSIGNED_TO          VARCHAR(250),
+                                                @TAGS                 VARCHAR(250)=NULL,
+                                                @Priority             VARCHAR(250)=NULL,
+                                                @Tentative_Start_Date VARCHAR(250)=NULL,
+                                                @Tentative_End_Date   VARCHAR(250)=NULL,
+                                                @Actual_Start_Date    VARCHAR(250)=NULL,
+                                                @Actual_End_Date      VARCHAR(250)=NULL,
+                                                @LAST_UPDATED_BY      INT,
+												@DELETE_FLAG          NCHAR(2)=NULL)
+AS
+  BEGIN
+      BEGIN try
+          DECLARE @DCOUNT INT,@NEXTLEVEL INT,@PreviousSrNo int, @CurrentStatus Nvarchar(100),@ToLevel int,@NextSR_NO int,
+		  @SR_NO INT;
+          SELECT @DCOUNT = Count(*)
+          FROM   task_hdr
+          WHERE  mkey = @TASK_MKEY and DELETE_FLAG = 'N';
+		  print '@DCOUNT: '+ convert(nvarchar,@DCOUNT)
+          IF ( @DCOUNT > 0 )
+            BEGIN
+                SELECT @ASSIGNED_TO = Cast(mkey AS VARCHAR)
+                FROM   employee_mst
+                WHERE  emp_full_name = @ASSIGNED_TO
+                       AND delete_flag = 'N';
+
+                PRINT '@ASSIGNED_TO: '
+                      + CONVERT(NVARCHAR(20), @ASSIGNED_TO);
+
+                INSERT INTO task_hdr_h
+                SELECT Getdate(),
+                       *
+                FROM   task_hdr
+                WHERE  mkey = @TASK_MKEY
+                       AND delete_flag = 'N';
+
+                PRINT '@@TASK_MKEY: '
+                      + CONVERT(NVARCHAR(20), @TASK_MKEY);
+
+                --print '@COMPLETION_DATE: '+ convert(varchar(50), @COMPLETION_DATE);
+                UPDATE task_hdr
+                SET    task_name =isnull(@TASK_NAME,task_name),
+                       task_description = isnull(@TASK_DESCRIPTION,task_description),
+                       project_id = @PROJECT_ID,
+                       sub_project_id = @SUBPROJECT_ID,
+                       completion_date = isnull(@COMPLETION_DATE,completion_date),
+                       assigned_to = @ASSIGNED_TO,
+                       resposible_emp_mkey = @ASSIGNED_TO,
+                       tags = @TAGS,
+                       [priority] = @Priority,
+                       tentative_start_date = @Tentative_Start_Date,
+                       tentative_end_date = @Tentative_End_Date,
+                       actual_start_date = @Actual_Start_Date,
+                       actual_end_date = @Actual_End_Date,
+                       last_updated_by = @LAST_UPDATED_BY,
+                       last_update_date = Getdate(),
+					   delete_flag = @DELETE_FLAG
+                WHERE  mkey = @TASK_MKEY
+                       AND delete_flag = 'N';
+
+				 SELECT @NextSR_NO = (Isnull(Max(sr_no), 0) + 1), @PreviousSrNo = Max(sr_no)
+                      FROM   TASK_SANCTIONING_DEPARTMENT_TRL_MOVEMENT_HISTORY
+                      WHERE  task_mkey = @TASK_MKEY
+                             -- AND [level] = @LEVEL
+                             AND delete_flag = 'N';
+							 print '@SR_NO: '+ convert(nvarchar(100), @SR_NO);
+							 print '@@PreviousSrNo: '+ convert(nvarchar(100), @PreviousSrNo);
+---------------------------------------------------------------------------------------------------------------------------------------------------						
+                      SELECT @ToLevel = TO_LEVEL,@CurrentStatus = UPDATED_STATUS 
+                      FROM   TASK_SANCTIONING_DEPARTMENT_TRL_MOVEMENT_HISTORY
+                      WHERE  task_mkey = @TASK_MKEY
+                             AND SR_NO = @PreviousSrNo
+                             AND delete_flag = 'N';
+					print '@@ToLevel: '+ convert(nvarchar(100), @ToLevel);
+					print '@CurrentStatus: '+ convert(nvarchar(100), @CurrentStatus);
+---------------------------------------------------------------------------------------------------------------------------------------------------									
+                     
+					  INSERT INTO
+								  TASK_SANCTIONING_DEPARTMENT_TRL_MOVEMENT_HISTORY
+								  (sr_no,
+								   task_mkey,
+								   current_status,
+								   HISTORY_DATE,
+								   LAST_UPDATED_BY,
+								   LAST_UPDATE_DATE,
+								   delete_flag, CREATED_BY)
+							VALUES	(@NextSR_NO,
+									@TASK_MKEY,
+									'Updated Task',
+									Getdate(),
+									@LAST_UPDATED_BY,
+									Getdate(),
+									'N',@LAST_UPDATED_BY)
+
+									print 'Update into movement table';
+
+
+                EXEC [Sp_emp_tags_insert_update]
+                  @LAST_UPDATED_BY,
+                  @TAGS,
+                  @LAST_UPDATED_BY;
+
+				IF(@DELETE_FLAG = 'Y')
+				BEGIN
+					SELECT task_no,
+                       mkey,
+                       task_parent_id,
+                       task_main_node_id,
+                       'Ok'     AS [Status],
+                       'Deleted' AS [Message]
+                FROM   task_hdr
+                WHERE  mkey = @TASK_MKEY
+                       AND delete_flag = 'Y'; 
+				END
+				ELSE
+				BEGIN
+					SELECT task_no,
+						   mkey,
+						   task_parent_id,
+						   task_main_node_id,
+						   'Ok'     AS [Status],
+						   'Update' AS [Message]
+					FROM   task_hdr
+					WHERE  mkey = @TASK_MKEY
+						   AND delete_flag = 'N';
+				END
+            END
+          ELSE
+            BEGIN
+                SELECT 'Error'     AS [Status],
+                       'Task mkey '+ @TASK_MKEY +' Not Found' AS [Message];
+            END
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------              
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------    
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------    
+          EXEC Sp_p_tms_insert_error_des
+            @LAST_UPDATED_BY,
+            'TMS',
+            ' update task details',
+            @ERROR_MESSAGE,
+            'Update';
+      -------------------------------------------------------------------------------------------------------------------------------    
+      END catch
+  END 
+
+
+-------------------------------------------------------------------------
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_ACTIONS_NT]    Script Date: 05-06-2025 17:47:48 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+--		exec SP_GET_ACTIONS_NT 424,926,'SUB TASK CREATED',926,1
+--		exec SP_GET_ACTIONS_NT 1039,926,'CLOSE INITIATED','926',1
+ALTER PROCEDURE [dbo].[SP_GET_ACTIONS_NT](@TASK_MKEY         INT,
+                                          @CURRENT_EMP_MKEY  INT,
+                                          @CURR_ACTION       NVARCHAR(100),
+                                          @Session_User_Id   INT = NULL,
+                                          @Business_Group_Id INT = NULL)
+AS
+  BEGIN
+      DECLARE @dCount    INT,
+              @dAllCount INT
+
+      IF( @CURR_ACTION = 'WIP'
+           OR @CURR_ACTION = 'PROGRESS UPDATED'
+           OR @CURR_ACTION = 'WORK IN PROCESS'
+           OR @CURR_ACTION = 'RE-WORK'
+           OR @CURR_ACTION = 'WORK IN PROGRESS'
+           OR @CURR_ACTION = 'CREATED' )
+        BEGIN
+            SELECT mkey,
+                   type_desc
+            FROM   v_status
+            WHERE  mkey IN ( 75, 70, 69, 72 )
+        END
+
+      --or @CURR_ACTION= 'SUB TASK CREATED'
+      IF( @CURR_ACTION = 'COMPLETED'
+           OR @CURR_ACTION = 'CANCELLED'
+           OR @CURR_ACTION = 'CANCELED'
+           OR @CURR_ACTION = 'CANCEL' )
+        BEGIN
+            SELECT mkey,
+                   type_desc
+            FROM   v_status
+            WHERE  mkey IN ( 0 )
+        END
+
+      IF( @CURR_ACTION = 'SUB TASK CREATED' )
+        BEGIN
+            SELECT @dCount = Count(*)
+            FROM   task_hdr
+            WHERE  task_parent_id = @TASK_MKEY
+                   AND mkey != @TASK_MKEY
+
+            SELECT @dAllCount = Count(*)
+            FROM   task_hdr
+            WHERE  task_parent_id = @TASK_MKEY
+                   AND status IN ( 'COMPLETED', 'Cancel', 'Close' )
+
+            IF( @dCount = @dAllCount )
+              BEGIN
+                  SELECT @dCount = Count(*)
+                  FROM   task_hdr
+                  WHERE  mkey = @TASK_MKEY
+                         AND resposible_emp_mkey = @CURRENT_EMP_MKEY
+
+                  IF( @dCount > 0 )
+                    BEGIN
+                        SELECT mkey,
+                               type_desc
+                        FROM   v_status
+                        WHERE  mkey IN ( 75, 70, 69, 72 )
+                    END
+                  ELSE
+                    BEGIN
+                        SELECT mkey,
+                               type_desc
+                        FROM   v_status
+                        WHERE  mkey IN ( 0 )
+                    END
+              END
+            ELSE
+              BEGIN
+                  SELECT mkey,
+                         type_desc
+                  FROM   v_status
+                  WHERE  mkey IN ( 0 )
+              END
+        END
+
+      IF( @CURR_ACTION = 'CLOSE INITIATED' )
+        BEGIN
+		print '@CURR_ACTION = CLOSE INITIATED';
+            SELECT @dCount = Count(*)
+            FROM   task_hdr
+            WHERE  mkey = @TASK_MKEY
+                   AND resposible_emp_mkey = @CURRENT_EMP_MKEY
+
+            IF( @dCount > 0 )
+              BEGIN
+                  SELECT mkey,
+                         type_desc
+                  FROM   v_status
+                  WHERE  mkey IN ( 71, 82 )
+              END
+            ELSE
+              BEGIN
+                  SELECT mkey,
+                         type_desc
+                  FROM   v_status
+                  WHERE  mkey IN ( 0 )
+              END
+        END
+
+      IF( @CURR_ACTION = 'Cancel Initiated' )
+        BEGIN
+            SELECT @dCount = Count(*)
+            FROM   task_hdr
+            WHERE  mkey = @TASK_MKEY
+                   AND resposible_emp_mkey = @CURRENT_EMP_MKEY
+
+            IF( @dCount > 0 )
+              BEGIN
+                  SELECT mkey,
+                         type_desc
+                  FROM   v_status
+                  WHERE  mkey IN ( 73, 82 )
+              END
+            ELSE
+              BEGIN
+                  SELECT mkey,
+                         type_desc
+                  FROM   v_status
+                  WHERE  mkey IN ( 0 )
+              END
+        END
+					SELECT  * 
+					FROM (
+						SELECT 'History' as [Type],--CONVERT(datetime,trl.CREATION_DATE) CREATION_DATE,
+									progress_perc
+									,CONVERT(nvarchar(max),action_type +' '+  DESCRIPTION_COMMENT +' '+ convert(nvarchar(100),PROGRESS_PERC) +' '+ 
+									action_type +' '+ dbo.[Initcap](trl.status))                   STATUS
+									,dbo.[Initcap](action_type)              ACTION_TYPE
+									,dbo.[Initcap](description_comment)      COMMENT
+									,thdr.task_type as Task_Type
+									,tmst.TYPE_DESC as Task_Type_Name
+									,Isnull(file_name, '')                   FILE_NAME
+									,Isnull(file_path, '')                   FILE_PATH
+									,trl.created_by                                        CREATED_BY_ID,
+								   createdby.emp_full_name                               CREATED_BY_NAME,
+								   CASE
+									 WHEN trl.creation_date IS NULL THEN ''
+									 ELSE Format(trl.creation_date, 'yyyy-MM-dd HH:mm:ss')
+								   END                                                   AS CREATION_DATE,
+								   Isnull(CONVERT(VARCHAR(50), trl.last_updated_by), '') AS LAST_UPDATED_BY,
+								   Isnull(updatedby.emp_full_name, '')                   UPDATED_BY_NAME,
+								   CASE
+									 WHEN trl.last_update_date IS NULL THEN ''
+									 ELSE Format(trl.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+								   END                                                   AS LAST_UPDATE_DATE
+							FROM   task_action_trl trl  JOIN employee_mst createdby
+									 ON trl.created_by = createdby.mkey
+							Left JOIN TASK_HDR thdr on trl.TASK_MKEY = thdr.MKEY and thdr.DELETE_FLAG = 'N'
+							Left JOIN TYPE_MST tmst on tmst.MKEY = thdr.TASK_TYPE and tmst.DELETE_FLAG = 'N'
+								   LEFT JOIN employee_mst updatedby
+										  ON trl.last_updated_by = updatedby.mkey
+							WHERE  trl.delete_flag = 'N'
+									AND trl.mkey = @TASK_MKEY
+						Union all
+						Select 'Movement' as [Type],--MHST.CREATION_DATE,
+						0 as progress_perc
+								--,'Level '+ CONVERT(NVARCHAR,FROM_LEVEL)+ ' ' + CURRENT_STATUS +' To '+ ' Level '+CONVERT(NVARCHAR,TO_LEVEL)+ ' ' + UPDATED_STATUS as [Status]
+								--,ISNULL('Level '+ CONVERT(NVARCHAR,FROM_LEVEL)+ ' ' + CURRENT_STATUS +' To '+ ' Level '+CONVERT(NVARCHAR,TO_LEVEL)+ ' ' + UPDATED_STATUS, concat('The level ', TO_LEVEL,' is added'))  as [Status]
+								,case when CURRENT_STATUS = 'Updated Task' then CURRENT_STATUS else 
+								ISNULL('Level '+ CONVERT(NVARCHAR,FROM_LEVEL)+ ' ' + CURRENT_STATUS +' To '+ ' Level '
+								+ CONVERT(NVARCHAR,TO_LEVEL)+ ' ' + UPDATED_STATUS
+								, concat('The level ', TO_LEVEL,' is added')) end  as [Status]
+								,null as ACTION_TYPE
+								,COMMENT as Comment
+								,thdr.task_type as Task_Type
+								,tmst.TYPE_DESC as Task_Type_Name
+								,null as [FILE_NAME]
+								,null as FILE_PATH
+								,MHST.created_by                                        CREATED_BY_ID,
+								   createdby.emp_full_name                               CREATED_BY_NAME,
+								   CASE
+									 WHEN MHST.creation_date IS NULL THEN ''
+									 ELSE Format(MHST.creation_date, 'yyyy-MM-dd HH:mm:ss')
+								   END                                                   AS CREATION_DATE,
+								   Isnull(CONVERT(VARCHAR(50), MHST.last_updated_by), '') AS LAST_UPDATED_BY,
+								   Isnull(updatedby.emp_full_name, '')                   UPDATED_BY_NAME,
+								   CASE
+									 WHEN MHST.last_update_date IS NULL THEN ''
+									 ELSE Format(MHST.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+								   END                                                   AS LAST_UPDATE_DATE
+						From TASK_SANCTIONING_DEPARTMENT_TRL_MOVEMENT_HISTORY MHST JOIN employee_mst createdby
+									 ON MHST.created_by = createdby.mkey
+						Left JOIN TASK_HDR thdr on MHST.TASK_MKEY = thdr.MKEY and thdr.DELETE_FLAG = 'N'
+						Left JOIN TYPE_MST tmst on tmst.MKEY = thdr.TASK_TYPE and tmst.DELETE_FLAG = 'N'
+								   LEFT JOIN employee_mst updatedby
+										  ON MHST.last_updated_by = updatedby.mkey
+						where MHST.TASK_MKEY = @TASK_MKEY
+					) ActionType
+					ORDER BY ActionType.CREATION_DATE 
+	   --SELECT CONVERT(VARCHAR(50), creation_date, 103)CREATION_DATE,
+      --    progress_perc,
+      --    dbo.[Initcap](status)                   STATUS,
+      --    dbo.[Initcap](action_type)              ACTION_TYPE,
+      --    dbo.[Initcap](description_comment)      COMMENT,
+      --    Isnull(file_name, '')                   FILE_NAME,
+      --    Isnull(file_path, '')                   FILE_PATH
+      --FROM   task_action_trl
+      --WHERE  delete_flag = 'N'
+      --    AND mkey = @TASK_MKEY
+      --ORDER  BY sr_no DESC
+  END
+--EXEC [SP_GET_ACTIONS] 154,248,'SUB TASK CREATED'
+--SELECT CREATION_DATE,PROGRESS_PERC,STATUS,ACTION_TYPE,DESCRIPTION_COMMENT COMMENT,ISNULL(FILE_NAME,'NA') FILE_NAME FROM TASK_ACTION_TRL ORDER BY SR_NO DESC --SELECT * FROM TASK_ACTION_TRL
+
+

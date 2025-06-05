@@ -833,13 +833,7 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseTeamTask);
                 }
-
-                //DataTable TeamTaskDT = new DataTable();
-
-                //TeamTaskDT.Columns.Add("TASKTYPE", typeof(string));
-                //TeamTaskDT.Columns.Add("TASKTYPE_DESC", typeof(string));
-                //TeamTaskDT.Columns.Add("CURRENT_EMP_MKEY", typeof(string));
-
+            
                 foreach (var task in TaskTeamTask)
                 {
                     if (task.Data != null)
@@ -851,62 +845,8 @@ namespace TaskManagement.API.Controllers
                             a.CURRENT_EMP_MKEY.ToString() == team_Task_DetailsInput.mKEY.ToString())
                             .ToList();
                         task.Data1 = filteredData;
-                        // For each filtered item, add a row to the DataTable
-                        //foreach (var item in filteredData)
-                        //{
-                        //    DataRow row = TeamTaskDT.NewRow();
-                        //    row["TASKTYPE"] = item.TASKTYPE;
-                        //    row["TASKTYPE_DESC"] = item.TASKTYPE_DESC;
-                        //    row["CURRENT_EMP_MKEY"] = item.CURRENT_EMP_MKEY;
-                        //    TeamTaskDT.Rows.Add(row);
-                        //}
                     }
                 }
-
-
-                // Populate DataTable with the List<TASK_DASHBOARD>
-                //foreach (var task in TaskTeamTask)
-                //{
-                //    DataRow row = TeamTaskDT.NewRow();
-                //    //row["TASKTYPE"] = task.Data.Where(x => x.TASKTYPE = "gfgf").FirstOrDefault();
-                //    //row["TASKTYPE_DESC"] = task.Data.Select(x => x.TASKTYPE_DESC).FirstOrDefault();
-                //    //row["CURRENT_EMP_MKEY"] = task.Data.Select(x => x.CURRENT_EMP_MKEY).FirstOrDefault();
-
-                //    var query = from a in task.Data
-                //                    //where a.TASKTYPE  == team_Task_DetailsInput.TASKTYPE && a.TASKTYPE_DESC == team_Task_DetailsInput.TASKTYPE_DESC && a.CURRENT_EMP_MKEY.ToString() == team_Task_DetailsInput.mKEY.ToString()
-                //                select a;
-
-                //    var filterresult = from a in query
-                //                       where a.TASKTYPE == team_Task_DetailsInput.TASKTYPE && a.TASKTYPE_DESC == team_Task_DetailsInput.TASKTYPE_DESC && a.CURRENT_EMP_MKEY.ToString() == team_Task_DetailsInput.mKEY.ToString()
-                //                       select a;
-
-                //    TeamTaskDT.Rows.Add(row);
-                //}
-
-                //var searchStr = team_Task_DetailsInput.TASKTYPE.ToString().Trim() + " " + team_Task_DetailsInput.TASKTYPE_DESC.ToString().Trim() + " " + team_Task_DetailsInput.mKEY;
-                //var splitSearchString = searchStr.Split(' ');
-                //var columnNameStr = "TASKTYPE TASKTYPE_DESC CURRENT_EMP_MKEY";
-                //var splitcolumnNameStr = columnNameStr.Split(' ');
-                //var expression = new List<string>();
-                //DataTable table = new DataTable();
-
-                //int iCnt = 0;
-                //foreach (var searchElement in splitSearchString)
-                //{
-                //    expression.Add(
-                //        string.Format("[{0}] = '{1}'", splitcolumnNameStr[iCnt], searchElement));
-                //    iCnt++;
-                //}
-                //var searchExpressionString = string.Join(" and ", expression.ToArray());
-                //DataRow[] rows = TeamTaskDT.Select(searchExpressionString);
-
-                //Temptable = TeamTaskDT.Clone();
-                //for (int i = 0; i < rows.Length; i++)
-                //    Temptable.Rows.Add(rows[i].ItemArray);
-
-                // Convert the DataTable to a list of dictionaries (which is serializable)
-                // var result = DataTableToList(Temptable);
-
                 return Ok(TaskTeamTask);
             }
             catch (Exception ex)
@@ -929,6 +869,30 @@ namespace TaskManagement.API.Controllers
             {
                 var TaskTeamTask = await _repository.GetTeamTaskAsyncNT(teamTaskInput);
 
+                if (TaskTeamTask == null)
+                {
+                    var responseTeamTask = new TASK_DASHBOARDOutPut_List
+                    {
+                        Status = "Error",
+                        Message = "Error Occured",
+                        Data = null
+                    };
+                    return Ok(responseTeamTask);
+                }
+
+                foreach (var task in TaskTeamTask)
+                {
+                    if (task.Data != null)
+                    {
+                        // Apply LINQ filter to the Data property of each task
+                        var filteredData = task.Data1.Where(a =>
+                            a.TASKTYPE == teamTaskInput.TASKTYPE &&
+                            a.TASKTYPE_DESC == teamTaskInput.TASKTYPE_DESC &&
+                            a.CURRENT_EMP_MKEY.ToString() == teamTaskInput.mKEY.ToString())
+                            .ToList();
+                        task.Data1 = filteredData;
+                    }
+                }
                 return Ok(TaskTeamTask);
             }
             catch (Exception ex)

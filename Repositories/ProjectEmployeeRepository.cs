@@ -1115,18 +1115,33 @@ namespace TaskManagement.API.Repositories
                     var data = TaskTreeDetails.Read<GetActionsListTypeDesc_NT>().ToList();
                     var data1 = TaskTreeDetails.Read<GetActionsListFile_NT>().ToList();
 
-                    var successsResult = new List<GET_ACTIONS_TYPE_FILE_NT>
+                    if (data.Count > 0 || data1.Count > 0)
                     {
-                        new GET_ACTIONS_TYPE_FILE_NT
-                        {
-                            Status = "Ok",
-                            Message = "Message",
-                            Data= data,
-                            Data1= data1
+                        var successsResult = new List<GET_ACTIONS_TYPE_FILE_NT>
+                            {
+                                new GET_ACTIONS_TYPE_FILE_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= data,
+                                    Data1= data1
 
-                        }
-                    };
-                    return successsResult;
+                                }
+                            };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<GET_ACTIONS_TYPE_FILE_NT>
+                        {
+                            new GET_ACTIONS_TYPE_FILE_NT
+                            {
+                               Status = "Error",
+                                Message= "Not found"
+                            }
+                        };
+                        return errorResult;
+                    }
                 }
             }
             catch (Exception ex)
