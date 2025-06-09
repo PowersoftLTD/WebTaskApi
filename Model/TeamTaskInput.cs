@@ -13,11 +13,11 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Current_Emp_Mkey")]
         public string CURRENT_EMP_MKEY { get; set; }
         [JsonPropertyName("Tasktype")]
-        public string TASKTYPE { get; set; }
+        public string? TASKTYPE { get; set; }
         [JsonPropertyName("Tasktype_Desc")]
-        public string TASKTYPE_DESC { get; set; }
+        public string? TASKTYPE_DESC { get; set; }
         [JsonPropertyName("Filter")]
-        public string Filter { get; set; }
+        public string? Filter { get; set; }
         [JsonPropertyName("Mkey")]
         public string mKEY { get; set; }
         [JsonPropertyName("Session_User_Id")]

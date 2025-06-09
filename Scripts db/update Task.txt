@@ -16578,3 +16578,657 @@ AS
 --SELECT CREATION_DATE,PROGRESS_PERC,STATUS,ACTION_TYPE,DESCRIPTION_COMMENT COMMENT,ISNULL(FILE_NAME,'NA') FILE_NAME FROM TASK_ACTION_TRL ORDER BY SR_NO DESC --SELECT * FROM TASK_ACTION_TRL
 
 
+-----------------------------------------------------------------------------
+
+06-0-2025
+
+GO
+/****** Object:  StoredProcedure [dbo].[Sp_get_team_progress_nt]    Script Date: 06-06-2025 10:47:07 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--		EXEC  Sp_get_team_progress_nt 926,'DEPARTMENT','DEPT-OVERDUE','aLL',926,1 
+ALTER PROCEDURE [dbo].[SP_GET_TEAM_PROGRESS_NT](@CURRENT_EMP_MKEY  INT
+												,@TASKTYPE   Nvarchar(255) = null
+												,@TASKTYPE_DESC   Nvarchar(255)= null
+												,@Filter   Nvarchar(255)= null
+                                                ,@Session_User_Id   INT,
+                                                 @Business_Group_Id INT)
+AS
+  BEGIN
+      DECLARE @dCount      INT,
+              @dErpEmpMkey INT
+
+      SELECT @dErpEmpMkey = erp_emp_mkey
+      FROM   employee_mst
+      WHERE  mkey = @CURRENT_EMP_MKEY;
+
+      WITH reportees
+           AS (SELECT mkey 'CURRENT_EMP_MKEY',
+                      department_id,
+                      erp_emp_mkey,
+                      emp_full_name'MEMBER_NAME',
+                      ra1_mkey,
+                      1            AS Level
+               FROM   employee_mst
+               WHERE  Isnull(delete_flag, 'N') = 'N'
+                      AND ra1_mkey = @dErpEmpMkey
+                      AND emp_code != 1
+               UNION ALL
+               SELECT E.mkey          'CURRENT_EMP_MKEY',
+                      E.department_id,
+                      E.erp_emp_mkey,
+                      E.emp_full_name 'MEMBER_NAME',
+                      E.ra1_mkey,
+                      level + 1
+               FROM   employee_mst AS E
+                      INNER JOIN reportees
+                              ON E.ra1_mkey = reportees.erp_emp_mkey
+                                 AND Isnull(delete_flag, 'N') = 'N')
+		SELECT *
+		INTO   #temp_reportees
+		FROM   reportees
+		Where
+		CASE
+			WHEN @Filter  = 'Direct' THEN 
+				CASE WHEN RA1_MKEY = @Session_User_Id THEN 1 ELSE 0 END
+			ELSE 1  -- If none of the conditions match, return false
+					END = 1;
+      --select * from #TEMP_REPORTEES order by level,MEMBER_NAME;  
+					SELECT
+					RPT.*,
+					--T_HDR.*  
+					T_HDR.mkey,
+					Isnull(CATEGORY.type_desc, 'NA')                       CATEGORY,
+					T_HDR.task_no,
+					dbo.[Initcap](Isnull(CREATOR.emp_full_name, 'NA'))     CREATOR,
+					dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, 'NA')) RESPONSIBLE,
+					dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, 'NA'))  ACTIONABLE,
+					T_HDR.creation_date,
+					CONVERT(VARCHAR, T_HDR.completion_date, 103)           COMPLETION_DATE,
+					dbo.[Initcap](T_HDR.task_name)                         TASK_NAME,
+					T_HDR.task_description,
+					T_HDR.tags,
+					dbo.[Initcap](T_HDR.status)                            STATUS,
+					CASE
+					WHEN Isnull(CREATOR.first_name, 'NA') != Isnull(RESPONSIBLE.first_name, 'NA')
+					THEN dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+					+ ' > '
+					+ dbo.[Initcap](Isnull(RESPONSIBLE.first_name, 'NA') )
+					ELSE dbo.[Initcap](Isnull(CREATOR.first_name, 'NA'))
+					END
+					RESPONSIBLE_TAG,
+					ASSIGNEE.emp_full_name                                 'ASSIGNEE',
+					ASSIGNEE.department_id
+					'ASSIGNEE_DEPARTMENT_ID',
+					CASE
+					WHEN RPT.department_id = ASSIGNEE.department_id THEN 'DEPARTMENT'
+					WHEN RPT.department_id != ASSIGNEE.department_id THEN 'INTER-DEPARTMENT'
+					END  AS 'TASKTYPE',
+					CASE
+					WHEN RPT.department_id = ASSIGNEE.department_id
+						AND ( T_HDR.assigned_to = RPT.current_emp_mkey
+							OR T_HDR.resposible_emp_mkey = RPT.current_emp_mkey )
+						AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED' )
+						AND CONVERT(VARCHAR, T_HDR.completion_date, 103) = CONVERT(VARCHAR, Getdate(), 103)
+						AND Isnull(T_HDR.delete_flag, 'N') = 'N' THEN 'DEPT-TODAY'
+					WHEN RPT.department_id = ASSIGNEE.department_id
+						AND ( T_HDR.assigned_to = RPT.current_emp_mkey
+							OR T_HDR.resposible_emp_mkey = RPT.current_emp_mkey )
+						AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED' )
+						AND T_HDR.completion_date < CONVERT(DATETIME,CONVERT(VARCHAR, Getdate(),103),103)
+						AND Isnull(T_HDR.delete_flag, 'N') = 'N' THEN 'DEPT-OVERDUE'
+					WHEN RPT.department_id = ASSIGNEE.department_id
+						AND ( T_HDR.assigned_to = RPT.current_emp_mkey
+							OR T_HDR.resposible_emp_mkey = RPT.current_emp_mkey )
+						AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED' )
+								--AND T_HDR.STATUS  in ('Close Initiated','Cancel Initiated')  
+								AND T_HDR.completion_date > CONVERT(DATETIME,CONVERT(VARCHAR, Getdate(),103),103)
+								AND Isnull(T_HDR.delete_flag, 'N') = 'N' THEN 'DEPT-FUTURE'
+							WHEN RPT.department_id != ASSIGNEE.department_id
+								AND ( T_HDR.assigned_to = RPT.current_emp_mkey
+										OR T_HDR.resposible_emp_mkey = RPT.current_emp_mkey )
+								AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED' )
+								AND CONVERT(VARCHAR, T_HDR.completion_date, 103) = CONVERT(VARCHAR, Getdate(), 103)
+								AND Isnull(T_HDR.delete_flag, 'N') = 'N' THEN
+							'INTERDEPT-TODAY'
+							WHEN RPT.department_id != ASSIGNEE.department_id
+								AND ( T_HDR.assigned_to = RPT.current_emp_mkey
+										OR T_HDR.resposible_emp_mkey = RPT.current_emp_mkey )
+								AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED' )
+								AND T_HDR.completion_date < CONVERT(DATETIME,CONVERT(VARCHAR, Getdate(),103),103)
+								AND Isnull(T_HDR.delete_flag, 'N') = 'N' THEN
+							'INTERDEPT-OVERDUE'
+							WHEN RPT.department_id != ASSIGNEE.department_id
+								AND ( T_HDR.assigned_to = RPT.current_emp_mkey
+										OR T_HDR.resposible_emp_mkey = RPT.current_emp_mkey )
+								AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED' )
+								--AND T_HDR.STATUS  in ('Close Initiated','Cancel Initiated')  
+								AND T_HDR.completion_date > CONVERT(DATETIME,CONVERT(VARCHAR, Getdate(),103),103)
+								AND Isnull(T_HDR.delete_flag, 'N') = 'N' THEN
+							'INTERDEPT-FUTURE'
+							END AS 'TASKTYPE_DESC',
+							dbo.[Initcap](Isnull(PROJ.type_desc, ''))
+							PROJECT_NAME
+					INTO   #temp_reportees_details
+					FROM   #temp_reportees RPT
+							LEFT JOIN task_hdr T_HDR
+								ON ( RPT.current_emp_mkey = T_HDR.assigned_to
+										OR T_HDR.resposible_emp_mkey = RPT.current_emp_mkey )
+							LEFT JOIN employee_mst ASSIGNEE
+								ON T_HDR.created_by = ASSIGNEE.mkey
+							LEFT JOIN employee_mst CREATOR
+								ON CREATOR.mkey = T_HDR.created_by
+							LEFT JOIN employee_mst RESPONSIBLE
+								ON RESPONSIBLE.mkey = T_HDR.assigned_to
+							LEFT JOIN employee_mst ACTIONABLE
+								ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey
+							LEFT JOIN v_category CATEGORY
+								ON CATEGORY.mkey = T_HDR.caregory
+							LEFT JOIN v_project PROJ
+								ON T_HDR.project_id = PROJ.master_mkey
+					WHERE  T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED' );
+      --ORDER BY RPT.MEMBER_NAME;  
+			SELECT *,
+             Isnull((SELECT Count(*)
+                     FROM   #temp_reportees_details
+                     WHERE  tasktype_desc = 'DEPT-TODAY'
+                            AND current_emp_mkey = A.current_emp_mkey), 0)
+             'DEPTTODAY',
+             Isnull((SELECT Count(*)
+                     FROM   #temp_reportees_details
+                     WHERE  tasktype_desc = 'DEPT-OVERDUE'
+                            AND current_emp_mkey = A.current_emp_mkey), 0)
+             'DEPTOVERDUE',
+             Isnull((SELECT Count(*)
+                     FROM   #temp_reportees_details
+                     WHERE  tasktype_desc = 'DEPT-FUTURE'
+                            AND current_emp_mkey = A.current_emp_mkey), 0)
+             'DEPTFUTURE',
+             Isnull((SELECT Count(*)
+                     FROM   #temp_reportees_details
+                     WHERE  tasktype_desc = 'INTERDEPT-TODAY'
+                            AND current_emp_mkey = A.current_emp_mkey), 0)
+             'INTERDEPTTODAY',
+             Isnull((SELECT Count(*)
+                     FROM   #temp_reportees_details
+                     WHERE  tasktype_desc = 'INTERDEPT-OVERDUE'
+                            AND current_emp_mkey = A.current_emp_mkey), 0)
+             'INTERDEPTOVERDUE',
+             Isnull((SELECT Count(*)
+                     FROM   #temp_reportees_details
+                     WHERE  tasktype_desc = 'INTERDEPT-FUTURE'
+                            AND current_emp_mkey = A.current_emp_mkey), 0)
+             'INTERDEPTFUTURE'
+      FROM   #temp_reportees A
+      ORDER  BY level,
+                member_name
+      SELECT *
+      FROM   #temp_reportees_details
+	  WHERE  CASE
+				WHEN  @TASKTYPE != '' OR @TASKTYPE <> '' THEN  --@TASKTYPE IS NOT NULL OR
+							CASE WHEN  TASKTYPE = @TASKTYPE AND TASKTYPE_DESC = @TASKTYPE_DESC  THEN 1 ELSE 0 END
+						ELSE 1  
+						END = 1
+      ORDER  BY member_name;
+
+					Select 'Today' as Duration, count(*) as 'Count'
+					into #temp_CardCount
+					FROM   #temp_reportees_details RPT
+					WHERE  RPT.tasktype_desc in ('DEPT-TODAY','INTERDEPT-TODAY') 
+					AND	CASE
+						WHEN @Filter    = 'Direct' THEN 
+							CASE WHEN RA1_MKEY = @Session_User_Id THEN 1 ELSE 0 END
+						ELSE 1  -- If none of the conditions match, return false
+						END = 1
+					union ALL
+					Select 'Overdue' as Duration, count(*) as 'Count'
+					FROM  #temp_reportees_details RPT
+					WHERE RPT.tasktype_desc in ('DEPT-OVERDUE','INTERDEPT-OVERDUE')
+					AND	CASE
+						WHEN @Filter    = 'Direct' THEN 
+							CASE WHEN RA1_MKEY = @Session_User_Id THEN 1 ELSE 0 END
+						ELSE 1  -- If none of the conditions match, return false
+						END = 1
+					union all
+					Select 'Future' as Duration, count(*) as 'Count'
+					FROM  #temp_reportees_details RPT
+					WHERE RPT.tasktype_desc in ('DEPT-FUTURE','INTERDEPT-FUTURE')
+					AND	CASE
+						WHEN @Filter    = 'Direct' THEN 
+							CASE WHEN RA1_MKEY = @Session_User_Id THEN 1 ELSE 0 END
+						ELSE 1  -- If none of the conditions match, return false
+						END = 1
+					Union all
+					Select 'Team Members' as Duration, Count(*) as 'Count'
+					FROM  #temp_reportees RPT
+
+					select * from #temp_CardCount;
+
+      DROP TABLE #temp_reportees;
+	  drop table #temp_CardCount;
+      DROP TABLE #temp_reportees_details;
+  /*  
+
+				WITH reportees
+				AS (SELECT mkey 'CURRENT_EMP_MKEY',department_id,erp_emp_mkey,emp_full_name'MEMBER_NAME',ra1_mkey,1 AS Level
+				FROM   employee_mst
+				WHERE  Isnull(delete_flag, 'N') = 'N' AND ra1_mkey = 926 AND emp_code != 1
+				UNION ALL
+				SELECT E.mkey 'CURRENT_EMP_MKEY',E.department_id,E.erp_emp_mkey,E.emp_full_name 'MEMBER_NAME',E.ra1_mkey,level + 1
+				FROM   employee_mst AS E INNER JOIN reportees ON E.ra1_mkey = reportees.erp_emp_mkey AND Isnull(delete_flag, 'N') = 'N')
+				select count(*) from reportees RPT LEFT JOIN task_hdr T_HDR
+				ON ( RPT.current_emp_mkey = T_HDR.assigned_to OR T_HDR.resposible_emp_mkey = RPT.current_emp_mkey )
+				where  T_HDR.DELETE_FLAG = 'N'
+				AND T_HDR.status NOT IN ( 'COMPLETED', 'CANCELLED' )
+				AND CONVERT(DATETIME,CONVERT(VARCHAR, T_HDR.completion_date,103),103) > CONVERT(DATETIME,CONVERT(VARCHAR, Getdate(),103),103)
+
+
+  select emp_code, EMP_FULL_NAME, 'Direct Report' Report_type ,mkey,DEPARTMENT_ID  
+  from EMPLOYEE_MST where    
+   RA1_MKEY in   
+  (  
+  @dErpEmpMkey  
+  )   
+  union    
+  select emp_code, EMP_FULL_NAME , 'Indirect Report' Report_type ,mkey,DEPARTMENT_ID   
+  from EMPLOYEE_MST where   RA2_MKEY in   
+  (  
+    @dErpEmpMkey  
+  )  
+  and emp_code not in (select emp_code  
+  from EMPLOYEE_MST where    
+   RA1_MKEY in   
+  (  
+  @dErpEmpMkey  
+  ))    
+  UNION  
+  SELECT emp_code, EMP_FULL_NAME ,'Subordinate Report' Report_type ,mkey,DEPARTMENT_ID  
+  from EMPLOYEE_MST where    
+   RA1_MKEY in   
+  (  
+  select ERP_EMP_MKEY   
+  from EMPLOYEE_MST where    
+   RA1_MKEY in   
+  (  
+  @dErpEmpMkey  
+  )   
+  )   
+  and emp_code not in (select emp_code  
+  from EMPLOYEE_MST where    
+   RA2_MKEY in   
+  (  
+  @dErpEmpMkey  
+  ))  
+    
+  order by 1  
+  */
+  END
+--EXEC [SP_GET_TEAM_PROGRESS] 9  
+--select * from EMPLOYEE_MST where emp_name like '%vyom%'  
+
+
+-------------------------------------------------
+07-06-2025
+
+--EXEC SP_GET_SCHEDULED_MSP 157,461,926,1
+Create PROCEDURE SP_GET_SCHEDULED_MSP
+	-- Add the parameters for the stored procedure here
+	@ProjectMkey int,
+	@BuildingMkey int,
+	@Session_User_Id   INT,  
+	@Business_Group_Id INT
+
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+		Select WBS,TASK_NAME as Name,Duration,Start_Date,Finish_Date
+		,Predecessors,Resource_Names,Text1,Outline_Level,Number1,Unique_ID,Percent_Complete as STATUS_PERC
+		from TASK_HDR 
+		Where Is_Scheduled is not null 
+		And DELETE_FLAG = 'N' 
+		And PROJECT_ID = @ProjectMkey 
+		And SUB_PROJECT_ID = @BuildingMkey;
+END
+GO
+
+
+
+ 
+
+   --------------------------------------------
+
+09-0-2025
+
+ALTER PROCEDURE [dbo].[SP_GET_TASK_PROJECTS_BY_TASK_TYPE]
+    @TASK_TYPE NVARCHAR(255),
+    @ProjectMkey NVARCHAR(255) = NULL,
+    @BuildingMkey NVARCHAR(255) = NULL,
+    @FILTER VARCHAR(MAX) = NULL,
+    @BUILDING_TYPE NVARCHAR(MAX) = NULL,
+    @BUILDING_STANDARD NVARCHAR(MAX) = NULL,
+    @STATUTORY_AUTHORITY NVARCHAR(MAX) = NULL,
+    @Session_User_Id INT = NULL,  
+    @Business_Group_Id INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        DECLARE @sql NVARCHAR(MAX) = NULL,
+                @WhereClause NVARCHAR(MAX) = NULL,
+                @TaskTypeMkey INT;
+
+        -- Create temporary tables instead of table variables
+        IF OBJECT_ID('tempdb..#TableOutputProjectMkey') IS NOT NULL DROP TABLE #TableOutputProjectMkey;
+        CREATE TABLE #TableOutputProjectMkey (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBuildingMkey') IS NOT NULL DROP TABLE #TableOutputBuildingMkey;
+        CREATE TABLE #TableOutputBuildingMkey (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBUILDING_TYPE') IS NOT NULL DROP TABLE #TableOutputBUILDING_TYPE;
+        CREATE TABLE #TableOutputBUILDING_TYPE (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBUILDING_STANDARD') IS NOT NULL DROP TABLE #TableOutputBUILDING_STANDARD;
+        CREATE TABLE #TableOutputBUILDING_STANDARD (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputSTATUTORY_AUTHORITY') IS NOT NULL DROP TABLE #TableOutputSTATUTORY_AUTHORITY;
+        CREATE TABLE #TableOutputSTATUTORY_AUTHORITY (mkey INT);
+
+        -- Populate #TableOutputProjectMkey
+        INSERT INTO #TableOutputProjectMkey
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@ProjectMkey, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+		
+        -- Populate #TableOutputBuildingMkey
+        INSERT INTO #TableOutputBuildingMkey
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@BuildingMkey, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+        -- Populate #TableOutputBUILDING_TYPE
+        INSERT INTO #TableOutputBUILDING_TYPE
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@BUILDING_TYPE AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+        -- Populate #TableOutputBUILDING_STANDARD
+        INSERT INTO #TableOutputBUILDING_STANDARD
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@BUILDING_STANDARD AS VARCHAR), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+        -- Populate #TableOutputSTATUTORY_AUTHORITY
+        INSERT INTO #TableOutputSTATUTORY_AUTHORITY
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@STATUTORY_AUTHORITY, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+        -- Get task type mkey
+        SELECT @TaskTypeMkey = MASTER_MKEY
+        FROM TYPE_MST
+        WHERE TYPE_CODE = 'Task_Type' AND DELETE_FLAG = 'N' AND TYPE_DESC = @TASK_TYPE;
+
+        -- Build dynamic SQL
+        IF @TaskTypeMkey = 359  -- Approval
+        BEGIN
+            SET @sql = '
+                SELECT thdr.PROJECT_ID AS PROJECT_Mkey, TProject.TYPE_DESC AS Project_Name,
+                       SUB_PROJECT_ID AS Building_Mkey, TBuilding.TYPE_DESC AS Building_Name, thdr.STATUS_PERC,
+                       LTRIM(RTRIM(thdr.Priority)) AS Priority, thdr.MKEY, TASK_NO, TASK_NAME, TASK_DESCRIPTION,
+                       thdr.TASK_PARENT_ID, thdr.TASK_MAIN_NODE_ID, ASSIGNED_TO, emst.EMP_FULL_NAME AS Assigned_To_Name,
+                       COMPLETION_DATE, thdr.status AS [Status]
+                FROM TASK_HDR thdr
+                INNER JOIN PROJECT_TRL_APPROVAL_ABBR Ahdr ON thdr.MKEY = Ahdr.TASK_NO_MKEY
+                INNER JOIN PROJECT_HDR phdr ON phdr.MKEY = Ahdr.HEADER_MKEY AND phdr.DELETE_FLAG = ''N''
+                INNER JOIN APPROVAL_TEMPLATE_HDR athdr ON athdr.MKEY = Ahdr.APPROVAL_MKEY AND Ahdr.DELETE_FLAG = ''N''
+                LEFT JOIN EMPLOYEE_MST emst ON thdr.ASSIGNED_TO = emst.MKEY AND emst.DELETE_FLAG = ''N''
+                LEFT JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID AND TProject.DELETE_FLAG = ''N''
+                LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N''';
+                set @WhereClause =' WHERE thdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + '
+                      AND thdr.DELETE_FLAG = ''N''
+                      AND Ahdr.DELETE_FLAG = ''N''
+                      AND phdr.DELETE_FLAG = ''N''
+                      AND athdr.DELETE_FLAG = ''N''
+                      AND (thdr.PROJECT_ID IN (SELECT mkey FROM #TableOutputProjectMkey)
+                           OR thdr.SUB_PROJECT_ID IN (SELECT mkey FROM #TableOutputBuildingMkey)
+                           OR athdr.BUILDING_TYPE IN (SELECT mkey FROM #TableOutputBUILDING_TYPE)
+                           OR athdr.BUILDING_STANDARD IN (SELECT mkey FROM #TableOutputBUILDING_STANDARD)
+                           OR athdr.STATUTORY_AUTHORITY IN (SELECT mkey FROM #TableOutputSTATUTORY_AUTHORITY))
+                      AND (thdr.RESPOSIBLE_EMP_MKEY = ' + CONVERT(NVARCHAR, @Session_User_Id) + '
+                           OR thdr.CREATED_BY = ' + CONVERT(NVARCHAR, @Session_User_Id) + ')';
+			
+        END
+		else if (@TaskTypeMkey = 103) -- Compliance
+		begin
+			SET @sql = '
+                SELECT thdr.PROJECT_ID AS PROJECT_Mkey, TProject.TYPE_DESC AS Project_Name,
+SUB_PROJECT_ID AS Building_Mkey, TBuilding.TYPE_DESC AS Building_Name, thdr.STATUS_PERC,
+LTRIM(RTRIM(thdr.Priority)) AS Priority, thdr.MKEY, TASK_NO, TASK_NAME, TASK_DESCRIPTION,
+thdr.TASK_PARENT_ID, thdr.TASK_MAIN_NODE_ID, ASSIGNED_TO, emst.EMP_FULL_NAME AS Assigned_To_Name,
+COMPLETION_DATE, thdr.status AS [Status]
+FROM TASK_HDR thdr inner join COMPLIANCE_HDR chdr on thdr.MKEY = chdr.TASK_NO_MKEY
+LEFT JOIN EMPLOYEE_MST emst ON thdr.ASSIGNED_TO = emst.MKEY AND emst.DELETE_FLAG = ''N''
+LEFT JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID AND TProject.DELETE_FLAG = ''N''
+LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N'' ';
+		end
+
+			IF @FILTER = 'Today'
+			BEGIN
+				SET @WhereClause += ' And (CONVERT(VARCHAR, thdr.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103)
+										AND thdr.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Pending'
+			BEGIN
+				SET @WhereClause +=' AND (STATUS_PERC = 0.0 AND thdr.completion_date < GETDATE() 
+										and thdr.status IN (''CREATED'', ''SUB TASK CREATED'',''WORK IN PROGRESS'',''RE-WORK'')) ';
+			END
+			IF @FILTER = 'Review'
+			BEGIN
+				SET @WhereClause += ' AND (thdr.STATUS IN (''Close Initiated'',''Cancel Initiated''))';
+			END
+			IF @FILTER = 'Completed'
+			BEGIN
+				SET @WhereClause += ' And (thdr.status IN (''COMPLETED'') AND STATUS_PERC = 100) ';
+			END
+			IF @FILTER = 'Cancelled'
+			BEGIN
+				SET @WhereClause +=' AND (thdr.status IN (''CANCEL'', ''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Overdue'
+			BEGIN
+				SET @WhereClause += ' And (thdr.completion_date < GETDATE() AND thdr.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Future'
+			BEGIN
+				SET @WhereClause +=' AND (thdr.STATUS NOT IN (''COMPLETED'',''CANCELLED'',''Close Initiated'',''Cancel Initiated'')) 
+										and thdr.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103) ';
+			END
+			print '@ProjectMkey  '+ @ProjectMkey
+			if (((@ProjectMkey != null or @BuildingMkey != null))  -- (@ProjectMkey != '' or @BuildingMkey != '') OR
+				OR (@WhereClause  is not null OR @WhereClause  != null))
+			Begin
+			print '@ProjectMkey insdeid '+ @ProjectMkey
+				Set @sql +=' '+ @WhereClause + ' order by thdr.PROJECT_ID, thdr.SUB_PROJECT_ID,thdr.MKEY; ';
+				print '@sql: '+ @sql
+			End
+			Else
+			Begin
+			print '@ProjectMkey Outside '+ @ProjectMkey
+				set @sql += ' WHERE thdr.DELETE_FLAG = ''N'' And (RESPOSIBLE_EMP_MKEY = '+ CONVERT(NVARCHAR,@Session_User_Id) +' 
+						OR thdr.CREATED_BY = '+CONVERT(NVARCHAR, @Session_User_Id) +' )
+						Order by thdr.PROJECT_ID, thdr.SUB_PROJECT_ID,thdr.MKEY; ';
+			End
+			
+			EXEC Sp_executesql @sql;
+
+			Select 'Todays' as DurationFilter,Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN @ProjectMkey != 0  OR @ProjectMkey <> '' THEN 
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN @BuildingMkey != 0 THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			And (CONVERT(VARCHAR, thdr.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103)
+			AND thdr.status not IN ('CANCEL', 'COMPLETED','CANCELLED'))
+			
+			Union 
+			
+			Select 'Pending' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+				AND	CASE
+					WHEN @ProjectMkey != 0   THEN 
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN @BuildingMkey != 0 THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (STATUS_PERC = 0.0 AND thdr.completion_date < GETDATE() 
+			and thdr.status IN ('CREATED', 'SUB TASK CREATED','WORK IN PROGRESS','RE-WORK'))
+			
+			Union 
+			
+			Select 'Review' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN @ProjectMkey != 0   THEN 
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN @BuildingMkey != 0 THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (thdr.STATUS IN ('Close Initiated','Cancel Initiated'))
+			
+			Union 
+			
+			Select 'Overdue' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN @ProjectMkey != 0   THEN 
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN @BuildingMkey != 0 THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			And (thdr.completion_date < GETDATE() AND thdr.status not IN ('CANCEL', 'COMPLETED','CANCELLED')) 
+			
+			Union 
+			
+			Select 'Future' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0  THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN @ProjectMkey != 0   THEN 
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN @BuildingMkey != 0 THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (thdr.STATUS NOT IN ('COMPLETED','CANCELLED','Close Initiated','Cancel Initiated')) 
+			and thdr.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103); 
+
+        -- Final execution
+        --PRINT '@sql: ' + @sql;
+        --EXEC sp_executesql @sql;
+
+        -- Return summary counts for filters (if needed) here...
+        -- You can retain your UNION queries for 'Todays', 'Pending', etc., after this
+
+    END TRY
+    BEGIN CATCH
+        SELECT
+            ERROR_NUMBER() AS ERRORNUMBER,
+            ERROR_SEVERITY() AS ERRORSEVERITY,
+            ERROR_STATE() AS ERRORSTATE,
+            ERROR_PROCEDURE() AS ERRORPROCEDURE,
+            ERROR_LINE() AS ERRORLINE,
+            ERROR_MESSAGE() AS ERRORMESSAGE;
+
+        DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+        SET @ERROR_MESSAGE = ERROR_MESSAGE();
+
+        EXEC Sp_p_tms_insert_error_des
+            @Session_User_Id,
+            'TMS',
+            'Get Task Projects',
+            @ERROR_MESSAGE,
+            'Get';
+    END CATCH
+END

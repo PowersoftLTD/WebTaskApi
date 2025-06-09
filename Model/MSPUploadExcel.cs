@@ -102,4 +102,18 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Mpp_Name")]
         public string? mpp_name { get; set; }
     }
+
+
+    public class MSPTaskInput
+    {
+        [JsonPropertyName("Project")]
+        public int? Project { get; set; }
+        [JsonPropertyName("Sub_Project")]
+        public int? Sub_Project { get; set; }
+
+        [JsonPropertyName("Session_User_Id")]
+        public int? Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int? Business_Group_Id { get; set; }
+    }
 }

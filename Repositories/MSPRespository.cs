@@ -179,6 +179,94 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<IEnumerable<MSPUploadExcelOutPut>> GetTaskMspAsync(MSPTaskInput mSPTaskInput)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmetersMSP = new DynamicParameters();
+                    parmetersMSP.Add("@ProjectMkey", mSPTaskInput.Project);
+                    parmetersMSP.Add("@BuildingMkey", mSPTaskInput.Sub_Project);
+                    parmetersMSP.Add("@Session_User_Id", mSPTaskInput.Session_User_Id);
+                    parmetersMSP.Add("@Business_Group_Id", mSPTaskInput.Business_Group_Id);
+
+                    var ScheduleMSP = await db.QueryAsync<MSPUploadExcel>("SP_GET_SCHEDULED_MSP", parmetersMSP, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var ResultMSP = new List<MSPUploadExcelOutPut>
+                        {
+                            new MSPUploadExcelOutPut
+                            {
+                                Status = "Ok",
+                                Message = "Message",
+                                Data = ScheduleMSP
+                            }
+                        };
+                    return ResultMSP;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        var ErrorResult = new List<MSPUploadExcelOutPut>
+                            {
+                                new MSPUploadExcelOutPut
+                                {
+                                    Status = "Error",
+                                    Message = rollbackEx.Message,
+                                    Data = null
+                                }
+                            };
+                        return ErrorResult;
+                    }
+                }
+
+                // Return error result if there was an exception during the upload process
+                var errorResult = new List<MSPUploadExcelOutPut>
+                {
+                    new MSPUploadExcelOutPut
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+        }
 
     }
 }

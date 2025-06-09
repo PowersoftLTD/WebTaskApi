@@ -1364,7 +1364,6 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-
                 var modelTask = await _repository.CreateAddTaskNTAsync(add_TaskInput_NT);
                 return Ok(modelTask);
             }
@@ -2964,7 +2963,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
 
         [HttpPost("Task-Management/Task-OverDue-By-Priority-NT")]
         [Authorize]

@@ -2733,23 +2733,6 @@ namespace TaskManagement.API.Repositories
                                 };
                         return errorResult;
                     }
-
-                    //var sqlTransaction = (SqlTransaction)transaction;
-                    //await sqlTransaction.CommitAsync();
-                    //transactionCompleted = true;
-
-                    //var successsResult = new List<Add_TaskOutPut_List_NT>
-                    //        {
-                    //        new Add_TaskOutPut_List_NT
-                    //            {
-                    //            Status = "Ok",
-                    //            Message = "Inserted Successfully",
-                    //            Data= InsertTaskDetails
-                    //            }
-                    //    };
-                    //return successsResult;
-
-
                 }
             }
             catch (Exception ex)
@@ -6507,7 +6490,6 @@ namespace TaskManagement.API.Repositories
                 }
             }
         }
-
         public async Task<ActionResult<IEnumerable<TaskProjectsDashboardOutputNT>>> TaskProjectsDashboardNTAsync(TaskProjectDashboardInput taskProjectDashboardInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
