@@ -22,6 +22,28 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Filter")]
         public string? FILTER { get; set; }
 
+        // Approval Filter
+        [JsonPropertyName("Building_Type")]
+        public string? Building_Type { get; set; }
+        [JsonPropertyName("Building_Standard")]
+        public string? Building_Standard { get; set; }
+        [JsonPropertyName("Statutory_Authority")]
+        public string? Statutory_Authority { get; set; }
+
+        // Compliance Filter
+        [JsonPropertyName("ResponsibleDepartment")]
+        public string? ResponsibleDepart { get; set; }
+        [JsonPropertyName("JobRole")]
+        public string? JobRole { get; set; }
+        [JsonPropertyName("ResponsiblePerson")]
+        public string? ResponsiblePerson { get; set; }
+        [JsonPropertyName("RaisedAt")]
+        public string? RaisedAt { get; set; }
+        [JsonPropertyName("RaisedAtBefore")]
+        public string? RaisedAtBefore { get; set; }
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+
         [JsonPropertyName("Session_User_Id")]
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]

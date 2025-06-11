@@ -6519,10 +6519,21 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@FILTER", taskProjectDashboardInput.FILTER);
                     parmeters.Add("@ProjectMkey", taskProjectDashboardInput.ProjectMkey);
                     parmeters.Add("@BuildingMkey", taskProjectDashboardInput.BuildingMkey);
+                    // Approval Filter
+                    parmeters.Add("@BUILDING_TYPE", taskProjectDashboardInput.BuildingMkey);
+                    parmeters.Add("@BUILDING_STANDARD", taskProjectDashboardInput.ProjectMkey);
+                    parmeters.Add("@STATUTORY_AUTHORITY", taskProjectDashboardInput.BuildingMkey);
+                    // Complaince Filter
+                    parmeters.Add("@ResponsibleDepart", taskProjectDashboardInput.ResponsibleDepart);
+                    parmeters.Add("@JobRole", taskProjectDashboardInput.JobRole);
+                    parmeters.Add("@ResponsiblePerson", taskProjectDashboardInput.ResponsiblePerson);
+                    parmeters.Add("@RaisedAt", taskProjectDashboardInput.RaisedAt);
+                    parmeters.Add("@RaisedAtBefore", taskProjectDashboardInput.RaisedAtBefore);
+                    parmeters.Add("@Status", taskProjectDashboardInput.Status);
                     parmeters.Add("@Session_User_Id", taskProjectDashboardInput.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", taskProjectDashboardInput.Business_Group_Id);
 
-                    var taskStatusDistributonNTs = await db.QueryMultipleAsync("SP_GET_TASK_PROJECTS_BY_TASK_TYPE", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var taskStatusDistributonNTs = await db.QueryMultipleAsync("SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     var data = taskStatusDistributonNTs.Read<TaskProjectsDashboardNT>().ToList();
                     var data1 = taskStatusDistributonNTs.Read<TaskProjectsDashboardCountNT>().ToList();

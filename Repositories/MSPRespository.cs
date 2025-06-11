@@ -105,8 +105,8 @@ namespace TaskManagement.API.Repositories
                         parmetersMSP.Add("@Parameter3", null);
                         parmetersMSP.Add("@Parameter4", null);
                         parmetersMSP.Add("@Parameter5", null);
-                        parmetersMSP.Add("@Parameter6", null);
-                        parmetersMSP.Add("@Parameter7", null);
+                        parmetersMSP.Add("@Parameter6", mSPUploadExcelInput[0].Session_User_Id);
+                        parmetersMSP.Add("@Parameter7", mSPUploadExcelInput[0].Business_Group_Id);
 
                         var ScheduleMSP = await db.QueryAsync<MSPUploadExcel>("SP_INSERT_SCHEDULED_MSP", parmetersMSP, commandType: CommandType.StoredProcedure, transaction: transaction);
 
@@ -158,7 +158,7 @@ namespace TaskManagement.API.Repositories
                             new MSPUploadExcelOutPut
                             {
                                 Status = "Error",
-                                Message = rollbackEx.Message,
+                                Message = ex.Message,
                                 Data = null
                             }
                         };
@@ -267,7 +267,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<IEnumerable<MSPUploadExcelOutPut>> UpdateTaskMspAsync(List<MSPUploadExcelInput> mSPUploadExcelInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -356,8 +355,8 @@ namespace TaskManagement.API.Repositories
                         parmetersMSP.Add("@Parameter3", null);
                         parmetersMSP.Add("@Parameter4", null);
                         parmetersMSP.Add("@Parameter5", null);
-                        parmetersMSP.Add("@Parameter6", null);
-                        parmetersMSP.Add("@Parameter7", null);
+                        parmetersMSP.Add("@Parameter6", mSPUploadExcelInput[0].Session_User_Id);
+                        parmetersMSP.Add("@Parameter7", mSPUploadExcelInput[0].Business_Group_Id);
 
                         var ScheduleMSP = await db.QueryAsync<MSPUploadExcel>("SP_UPDATE_SCHEDULED_MSP", parmetersMSP, commandType: CommandType.StoredProcedure, transaction: transaction);
 

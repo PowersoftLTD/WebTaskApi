@@ -86,6 +86,10 @@ namespace TaskManagement.API.Model
         public int? Number1 { get; set; }
         [JsonPropertyName("Unique_ID")]
         public int? Unique_ID { get; set; }
+
+        [JsonPropertyName("Percent_Complete")]
+        public decimal? Percent_Complete { get; set; }
+
         [JsonPropertyName("Created_By")]
         public int? Created_By { get; set; }
         [JsonPropertyName("Creation_Date")]
@@ -96,11 +100,16 @@ namespace TaskManagement.API.Model
         public DateTime? Updation_Date { get; set; }
         [JsonPropertyName("Process_Flag")]
         public string? Process_Flag { get; set; }
-        
+
         [JsonPropertyName("FileName")]
         public string? FileName { get; set; }
         [JsonPropertyName("Mpp_Name")]
         public string? mpp_name { get; set; }
+
+        [JsonPropertyName("Session_User_Id")]
+        public int? Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int? Business_Group_Id { get; set; }
     }
 
 

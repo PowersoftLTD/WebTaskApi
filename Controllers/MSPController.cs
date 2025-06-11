@@ -56,5 +56,26 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+        [HttpPost("MSP/Update-Task-MSP")]
+        public async Task<ActionResult<MSPUploadExcelOutPut>> UpdateTaskMSP(List<MSPUploadExcelInput> mSPUploadExcelInput)
+        {
+            try
+            {
+                var UploadExcel = await _repository.UpdateTaskMspAsync(mSPUploadExcelInput);
+                return Ok(UploadExcel);
+            }
+            catch (Exception ex)
+            {
+                var response = new MSPUploadExcelOutPut
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
     }
 }

@@ -17232,3 +17232,458 @@ LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.
             'Get';
     END CATCH
 END
+------------------------------------
+11-06-205
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_TASK_PROJECTS_BY_TASK_TYPE]    Script Date: 11-06-2025 11:52:21 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT 
+ALTER PROCEDURE SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT
+    @TASK_TYPE NVARCHAR(255),
+	-- Common for all task type
+    @ProjectMkey NVARCHAR(255) = NULL,
+    @BuildingMkey NVARCHAR(255) = NULL,
+    @FILTER VARCHAR(MAX) = NULL,
+    -- Approval filter
+	@BUILDING_TYPE NVARCHAR(MAX) = NULL,
+    @BUILDING_STANDARD NVARCHAR(MAX) = NULL,
+    @STATUTORY_AUTHORITY NVARCHAR(MAX) = NULL,
+	-- Compliance Filter
+	@ResponsibleDepart NVARCHAR(MAX) = NULL,
+    @JobRole NVARCHAR(MAX) = NULL,
+    @ResponsiblePerson NVARCHAR(MAX)= NULL,
+	@RaisedAt NVARCHAR(MAX) = NULL,
+	@RaisedAtBefore NVARCHAR(MAX) = NULL,
+	@Status NVARCHAR(MAX) = NULL,
+	-- MileStone Filter
+	--@ NVARCHAR(MAX) = NULL,
+    @Session_User_Id INT = NULL,  
+    @Business_Group_Id INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        DECLARE @sql NVARCHAR(MAX) = NULL,
+                @WhereClause NVARCHAR(MAX) = NULL,
+                @TaskTypeMkey INT;
+
+        -- Create temporary tables instead of table variables
+        IF OBJECT_ID('tempdb..#TableOutputProjectMkey') IS NOT NULL DROP TABLE #TableOutputProjectMkey;
+        CREATE TABLE #TableOutputProjectMkey (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBuildingMkey') IS NOT NULL DROP TABLE #TableOutputBuildingMkey;
+        CREATE TABLE #TableOutputBuildingMkey (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBUILDING_TYPE') IS NOT NULL DROP TABLE #TableOutputBUILDING_TYPE;
+        CREATE TABLE #TableOutputBUILDING_TYPE (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBUILDING_STANDARD') IS NOT NULL DROP TABLE #TableOutputBUILDING_STANDARD;
+        CREATE TABLE #TableOutputBUILDING_STANDARD (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputSTATUTORY_AUTHORITY') IS NOT NULL DROP TABLE #TableOutputSTATUTORY_AUTHORITY;
+        CREATE TABLE #TableOutputSTATUTORY_AUTHORITY (mkey INT);
+
+		-- Compliance
+		  IF OBJECT_ID('tempdb..#TableOutputResponsibleDepart') IS NOT NULL DROP TABLE #TableOutputResponsibleDepart;
+        CREATE TABLE #TableOutputResponsibleDepart (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputJobRole') IS NOT NULL DROP TABLE #TableOutputJobRole;
+        CREATE TABLE #TableOutputJobRole (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputResponsiblePerson') IS NOT NULL DROP TABLE #TableOutputResponsiblePerson;
+        CREATE TABLE #TableOutputResponsiblePerson (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputRaisedAt') IS NOT NULL DROP TABLE #TableOutputRaisedAt;
+        CREATE TABLE #TableOutputRaisedAt (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputRaisedAtBefore') IS NOT NULL DROP TABLE #TableOutputRaisedAtBefore;
+        CREATE TABLE #TableOutputRaisedAtBefore (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputStatus') IS NOT NULL DROP TABLE #TableOutputStatus;
+        CREATE TABLE #TableOutputStatus (mkey nvarchar(100));
+
+
+        -- Populate #TableOutputProjectMkey
+        INSERT INTO #TableOutputProjectMkey
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@ProjectMkey, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+        -- Populate #TableOutputBuildingMkey
+        INSERT INTO #TableOutputBuildingMkey
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@BuildingMkey, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+        -- Populate #TableOutputBUILDING_TYPE
+        INSERT INTO #TableOutputBUILDING_TYPE
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@BUILDING_TYPE AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+        -- Populate #TableOutputBUILDING_STANDARD
+        INSERT INTO #TableOutputBUILDING_STANDARD
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@BUILDING_STANDARD AS VARCHAR), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+        -- Populate #TableOutputSTATUTORY_AUTHORITY
+        INSERT INTO #TableOutputSTATUTORY_AUTHORITY
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@STATUTORY_AUTHORITY, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+		
+		/******/
+		 INSERT INTO #TableOutputResponsibleDepart
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@ResponsibleDepart AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+		 INSERT INTO #TableOutputJobRole
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@JobRole AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+		 INSERT INTO #TableOutputResponsiblePerson
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@ResponsiblePerson AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+
+		 INSERT INTO #TableOutputRaisedAt
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@RaisedAt AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+
+		 INSERT INTO #TableOutputRaisedAtBefore
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@RaisedAtBefore AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+		 INSERT INTO #TableOutputStatus
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@Status AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+
+
+		/******/
+
+
+        -- Get task type mkey
+        SELECT @TaskTypeMkey = MASTER_MKEY
+        FROM TYPE_MST
+        WHERE TYPE_CODE = 'Task_Type' AND DELETE_FLAG = 'N' AND TYPE_DESC = @TASK_TYPE;
+
+        -- Build dynamic SQL
+        IF @TaskTypeMkey = 359  -- Approval
+        BEGIN
+            SET @sql = '
+                SELECT thdr.PROJECT_ID AS PROJECT_Mkey, TProject.TYPE_DESC AS Project_Name,
+                       SUB_PROJECT_ID AS Building_Mkey, TBuilding.TYPE_DESC AS Building_Name, thdr.STATUS_PERC,
+                       LTRIM(RTRIM(thdr.Priority)) AS Priority, thdr.MKEY, TASK_NO, TASK_NAME, TASK_DESCRIPTION,
+                       thdr.TASK_PARENT_ID, thdr.TASK_MAIN_NODE_ID, ASSIGNED_TO, emst.EMP_FULL_NAME AS Assigned_To_Name,
+                       COMPLETION_DATE, thdr.status AS [Status]
+                FROM TASK_HDR thdr
+                INNER JOIN PROJECT_TRL_APPROVAL_ABBR Ahdr ON thdr.MKEY = Ahdr.TASK_NO_MKEY
+                INNER JOIN PROJECT_HDR phdr ON phdr.MKEY = Ahdr.HEADER_MKEY AND phdr.DELETE_FLAG = ''N''
+                INNER JOIN APPROVAL_TEMPLATE_HDR athdr ON athdr.MKEY = Ahdr.APPROVAL_MKEY AND Ahdr.DELETE_FLAG = ''N''
+                LEFT JOIN EMPLOYEE_MST emst ON thdr.ASSIGNED_TO = emst.MKEY AND emst.DELETE_FLAG = ''N''
+                LEFT JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID AND TProject.DELETE_FLAG = ''N''
+                LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N''';
+                set @WhereClause =' WHERE thdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + '
+                      AND thdr.DELETE_FLAG = ''N''
+                      AND Ahdr.DELETE_FLAG = ''N''
+                      AND phdr.DELETE_FLAG = ''N''
+                      AND athdr.DELETE_FLAG = ''N''
+                      AND (thdr.PROJECT_ID IN (SELECT mkey FROM #TableOutputProjectMkey)
+                           OR thdr.SUB_PROJECT_ID IN (SELECT mkey FROM #TableOutputBuildingMkey)
+                           OR athdr.BUILDING_TYPE IN (SELECT mkey FROM #TableOutputBUILDING_TYPE)
+                           OR athdr.BUILDING_STANDARD IN (SELECT mkey FROM #TableOutputBUILDING_STANDARD)
+                           OR athdr.STATUTORY_AUTHORITY IN (SELECT mkey FROM #TableOutputSTATUTORY_AUTHORITY))
+                      AND (thdr.RESPOSIBLE_EMP_MKEY = ' + CONVERT(NVARCHAR, @Session_User_Id) + '
+                           OR thdr.CREATED_BY = ' + CONVERT(NVARCHAR, @Session_User_Id) + ')';
+			
+        END
+		else if (@TaskTypeMkey = 103) -- Compliance
+		begin
+
+		SELECT mkey as TableOutputBuildingMkey FROM #TableOutputBuildingMkey
+		SELECT mkey as TableOutputResponsiblePerson FROM #TableOutputResponsiblePerson
+		SELECT mkey as TableOutputJobRole FROM #TableOutputJobRole
+			SET @sql = '
+					Select chdr.MKEY,thdr.PROJECT_ID AS PROJECT_Mkey, TProject.TYPE_DESC AS Project_Name,SUB_PROJECT_ID AS Building_Mkey
+					,TBuilding.TYPE_DESC AS Building_Name,thdr.STATUS_PERC,thdr.MKEY, TASK_NO, TASK_NAME, TASK_DESCRIPTION,
+					thdr.TASK_PARENT_ID, thdr.TASK_MAIN_NODE_ID, ASSIGNED_TO, emst.EMP_FULL_NAME AS Assigned_To_Name,
+					COMPLETION_DATE, thdr.status AS [Status], RESPONSIBLE_DEPARTMENT ,Dmst.TYPE_DESC as  RESPONSIBLE_DEPARTMENT_Name
+					,chdr.RESPONSIBLE_PERSON,Rmst.EMP_FULL_NAME as RESPONSIBLE_PERSON_Name, chdr.JOB_ROLE , Jmst.TYPE_DESC as JOB_ROLE_Name
+					,case when chdr.STATUS = ''I'' then ''Initiated'' 
+					when chdr.STATUS = ''N'' then ''New'' when chdr.STATUS = ''C'' then ''Close'' end ''STATUS'',
+					chdr.RAISED_AT,isnull(RaisedHDR.MAIN_ABBR,''General'') as RAISED_AT_Name,chdr.RAISED_AT_BEFORE
+					, RaisedBeforeHDR.MAIN_ABBR as RAISED_AT_BEFORE_Name
+					from COMPLIANCE_HDR chdr inner join TASK_HDR thdr on thdr.MKEY = chdr.TASK_NO_MKEY
+					LEFT JOIN EMPLOYEE_MST emst ON thdr.ASSIGNED_TO = emst.MKEY AND emst.DELETE_FLAG = ''N''
+					Inner JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID AND TProject.DELETE_FLAG = ''N''
+					Inner JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N''
+					left join TYPE_MST Dmst on chdr.RESPONSIBLE_DEPARTMENT = Dmst.MASTER_MKEY and Dmst.TYPE_CODE=''DEPARTMENT'' AND Dmst.DELETE_FLAG = ''N''
+					left join employee_mst Rmst on rmst.MKEY = chdr.RESPONSIBLE_PERSON and Rmst.DELETE_FLAG = ''N''
+					left join TYPE_MST Jmst on chdr.JOB_ROLE = Jmst.MASTER_MKEY and Jmst.TYPE_CODE=''JOBROLE'' AND Jmst.DELETE_FLAG = ''N''
+					left JOIN APPROVAL_TEMPLATE_HDR RaisedHDR ON RaisedHDR.MKEY = chdr.RAISED_AT and RaisedHDR.DELETE_FLAG = ''N''
+					left JOIN APPROVAL_TEMPLATE_HDR RaisedBeforeHDR ON RaisedBeforeHDR.MKEY = chdr.RAISED_AT_BEFORE and RaisedBeforeHDR.DELETE_FLAG = ''N''';
+			 Set @WhereClause =' where chdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + '
+					and chdr.PROPERTY In (SELECT mkey FROM #TableOutputProjectMkey)
+					and chdr.BUILDING in (SELECT mkey FROM #TableOutputBuildingMkey)
+					and RESPONSIBLE_DEPARTMENT in (SELECT mkey FROM #TableOutputResponsibleDepart)
+					and chdr.RESPONSIBLE_PERSON in (SELECT mkey FROM #TableOutputResponsiblePerson)
+					and chdr.JOB_ROLE in (SELECT mkey FROM #TableOutputJobRole)
+					and chdr.STATUS in (SELECT mkey FROM #TableOutputStatus)
+					and chdr.RAISED_AT in (SELECT mkey FROM #TableOutputRaisedAt)
+					and chdr.RAISED_AT_BEFORE in (SELECT mkey FROM #TableOutputRaisedAtBefore)';
+					
+
+--Select AHDR.*
+--from COMPLIANCE_HDR chdr Inner Join TASK_HDR thdr on thdr.MKEY = chdr.TASK_NO_MKEY
+--left join PROJECT_TRL_APPROVAL_ABBR PABBR ON thdr.MKEY = PABBR.TASK_NO_MKEY and PABBR.DELETE_FLAG = 'N'
+--left join PROJECT_HDR PHDR on PHDR.MKEY = PABBR.HEADER_MKEY
+--left JOIN APPROVAL_TEMPLATE_HDR AHDR ON AHDR.MKEY = PABBR.APPROVAL_MKEY and AHDR.DELETE_FLAG = 'N'
+--left join TYPE_MST Dmst on chdr.RESPONSIBLE_DEPARTMENT = Dmst.MASTER_MKEY and Dmst.TYPE_CODE='DEPARTMENT' AND Dmst.DELETE_FLAG = 'N'
+--left join TYPE_MST Jmst on chdr.JOB_ROLE = Jmst.MASTER_MKEY and Jmst.TYPE_CODE='JOBROLE' AND Jmst.DELETE_FLAG = 'N'
+--left join employee_mst Rmst on rmst.MKEY = chdr.RESPONSIBLE_PERSON and Rmst.DELETE_FLAG = 'N'
+--LEFT JOIN TYPE_MST TProject ON TProject.TYPE_CODE = 'Project' AND TProject.MASTER_MKEY = chdr.PROPERTY AND TProject.DELETE_FLAG = 'N'
+--LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = 'Project' AND TBuilding.MASTER_MKEY = chdr.BUILDING AND TBuilding.DELETE_FLAG = 'N'
+--where chdr.PROPERTY = 157 and chdr.BUILDING = 468
+----and RESPONSIBLE_DEPARTMENT = 134 and chdr.RESPONSIBLE_PERSON = 2693
+--and chdr.DELETE_FLAG = 'N' and thdr.DELETE_FLAG = 'N';
+
+		end
+
+			IF @FILTER = 'Today'
+			BEGIN
+				SET @WhereClause += ' And (CONVERT(VARCHAR, thdr.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103)
+										AND thdr.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Pending'
+			BEGIN
+				SET @WhereClause +=' AND (STATUS_PERC = 0.0 AND thdr.completion_date < GETDATE() 
+										and thdr.status IN (''CREATED'', ''SUB TASK CREATED'',''WORK IN PROGRESS'',''RE-WORK'')) ';
+			END
+			IF @FILTER = 'Review'
+			BEGIN
+				SET @WhereClause += ' AND (thdr.STATUS IN (''Close Initiated'',''Cancel Initiated''))';
+			END
+			IF @FILTER = 'Completed'
+			BEGIN
+				SET @WhereClause += ' And (thdr.status IN (''COMPLETED'') AND STATUS_PERC = 100) ';
+			END
+			IF @FILTER = 'Cancelled'
+			BEGIN
+				SET @WhereClause +=' AND (thdr.status IN (''CANCEL'', ''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Overdue'
+			BEGIN
+				SET @WhereClause += ' And (thdr.completion_date < GETDATE() AND thdr.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Future'
+			BEGIN
+				SET @WhereClause +=' AND (thdr.STATUS NOT IN (''COMPLETED'',''CANCELLED'',''Close Initiated'',''Cancel Initiated'')) 
+										and thdr.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103) ';
+			END
+			print '@ProjectMkey  '+ @ProjectMkey
+			
+			if (((@ProjectMkey != null or @BuildingMkey != null))  -- (@ProjectMkey != '' or @BuildingMkey != '') OR
+				OR (@WhereClause  is not null OR @WhereClause  != null))
+			Begin
+			print '@ProjectMkey insdeid '+ @ProjectMkey
+				Set @sql +=' '+ @WhereClause + ' order by thdr.PROJECT_ID, thdr.SUB_PROJECT_ID,thdr.MKEY; ';
+				print '@sql: '+ @sql
+			End
+			Else
+			Begin
+			print '@ProjectMkey Outside '+ @ProjectMkey
+				set @sql += ' WHERE thdr.DELETE_FLAG = ''N'' And (RESPOSIBLE_EMP_MKEY = '+ CONVERT(NVARCHAR,@Session_User_Id) +' 
+						OR thdr.CREATED_BY = '+CONVERT(NVARCHAR, @Session_User_Id) +' )
+						Order by thdr.PROJECT_ID, thdr.SUB_PROJECT_ID,thdr.MKEY; ';
+			End
+			
+			EXEC Sp_executesql @sql;
+
+			Select 'Todays' as DurationFilter,Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey , '') <> '' THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			And (CONVERT(VARCHAR, thdr.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103)
+			AND thdr.status not IN ('CANCEL', 'COMPLETED','CANCELLED'))
+			
+			Union 
+			
+			Select 'Pending' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+				AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey, '') <> '' THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (STATUS_PERC = 0.0 AND thdr.completion_date < GETDATE() 
+			and thdr.status IN ('CREATED', 'SUB TASK CREATED','WORK IN PROGRESS','RE-WORK'))
+			
+			Union 
+			
+			Select 'Review' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN  
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey, '') <> '' THEN  
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (thdr.STATUS IN ('Close Initiated','Cancel Initiated'))
+			
+			Union 
+			
+			Select 'Overdue' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN 
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey, '') <> '' THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			And (thdr.completion_date < GETDATE() AND thdr.status not IN ('CANCEL', 'COMPLETED','CANCELLED')) 
+			
+			Union 
+			
+			Select 'Future' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0  THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey, '') <> '' THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (thdr.STATUS NOT IN ('COMPLETED','CANCELLED','Close Initiated','Cancel Initiated')) 
+			and thdr.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103); 
+
+        -- Final execution
+        --PRINT '@sql: ' + @sql;
+        --EXEC sp_executesql @sql;
+
+        -- Return summary counts for filters (if needed) here...
+        -- You can retain your UNION queries for 'Todays', 'Pending', etc., after this
+
+    END TRY
+    BEGIN CATCH
+        SELECT
+            ERROR_NUMBER() AS ERRORNUMBER,
+            ERROR_SEVERITY() AS ERRORSEVERITY,
+            ERROR_STATE() AS ERRORSTATE,
+            ERROR_PROCEDURE() AS ERRORPROCEDURE,
+            ERROR_LINE() AS ERRORLINE,
+            ERROR_MESSAGE() AS ERRORMESSAGE;
+
+        DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+        SET @ERROR_MESSAGE = ERROR_MESSAGE();
+
+        EXEC Sp_p_tms_insert_error_des
+            @Session_User_Id,
+            'TMS',
+            'Get Task Projects',
+            @ERROR_MESSAGE,
+            'Get';
+    END CATCH
+END
