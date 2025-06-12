@@ -39,7 +39,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Unique_ID")]
         public int Unique_ID { get; set; }
         [JsonPropertyName("Percent_Complete")]
-        public decimal Percent_Complete { get; set; }
+        public string Percent_Complete { get; set; }
         [JsonPropertyName("Created_By")]
         public int Created_By { get; set; }
         [JsonPropertyName("Creation_Date")]
@@ -88,7 +88,7 @@ namespace TaskManagement.API.Model
         public int? Unique_ID { get; set; }
 
         [JsonPropertyName("Percent_Complete")]
-        public decimal? Percent_Complete { get; set; }
+        public string? Percent_Complete { get; set; }
 
         [JsonPropertyName("Created_By")]
         public int? Created_By { get; set; }

@@ -13,9 +13,9 @@ namespace TaskManagement.API.Model
     public class TaskProjectDashboardInput
     {
         [JsonPropertyName("ProjectMkey")]
-        public int? ProjectMkey { get; set; }
+        public string? ProjectMkey { get; set; }
         [JsonPropertyName("BuildingMkey")]
-        public int? BuildingMkey { get; set; }
+        public string? BuildingMkey { get; set; }
 
         [JsonPropertyName("Task_Type")]
         public string? TASK_TYPE { get; set; }

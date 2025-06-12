@@ -6510,8 +6510,8 @@ namespace TaskManagement.API.Repositories
                         await sqlConnection.OpenAsync();  // Ensure the connection is open
                     }
 
-                    transaction = db.BeginTransaction();
-                    transactionCompleted = false;  // Reset transaction state
+                    //transaction = db.BeginTransaction();
+                    //transactionCompleted = false;  // Reset transaction state
 
                     var parmeters = new DynamicParameters();
 
@@ -6520,9 +6520,9 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@ProjectMkey", taskProjectDashboardInput.ProjectMkey);
                     parmeters.Add("@BuildingMkey", taskProjectDashboardInput.BuildingMkey);
                     // Approval Filter
-                    parmeters.Add("@BUILDING_TYPE", taskProjectDashboardInput.BuildingMkey);
-                    parmeters.Add("@BUILDING_STANDARD", taskProjectDashboardInput.ProjectMkey);
-                    parmeters.Add("@STATUTORY_AUTHORITY", taskProjectDashboardInput.BuildingMkey);
+                    parmeters.Add("@BUILDING_TYPE", taskProjectDashboardInput.Building_Type);
+                    parmeters.Add("@BUILDING_STANDARD", taskProjectDashboardInput.Building_Standard);
+                    parmeters.Add("@STATUTORY_AUTHORITY", taskProjectDashboardInput.Statutory_Authority);
                     // Complaince Filter
                     parmeters.Add("@ResponsibleDepart", taskProjectDashboardInput.ResponsibleDepart);
                     parmeters.Add("@JobRole", taskProjectDashboardInput.JobRole);
@@ -6533,14 +6533,14 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@Session_User_Id", taskProjectDashboardInput.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", taskProjectDashboardInput.Business_Group_Id);
 
-                    var taskStatusDistributonNTs = await db.QueryMultipleAsync("SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var taskStatusDistributonNTs = await db.QueryMultipleAsync("SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure);
 
                     var data = taskStatusDistributonNTs.Read<TaskProjectsDashboardNT>().ToList();
                     var data1 = taskStatusDistributonNTs.Read<TaskProjectsDashboardCountNT>().ToList();
 
-                    var sqlTransaction = (SqlTransaction)transaction;
-                    await sqlTransaction.CommitAsync();
-                    transactionCompleted = true;
+                    //var sqlTransaction = (SqlTransaction)transaction;
+                    //await sqlTransaction.CommitAsync();
+                    //transactionCompleted = true;
 
                     var successsResult = new List<TaskProjectsDashboardOutputNT>
                     {
@@ -6555,51 +6555,8 @@ namespace TaskManagement.API.Repositories
                     return successsResult;
                 }
             }
-            catch (SqlException sqlEx)
-            {
-                // Handle SQL exceptions specifically
-                if (transaction != null && !transactionCompleted)
-                {
-                    try
-                    {
-                        // Rollback only if the transaction is not yet completed
-                        transaction.Rollback();
-                    }
-                    catch (InvalidOperationException rollbackEx)
-                    {
-                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                    }
-                }
-
-                // Log the SQL error
-                var errorResult = new List<TaskProjectsDashboardOutputNT>
-                {
-                    new TaskProjectsDashboardOutputNT
-                    {
-                        STATUS = "Error",
-                        MESSAGE = $"SQL Error: {sqlEx.Message}",
-                        Data = null,
-                        Data1 = null
-                    }
-                };
-                return errorResult;
-            }
             catch (Exception ex)
             {
-                // Generic error handling for non-SQL related issues
-                if (transaction != null && !transactionCompleted)
-                {
-                    try
-                    {
-                        // Rollback only if the transaction is not yet completed
-                        transaction.Rollback();
-                    }
-                    catch (InvalidOperationException rollbackEx)
-                    {
-                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                    }
-                }
-
                 // Log the generic error
                 var errorResult = new List<TaskProjectsDashboardOutputNT>
                         {
@@ -6612,21 +6569,6 @@ namespace TaskManagement.API.Repositories
                             }
                         };
                 return errorResult;
-            }
-            finally
-            {
-                // Ensure transaction is committed or rolled back appropriately
-                if (transaction != null && !transactionCompleted)
-                {
-                    try
-                    {
-                        transaction.Rollback();  // Rollback in case of any issues
-                    }
-                    catch (Exception rollbackEx)
-                    {
-                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
-                    }
-                }
             }
         }
     }

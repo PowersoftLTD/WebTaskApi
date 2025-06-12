@@ -310,7 +310,7 @@ namespace TaskManagement.API.Repositories
                     dataTableExcel.Columns.Add("Process_Flag", typeof(char));
                     dataTableExcel.Columns.Add("FileName", typeof(string));
                     dataTableExcel.Columns.Add("mpp_name", typeof(string));
-                    dataTableExcel.Columns.Add("Percent_Complete", typeof(decimal));
+                    dataTableExcel.Columns.Add("Percent_Complete", typeof(string));
                     if (mSPUploadExcelInput != null)
                     {
                         foreach (var mSPUploadExcelInput1 in mSPUploadExcelInput)
@@ -408,7 +408,7 @@ namespace TaskManagement.API.Repositories
                             new MSPUploadExcelOutPut
                             {
                                 Status = "Error",
-                                Message = rollbackEx.Message,
+                                Message = ex.Message,
                                 Data = null
                             }
                         };
