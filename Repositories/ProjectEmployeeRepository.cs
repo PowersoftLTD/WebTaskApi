@@ -1996,7 +1996,6 @@ namespace TaskManagement.API.Repositories
                                     }
                                 }
                             }
-
                             if (add_TaskInput_NT.tASK_SANCTIONING_INPUT_NT != null)
                             {
                                 // To Insert SANCTIONING
@@ -2051,6 +2050,68 @@ namespace TaskManagement.API.Repositories
                                     }
                                 }
                             }
+                            if (add_TaskInput_NT.complianceInsertUpdateInput_NTs != null)
+                            {
+                                foreach (var TCompliance in add_TaskInput_NT.complianceInsertUpdateInput_NTs)
+                                {
+                                    var parametersCompliance = new DynamicParameters();
+                                    parametersCompliance.Add("@MKEY", TCompliance.MKEY);  // TASK_NO
+                                    parametersCompliance.Add("@PROPERTY_MKEY", TCompliance.PROPERTY_MKEY); // PROJECT_ID
+                                    parametersCompliance.Add("@BUILDING_MKEY", TCompliance.BUILDING_MKEY); // SUBPROJECT_ID
+                                    parametersCompliance.Add("@SHORT_DESCRIPTION", TCompliance.SHORT_DESCRIPTION); // TASK_NAME
+                                    parametersCompliance.Add("@LONG_DESCRIPTION", TCompliance.LONG_DESCRIPTION); // TASK_DESCRIPTION
+                                    parametersCompliance.Add("@CATEGORY", TCompliance.CAREGORY);   //CATEGORY
+                                    parametersCompliance.Add("@RAISED_AT", TCompliance.RAISED_AT);
+                                    parametersCompliance.Add("@RAISED_AT_BEFORE", TCompliance.RAISED_AT_BEFORE);
+                                    parametersCompliance.Add("@RESPONSIBLE_DEPARTMENT", TCompliance.RESPONSIBLE_DEPARTMENT);
+                                    parametersCompliance.Add("@JOB_ROLE", TCompliance.JOB_ROLE);
+                                    parametersCompliance.Add("@RESPONSIBLE_PERSON", TCompliance.RESPONSIBLE_PERSON); //ASSIGNED_TO
+                                    parametersCompliance.Add("@TAGS", TCompliance.TAGS);  //TAGS
+                                    parametersCompliance.Add("@TASK_TYPE", TCompliance.TASK_TYPE);  //TAGS
+                                    parametersCompliance.Add("@TO_BE_COMPLETED_BY", TCompliance.TO_BE_COMPLETED_BY); //COMPLETION_DATE
+                                    parametersCompliance.Add("@NO_DAYS", TCompliance.NO_DAYS);
+                                    parametersCompliance.Add("@STATUS", TCompliance.STATUS);
+                                    parametersCompliance.Add("@CREATED_BY", TCompliance.CREATED_BY); //TASK_CREATED_BY
+                                    parametersCompliance.Add("@DELETE_FLAG", TCompliance.DELETE_FLAG);
+                                    parametersCompliance.Add("@RESPONSE_STATUS", null);
+                                    parametersCompliance.Add("@MESSAGE", null);
+
+                                    var GetCompliance = await db.QueryAsync<ComplianceOutPutNT>("SP_COMPLIANCE_INSERT_UPDATE_NT", parametersCompliance, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    if (GetCompliance.Any())
+                                    {
+                                        foreach (var Response in GetCompliance)
+                                        {
+                                            if (Response.ResponseStatus.ToLower() != "OK".ToLower())
+                                            {
+                                                if (transaction != null && !transactionCompleted)
+                                                {
+                                                    try
+                                                    {
+                                                        // Rollback only if the transaction is not yet completed
+                                                        transaction.Rollback();
+                                                    }
+                                                    catch (InvalidOperationException rollbackEx)
+                                                    {
+                                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                                    }
+                                                }
+                                                var errorResult = new List<Add_TaskOutPut_List_NT>
+                                                  {
+                                                      new Add_TaskOutPut_List_NT
+                                                      {
+                                                          Status = "Error",
+                                                          Message = Response.Message,
+                                                          Data = null
+                                                      }
+                                                  };
+                                                return errorResult;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
 
                             var sqlTransaction = (SqlTransaction)transaction;
                             await sqlTransaction.CommitAsync();
@@ -2300,7 +2361,67 @@ namespace TaskManagement.API.Repositories
                                     }
                                 }
                             }
+                            if (add_TaskInput_NT.complianceInsertUpdateInput_NTs != null)
+                            {
+                                foreach (var TCompliance in add_TaskInput_NT.complianceInsertUpdateInput_NTs)
+                                {
+                                    var parametersCompliance = new DynamicParameters();
+                                    parametersCompliance.Add("@MKEY", TCompliance.MKEY);  // TASK_NO
+                                    parametersCompliance.Add("@PROPERTY_MKEY", TCompliance.PROPERTY_MKEY); // PROJECT_ID
+                                    parametersCompliance.Add("@BUILDING_MKEY", TCompliance.BUILDING_MKEY); // SUBPROJECT_ID
+                                    parametersCompliance.Add("@SHORT_DESCRIPTION", TCompliance.SHORT_DESCRIPTION); // TASK_NAME
+                                    parametersCompliance.Add("@LONG_DESCRIPTION", TCompliance.LONG_DESCRIPTION); // TASK_DESCRIPTION
+                                    parametersCompliance.Add("@CATEGORY", TCompliance.CAREGORY);   //CATEGORY
+                                    parametersCompliance.Add("@RAISED_AT", TCompliance.RAISED_AT);
+                                    parametersCompliance.Add("@RAISED_AT_BEFORE", TCompliance.RAISED_AT_BEFORE);
+                                    parametersCompliance.Add("@RESPONSIBLE_DEPARTMENT", TCompliance.RESPONSIBLE_DEPARTMENT);
+                                    parametersCompliance.Add("@JOB_ROLE", TCompliance.JOB_ROLE);
+                                    parametersCompliance.Add("@RESPONSIBLE_PERSON", TCompliance.RESPONSIBLE_PERSON); //ASSIGNED_TO
+                                    parametersCompliance.Add("@TAGS", TCompliance.TAGS);  //TAGS
+                                    parametersCompliance.Add("@TASK_TYPE", TCompliance.TASK_TYPE);  //TAGS
+                                    parametersCompliance.Add("@TO_BE_COMPLETED_BY", TCompliance.TO_BE_COMPLETED_BY); //COMPLETION_DATE
+                                    parametersCompliance.Add("@NO_DAYS", TCompliance.NO_DAYS);
+                                    parametersCompliance.Add("@STATUS", TCompliance.STATUS);
+                                    parametersCompliance.Add("@CREATED_BY", TCompliance.CREATED_BY); //TASK_CREATED_BY
+                                    parametersCompliance.Add("@DELETE_FLAG", TCompliance.DELETE_FLAG);
+                                    parametersCompliance.Add("@RESPONSE_STATUS", null);
+                                    parametersCompliance.Add("@MESSAGE", null);
 
+                                    var GetCompliance = await db.QueryAsync<ComplianceOutPutNT>("SP_COMPLIANCE_INSERT_UPDATE", parametersCompliance, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    if (GetCompliance.Any())
+                                    {
+                                        foreach (var Response in GetCompliance)
+                                        {
+                                            if (Response.ResponseStatus.ToLower() != "OK".ToLower())
+                                            {
+                                                if (transaction != null && !transactionCompleted)
+                                                {
+                                                    try
+                                                    {
+                                                        // Rollback only if the transaction is not yet completed
+                                                        transaction.Rollback();
+                                                    }
+                                                    catch (InvalidOperationException rollbackEx)
+                                                    {
+                                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                                    }
+                                                }
+                                                var errorResult = new List<Add_TaskOutPut_List_NT>
+                                                  {
+                                                      new Add_TaskOutPut_List_NT
+                                                      {
+                                                          Status = "Error",
+                                                          Message = Response.Message,
+                                                          Data = null
+                                                      }
+                                                  };
+                                                return errorResult;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             var sqlTransaction = (SqlTransaction)transaction;
                             await sqlTransaction.CommitAsync();
                             transactionCompleted = true;

@@ -148,7 +148,9 @@ namespace TaskManagement.API.Model
         public List<TASK_ENDLIST_TABLE_INPUT_NT>? tASK_ENDLIST_TABLE_INPUT_NTs { get; set; }
         [JsonPropertyName("Task_Sanctioning")]
         public List<TASK_SANCTIONING_INPUT_NT>? tASK_SANCTIONING_INPUT_NT { get; set; }
-
+        [JsonPropertyName("Task_Compliance")]
+        public List<ComplianceInsertUpdateInputNT>? complianceInsertUpdateInput_NTs{ get; set; }
+        
         [JsonPropertyName("Delete_Flag")]
         public string? Delete_Flag { get; set; }
 
@@ -260,5 +262,10 @@ namespace TaskManagement.API.Model
         public char? DELETE_FLAG { get; set; }
         [JsonPropertyName("Created_By")]
         public int CREATED_BY { get; set; }
+
+        [JsonIgnore]
+        public string? OUT_STATUS { get; set; }
+        [JsonIgnore]
+        public string? OUT_MESSAGE { get; set; }
     }
 }
