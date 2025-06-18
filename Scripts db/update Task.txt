@@ -22349,7 +22349,18 @@ select SUBSTRING(@x,len(@x),CHARINDEX('.',@x)-1 )
 */
 
 ---------------------------------------------------------------------------------------------------
-17-06-2025
+18-06-2025
+
+CREATE PROCEDURE [dbo].[SP_GET_BUILDINGCLASS_NT] (
+                    @Session_User_Id   INT,
+                    @Business_Group_Id INT)
+AS
+  BEGIN
+	SELECT * FROM V_Building_Classification
+  END
+
+
+
 
 
 

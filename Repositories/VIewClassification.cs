@@ -23,6 +23,58 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Building_Classification");
             }
         }
+        public async Task<IEnumerable<BuildingTypeNT>> GetViewBuildingClassificationNTAsync(ClassificationNT classificationNT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_Id", classificationNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", classificationNT.Business_Group_Id);
+                    var BuildingClass = await db.QueryAsync<V_Building_Classification>("SP_GET_BUILDINGCLASS_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    if (BuildingClass.Any())
+                    {
+                        var successsResult = new List<BuildingTypeNT>
+                        {
+                            new BuildingTypeNT
+                            {
+                                Status = "Ok",
+                                Message = "Message",
+                                Data= BuildingClass
+                            }
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<BuildingTypeNT>
+                        {
+                            new BuildingTypeNT
+                            {
+                                Status = "Error",
+                                Message = "No found",
+                                Data=null
+                            }
+                        };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<BuildingTypeNT>
+                    {
+                        new BuildingTypeNT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
         public async Task<IEnumerable<V_Building_Classification>> GetViewDoc_TypeAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())

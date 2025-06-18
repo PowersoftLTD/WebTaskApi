@@ -1279,41 +1279,86 @@ namespace TaskManagement.API.Model
 
     public class TaskProjectsDashboardNT
     {
-        [JsonPropertyName("Project_Mkey")]
-        public string? PROJECT_Mkey { get; set; }
-        [JsonPropertyName("Project_Name")]
-        public string? Project_Name { get; set; }
 
-        [JsonPropertyName("Building_Mkey")]
-        public string? Building_Mkey { get; set; }
+        [JsonPropertyName("Mkey")]
+        public string MKEY { get; set; }
 
-        [JsonPropertyName("Building_Name")]
-        public string? Building_Name { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public string Sr_No { get; set; }
 
-        [JsonPropertyName("Task_Mkey")]
-        public string? MKEY { get; set; }
         [JsonPropertyName("Task_No")]
-        public string? TASK_NO { get; set; }
+        public string TASK_NO { get; set; }
+        [JsonPropertyName("Category")]
+        public string? CATEGORY { get; set; }
+        [JsonPropertyName("Creator")]
+        public string? CREATOR { get; set; }
+        [JsonPropertyName("Responsible")]
+        public string? RESPONSIBLE { get; set; }
+        [JsonPropertyName("Dashboard_Status")]
+        public string? Dashboard_Status { get; set; }
+        [JsonPropertyName("Actionable")]
+        public string? ACTIONABLE { get; set; }
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+        [JsonPropertyName("Completion_Date")]
+        public string COMPLETION_DATE { get; set; }
         [JsonPropertyName("Task_Name")]
         public string? TASK_NAME { get; set; }
         [JsonPropertyName("Task_Description")]
         public string? TASK_DESCRIPTION { get; set; }
+        [JsonPropertyName("Tags")]
+        public string? TAGS { get; set; }
         [JsonPropertyName("Status")]
-        public string? Status{ get; set; }
-        [JsonPropertyName("Status_Percentage")]
-        public string? STATUS_PERC { get; set; }
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Responsible_Tag")]
+        public string? RESPONSIBLE_TAG { get; set; }
+        [JsonPropertyName("Project_Name")]
+        public string? PROJECT_NAME { get; set; }
         [JsonPropertyName("Priority")]
         public string? Priority { get; set; }
-        [JsonPropertyName("Task_Parent_Id")]
-        public int? TASK_PARENT_ID { get; set; }
-        [JsonPropertyName("Task_Main_Node_Id")]
-        public int? TASK_MAIN_NODE_ID { get; set; }
-        [JsonPropertyName("Assigned_To")]
-        public int? ASSIGNED_TO { get; set; }
-        [JsonPropertyName("Assigned_To_Name")]
-        public string? Assigned_To_Name { get; set; }
-        [JsonPropertyName("Completion_Date")]
-        public string? COMPLETION_DATE { get; set; }
+        [JsonPropertyName("Progress_Percentage")]
+        public string? Progress_Percentage { get; set; }
+        [JsonPropertyName("Subtask_Count")]
+        public string? Subtask_Count { get; set; }
+
+        [JsonPropertyName("Created_By")]
+        public string? CREATED_BY { get; set; }
+
+        //[JsonPropertyName("Project_Mkey")]
+        //public string? PROJECT_Mkey { get; set; }
+        //[JsonPropertyName("Project_Name")]
+        //public string? Project_Name { get; set; }
+
+        //[JsonPropertyName("Building_Mkey")]
+        //public string? Building_Mkey { get; set; }
+
+        //[JsonPropertyName("Building_Name")]
+        //public string? Building_Name { get; set; }
+
+        //[JsonPropertyName("Task_Mkey")]
+        //public string? MKEY { get; set; }
+        //[JsonPropertyName("Task_No")]
+        //public string? TASK_NO { get; set; }
+        //[JsonPropertyName("Task_Name")]
+        //public string? TASK_NAME { get; set; }
+        //[JsonPropertyName("Task_Description")]
+        //public string? TASK_DESCRIPTION { get; set; }
+        //[JsonPropertyName("Status")]
+        //public string? Status{ get; set; }
+        //[JsonPropertyName("Status_Percentage")]
+        //public string? STATUS_PERC { get; set; }
+        //[JsonPropertyName("Priority")]
+        //public string? Priority { get; set; }
+        //[JsonPropertyName("Task_Parent_Id")]
+        //public int? TASK_PARENT_ID { get; set; }
+        //[JsonPropertyName("Task_Main_Node_Id")]
+        //public int? TASK_MAIN_NODE_ID { get; set; }
+        //[JsonPropertyName("Assigned_To")]
+        //public int? ASSIGNED_TO { get; set; }
+        //[JsonPropertyName("Assigned_To_Name")]
+        //public string? Assigned_To_Name { get; set; }
+        //[JsonPropertyName("Completion_Date")]
+        //public string? COMPLETION_DATE { get; set; }
     }
 
     public class TaskProjectsDashboardCountNT

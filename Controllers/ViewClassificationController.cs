@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Interfaces;
@@ -29,6 +30,30 @@ namespace TaskManagement.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(400, ex.Message);
+            }
+        }
+
+        [HttpGet("Building-Classification_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<BuildingTypeNT>>> GetAllViewBuildingClassificationNT(ClassificationNT classificationNT)
+        {
+            try
+            {
+                var classifications = await _repository.GetViewBuildingClassificationNTAsync(classificationNT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<BuildingTypeNT>
+                {
+                    new BuildingTypeNT
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data=null
+                    }
+                };
+                return Ok(errorResult);
             }
         }
 

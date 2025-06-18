@@ -6,6 +6,7 @@ namespace TaskManagement.API.Interfaces
     public interface IViewClassification
     {
         Task<IEnumerable<V_Building_Classification>> GetViewBuildingClassificationAsync();
+        Task<IEnumerable<BuildingTypeNT>> GetViewBuildingClassificationNTAsync(ClassificationNT classificationNT);
         Task<IEnumerable<V_Building_Classification>> GetViewDoc_TypeAsync();
 
         Task<IEnumerable<V_Doc_Type_OutPut_NT>> GetViewDoc_TypeNTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput);

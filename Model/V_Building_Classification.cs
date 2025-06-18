@@ -45,6 +45,14 @@ namespace TaskManagement.API.Model
         public IEnumerable<GetTaskTypeOutPut> Data { get; set; }
     }
 
+    public class ClassificationNT
+    {
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
+
     public class GetTaskTypeOutPut
     {
         [JsonPropertyName("MKEY")]
@@ -151,6 +159,16 @@ namespace TaskManagement.API.Model
         public string? LAST_UPDATE_DATE { get; set; }
         [JsonPropertyName("Delete_Flag")]
         public char? DELETE_FLAG { get; set; }
+    }
+
+    public class BuildingTypeNT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<V_Building_Classification> Data { get; set; }
     }
 
 

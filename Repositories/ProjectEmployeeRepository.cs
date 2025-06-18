@@ -5059,11 +5059,8 @@ namespace TaskManagement.API.Repositories
                         parameters.Add("@Session_User_Id", input.Session_User_ID);
                         parameters.Add("@Business_Group_Id", input.Business_Group_ID);
 
-                        var result = (await db.QueryAsync<TASK_CHECKLIST_TABLE_NT_OUTPUT>(
-                            "SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT",
-                            parameters,
-                            commandType: CommandType.StoredProcedure,
-                            transaction: transaction)).ToList();
+                        var result = (await db.QueryAsync<TASK_CHECKLIST_TABLE_NT_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT",
+                            parameters,commandType: CommandType.StoredProcedure,transaction: transaction)).ToList();
 
                         string status = parameters.Get<string>("@OUT_STATUS");
                         string message = parameters.Get<string>("@OUT_MESSAGE");
@@ -5072,14 +5069,14 @@ namespace TaskManagement.API.Repositories
                         {
                             transaction.Rollback();
                             return new List<TaskCheckListNTOutputList>
-                        {
-                            new TaskCheckListNTOutputList
                             {
-                                STATUS = "Error",
-                                MESSAGE = message,
-                                DATA = result
-                            }
-                        };
+                                new TaskCheckListNTOutputList
+                                {
+                                    STATUS = "Error",
+                                    MESSAGE = message,
+                                    DATA = result
+                                }
+                            };
                         }
                     }
                 }
