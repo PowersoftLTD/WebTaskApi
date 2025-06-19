@@ -22360,6 +22360,56 @@ AS
   END
 
 
+-------------------------------------------------------------------------------------------------------------------------------
+19-06-2025
+
+
+create view ProjectApproval as
+select subp.Mkey
+,'Project' as [Type_Code]
+,(select TYPE_DESC from TYPE_MST pPro where TYPE_CODE = 'project' 
+and ISNULL(DELETE_FLAG,'N') = 'N' and  pPro.MKEY= subp.PARENT_ID) as [Key]
+,subp.TYPE_DESC as [DisplayName], 
+subp.CREATED_BY as Created_By_Id, 
+EMST.EMP_FULL_NAME as Created_By_Name,
+subp.Creation_Date,
+subp.Last_Updated_By,
+LMST.EMP_FULL_NAME as Updated_By_Name, 
+subp.Last_Update_Date
+From TYPE_MST subp 
+inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY  
+left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = EMST.MKEY  
+where TYPE_CODE = 'Project' and ISNULL(subp.DELETE_FLAG,'N') = 'N' and PARENT_ID != 0
+union all 
+select subp.Mkey , 'Building' as  [Type_Code], TYPE_CODE as [Key], TYPE_DESC as [DisplayName],subp.CREATED_BY as Created_By_Id, 
+EMST.EMP_FULL_NAME as Created_By_Name,
+subp.Creation_Date,
+subp.Last_Updated_By,
+LMST.EMP_FULL_NAME as Updated_By_Name, 
+subp.Last_Update_Date
+from TYPE_MST subp inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY  
+left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = EMST.MKEY
+Where type_code = 'BUILDCLASS' and isnull(subp.DELETE_FLAG,'') = 'N'
+union all 
+select subp.Mkey , 'Building Standard' as  [Type_Code], TYPE_CODE as [Key], TYPE_DESC as [DisplayName],subp.CREATED_BY as Created_By_Id, 
+EMST.EMP_FULL_NAME as Created_By_Name,
+subp.Creation_Date,
+subp.Last_Updated_By,
+LMST.EMP_FULL_NAME as Updated_By_Name, 
+subp.Last_Update_Date
+from TYPE_MST subp inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY  
+left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = EMST.MKEY
+Where type_code = 'STND' and isnull(subp.DELETE_FLAG,'') = 'N'
+union all 
+select subp.Mkey , 'Statutory Authority' as  [Type_Code], TYPE_CODE as [Key], TYPE_DESC as [DisplayName],subp.CREATED_BY as Created_By_Id, 
+EMST.EMP_FULL_NAME as Created_By_Name,
+subp.Creation_Date,
+subp.Last_Updated_By,
+LMST.EMP_FULL_NAME as Updated_By_Name, 
+subp.Last_Update_Date
+from TYPE_MST subp inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY  
+left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = EMST.MKEY
+Where type_code = 'STAAUTH' and isnull(subp.DELETE_FLAG,'') = 'N'
 
 
 

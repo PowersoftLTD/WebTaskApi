@@ -530,6 +530,66 @@ namespace TaskManagement.API.Repositories
                 return ErrorResponse;
             }
         }
+        public async Task<IEnumerable<RAISED_AT_OUTPUT_LIST_NT>> GetRaiseATBeforeNTAsync(RAISED_AT_INPUT_NT rAISED_AT_INPUT_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    //var GetRaisetAT = await db.QueryAsync<RAISED_AT_OUTPUT>("SELECT * FROM V_RaisedAT " +
+                    //     "WHERE BUILDING_MKEY in (-1,@BUILDING_MKEY) AND PROPERTY in (-1,@PROPERTY_MKEY);", new { BUILDING_MKEY = rAISED_AT_INPUT.BUILDING_MKEY, PROPERTY_MKEY = rAISED_AT_INPUT.PROPERTY_MKEY });
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@PROPERTY_MKEY", rAISED_AT_INPUT_NT.PROPERTY_MKEY);
+                    parameters.Add("@BUILDING_MKEY", rAISED_AT_INPUT_NT.BUILDING_MKEY);
+                    parameters.Add("@Session_User_Id", rAISED_AT_INPUT_NT.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", rAISED_AT_INPUT_NT.Business_Group_Id);
+
+                    var GetRaisetAT = await db.QueryAsync<RAISED_AT_OUTPUT_NT>("SP_GET_RAISED_AT_BEFORE_NT", parameters, commandType: CommandType.StoredProcedure);
+
+                    if (GetRaisetAT != null)
+                    {
+                        var successsResult = new List<RAISED_AT_OUTPUT_LIST_NT>
+                            {
+                                new RAISED_AT_OUTPUT_LIST_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= GetRaisetAT
+                                }
+                            };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST_NT>
+                            {
+                                new RAISED_AT_OUTPUT_LIST_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data= null
+
+                                }
+                            };
+                        return ErrorResponse;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST_NT>
+                        {
+                            new RAISED_AT_OUTPUT_LIST_NT
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+        }
         public async Task<IEnumerable<V_Building_Classification>> GetViewSanctioningAuthority()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -642,7 +702,7 @@ namespace TaskManagement.API.Repositories
                 return ErrorResponse;
             }
         }
-        public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST_NT>>> GetComplianceStatusNTAsync()
+        public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST_NT>>> GetComplianceStatusNTAsync(V_Department_NT_Input v_Department_NT_Input)
         {
             try
             {

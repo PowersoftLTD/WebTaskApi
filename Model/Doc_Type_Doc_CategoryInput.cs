@@ -10,6 +10,16 @@ namespace TaskManagement.API.Model
         public int Business_Group_Id { get; set; }
     }
 
+    public class TaskProjectsFilterNT
+    {
+        [JsonPropertyName("TaskType")]
+        public string TaskType { get; set; }
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
+
     public class TaskProjectDashboardInput
     {
         [JsonPropertyName("ProjectMkey")]

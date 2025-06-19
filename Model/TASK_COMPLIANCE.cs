@@ -1199,8 +1199,11 @@ namespace TaskManagement.API.Model
         public string? MESSAGE { get; set; }
         [JsonPropertyName("User_Filter")]
         public IEnumerable<TaskDashBoardUserFilterNT> User_Filter { get; set; }
+        [JsonPropertyName("Project_Filter")]
+        public IEnumerable<TaskDashBoardUserFilterNT> Project_Filter { get; set; }
     }
 
+    
     public class TaskDashBoardUserFilterNT
     {
         [JsonPropertyName("Mkey")]

@@ -3062,5 +3062,38 @@ namespace TaskManagement.API.Controllers
         }
 
 
+        [HttpPost("Task-Management/Task-Projects-Filter-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskDashBoardFilterOutputListNT>>> TaskProjectsFilterNT(TaskProjectsFilterNT taskProjectsFilterNT)
+        {
+            try
+            {
+                if (taskProjectsFilterNT == null)
+                {
+                    var response = new TaskDashBoardFilterOutputListNT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        Project_Filter = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.TaskProjectsFilterNTAsync(taskProjectsFilterNT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new TaskDashBoardFilterOutputListNT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    Project_Filter = null
+                };
+                return Ok(response);
+            }
+        }
+
+
     }
 }

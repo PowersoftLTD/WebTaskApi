@@ -5060,7 +5060,7 @@ namespace TaskManagement.API.Repositories
                         parameters.Add("@Business_Group_Id", input.Business_Group_ID);
 
                         var result = (await db.QueryAsync<TASK_CHECKLIST_TABLE_NT_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT",
-                            parameters,commandType: CommandType.StoredProcedure,transaction: transaction)).ToList();
+                            parameters, commandType: CommandType.StoredProcedure, transaction: transaction)).ToList();
 
                         string status = parameters.Get<string>("@OUT_STATUS");
                         string message = parameters.Get<string>("@OUT_MESSAGE");
@@ -6684,6 +6684,64 @@ namespace TaskManagement.API.Repositories
                                 MESSAGE = ex.Message,
                                 Data = null,
                                 Data1 = null
+                            }
+                        };
+                return errorResult;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<TaskDashBoardFilterOutputListNT>>> TaskProjectsFilterNTAsync(TaskProjectsFilterNT taskProjectsFilterNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    //transaction = db.BeginTransaction();
+                    //transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+
+                    parmeters.Add("@TaskType", taskProjectsFilterNT.TaskType);
+                    parmeters.Add("@Session_User_Id", taskProjectsFilterNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", taskProjectsFilterNT.Business_Group_Id);
+
+                    var taskStatusDistributonNTs = await db.QueryAsync<TaskDashBoardUserFilterNT>("SP_GET_PROJECTS_TASK_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var successsResult = new List<TaskDashBoardFilterOutputListNT>
+                    {
+                        new TaskDashBoardFilterOutputListNT
+                        {
+                            STATUS = "Ok",
+                            MESSAGE = "Get data successfully!!!",
+                            Project_Filter = taskStatusDistributonNTs
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the generic error
+                var errorResult = new List<TaskDashBoardFilterOutputListNT>
+                        {
+                            new TaskDashBoardFilterOutputListNT
+                            {
+                                STATUS = "Error",
+                                MESSAGE = ex.Message,
+                                Project_Filter = null
                             }
                         };
                 return errorResult;

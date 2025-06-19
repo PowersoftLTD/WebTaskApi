@@ -451,6 +451,44 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Raised-AT-Before-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<RAISED_AT_OUTPUT_LIST_NT>>> GetRaiseATBeforeNT(RAISED_AT_INPUT_NT rAISED_AT_INPUT_NT)
+        {
+            try
+            {
+                if (rAISED_AT_INPUT_NT.PROPERTY_MKEY == 0 || rAISED_AT_INPUT_NT.BUILDING_MKEY == 0)
+                {
+                    var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST_NT>
+                        {
+                            new RAISED_AT_OUTPUT_LIST_NT
+                            {
+                                Status = "Error",
+                                Message = "Please enter the details",
+                                Data= null
+                            }
+                        };
+                    return ErrorResponse;
+                }
+                var classifications = await _repository.GetRaiseATBeforeNTAsync(rAISED_AT_INPUT_NT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<RAISED_AT_OUTPUT_LIST_NT>
+                        {
+                            new RAISED_AT_OUTPUT_LIST_NT
+                            {
+                                Status = "Error",
+                                Message =ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResponse;
+            }
+        }
+
+
         [HttpGet("Compliance-Status")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST>>> GetComplianceStatus()
@@ -477,11 +515,11 @@ namespace TaskManagement.API.Controllers
 
         [HttpGet("Compliance-Status_NT")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST_NT>>> GetComplianceStatus_NT()
+        public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST_NT>>> GetComplianceStatus_NT(V_Department_NT_Input v_Department_NT_Input)
         {
             try
             {
-                var classifications = await _repository.GetComplianceStatusNTAsync();
+                var classifications = await _repository.GetComplianceStatusNTAsync(v_Department_NT_Input);
                 return classifications;
             }
             catch (Exception ex)
