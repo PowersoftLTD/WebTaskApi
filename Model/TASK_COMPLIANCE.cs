@@ -1203,7 +1203,7 @@ namespace TaskManagement.API.Model
         public IEnumerable<TaskDashBoardUserFilterNT> Project_Filter { get; set; }
     }
 
-    
+
     public class TaskDashBoardUserFilterNT
     {
         [JsonPropertyName("Mkey")]
@@ -1216,7 +1216,17 @@ namespace TaskManagement.API.Model
         public string? Key { get; set; }
         [JsonPropertyName("DisplayName")]
         public string? DisplayName { get; set; }
+        [JsonPropertyName("PropertyMkey")]
+        public int PropertyMkey { get; set; }
 
+        [JsonPropertyName("PropertyName")]
+        public string? PropertyName { get; set; }
+
+        [JsonPropertyName("BuildingMkey")]
+        public int? BuildingMkey { get; set; }
+
+        [JsonPropertyName("BuilngName")]
+        public string? BuilngName { get; set; }
         [JsonPropertyName("Created_By_Id")]
         public int CREATED_BY_ID { get; set; }
         [JsonPropertyName("Created_By_Name")]

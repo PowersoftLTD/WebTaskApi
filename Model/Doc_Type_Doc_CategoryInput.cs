@@ -13,7 +13,9 @@ namespace TaskManagement.API.Model
     public class TaskProjectsFilterNT
     {
         [JsonPropertyName("TaskType")]
-        public string TaskType { get; set; }
+        public string? TaskType { get; set; }
+        [JsonPropertyName("PropertyMkey")]
+        public string? Property { get; set; }
         [JsonPropertyName("Session_User_Id")]
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]

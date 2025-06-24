@@ -1879,6 +1879,33 @@ namespace TaskManagement.API.Repositories
 
                         if (InsertTaskDetails.Any())
                         {
+
+                            if (InsertTaskDetails[0].Status != "Ok")
+                            {
+                                if (transaction != null && !transactionCompleted)
+                                {
+                                    try
+                                    {
+                                        // Rollback only if the transaction is not yet completed
+                                        transaction.Rollback();
+                                    }
+                                    catch (InvalidOperationException rollbackEx)
+                                    {
+                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                    }
+                                }
+
+                                var ErroResult = new List<Add_TaskOutPut_List_NT>
+                                {
+                                    new Add_TaskOutPut_List_NT
+                                    {
+                                        Status = InsertTaskDetails[0].Status,
+                                        Message = InsertTaskDetails[0].Message,
+                                        Data= null
+                                    }
+                                };
+                                return ErroResult;
+                            }
                             //  To insert CheckList 
                             foreach (var CheckList in InsertTaskDetails)
                             {
@@ -2113,9 +2140,13 @@ namespace TaskManagement.API.Repositories
                             }
 
 
+                            
+
                             var sqlTransaction = (SqlTransaction)transaction;
                             await sqlTransaction.CommitAsync();
                             transactionCompleted = true;
+
+                            
 
                             var successsResult = new List<Add_TaskOutPut_List_NT>
                             {
@@ -6713,8 +6744,8 @@ namespace TaskManagement.API.Repositories
                     //transactionCompleted = false;  // Reset transaction state
 
                     var parmeters = new DynamicParameters();
-
                     parmeters.Add("@TaskType", taskProjectsFilterNT.TaskType);
+                    parmeters.Add("@PropertyMkey", taskProjectsFilterNT.Property);
                     parmeters.Add("@Session_User_Id", taskProjectsFilterNT.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", taskProjectsFilterNT.Business_Group_Id);
 

@@ -23968,6 +23968,299 @@ SELECT RIGHT(@x , CHARINDEX ('.' ,REVERSE(@x))-1)
 select SUBSTRING(@x,len(@x),CHARINDEX('.',@x)-1 )      
 */
 
+---------------------------------------------------------------------------------------
+
+24-06-2025
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_TASK_DETAILS_NT]    Script Date: 24-06-2025 17:30:40 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[SP_INSERT_TASK_DETAILS_NT](@TASK_NO              VARCHAR(250),
+                                                  @TASK_NAME            VARCHAR(250),
+                                                  @TASK_DESCRIPTION     VARCHAR(250) = NULL,
+                                                  @CATEGORY             VARCHAR(250)= NULL,
+                                                  @PROJECT_ID           VARCHAR(250)= NULL,
+                                                  @SUBPROJECT_ID        VARCHAR(250)= NULL,
+                                                  @ASSING_BY_EMAIL      NVARCHAR(max)= NULL,
+                                                  @CREATED_BY_EMAIL     NVARCHAR(max)= NULL,
+                                                  @COMPLETION_DATE      DATETIME= NULL,
+                                                  @ASSIGNED_TO          VARCHAR(250) = NULL,
+                                                  @TAGS                 VARCHAR(250) = NULL,
+                                                  @ISNODE               CHAR(1),
+                                                  --@START_DATE          DATETIME, 
+                                                  @CLOSE_DATE           DATETIME= NULL,
+                                                  @DUE_DATE             DATETIME= NULL,
+                                                  @TASK_PARENT_ID       INT,
+                                                  @STATUS               VARCHAR(250) = NULL,
+                                                  @STATUS_PERC          VARCHAR(250) = NULL,
+                                                  @TASK_CREATED_BY      INT,
+                                                  @APPROVER_ID          INT =NULL,
+                                                  @TASK_TYPE            INT =NULL,
+                                                  @IS_ARCHIVE           CHAR(1)= NULL,
+                                                  @ATTRIBUTE1           VARCHAR(250)= NULL,
+                                                  @ATTRIBUTE2           VARCHAR(250)= NULL,
+                                                  @ATTRIBUTE3           VARCHAR(250)= NULL,
+                                                  @ATTRIBUTE4           VARCHAR(250)= NULL,
+                                                  @ATTRIBUTE5           VARCHAR(250)= NULL,
+                                                  @CREATED_BY           INT,
+                                                  @CREATION_DATE        DATETIME,
+                                                  @LAST_UPDATED_BY      INT,
+                                                  @APPROVE_ACTION_DATE  DATETIME= NULL,
+                                                  @Priority             NCHAR(40) = NULL,
+                                                  @Tentative_Start_Date DATETIME= NULL,
+                                                  @Tentative_End_Date   DATETIME= NULL,
+                                                  @Actual_Start_Date    DATETIME= NULL,
+                                                  @Actual_End_Date      DATETIME= NULL)
+AS
+  BEGIN
+		DECLARE @ASSING_MKEY INT, @CREATED_MKEY INT;
+		IF (@ASSING_BY_EMAIL IS NOT NULL AND @CREATED_BY_EMAIL IS NOT NULL)
+		BEGIN
+
+			SELECT @ASSING_MKEY = count(*) FROM EMPLOYEE_MST WHERE (EMAIL_ID_PERSONAL = @ASSING_BY_EMAIL OR EMAIL_ID_OFFICIAL = @ASSING_BY_EMAIL) AND DELETE_FLAG = 'N';
+			SELECT @CREATED_MKEY = count(*) FROM EMPLOYEE_MST WHERE (EMAIL_ID_PERSONAL = @CREATED_BY_EMAIL OR EMAIL_ID_OFFICIAL = @CREATED_BY_EMAIL) AND DELETE_FLAG = 'N';
+
+			IF((@ASSING_MKEY IS NULL OR @CREATED_MKEY IS NULL) OR (@ASSING_MKEY = 0 OR @CREATED_MKEY = 0))
+			BEGIN
+				 SELECT 'Error' [Status] ,
+				 	 'Assign By Email or Created By Email not present' AS '@ATTRIBUTE1',
+					 'Assign By Email or Created By Email not present' AS 'Message';
+					 
+					 GOTO ENDTASK;
+			END
+
+			SELECT @ASSING_MKEY = mkey FROM EMPLOYEE_MST WHERE (EMAIL_ID_PERSONAL = @ASSING_BY_EMAIL OR EMAIL_ID_OFFICIAL = @ASSING_BY_EMAIL) AND DELETE_FLAG = 'N';
+			SELECT @CREATED_MKEY = mkey FROM EMPLOYEE_MST WHERE (EMAIL_ID_PERSONAL = @CREATED_BY_EMAIL OR EMAIL_ID_OFFICIAL = @CREATED_BY_EMAIL) AND DELETE_FLAG = 'N';
+		END
+			 INSERT INTO [dbo].[TEMPLATE_TASK_DETAILS]
+           ([TASK_NO]
+           ,[TASK_NAME]
+           ,[TASK_DESCRIPTION]
+           ,[CATEGORY]
+           ,[PROJECT_ID]
+           ,[SUBPROJECT_ID]
+           ,[COMPLETION_DATE]
+           ,[ASSIGNED_TO]
+           ,[TAGS]
+           ,[ISNODE]
+           ,[CLOSE_DATE]
+           ,[DUE_DATE]
+           ,[TASK_PARENT_ID]
+           ,[STATUS]
+           ,[STATUS_PERC]
+           ,[TASK_CREATED_BY]
+           ,[APPROVER_ID]
+		   ,[TASK_TYPE]
+           ,[IS_ARCHIVE]
+           ,[ATTRIBUTE1]
+           ,[ATTRIBUTE2]
+           ,[ATTRIBUTE3]
+           ,[ATTRIBUTE4]
+           ,[ATTRIBUTE5]
+           ,[CREATED_BY]
+           ,[CREATION_DATE]
+           ,[LAST_UPDATED_BY]
+           ,[APPROVE_ACTION_DATE]
+		   ,FunctionCall
+		   ,Priority
+			,Tentative_Start_Date
+			,Tentative_End_Date
+			,Actual_Start_Date
+			,Actual_End_Date
+		   )
+     VALUES
+           (@TASK_NO             , 
+                                        @TASK_NAME           , 
+                                        @TASK_DESCRIPTION    , 
+                                        @CATEGORY            , 
+                                        @PROJECT_ID          , 
+                                        @SUBPROJECT_ID       , 
+                                        @COMPLETION_DATE     , 
+                                        --@ASSIGNED_TO         , 
+										CASE WHEN @ASSING_MKEY IS NULL THEN @ASSIGNED_TO ELSE @ASSING_MKEY END,
+                                        @TAGS                , 
+                                        @ISNODE              , 
+                                        --@START_DATE          DATETIME, 
+                                        @CLOSE_DATE          , 
+                                        @DUE_DATE            , 
+                                        @TASK_PARENT_ID      , 
+                                        @STATUS              , 
+                                        @STATUS_PERC         , 
+                                        @TASK_CREATED_BY     , 
+                                        @APPROVER_ID         , 
+										@TASK_TYPE	         ,
+                                        @IS_ARCHIVE          , 
+                                        @ATTRIBUTE1          , 
+                                        @ATTRIBUTE2          , 
+                                        @ATTRIBUTE3          , 
+                                        @ATTRIBUTE4          , 
+                                        @ATTRIBUTE5          , 
+                                        --@CREATED_BY          , 
+										CASE WHEN @CREATED_MKEY IS NULL THEN @CREATED_BY ELSE @CREATED_MKEY END,
+                                        @CREATION_DATE       , 
+                                        @LAST_UPDATED_BY     , 
+                                        @APPROVE_ACTION_DATE,'SP_INSERT_TASK_DETAILS',
+										@Priority ,
+										 @Tentative_Start_Date,
+										 @Tentative_End_Date ,
+										 @Actual_Start_Date ,
+										 @Actual_End_Date 
+										 )
+
+      --return;
+      DECLARE @Dcount INT;
+
+      SET @TASK_NO='100';
+
+      SELECT @Dcount = Count(*)
+      FROM   task_hdr
+      WHERE  task_no NOT LIKE '%.%'
+             AND mkey = (SELECT Max(mkey)
+                         FROM   task_hdr
+                         WHERE  task_no NOT LIKE '%.%');
+
+      IF @Dcount > 0
+        BEGIN
+            SELECT @TASK_NO = Cast(Cast(Isnull(task_no, '100') AS FLOAT) + 1 AS
+                                   VARCHAR)
+            FROM   task_hdr
+            WHERE  task_no NOT LIKE '%.%'
+                   AND mkey = (SELECT Max(mkey)
+                               FROM   task_hdr
+                               WHERE  task_no NOT LIKE '%.%');
+        END
+
+      SET @STATUS='CREATED';
+      SET @TASK_PARENT_ID = 0;
+
+      --select * from type_mst where type_code='STATUS'
+      SELECT @ASSIGNED_TO = Cast(mkey AS VARCHAR)
+      FROM   employee_mst
+      WHERE  emp_full_name = @ASSIGNED_TO;
+
+      IF( @TASK_CREATED_BY = @ASSIGNED_TO )
+        BEGIN
+            SET @STATUS='WORK IN PROGRESS';
+        END
+
+       INSERT INTO [DBO].[task_hdr] 
+                  ([task_no], 
+                   [task_name], 
+                   [task_description], 
+                   [caregory], 
+                   [project_id], 
+                   [sub_project_id], 
+                   [start_date], 
+                   [completion_date], 
+                   [close_date], 
+                   [due_date], 
+                   [assigned_to], 
+                   [tags], 
+                   [isnode], 
+                   [task_parent_id],
+                   [TASK_MAIN_NODE_ID], 
+                   [status], 
+                   [status_perc], 
+                   [task_created_by], 
+				   [task_type],
+                   [approver_id], 
+                   [approve_action_date], 
+                   [is_archive], 
+                   [attribute1], 
+                   [attribute2], 
+                   [attribute3], 
+                   [attribute4], 
+                   [attribute5], 
+                   [created_by], 
+                   [creation_date], 
+                   [last_updated_by], 
+                   [last_update_date], 
+                   [delete_flag],RESPOSIBLE_EMP_MKEY,
+				   Priority
+				  ,Tentative_Start_Date
+				  ,Tentative_End_Date
+				  ,Actual_Start_Date
+				  ,Actual_End_Date
+				  ) 
+      VALUES      ( @TASK_NO, 
+                    @TASK_NAME, 
+                    @TASK_DESCRIPTION, 
+                    @CATEGORY, 
+                    @PROJECT_ID, 
+                    @SUBPROJECT_ID, 
+                    GETDATE(),--@START_DATE, 
+                    @COMPLETION_DATE, 
+                    @CLOSE_DATE, 
+                    @DUE_DATE, 
+                    --@ASSIGNED_TO, 
+					CASE WHEN @ASSING_MKEY IS NULL THEN @ASSIGNED_TO ELSE @ASSING_MKEY END,
+                    @TAGS, 
+                    @ISNODE, 
+                    @TASK_PARENT_ID, 
+                    @TASK_PARENT_ID,
+                    @STATUS, 
+                    @STATUS_PERC, 
+                    @TASK_CREATED_BY, 
+					@TASK_TYPE,
+                    @APPROVER_ID, 
+                    @APPROVE_ACTION_DATE, 
+                    @IS_ARCHIVE, 
+                    @ATTRIBUTE1, 
+                    @ATTRIBUTE2, 
+                    @ATTRIBUTE3, 
+                    @ATTRIBUTE4, 
+                    @ATTRIBUTE5, 
+                    --@CREATED_BY, 
+					CASE WHEN @CREATED_MKEY IS NULL THEN @CREATED_BY ELSE @CREATED_MKEY END,
+                    getdate(), 
+                    @LAST_UPDATED_BY, 
+                    getdate(), 
+                    'N',@ASSIGNED_TO ,@Priority ,
+										 @Tentative_Start_Date,
+										 @Tentative_End_Date ,
+										 @Actual_Start_Date ,
+										 @Actual_End_Date) 
+
+      SET @ATTRIBUTE2 =  CASE WHEN Cast(@CREATED_MKEY AS VARCHAR) IS NULL THEN Cast(@CREATED_BY AS VARCHAR) ELSE Cast(@CREATED_MKEY AS VARCHAR)END;
+
+      SELECT @ATTRIBUTE1 = Scope_identity();
+
+      SELECT Scope_identity()Mkey,
+             @ATTRIBUTE1     TASK_PARENT_ID,
+             @ATTRIBUTE1     TASK_MAIN_NODE_ID,
+             @TASK_NO        TASK_NO,
+			 'Ok'		as [Status],
+			 'Created'		as [Message];
+      --select * from type_mst
+      PRINT Cast(@TASK_PARENT_ID AS VARCHAR);
+
+      UPDATE [task_hdr]
+      SET    task_parent_id = @ATTRIBUTE1,
+             task_main_node_id = @ATTRIBUTE1
+      WHERE  mkey = @ATTRIBUTE1
+
+		EXEC Sp_task_action_trl_insert_update
+			@ATTRIBUTE1,--    @Parameter1       @MKEY,
+			@ATTRIBUTE1,-- @Parameter2          @TASK_MKEY,                 
+			@ATTRIBUTE1,--@Parameter3 @TASK_PARENT_ID
+			'ROOTTASKCREATED',--    @Parameter4 @ACTION_TYPE
+			'TASK CREATED',--    @Parameter5 @DESCRIPTION_COMMENT
+			'0',--  @Parameter6 @PROGRESS_PERC
+			'CREATED',--  @Parameter7 @STATUS
+			@ATTRIBUTE2,--@Parameter8 @CREATED_BY
+			@ATTRIBUTE1;--@Parameter9 @TASK_MAIN_NODE_ID
+		EXEC [Sp_emp_tags_insert_update] @CREATED_BY,@TAGS,@CREATED_BY;
+		ENDTASK:
+  END 
+-------------------------------------------------------------------------------------------
+
+
+
+
 
 
 
