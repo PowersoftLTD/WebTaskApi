@@ -3028,7 +3028,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("Task-Management/Task-Projects-Dashboard-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TaskProjectsDashboardOutputNT>>> TaskProjectsDashboardNT(TaskProjectDashboardInput taskProjectDashboardInput)
@@ -3061,7 +3060,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("Task-Management/Task-Projects-Filter-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TaskDashBoardFilterOutputListNT>>> TaskProjectsFilterNT(TaskProjectsFilterNT taskProjectsFilterNT)
@@ -3093,7 +3091,6 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
-
 
     }
 }
