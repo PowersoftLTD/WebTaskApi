@@ -18,7 +18,6 @@ namespace TaskManagement.API.Repositories
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
         }
-
         public async Task<IEnumerable<MSPUploadExcelOutPut>> UploadExcel(List<MSPUploadExcelInput> mSPUploadExcelInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -95,51 +94,54 @@ namespace TaskManagement.API.Repositories
                         var mSPUploadExcel = await db.QueryAsync<MSPUploadExcel>(
                             "SP_INSERT_SCHEDULED_MSP", parametersMSP, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                        ////    var errorRemarks = (await db.QueryAsync<string>(
-                        ////        "SELECT DISTINCT remarks FROM msp_default_migration_table WHERE remarks LIKE 'Error:%'",
-                        ////        transaction: transaction
-                        ////    )).ToList();
+                        var errorRemarks = (await db.QueryAsync<string>(
+                            "SELECT DISTINCT remarks FROM msp_default_migration_table WHERE remarks LIKE 'Error:%'",
+                            transaction: transaction
+                        )).ToList();
 
-                        ////    if (errorRemarks.Any())
-                        ////    {
-                        ////        if (!transactionCompleted && transaction != null)
-                        ////            transaction.Rollback();
+                        if (errorRemarks.Any())
+                        {
+                            if (!transactionCompleted && transaction != null)
+                                transaction.Rollback();
 
-                        ////        return new List<MSPUploadExcelOutPut>
-                        ////{
-                        ////    new MSPUploadExcelOutPut
-                        ////    {
-                        ////        Status = "Error",
-                        ////        Message = string.Join("; ", errorRemarks),
-                        ////        Data = null
-                        ////    }
-                        ////};
-                        ////    }
+                            List<MSPUploadExcel> ErroMspUpload = new List<MSPUploadExcel>();
+                            return new List<MSPUploadExcelOutPut>
+                            {
+                                new MSPUploadExcelOutPut
+                                {
+                                    Status = "Error",
+                                    Message = string.Join("; ", errorRemarks),
+                                    Data = ErroMspUpload
+                                }
+                            };
+                        }
 
                         await ((SqlTransaction)transaction).CommitAsync();
                         transactionCompleted = true;
 
                         return new List<MSPUploadExcelOutPut>
-                {
-                    new MSPUploadExcelOutPut
-                    {
-                        Status = "Ok",
-                        Message = "Success",
-                        Data =  mSPUploadExcel
-                    }
-                };
+                        {
+                            new MSPUploadExcelOutPut
+                            {
+                                Status = "Ok",
+                                Message = "Success",
+                                Data =  mSPUploadExcel
+                            }
+                        };
                     }
                     else
                     {
+
+
                         return new List<MSPUploadExcelOutPut>
-                {
-                    new MSPUploadExcelOutPut
-                    {
-                        Status = "Error",
-                        Message = "Input data is null",
-                        Data = null
-                    }
-                };
+                        {
+                            new MSPUploadExcelOutPut
+                            {
+                                Status = "Error",
+                                Message = "Input data is null",
+                                Data = null
+                            }
+                        };
                     }
                 }
             }
@@ -168,7 +170,6 @@ namespace TaskManagement.API.Repositories
         };
             }
         }
-
         //public async Task<IEnumerable<MSPUploadExcelOutPut>> UploadExcel(List<MSPUploadExcelInput> mSPUploadExcelInput)
         //{
         //    DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -600,6 +601,5 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
     }
 }
