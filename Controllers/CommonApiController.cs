@@ -833,7 +833,7 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseTeamTask);
                 }
-            
+
                 foreach (var task in TaskTeamTask)
                 {
                     if (task.Data != null)
@@ -1409,7 +1409,7 @@ namespace TaskManagement.API.Controllers
                 int srNo = 0;
                 string filePathOpen = string.Empty;
                 bool flagAttachment = false;
-                if(objFile.files == null)
+                if (objFile.files == null)
                 {
                     var response = new Add_TaskOutPut_List_NT
                     {
@@ -1573,6 +1573,40 @@ namespace TaskManagement.API.Controllers
                 {
                     if (objFile.files.Length > 0)
                     {
+                        if (objFile.TASK_MAIN_NODE_ID == null || objFile.TASK_MAIN_NODE_ID == 0)
+                        {
+                            var responseTaskP = new TaskPostActionFileUploadAPIOutPut_List_NT
+                            {
+                                Status = "Error",
+                                Message = "Please add Task details!!!",
+                                Data = null
+                            };
+                            return Ok(responseTaskP);
+                        }
+                        if (objFile.Session_User_ID == null || objFile.Session_User_ID == 0)
+                        {
+                            var responseSeesion = new TaskPostActionFileUploadAPIOutPut_List_NT
+                            {
+                                Status = "Error",
+                                Message = "Please add Session User!!!",
+                                Data = null
+                            };
+                            return Ok(responseSeesion);
+                        }
+
+                        if (objFile.Business_Group_ID == null || objFile.Business_Group_ID == 0)
+                        {
+                            var responseBus = new TaskPostActionFileUploadAPIOutPut_List_NT
+                            {
+                                Status = "Error",
+                                Message = "Please add Business Group!!!",
+                                Data = null
+                            };
+                            return Ok(responseBus);
+                        }
+
+
+
                         srNo = srNo + 1;
                         var RsponseStatus = await _repository.FileDownload();
                         string FilePath = RsponseStatus.Value.ToString();
@@ -1694,11 +1728,37 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
+                //if (taskPostActionInput.FILE_NAME != null)
+                //{
+                //    taskPostActionInput.FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME;
+                //}
+               
+                if (taskPostActionInput.Session_User_ID == null || taskPostActionInput.Session_User_ID == 0)
+                {
+                    var response = new TaskPostActionAPIOutPut_List_NT
+                    {
+                        Status = "Error",
+                        Message = "Please add Session User!!!",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                if (taskPostActionInput.Business_Group_ID == null || taskPostActionInput.Business_Group_ID == 0)
+                {
+                    var response = new TaskPostActionAPIOutPut_List_NT
+                    {
+                        Status = "Error",
+                        Message = "Please add Business Group!!!",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
                 if (taskPostActionInput.FILE_NAME != null)
                 {
                     taskPostActionInput.FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME;
                 }
-                else
+                else if (taskPostActionInput.FILE_NAME == null)
                 {
                     taskPostActionInput.FILE_PATH = string.Empty;
                 }
@@ -1714,7 +1774,7 @@ namespace TaskManagement.API.Controllers
                     var objFileDetails = new TaskPostActionOutput_NT()
                     {
 
-                        FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME,
+                        FILE_PATH = taskPostActionInput.FILE_PATH,//"Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME,
                         FILE_NAME = taskPostActionInput.FILE_NAME
                     };
 
@@ -2134,16 +2194,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
                 {

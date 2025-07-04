@@ -1333,6 +1333,24 @@ namespace TaskManagement.API.Model
         public string? Progress_Percentage { get; set; }
         [JsonPropertyName("Subtask_Count")]
         public string? Subtask_Count { get; set; }
+        [JsonPropertyName("BuildingType")]
+        public int? BUILDING_TYPE { get; set; }
+        [JsonPropertyName("BuildingStandard")]
+        public int? BUILDING_STANDARD { get; set; }
+        [JsonPropertyName("StatutoryAuthority")]
+        public int? STATUTORY_AUTHORITY { get; set; }
+        [JsonPropertyName("ResponsibleDepartment")]
+        public string? RESPONSIBLE_DEPARTMENT { get; set; }
+        [JsonPropertyName("JobRole")]
+        public string? JOB_ROLE { get; set; }
+        [JsonPropertyName("ResponsiblePerson")]
+        public string? RESPONSIBLE_PERSON { get; set; }
+        [JsonPropertyName("ComplianceStatus")]
+        public string? ComplianceSTATUS { get; set; }
+        [JsonPropertyName("RaisedAt")]
+        public string? RAISED_AT { get; set; }
+        [JsonPropertyName("RaisedAtBefore")]
+        public string? RAISED_AT_BEFORE { get; set; }
 
         [JsonPropertyName("Created_By")]
         public string? CREATED_BY { get; set; }

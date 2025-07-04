@@ -50,7 +50,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new UpdateProjectDocDepositoryHDROutput_List
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -87,7 +87,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new UpdateProjectDocDepositoryHDROutput_List
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }

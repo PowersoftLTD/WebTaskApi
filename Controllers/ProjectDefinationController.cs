@@ -265,7 +265,7 @@ namespace TaskManagement.API.Controllers
                 {
                     var response = new ApiResponse<PROJECT_HDR>
                     {
-                        Status = "Error",
+                        Status = "Ok",
                         Message = "Data not found",
                         Data = null // No data in case of exception
                     };

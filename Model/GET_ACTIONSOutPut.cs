@@ -116,6 +116,9 @@ namespace TaskManagement.API.Model
         public decimal? PROGRESS_PERC { get; set; }
         [JsonPropertyName("Status")]
         public string? STATUS { get; set; }
+
+        [JsonPropertyName("Task_Status")]
+        public string? TASK_STATUS { get; set; }
         [JsonPropertyName("Action_Type")]
         public string? ACTION_TYPE { get; set; }
         [JsonPropertyName("Comment")]

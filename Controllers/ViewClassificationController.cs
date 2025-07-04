@@ -488,7 +488,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpGet("Compliance-Status")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST>>> GetComplianceStatus()
@@ -513,7 +512,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Compliance-Status_NT")]
+        [HttpPost("Compliance-Status_NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST_NT>>> GetComplianceStatus_NT(V_Department_NT_Input v_Department_NT_Input)
         {

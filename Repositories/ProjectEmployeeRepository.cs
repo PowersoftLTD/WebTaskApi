@@ -680,7 +680,7 @@ namespace TaskManagement.API.Repositories
                     {
                         new EmployeeTagsOutPut_Tags_list_NT
                         {
-                            Status = "Error",
+                            Status = "Ok",
                             Message = "Data not found",
                             Data = null
                         }
@@ -965,7 +965,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 new TASK_DETAILS_BY_MKEY_list_NT
                                 {
-                                    Status = "Error",
+                                    Status = "Ok",
                                     Message = "Task not found"
                                 }
                             };
@@ -1136,7 +1136,7 @@ namespace TaskManagement.API.Repositories
                         {
                             new GET_ACTIONS_TYPE_FILE_NT
                             {
-                               Status = "Error",
+                               Status = "Ok",
                                 Message= "Not found"
                             }
                         };
@@ -3334,7 +3334,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_list
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3412,7 +3412,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_list_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3505,7 +3505,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TaskSanctioningDepartmentOutputList
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3585,7 +3585,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 new TaskSanctioningDepartmentOutputList_NT
                                 {
-                                    STATUS = "Error",
+                                    STATUS = "Ok",
                                     MESSAGE = "No data found",
                                     DATA = null
                                 }
@@ -3602,7 +3602,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TaskSanctioningDepartmentOutputList_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3680,7 +3680,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_END_CHECK_LIST
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3718,7 +3718,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_END_CHECK_LIST
                                     {
-                                        STATUS = "Error",
+                                       STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3783,7 +3783,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_END_CHECK_LIST_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3821,7 +3821,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_END_CHECK_LIST_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3886,7 +3886,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_ENDLIST_DETAILS_OUTPUT_LIST
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3926,7 +3926,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_ENDLIST_DETAILS_OUTPUT_LIST
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -3995,7 +3995,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_CHECK_LIST
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -4020,7 +4020,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_CHECK_LIST
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -4089,7 +4089,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_CHECK_LIST_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -4114,7 +4114,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_CHECK_LIST_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -4291,7 +4291,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 new TASK_ENDLIST_DETAILS_OUTPUT_LIST
                                 {
-                                    STATUS = "Error",
+                                    STATUS = "Ok",
                                     MESSAGE = "Data not found",
                                     DATA = null
                                 }
@@ -4503,7 +4503,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 new TASK_ENDLIST_DETAILS_OUTPUT_LIST_NT
                                 {
-                                    STATUS = "Error",
+                                    STATUS = "Ok",
                                     MESSAGE = "Data not found",
                                     DATA = null
                                 }
@@ -4617,7 +4617,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_CHECK_LIST
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -4643,7 +4643,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_CHECK_LIST
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -4977,7 +4977,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TaskCheckListOutputList
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -5245,7 +5245,7 @@ namespace TaskManagement.API.Repositories
                                     {
                                         new TASK_COMPLIANCE_END_CHECK_LIST
                                         {
-                                            STATUS = "Error",
+                                            STATUS = "Ok",
                                             MESSAGE = "Data not found",
                                             DATA = null
                                         }
@@ -5283,7 +5283,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_END_CHECK_LIST
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -5439,7 +5439,7 @@ namespace TaskManagement.API.Repositories
                                     {
                                         new TASK_COMPLIANCE_END_CHECK_LIST_NT
                                         {
-                                            STATUS = "Error",
+                                            STATUS = "Ok",
                                             MESSAGE = "Data not found",
                                             DATA = null
                                         }
@@ -5477,7 +5477,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_END_CHECK_LIST_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -6067,7 +6067,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_CHECK_LIST_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }
@@ -6093,7 +6093,7 @@ namespace TaskManagement.API.Repositories
                                 {
                                     new TASK_COMPLIANCE_CHECK_LIST_NT
                                     {
-                                        STATUS = "Error",
+                                        STATUS = "Ok",
                                         MESSAGE = "Data not found",
                                         DATA = null
                                     }

@@ -260,7 +260,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 new V_Job_Role_NT_OutPut
                                 {
-                                    Status = "Error",
+                                    Status = "Ok",
                                     Message = "Data Not found",
                                     Data= null
 
@@ -325,7 +325,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 new V_Department_NT_OutPut
                                 {
-                                    Status = "Error",
+                                    Status = "Ok",
                                     Message = "Data Not found",
                                     Data= null
 
