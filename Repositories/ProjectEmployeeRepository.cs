@@ -2140,13 +2140,13 @@ namespace TaskManagement.API.Repositories
                             }
 
 
-                            
+
 
                             var sqlTransaction = (SqlTransaction)transaction;
                             await sqlTransaction.CommitAsync();
                             transactionCompleted = true;
 
-                            
+
 
                             var successsResult = new List<Add_TaskOutPut_List_NT>
                             {
@@ -5060,6 +5060,7 @@ namespace TaskManagement.API.Repositories
         }
         public async Task<ActionResult<IEnumerable<TaskCheckListNTOutputList>>> PostTaskCheckListTableInsertUpdateNTAsync(TASK_CHECKLIST_INPUT_NT input)
         {
+            bool transactionCompleted = false;
             using var db = _dapperDbConnection.CreateConnection();
             if (db is not SqlConnection sqlConnection)
                 throw new InvalidOperationException("Connection must be SqlConnection.");
@@ -5112,17 +5113,48 @@ namespace TaskManagement.API.Repositories
                     }
                 }
 
-                await ((SqlTransaction)transaction).CommitAsync();
+                var parametersCheckList = new DynamicParameters();
+                parametersCheckList.Add("@Parameter1", input.TASK_MKEY); // mkey
+                parametersCheckList.Add("@Parameter2", "Checklist is added"); //ACTION_TYPE
+                parametersCheckList.Add("@Parameter3", input.COMMENT); //STATUS
+                parametersCheckList.Add("@Parameter4", "0");  // DESCRIPTION_COMMENT
+                parametersCheckList.Add("@Parameter5", input.Session_User_ID); // Logdin user
+                parametersCheckList.Add("@Parameter6", input.Business_Group_ID);
+
+                var TaskFile = await db.ExecuteAsync("SP_INSERT_TASK_ACTION_CHECKLIST_ENDLIST_TRL", parametersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                if (TaskFile == null || TaskFile == 0)
+                {
+                    // Handle other unexpected exceptions
+                    if (transaction != null && !transactionCompleted)
+                    {
+                        try
+                        {
+                            // Rollback only if the transaction is not yet completed
+                            transaction.Rollback();
+                        }
+                        catch (InvalidOperationException rollbackEx)
+                        {
+
+                            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            //TranError.Message = ex.Message;
+                            //return TranError;
+                        }
+                    }
+                }
+                var sqlTransaction = (SqlTransaction)transaction;
+                await sqlTransaction.CommitAsync();
+                transactionCompleted = true;
 
                 return new List<TaskCheckListNTOutputList>
+                {
+                    new TaskCheckListNTOutputList
                     {
-                        new TaskCheckListNTOutputList
-                        {
-                            STATUS = "Ok",
-                            MESSAGE = "Checklist updated successfully.",
-                            DATA = null
-                        }
-                    };
+                        STATUS = "Ok",
+                        MESSAGE = "Checklist updated successfully.",
+                        DATA = null
+                    }
+                };
             }
             catch (Exception ex)
             {

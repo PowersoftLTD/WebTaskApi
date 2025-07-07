@@ -141,6 +141,9 @@ namespace TaskManagement.API.Model
         public DateTime? START_DATE { get; set; }
         [JsonPropertyName("Completion_Date")]
         public DateTime? COMPLETION_DATE { get; set; }
+        [JsonPropertyName("Task_Parent_Completion_Date")]
+        public DateTime? Task_Parent_Completion_Date { get; set; }
+
         [JsonPropertyName("Close_Date")]
         public DateTime? CLOSE_DATE { get; set; }
         [JsonPropertyName("Due_Date")]

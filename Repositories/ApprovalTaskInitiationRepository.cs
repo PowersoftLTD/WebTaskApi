@@ -101,7 +101,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@STATUS", aPPROVAL_TASK_INITIATION.STATUS);
                     parmeters.Add("@TASK_TYPE", "359");
                     parmeters.Add("@STATUS_PERC", 0.0);
-                    parmeters.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.INITIATOR);
+                    parmeters.Add("@TASK_CREATED_BY", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY);
                     parmeters.Add("@APPROVER_ID", 0);
                     parmeters.Add("@IS_ARCHIVE", null);
                     parmeters.Add("@ATTRIBUTE1", null);
@@ -109,11 +109,12 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@ATTRIBUTE3", null);
                     parmeters.Add("@ATTRIBUTE4", aPPROVAL_TASK_INITIATION.MKEY);
                     parmeters.Add("@ATTRIBUTE5", aPPROVAL_TASK_INITIATION.HEADER_MKEY);
-                    parmeters.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                    parmeters.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY);
                     parmeters.Add("@CREATION_DATE", dateTime);
-                    parmeters.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                    parmeters.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY);
 
-                    var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters,
+                        commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (approvalTemplate == null)
                     {

@@ -18,7 +18,6 @@ namespace TaskManagement.API.Repositories
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
         }
-
         public async Task<IEnumerable<MSPUploadExcelOutPut>> UploadExcel(List<MSPUploadExcelInput> mSPUploadExcelInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -171,7 +170,6 @@ namespace TaskManagement.API.Repositories
         };
             }
         }
-
         public async Task<IEnumerable<MSPUploadExcelOutPut>> GetTaskMspAsync(MSPTaskInput mSPTaskInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
