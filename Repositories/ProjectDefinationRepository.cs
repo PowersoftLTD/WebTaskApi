@@ -333,6 +333,8 @@ namespace TaskManagement.API.Repositories
                             {
                                 if ((approvalsList.STATUS).ToString().ToLower() == "Created".ToString().ToLower())
                                 {
+                                    var ProojectApproval = await db.QueryAsync<bool>("SP_UPDATE_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
                                     approvalsInsertDataTable.Rows.Add(pROJECT_HDR.MKEY, approvalsList.TASK_NO
                                         , approvalsList.APPROVAL_ABBRIVATION
                                     , approvalsList.APPROVAL_DESCRIPTION, approvalsList.DAYS_REQUIRED, approvalsList.DEPARTMENT, approvalsList.JOB_ROLE

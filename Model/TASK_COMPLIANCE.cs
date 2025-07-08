@@ -1070,6 +1070,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Document_Mkey")]
         public int DOCUMENT_MKEY { get; set; }
 
+        [JsonPropertyName("Doc_Type_Mkey")]
+        public int Doc_Type_Mkey { get; set; }
+
         [JsonPropertyName("Document_Category")]
         public int DOCUMENT_CATEGORY { get; set; }
 
@@ -1354,42 +1357,6 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Created_By")]
         public string? CREATED_BY { get; set; }
-
-        //[JsonPropertyName("Project_Mkey")]
-        //public string? PROJECT_Mkey { get; set; }
-        //[JsonPropertyName("Project_Name")]
-        //public string? Project_Name { get; set; }
-
-        //[JsonPropertyName("Building_Mkey")]
-        //public string? Building_Mkey { get; set; }
-
-        //[JsonPropertyName("Building_Name")]
-        //public string? Building_Name { get; set; }
-
-        //[JsonPropertyName("Task_Mkey")]
-        //public string? MKEY { get; set; }
-        //[JsonPropertyName("Task_No")]
-        //public string? TASK_NO { get; set; }
-        //[JsonPropertyName("Task_Name")]
-        //public string? TASK_NAME { get; set; }
-        //[JsonPropertyName("Task_Description")]
-        //public string? TASK_DESCRIPTION { get; set; }
-        //[JsonPropertyName("Status")]
-        //public string? Status{ get; set; }
-        //[JsonPropertyName("Status_Percentage")]
-        //public string? STATUS_PERC { get; set; }
-        //[JsonPropertyName("Priority")]
-        //public string? Priority { get; set; }
-        //[JsonPropertyName("Task_Parent_Id")]
-        //public int? TASK_PARENT_ID { get; set; }
-        //[JsonPropertyName("Task_Main_Node_Id")]
-        //public int? TASK_MAIN_NODE_ID { get; set; }
-        //[JsonPropertyName("Assigned_To")]
-        //public int? ASSIGNED_TO { get; set; }
-        //[JsonPropertyName("Assigned_To_Name")]
-        //public string? Assigned_To_Name { get; set; }
-        //[JsonPropertyName("Completion_Date")]
-        //public string? COMPLETION_DATE { get; set; }
     }
 
     public class TaskProjectsDashboardCountNT

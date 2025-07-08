@@ -32793,3 +32793,146 @@ AS
 
 
 ----------------------------------------------------
+
+Date 08-07-2025
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_TASK_CHECKLIST_NT]    Script Date: 08-07-2025 16:11:14 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:    
+-- Create date: 
+-- Description:  
+--  EXEC SP_GET_TASK_CHECKLIST_NT 440,443, 307,'ffg','fgfg',926
+-- =============================================
+ ALTER PROCEDURE [dbo].[SP_GET_TASK_CHECKLIST_NT]
+  -- Add the parameters for the stored procedure here
+  @PROPERTY_MKEY INT,
+  @BUILDING_MKEY INT,
+  @TASK_MKEY     INT,
+  @API_NAME      NVARCHAR(200),
+  @API_METHOD    NVARCHAR(100),
+  @USER_ID       INT,
+  @Session_User_Id          INT = NULL,  
+@Business_Group_Id	  INT = NULL
+AS
+  BEGIN
+      SET nocount ON;
+
+      BEGIN try
+
+	  SELECT CTRL.mkey,
+                 CTRL.sr_no,
+                 THDR.project_id                                           AS                 PROPERTY_MKEY,
+                 THDR.sub_project_id                                       AS                 BUILDING_MKEY,
+				 CTRL.DOCUMENT_MKEY,
+				 CTRL.DOCUMENT_MKEY					AS Doc_Cat_mkey,
+				 CTRL.DOCUMENT_NAME					as Doc_Cat_Name,
+				 DocMST.MKEY						as Doc_Type_Mkey,
+				 MST.TYPE_DESC						as  Doc_Type_Name,
+				 CTRL.document_mkey											AS DOC_MKEY,
+				 MST.TYPE_DESC as  Doc_Cat_Name,
+                 CASE WHEN DocMST.DOC_NAME IS NULL THEN (SELECT TYPE_DESC FROM TYPE_MST WHERE MKEY = CTRL.DOCUMENT_MKEY) ELSE DocMST.DOC_NAME END AS  document_name,
+				 CTRL.DOCUMENT_NAME as  Doc_Cat_Name,
+                 CTRL.document_category,
+				 MST.TYPE_DESC                                             AS
+                 [TYPE_DESC],
+                 CTRL.app_check,
+				 Isnull(CONVERT(VARCHAR(50), CTRL.created_by), '')         AS
+                 CREATED_BY_ID,
+                 Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS
+                 CREATED_BY_NAME,
+                 CASE
+                   WHEN CTRL.creation_date IS NULL THEN ''
+                   ELSE Format(CTRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS
+                 CREATION_DATE,
+                 Isnull(CONVERT(VARCHAR(50), CTRL.last_updated_by), '')    AS
+                 LAST_UPDATED_BY,
+                 Isnull(updatedby.emp_full_name, '')
+                 UPDATED_BY_NAME
+                 ,
+                 CASE
+                   WHEN CTRL.last_update_date IS NULL THEN ''
+                   ELSE Format(CTRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS
+                 LAST_UPDATE_DATE
+		 FROM   task_checklist_trl CTRL
+                 INNER JOIN task_hdr THDR
+                        ON CTRL.mkey = THDR.mkey
+				INNER JOIN TYPE_MST MST ON MST.MASTER_MKEY =  CTRL.DOCUMENT_CATEGORY AND MST.DELETE_FLAG = 'N'
+				LEFT JOIN TYPE_MST INSTRMST ON INSTRMST.MKEY =  CTRL.DOCUMENT_CATEGORY AND MST.DELETE_FLAG = 'N'
+				LEFT JOIN TYPE_MST DMST ON DMST.MKEY =  CTRL.DOCUMENT_MKEY AND MST.DELETE_FLAG = 'N'
+				LEFT JOIN DOC_TEMPLATE_HDR DocMST ON DocMST.TYPE_MST_DOC_TYPE_MKEY =  DMST.MKEY AND DocMST.DELETE_FLAG = 'N'
+                INNER JOIN employee_mst createdby
+                         ON CTRL.created_by = createdby.mkey
+                 LEFT JOIN employee_mst updatedby
+                        ON CTRL.last_updated_by = updatedby.mkey
+		where CTRL.DOCUMENT_MKEY is not null and CTRL.DOCUMENT_NAME is not null
+		and CTRL.DOCUMENT_CATEGORY is not null 
+		AND CTRL.mkey = @TASK_MKEY
+		AND CTRL.DELETE_FLAG = 'N'
+		AND THDR.DELETE_FLAG = 'N'
+		AND MST.DELETE_FLAG = 'N'
+		AND createdby.DELETE_FLAG = 'N'
+		ORDER BY SR_NO,CONVERT(INT, CTRL.document_category);
+      
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------            
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @USER_ID,
+            'TMS',
+            @API_NAME,
+            @ERROR_MESSAGE,
+            @API_METHOD;
+      -------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+
+
+-------------------------------------------------------------------------------------------------
+
+ALTER VIEW [dbo].[V_Doc_Type_NT] AS  
+SELECT [TYPE].MKEY AS DOC_TYPE_MKEY,[TYPE].TYPE_DESC AS DOC_TYPE_NAME
+		,CAT.MKEY AS Doc_Category_Mkey,CAT.TYPE_DESC AS Doc_Category_Name
+		,Isnull(CONVERT(VARCHAR(50), [TYPE].created_by), '') AS CREATED_BY_ID    
+		,Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME    
+		,CASE    
+		WHEN [TYPE].creation_date IS NULL THEN    
+		''    
+		ELSE    
+		Format([TYPE].creation_date, 'yyyy-MM-dd HH:mm:ss')    
+		END AS CREATION_DATE    
+		,Isnull(CONVERT(VARCHAR(50), [TYPE].last_updated_by), '') AS LAST_UPDATED_BY    
+		,Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME    
+		,CASE    
+		WHEN [TYPE].last_update_date IS NULL THEN    
+		''    
+		ELSE    
+		Format([TYPE].last_update_date, 'yyyy-MM-dd HH:mm:ss')    
+		END AS LAST_UPDATE_DATE    
+		,[TYPE].DELETE_FLAG  
+		FROM TYPE_MST [TYPE]  INNER JOIN TYPE_MST CAT ON CAT.MKEY = [TYPE].PARENT_ID
+		INNER JOIN EMPLOYEE_MST createdby ON createdby.mkey= [TYPE].CREATED_BY
+		LEFT JOIN  EMPLOYEE_MST updatedby ON [TYPE].LAST_UPDATED_BY = updatedby.mkey    
+		WHERE [TYPE].TYPE_CODE = 'DOC_TYPE' AND CAT.TYPE_CODE = 'DOC_CATEGORY'

@@ -169,14 +169,23 @@ namespace TaskManagement.API.Repositories
                             transaction = sqlConnection.BeginTransaction(); // Start a new transaction
                         }
 
-                        var SubParentMkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT MKEY FROM TASK_HDR " +
-                            "WHERE ATTRIBUTE4 IN (SELECT SUBTASK_PARENT_ID FROM APPROVAL_TEMPLATE_TRL_SUBTASK " +
-                            "WHERE SUBTASK_MKEY = @APPROVAL_MKEY AND DELETE_FLAG = 'N') " +
-                            " AND DELETE_FLAG = 'N' AND ATTRIBUTE5 IN (SELECT MKEY FROM PROJECT_HDR WHERE MKEY = @MKEY AND DELETE_FLAG = 'N') ",
-                            new { APPROVAL_MKEY = SubTask.APPROVAL_MKEY, MKEY = SubTask.MKEY }, transaction: transaction);
+                        //var SubParentMkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("SELECT MKEY FROM TASK_HDR " +
+                        //    "WHERE ATTRIBUTE4 IN (SELECT SUBTASK_PARENT_ID FROM APPROVAL_TEMPLATE_TRL_SUBTASK " +
+                        //    "WHERE SUBTASK_MKEY = @APPROVAL_MKEY AND DELETE_FLAG = 'N') " +
+                        //    " AND DELETE_FLAG = 'N' AND ATTRIBUTE5 IN (SELECT MKEY FROM PROJECT_HDR WHERE MKEY = @MKEY AND DELETE_FLAG = 'N') ",
+                        //    new { APPROVAL_MKEY = SubTask.APPROVAL_MKEY, MKEY = SubTask.MKEY }, transaction: transaction);
+
+                        var parmetersParentApproval = new DynamicParameters();
+                        parmetersParentApproval.Add("@MKEY", aPPROVAL_TASK_INITIATION.HEADER_MKEY);
+                        parmetersParentApproval.Add("@APPROVAL_MKEY", aPPROVAL_TASK_INITIATION.MKEY);
+
+                        // Fetch approval template
+                        var SubParentMkey = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_GET_APPROVAL_TASK_INITIATION"
+                            , parmetersParentApproval, commandType: CommandType.StoredProcedure, transaction: transaction);
+
                         string TaskPrentNo = string.Empty;
 
-                        if (SubParentMkey != null)
+                        if (SubParentMkey.MKEY != null)
                         {
                             var ParentTask_no = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select " +
                                 " CONVERT(VARCHAR(50),TASK_NO)AS TASK_NO from TASK_HDR WITH (NOLOCK)  WHERE MKEY = @MKEY",
