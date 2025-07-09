@@ -32936,3 +32936,837 @@ SELECT [TYPE].MKEY AS DOC_TYPE_MKEY,[TYPE].TYPE_DESC AS DOC_TYPE_NAME
 		INNER JOIN EMPLOYEE_MST createdby ON createdby.mkey= [TYPE].CREATED_BY
 		LEFT JOIN  EMPLOYEE_MST updatedby ON [TYPE].LAST_UPDATED_BY = updatedby.mkey    
 		WHERE [TYPE].TYPE_CODE = 'DOC_TYPE' AND CAT.TYPE_CODE = 'DOC_CATEGORY'
+------------------------------------------------------------------------------------------
+Date: 09-07-2025
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_TASK_CHECKLIST_NT]    Script Date: 09-07-2025 11:06:22 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:    
+-- Create date: 
+-- Description:  
+--  EXEC SP_GET_TASK_CHECKLIST_NT 208,285, 8380,'ffg','fgfg',926,1
+-- =============================================
+ ALTER PROCEDURE [dbo].[SP_GET_TASK_CHECKLIST_NT]
+  -- Add the parameters for the stored procedure here
+  @PROPERTY_MKEY INT,
+  @BUILDING_MKEY INT,
+  @TASK_MKEY     INT,
+  @API_NAME      NVARCHAR(200),
+  @API_METHOD    NVARCHAR(100),
+  @USER_ID       INT,
+  @Session_User_Id          INT = NULL,  
+@Business_Group_Id	  INT = NULL
+AS
+  BEGIN
+      SET nocount ON;
+
+      BEGIN try
+			
+			Select  CTRL.mkey,CTRL.SR_NO, 
+			THDR.project_id   AS PROPERTY_MKEY,
+			THDR.sub_project_id AS BUILDING_MKEY,
+			CTRL.DOCUMENT_MKEY AS Doc_Type_Mkey,
+			MST.TYPE_DESC AS Doc_Type_Name,
+			CTRL.DOCUMENT_CATEGORY AS Doc_Cat_mkey,
+			CTRL.DOCUMENT_NAME AS Doc_Cat_Name,CTRL.app_check,
+			Isnull(CONVERT(VARCHAR(50), CTRL.created_by), '')  AS CREATED_BY_ID,
+			Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME, CASE
+			WHEN CTRL.creation_date IS NULL THEN ''
+			ELSE Format(CTRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+			END AS CREATION_DATE,
+			Isnull(CONVERT(VARCHAR(50), CTRL.last_updated_by), '')    AS LAST_UPDATED_BY,
+			Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME,
+			CASE
+			WHEN CTRL.last_update_date IS NULL THEN ''
+			ELSE Format(CTRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+			END AS LAST_UPDATE_DATE
+			FROM task_checklist_trl CTRL
+			INNER JOIN task_hdr THDR ON CTRL.mkey = THDR.mkey
+			INNER JOIN TYPE_MST MST ON MST.MASTER_MKEY =  CTRL.DOCUMENT_MKEY AND MST.DELETE_FLAG = 'N' AND MST.TYPE_CODE = 'DOC_TYPE'
+			INNER JOIN employee_mst createdby ON CTRL.created_by = createdby.mkey
+			LEFT JOIN employee_mst updatedby ON CTRL.last_updated_by = updatedby.mkey AND updatedby.DELETE_FLAG = 'N'
+			WHERE CTRL.DELETE_FLAG = 'N' AND MST .DELETE_FLAG = 'N'
+			AND THDR.DELETE_FLAG = 'N' AND THDR.DELETE_FLAG = 'N'
+			AND CTRL.mkey = @TASK_MKEY
+			ORDER BY CTRL.mkey,CTRL.SR_NO,CTRL.DOCUMENT_NAME
+
+		--	SELECT CTRL.mkey,
+  --               CTRL.sr_no,
+  --               THDR.project_id                                           AS                 PROPERTY_MKEY,
+  --               THDR.sub_project_id                                       AS                 BUILDING_MKEY,
+		--		 CTRL.DOCUMENT_MKEY,
+		--		 CTRL.DOCUMENT_MKEY					AS Doc_Cat_mkey,
+		--		 CTRL.DOCUMENT_NAME					as Doc_Cat_Name,
+		--		 --DocMST.MKEY				as Doc_Type_Mkey,
+		--		 DOCUMENT_MKEY  as Doc_Type_Mkey,
+		--		 MST.TYPE_DESC						as  Doc_Type_Name,
+		--		 CTRL.document_mkey											AS DOC_MKEY,
+		--		 MST.TYPE_DESC as  Doc_Cat_Name,
+  --               CASE WHEN DocMST.DOC_NAME IS NULL THEN (SELECT TYPE_DESC FROM TYPE_MST 
+		--		 WHERE MKEY = CTRL.DOCUMENT_MKEY) ELSE DocMST.DOC_NAME END AS  document_name,
+		--		 CTRL.DOCUMENT_NAME as  Doc_Cat_Name,
+  --               CTRL.document_category,
+		--		 MST.TYPE_DESC                                             AS
+  --               [TYPE_DESC],
+  --               CTRL.app_check,
+		--		 Isnull(CONVERT(VARCHAR(50), CTRL.created_by), '')         AS
+  --               CREATED_BY_ID,
+  --               Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS
+  --               CREATED_BY_NAME,
+  --               CASE
+  --                 WHEN CTRL.creation_date IS NULL THEN ''
+  --                 ELSE Format(CTRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+  --               END                                                       AS
+  --               CREATION_DATE,
+  --               Isnull(CONVERT(VARCHAR(50), CTRL.last_updated_by), '')    AS
+  --               LAST_UPDATED_BY,
+  --               Isnull(updatedby.emp_full_name, '')
+  --               UPDATED_BY_NAME
+  --               ,
+  --               CASE
+  --                 WHEN CTRL.last_update_date IS NULL THEN ''
+  --                 ELSE Format(CTRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+  --               END                                                       AS
+  --               LAST_UPDATE_DATE
+		-- FROM   task_checklist_trl CTRL
+  --               INNER JOIN task_hdr THDR
+  --                      ON CTRL.mkey = THDR.mkey
+		--		INNER JOIN TYPE_MST MST ON MST.MASTER_MKEY =  CTRL.DOCUMENT_CATEGORY AND MST.DELETE_FLAG = 'N'
+		--		LEFT JOIN TYPE_MST INSTRMST ON INSTRMST.MKEY =  CTRL.DOCUMENT_CATEGORY AND MST.DELETE_FLAG = 'N'
+		--		LEFT JOIN TYPE_MST DMST ON DMST.MKEY =  CTRL.DOCUMENT_MKEY AND MST.DELETE_FLAG = 'N'
+		--		LEFT JOIN DOC_TEMPLATE_HDR DocMST ON DocMST.TYPE_MST_DOC_TYPE_MKEY =  DMST.MKEY AND DocMST.DELETE_FLAG = 'N'
+  --              INNER JOIN employee_mst createdby
+  --                       ON CTRL.created_by = createdby.mkey
+  --               LEFT JOIN employee_mst updatedby
+  --                      ON CTRL.last_updated_by = updatedby.mkey
+		--where CTRL.DOCUMENT_MKEY is not null and CTRL.DOCUMENT_NAME is not null
+		--and CTRL.DOCUMENT_CATEGORY is not null 
+		--AND CTRL.mkey = @TASK_MKEY
+		--AND CTRL.DELETE_FLAG = 'N'
+		--AND THDR.DELETE_FLAG = 'N'
+		--AND MST.DELETE_FLAG = 'N'
+		--AND createdby.DELETE_FLAG = 'N'
+		--ORDER BY SR_NO,CONVERT(INT, CTRL.document_category);
+      
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------            
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @USER_ID,
+            'TMS',
+            @API_NAME,
+            @ERROR_MESSAGE,
+            @API_METHOD;
+      -------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+
+------------------------------------------------------------------------------------
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_UPDATE_TASK_CHECKLIST_NT]    Script Date: 09-07-2025 11:49:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- EXEC SP_INSERT_UPDATE_TASK_CHECKLIST 440,443,12,12,'N',11081,'Insert/UpdateTaskCheckList','insert/Update',926 
+-- EXEC SP_INSERT_UPDATE_TASK_CHECKLIST 440,443,1,403,'Y',11104,'Insert/UpdateTaskCheckList','insert/Update',926 
+-- =============================================
+ALTER PROCEDURE [dbo].[SP_INSERT_UPDATE_TASK_CHECKLIST_NT]
+	@PROPERTY_MKEY INT,
+	@BUILDING_MKEY INT,
+	@SR_NO INT,
+	@DOC_MKEY int,
+	@APP_CHECK CHAR(1),
+	@TASK_MKEY INT,
+	@COMMENT  NVARCHAR(max) = NULL,
+	@API_NAME NVARCHAR(200),
+	@API_METHOD NVARCHAR(100),
+	@CREATED_BY INT,
+	@Session_User_Id      INT = NULL,  
+	@Business_Group_Id	  INT = NULL
+AS
+BEGIN
+	SET NOCOUNT ON;
+	BEGIN TRY
+		--SELECT * FROM TASK_CHECKLIST_TRL WHERE MKEY = @TASK_MKEY AND SR_NO = @SR_NO AND DOCUMENT_CATEGORY = CONVERT(NVARCHAR(100),@DOC_MKEY) AND DELETE_FLAG = 'N';
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------		
+		UPDATE TASK_CHECKLIST_TRL
+		SET APP_CHECK = @APP_CHECK, LAST_UPDATED_BY = @CREATED_BY,  LAST_UPDATE_DATE = GETDATE(), COMMENT = @COMMENT
+		WHERE MKEY = @TASK_MKEY AND SR_NO = @SR_NO --AND DOCUMENT_MKEY = @DOC_MKEY 
+		AND DELETE_FLAG = 'N';
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				declare @UpActionTrlSR_NO int,@UPTASK_PARENT_ID	int,@UPTASK_MAIN_NODE_ID int; 
+				
+				SELECT @UpActionTrlSR_NO = isnull(max(t.SR_NO),0)+1 FROM TASK_ACTION_TRL t WHERE MKEY = @TASK_MKEY;   --SR_NO
+				select @UPTASK_PARENT_ID = TASK_PARENT_ID from task_hdr where mkey = @TASK_MKEY and delete_flag = 'N';
+				select @UPTASK_MAIN_NODE_ID = TASK_MAIN_NODE_ID from task_hdr where mkey = @TASK_MKEY and delete_flag = 'N';
+
+					  INSERT INTO [dbo].[TASK_ACTION_TRL] 
+								(                                      
+								[MKEY],
+								[SR_NO],
+								[TASK_MKEY],
+								[TASK_PARENT_ID],
+								[TASK_MAIN_NODE_ID],
+								[ACTION_TYPE],
+								PROGRESS_PERC,
+								[DESCRIPTION_COMMENT],
+								[STATUS],
+								[CREATED_BY],
+								[CREATION_DATE],
+								[DELETE_FLAG]
+								)  
+						VALUES (  
+								@TASK_MKEY,		--@Mkey
+								@UpActionTrlSR_NO,
+								@TASK_MKEY,		--@TASK_MKEY
+								ISNULL(@UPTASK_PARENT_ID,@TASK_MKEY),		--@TASK_PARENT_ID
+								ISNULL(@UPTASK_MAIN_NODE_ID,@TASK_MKEY),		--@TASK_MAIN_NODE_ID
+								'Checklist is updated',		--@ACTION_TYPE
+								'0',                       --PROGRESS_PERC
+								@COMMENT,		--@DESCRIPTION_COMMENT
+								'CREATED',		--@STATUS
+								@CREATED_BY,		--@CREATED_BY
+								GETDATE(),			--@CREATION_DATE
+								'N'
+								)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------		
+			Select  CTRL.mkey,CTRL.SR_NO, 
+			THDR.project_id   AS PROPERTY_MKEY,
+			THDR.sub_project_id AS BUILDING_MKEY,
+			CTRL.DOCUMENT_MKEY AS Doc_Type_Mkey,
+			MST.TYPE_DESC AS Doc_Type_Name,
+			CTRL.DOCUMENT_CATEGORY AS Doc_Cat_mkey,
+			CTRL.DOCUMENT_NAME AS Doc_Cat_Name,CTRL.app_check,
+			Isnull(CONVERT(VARCHAR(50), CTRL.created_by), '')  AS CREATED_BY_ID,
+			Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME, CASE
+			WHEN CTRL.creation_date IS NULL THEN ''
+			ELSE Format(CTRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+			END AS CREATION_DATE,
+			Isnull(CONVERT(VARCHAR(50), CTRL.last_updated_by), '')    AS LAST_UPDATED_BY,
+			Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME,
+			CASE
+			WHEN CTRL.last_update_date IS NULL THEN ''
+			ELSE Format(CTRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+			END AS LAST_UPDATE_DATE
+			FROM task_checklist_trl CTRL
+			INNER JOIN task_hdr THDR ON CTRL.mkey = THDR.mkey
+			INNER JOIN TYPE_MST MST ON MST.MASTER_MKEY =  CTRL.DOCUMENT_MKEY AND MST.DELETE_FLAG = 'N' AND MST.TYPE_CODE = 'DOC_TYPE'
+			INNER JOIN employee_mst createdby ON CTRL.created_by = createdby.mkey
+			LEFT JOIN employee_mst updatedby ON CTRL.last_updated_by = updatedby.mkey AND updatedby.DELETE_FLAG = 'N'
+			WHERE CTRL.DELETE_FLAG = 'N' AND MST .DELETE_FLAG = 'N'
+			AND THDR.DELETE_FLAG = 'N' AND THDR.DELETE_FLAG = 'N'
+			AND CTRL.mkey = @TASK_MKEY
+			ORDER BY CTRL.mkey,CTRL.SR_NO,CTRL.DOCUMENT_NAME;
+
+		 --SELECT CTRL.mkey,
+   --              CTRL.sr_no,
+   --              THDR.project_id                                           AS
+   --              PROPERTY_MKEY,
+   --              THDR.sub_project_id                                       AS
+   --              BUILDING_MKEY,
+   --              CTRL.document_mkey,
+   --              CTRL.document_name,
+   --              CTRL.document_category,
+   --             MST.TYPE_DESC                                             AS
+   --              [TYPE_DESC],
+   --              CTRL.app_check,
+   --              Isnull(CONVERT(VARCHAR(50), CTRL.created_by), '')         AS
+   --              CREATED_BY_ID,
+   --              Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS
+   --              CREATED_BY_NAME,
+   --              CASE
+   --                WHEN CTRL.creation_date IS NULL THEN ''
+   --                ELSE Format(CTRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+   --              END                                                       AS
+   --              CREATION_DATE,
+   --              Isnull(CONVERT(VARCHAR(50), CTRL.last_updated_by), '')    AS
+   --              LAST_UPDATED_BY,
+   --              Isnull(updatedby.emp_full_name, '')
+   --              UPDATED_BY_NAME
+   --              ,
+   --              CASE
+   --                WHEN CTRL.last_update_date IS NULL THEN ''
+   --                ELSE Format(CTRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+   --              END                                                       AS
+   --              LAST_UPDATE_DATE
+   --       FROM   task_checklist_trl CTRL
+   --              INNER JOIN task_hdr THDR
+   --                      ON CTRL.mkey = THDR.mkey
+   --              left JOIN doc_template_hdr DHDR
+   --                      ON DHDR.TYPE_MST_DOC_TYPE_MKEY= CTRL.document_category
+			--	 LEFT JOIN TYPE_MST MST 
+			--			ON (MST.MASTER_MKEY = CTRL.document_category OR MST.MKEY = CTRL.document_category)
+   --              INNER JOIN employee_mst createdby
+   --                      ON CTRL.created_by = createdby.mkey
+   --              LEFT JOIN employee_mst updatedby
+   --                     ON CTRL.last_updated_by = updatedby.mkey
+   --       WHERE  CTRL.delete_flag = 'N'
+   --              --AND DHDR.delete_flag = 'N'
+   --              AND createdby.delete_flag = 'N'
+   --              AND THDR.delete_flag = 'N'
+   --              AND CTRL.mkey = @TASK_MKEY
+   --              --AND THDR.project_id = @PROPERTY_MKEY
+   --              --AND THDR.sub_project_id = @BUILDING_MKEY
+		 --ORDER BY SR_NO,CONVERT(INT, CTRL.document_category);
+	END TRY
+    BEGIN CATCH
+        -------------------------------------------------------------------------------------------------------------------------------            
+        SELECT ERROR_NUMBER() AS ERRORNUMBER,
+               ERROR_SEVERITY() AS ERRORSEVERITY,
+               ERROR_STATE() AS ERRORSTATE,
+               ERROR_PROCEDURE() AS ERRORPROCEDURE,
+               ERROR_LINE() AS ERRORLINE,
+               ERROR_MESSAGE() AS ERRORMESSAGE;
+
+        -------------------------------------------------------------------------------------------------------------------------------  
+        DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+        SET @ERROR_MESSAGE = ERROR_MESSAGE();
+        -------------------------------------------------------------------------------------------------------------------------------  
+        EXEC SP_P_TMS_INSERT_ERROR_DES @CREATED_BY,
+                                       'TMS',
+                                       @API_NAME,
+                                       @ERROR_MESSAGE,
+                                       @API_METHOD;
+    -------------------------------------------------------------------------------------------------------------------------------  
+    END CATCH
+
+END
+
+--------------------------------------------------------------------------------------------------------------
+Go
+Alter view V_Doc_Type_CHECK_LIST_NT      as        
+ Select DType.MKEY as Doc_Type_Mkey,  
+ DType.TYPE_DESC as Doc_Type_Name,      
+ CType.MKEY AS Doc_Category_Mkey,   
+ CType.TYPE_DESC AS Doc_Category_Name  
+ ,Isnull(CONVERT(VARCHAR(50), DType.created_by), '') AS CREATED_BY_ID      
+    ,Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME      
+    ,CASE      
+     WHEN DType.creation_date IS NULL THEN      
+    ''      
+    ELSE      
+     Format(DType.creation_date, 'yyyy-MM-dd HH:mm:ss')      
+    END AS CREATION_DATE      
+    ,Isnull(CONVERT(VARCHAR(50), DType.last_updated_by), '') AS LAST_UPDATED_BY      
+    ,Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME      
+    ,CASE      
+     WHEN DType.last_update_date IS NULL THEN      
+     ''      
+    ELSE      
+     Format(DType.last_update_date, 'yyyy-MM-dd HH:mm:ss')      
+    END AS LAST_UPDATE_DATE      
+    ,DType.DELETE_FLAG  
+FROM TYPE_MST DType INNER JOIN TYPE_MST CType ON DType.PARENT_ID = CType.MKEY  
+INNER JOIN EMPLOYEE_MST createdby ON  DType.created_by = createdby.mkey         
+LEFT JOIN  EMPLOYEE_MST updatedby ON DType.last_updated_by = updatedby.mkey AND updatedby.DELETE_FLAG = 'N'  
+WHERE DType.DELETE_FLAG = 'N' AND CType.DELETE_FLAG = 'N'   
+AND DType.TYPE_CODE = 'DOC_TYPE' AND CType.TYPE_CODE = 'DOC_CATEGORY'  
+AND createdby.DELETE_FLAG = 'N'        
+UNION ALL        
+SELECT MST.MKEY as Doc_Type_Mkey,  
+MST.TYPE_DESC Doc_Type_Name,   
+MST.PARENT_ID AS Doc_Category_Mkey,   
+MST.TYPE_CODE AS Doc_Category_Name  
+,Isnull(CONVERT(VARCHAR(50), MST.created_by), '') AS CREATED_BY_ID      
+    ,Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME      
+    ,CASE      
+     WHEN MST.creation_date IS NULL THEN      
+    ''      
+    ELSE      
+     Format(MST.creation_date, 'yyyy-MM-dd HH:mm:ss')      
+    END AS CREATION_DATE      
+    ,Isnull(CONVERT(VARCHAR(50), MST.last_updated_by), '') AS LAST_UPDATED_BY      
+    ,Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME      
+    ,CASE      
+     WHEN MST.last_update_date IS NULL THEN      
+     ''      
+    ELSE      
+     Format(MST.last_update_date, 'yyyy-MM-dd HH:mm:ss')      
+    END AS LAST_UPDATE_DATE      
+    ,MST.DELETE_FLAG      
+FROM TYPE_MST MST INNER JOIN       
+    EMPLOYEE_MST createdby      
+   ON       
+    MST.created_by = createdby.mkey      
+   LEFT JOIN       
+    EMPLOYEE_MST updatedby      
+   ON       
+    MST.last_updated_by = updatedby.mkey      
+WHERE TYPE_CODE = 'INSTR' AND MST.DELETE_FLAG = 'N' AND TYPE_DESC NOT IN ('INSTR');
+-------------------------------------------------------
+Go
+
+--------------------------------------------------------------------------------
+Alter view [dbo].[V_USER_FILTER] as   
+  Select  TMST.MKEY, tmst.TYPE_CODE, tmst.TYPE_DESC as 'Key'  
+  , Case when tmst.TYPE_DESC = 'DEFAULT' THEN 'Actionable'   
+  when tmst.TYPE_DESC = 'ALLOCATEDTOME' THEN 'Allocated To Me'   
+  when tmst.TYPE_DESC = 'ALLOCATEDBYME' THEN 'Allocated By Me'   
+  when tmst.TYPE_DESC = 'COMPLETEDBYME' THEN 'Completed By Me'   
+  when tmst.TYPE_DESC = 'COMPLETEDFORME' THEN 'Completed For Me'   
+  when tmst.TYPE_DESC = 'CANCELCLOSE' THEN 'Cancelled'   
+  when tmst.TYPE_DESC = 'RECURRING' THEN 'Recurring'   
+  when tmst.TYPE_DESC = 'COMPLIANCE' THEN 'Compliance'   
+  when tmst.TYPE_DESC = 'APPROVAL' THEN 'Approval'   
+  when tmst.TYPE_DESC = 'GENERAL' THEN 'General'   
+  when tmst.TYPE_DESC = 'SYSTEM' THEN 'System'   
+  when tmst.TYPE_DESC = 'EMAIL' THEN 'Email'   
+  when tmst.TYPE_DESC = 'RERA COMPLAIN' THEN 'Rera Complain'   
+  ELSE tmst.TYPE_DESC  
+  END AS 'DisplayName',TMST.ATTRIBUTE4,TMST.ATTRIBUTE5  
+   ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,    
+   Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,    
+   CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,    
+   Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,    
+   Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,    
+   CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE    
+  From TYPE_MST TMST INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY  
+  LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = EMST.MKEY  
+  where TMST.ATTRIBUTE2 ='Filter' and TMST.DELETE_FLAG = 'N'
+  UNION ALL
+  SELECT TMST.MKEY,TYPE_CODE,[TYPE_DESC] AS [KEY],[TYPE_DESC] AS DisplayName,'-1' AS ATTRIBUTE1,'0' AS ATTRIBUTE5     
+  ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,    
+   Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,    
+   CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,    
+   Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,    
+   Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,    
+   CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE    
+  FROM TYPE_MST TMST
+  INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY  
+  LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = EMST.MKEY AND LMST.DELETE_FLAG = 'N'
+  WHERE TYPE_CODE = 'PROJECT' AND PARENT_ID = 0 AND TMST.DELETE_FLAG = 'N'
+  UNION ALL
+  SELECT 0 as MKEY,'Building' TYPE_CODE,'Building' AS [KEY],'Building' AS DisplayName,'0' AS ATTRIBUTE1,'0' AS ATTRIBUTE5     
+  ,0 AS CREATED_BY_ID,    
+   '' AS CREATED_BY_NAME,    
+   GETDATE() AS CREATION_DATE,    
+   0 AS LAST_UPDATED_BY,    
+   '' UPDATED_BY_NAME,    
+   Getdate() AS LAST_UPDATE_DATE;  
+------------------------------------------------------------------------
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT]    Script Date: 09-07-2025 15:55:53 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+--  exec SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT 147,0,387,'Land Related Documents',926,'N','AOD','DFSD',NULL,NULL
+	--exec SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT 8462,0,384,375,'Adding endlist',926,'N','add endlist','add',null,null
+-- =============================================
+ALTER PROCEDURE [dbo].[SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE
+  @MKEY                   INT,
+  @SR_NO                  INT,
+  @DOC_TYPE_MKEY		  INT, --@DOCUMENT_CATEGORY_MKEY INT,
+  @DOC_CAT_MKEY			  INT, --@DOCUMENT_NAME          NVARCHAR(255),
+  @COMMENT				  NVARCHAR(max) = null,
+  @CREATED_BY             INT,
+  @DELETE_FLAG            NCHAR(2),
+  @API_NAME               NVARCHAR(255),
+  @API_METHOD             NVARCHAR(255),
+  @OUT_STATUS             NVARCHAR(255) = NULL,
+  @OUT_MESSAGE            NVARCHAR(255) = NULL
+AS
+  BEGIN
+      SET nocount ON;
+
+      BEGIN try
+          DECLARE @DOCUMENT_MKEY          INT,
+                  @DOCUMENT_CATEGORY_NAME NVARCHAR(255),
+				  @DOC_TYPE_NAME		  NVARCHAR(255),
+                  @DCOUNT                 INT;
+        
+          SELECT @DOC_TYPE_NAME = [TYPE_DESC]
+          FROM   TYPE_MST
+          WHERE  DELETE_FLAG = 'N' AND TYPE_CODE = 'DOC_TYPE'
+                 AND MKEY = @DOC_TYPE_MKEY; --@DOCUMENT_CATEGORY_MKEY;
+
+				
+          SELECT @DOCUMENT_CATEGORY_NAME = [TYPE_DESC]
+          FROM   TYPE_MST
+          WHERE  DELETE_FLAG = 'N' AND TYPE_CODE = 'DOC_CATEGORY'
+                 AND MKEY = @DOC_CAT_MKEY; 
+
+          IF ( @SR_NO > 0 )
+            BEGIN
+                PRINT 'OUTSIDE if ( @SR_NO > 0 ) ';
+
+                ------------------------------------------------------------------------------------------------------------------------
+                INSERT INTO task_endlist_trl_h
+                            (hist_date,
+                             mkey,
+                             sr_no,
+                             document_mkey,
+                             document_name,
+                             document_category_mkey,
+                             document_category,
+                             doc_num_app_flag,
+                             doc_num_valid_flag,
+                             doc_num_date_app_flag,
+                             doc_attach_app_flag,
+                             doc_number,
+                             doc_date,
+                             validity_date,
+							 COMMENT,
+                             created_by,
+                             creation_date,
+                             delete_flag)
+                SELECT Getdate(),
+                       mkey,
+                       sr_no,
+                       document_mkey,
+                       document_name,
+                       document_category_mkey,
+                       document_category,
+                       doc_num_app_flag,
+                       doc_num_valid_flag,
+                       doc_num_date_app_flag,
+                       doc_attach_app_flag,
+                       doc_number,
+                       doc_date,
+                       validity_date,
+					   COMMENT,
+                       created_by,
+                       creation_date,
+                       delete_flag
+                FROM   task_endlist_trl
+                WHERE  mkey = @MKEY
+                       AND sr_no = @SR_NO
+                       AND delete_flag = 'N';
+
+                -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                UPDATE task_endlist_trl
+                SET    document_mkey = @DOC_CAT_MKEY,
+                       document_name = @DOCUMENT_CATEGORY_NAME,
+                       document_category_mkey = @DOC_TYPE_MKEY,
+                       document_category = @DOC_TYPE_NAME,
+					   comment = @COMMENT
+                       --,DOC_NUM_APP_FLAG = @DOC_NUM_APP_FLAG
+                       --,DOC_NUM_VALID_FLAG = @DOC_NUM_VALID_FLAG
+                       --,DOC_NUM_DATE_APP_FLAG = @DOC_NUM_DATE_APP_FLAG
+                       --,DOC_ATTACH_APP_FLAG  = @DOC_ATTACH_APP_FLAG
+                       --,DOC_NUMBER = @DOC_NUMBER
+                       --,DOC_DATE = @DOC_DATE
+                       --,VALIDITY_DATE = @VALIDITY_DATE
+                       ,
+                       last_updated_by = @CREATED_BY,
+                       last_update_date = Getdate(),
+                       delete_flag = @DELETE_FLAG
+                WHERE  mkey = @MKEY
+                       AND sr_no = @SR_NO
+                       AND DOCUMENT_CATEGORY_MKEY = @DOC_TYPE_MKEY
+                       AND delete_flag = 'N';
+					   
+				declare @UpActionTrlSR_NO int,@UPTASK_PARENT_ID	int,@UPTASK_MAIN_NODE_ID int; 
+				
+				SELECT @UpActionTrlSR_NO = isnull(max(t.SR_NO),0)+1 FROM TASK_ACTION_TRL t WHERE MKEY = @MKEY;   --SR_NO
+				select @UPTASK_PARENT_ID = TASK_PARENT_ID from task_hdr where mkey = @MKEY and delete_flag = 'N';
+				select @UPTASK_MAIN_NODE_ID = TASK_MAIN_NODE_ID from task_hdr where mkey = @MKEY and delete_flag = 'N';
+
+					  INSERT INTO [dbo].[TASK_ACTION_TRL] 
+								(                                      
+								[MKEY],
+								[SR_NO],
+								[TASK_MKEY],
+								[TASK_PARENT_ID],
+								[TASK_MAIN_NODE_ID],
+								[ACTION_TYPE],
+								PROGRESS_PERC,
+								[DESCRIPTION_COMMENT],
+								[STATUS],
+								[CREATED_BY],
+								[CREATION_DATE],
+								[DELETE_FLAG]
+								)  
+						VALUES (  
+								@MKEY,		--@Mkey
+								@UpActionTrlSR_NO,
+								@MKEY,		--@TASK_MKEY
+								ISNULL(@UPTASK_PARENT_ID,@MKEY),		--@TASK_PARENT_ID
+								ISNULL(@UPTASK_MAIN_NODE_ID,@MKEY),		--@TASK_MAIN_NODE_ID
+								'Outcomet is updated',		--@ACTION_TYPE
+								'0',                       --PROGRESS_PERC
+								@COMMENT,		--@DESCRIPTION_COMMENT
+								'CREATED',		--@STATUS
+								@CREATED_BY,		--@CREATED_BY
+								GETDATE(),			--@CREATION_DATE
+								'N'
+								)
+
+                SET @OUT_STATUS = 'Ok';
+                SET @OUT_MESSAGE = 'Update Successfully';
+
+                SELECT @OUT_STATUS  AS OUT_STATUS,
+                       @OUT_MESSAGE AS OUT_MESSAGE;
+            -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            END
+          ELSE
+            BEGIN
+               print ' @SR_NO > 0';
+			   SELECT @DCOUNT = Count(*)
+                FROM   task_endlist_trl
+                WHERE  mkey = @MKEY
+                       AND DOCUMENT_MKEY = @DOC_CAT_MKEY
+                       AND document_category_mkey = @DOC_TYPE_MKEY
+                       AND delete_flag = 'N';
+
+                IF ( @DCOUNT > 0 )
+                  BEGIN
+                      SET @OUT_STATUS = 'Error';
+                      SET @OUT_MESSAGE = 'This Document already exists';
+                  END
+                ELSE
+                  BEGIN
+                      DECLARE @DOC_NUM_APP_FLAG      NCHAR(2) = NULL,
+                              @DOC_NUM_VALID_FLAG    NCHAR(2)= NULL,
+                              @DOC_NUM_DATE_APP_FLAG NCHAR(2)= NULL,
+                              @DOC_ATTACH_APP_FLAG   NCHAR(2)= NULL,
+                              @DOC_NUMBER            NVARCHAR(255)= NULL,
+                              @DOC_DATE              NVARCHAR(255)= NULL,
+                              @VALIDITY_DATE         NVARCHAR(255)= NULL;
+
+                      SELECT @SR_NO = Isnull(Max(sr_no), 0) + 1
+                      FROM   task_endlist_trl
+                      WHERE  mkey = @MKEY
+                             AND DOCUMENT_MKEY = @DOC_CAT_MKEY;
+
+
+                      SELECT @DOC_NUM_APP_FLAG = doc_num_app_flag,
+                             @DOC_NUM_VALID_FLAG = doc_num_valid_flag,
+                             @DOC_NUM_DATE_APP_FLAG = doc_num_date_app_flag,
+                             @DOC_ATTACH_APP_FLAG = doc_attach_app_flag
+                      FROM   doc_template_hdr
+                      WHERE  TYPE_MST_DOC_TYPE_MKEY = @DOC_TYPE_MKEY
+                             AND DELETE_FLAG = 'N';
+
+                      --PRINT '@DOC_NUM_APP_FLAG: '+
+                      INSERT INTO task_endlist_trl
+                                  (mkey,
+                                   sr_no,
+                                   document_mkey,
+                                   document_name,
+                                   document_category_mkey,
+                                   document_category,
+                                   doc_num_app_flag,
+                                   doc_num_valid_flag,
+                                   doc_num_date_app_flag,
+                                   doc_attach_app_flag,
+								   COMMENT,
+                                   created_by,
+                                   creation_date,
+                                   delete_flag)
+                      VALUES      ( @MKEY,
+                                    @SR_NO,
+                                    @DOC_CAT_MKEY,
+                                    @DOCUMENT_CATEGORY_NAME,
+                                    @DOC_TYPE_MKEY,
+                                    @DOC_TYPE_NAME,
+                                    @DOC_NUM_APP_FLAG,
+                                    @DOC_NUM_VALID_FLAG,
+                                    @DOC_NUM_DATE_APP_FLAG,
+                                    @DOC_ATTACH_APP_FLAG,
+									@COMMENT,
+                                    @CREATED_BY,
+                                    Getdate(),
+                                    @DELETE_FLAG );
+
+
+									--Declare @ActionTrlSR_NO int,@TASK_PARENT_ID	int,@TASK_MAIN_NODE_ID int; 
+				
+									--SELECT @ActionTrlSR_NO = isnull(max(t.SR_NO),0)+1 FROM TASK_ACTION_TRL t WHERE MKEY = @MKEY;   --SR_NO
+									--select @TASK_PARENT_ID = TASK_PARENT_ID from task_hdr where mkey = @MKEY and delete_flag = 'N';
+									--select @TASK_MAIN_NODE_ID = TASK_MAIN_NODE_ID from task_hdr where mkey = @MKEY and delete_flag = 'N';
+
+									--INSERT INTO [dbo].[TASK_ACTION_TRL] 
+									--(                                      
+									--[MKEY],
+									--[SR_NO],
+									--[TASK_MKEY],
+									--[TASK_PARENT_ID],
+									--[TASK_MAIN_NODE_ID],
+									--[ACTION_TYPE],
+									--PROGRESS_PERC,
+									--[DESCRIPTION_COMMENT],
+									--[STATUS],
+									--[CREATED_BY],
+									--[CREATION_DATE],
+									--[DELETE_FLAG]
+									--)  
+									--VALUES (  
+									--@MKEY,		--@Mkey
+									--@ActionTrlSR_NO,
+									--@MKEY,		--@TASK_MKEY
+									--ISNULL(@TASK_PARENT_ID,@MKEY),		--@TASK_PARENT_ID
+									--ISNULL(@TASK_MAIN_NODE_ID,@MKEY),		--@TASK_MAIN_NODE_ID
+									--'Outcome is added',		--@ACTION_TYPE
+									--'0',                       --PROGRESS_PERC
+									--@COMMENT,		--@DESCRIPTION_COMMENT
+									--'CREATED',		--@STATUS
+									--@CREATED_BY,		--@CREATED_BY
+									--GETDATE(),			--@CREATION_DATE
+									--'N'
+									--)
+
+                      SET @OUT_STATUS = 'Ok';
+                      SET @OUT_MESSAGE = 'Insert Successfuly';
+                  END
+
+                SELECT @OUT_STATUS  AS OUT_STATUS,
+                       @OUT_MESSAGE AS OUT_MESSAGE;
+            END
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------            
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @CREATED_BY,
+            'TMS',
+            'INSERT UPDATE TASK ENDLIST',
+            @ERROR_MESSAGE,
+            'INSERT UPDATE';
+      -------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+---------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_TASK_ENDLIST_NT]    Script Date: 09-07-2025 18:30:08 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:    
+-- Create date: 
+-- Description:  
+-- EXEC SP_GET_TASK_ENDLIST_NT 409,  443,8462,'ddfd','sdf',926
+-- =============================================
+ALTER PROCEDURE [dbo].[SP_GET_TASK_ENDLIST_NT]
+  -- Add the parameters for the stored procedure here
+		@PROPERTY_MKEY INT = null,
+		@BUILDING_MKEY INT= null,
+		@TASK_MKEY     INT,
+		@API_NAME      NVARCHAR(200) = null,
+		@API_METHOD    NVARCHAR(100) = null,
+		@USER_ID       INT,
+		@Session_User_Id          INT = NULL,  
+		@Business_Group_Id	  INT = NULL
+AS
+  BEGIN
+      SET nocount ON;
+
+      BEGIN try
+          SELECT ETRL.mkey,
+                 sr_no,
+                 THDR.project_id                                           AS                 PROPERTY_MKEY,
+                 THDR.sub_project_id                                       AS                 BUILDING_MKEY,
+                 document_mkey                                             AS                 Doc_Cat_mkey,
+                 document_name                                             AS                 Doc_Cat_Name,
+                 document_category_mkey                                    AS                 Doc_Type_Mkey,
+                 document_category                                         AS                 Doc_Type_Name,
+                 --document_mkey,
+                 --document_name                                             AS                 TYPE_CODE,
+                 --document_category_mkey                                    AS                 DOC_MKEY,
+                 --document_category							               AS				  [TYPE_DESC],
+                 doc_num_app_flag,
+                 doc_num_valid_flag,
+                 doc_num_date_app_flag,
+                 doc_attach_app_flag,
+                 Isnull(doc_number, '')                                    AS                 DOC_NUMBER,
+                 Isnull(doc_date, '')                                      AS                 DOC_DATE,
+                 Isnull(validity_date, '')								   AS                 VALIDITY_DATE,
+                 Isnull(CONVERT(VARCHAR(50), ETRL.created_by), '')         AS                 CREATED_BY_ID,
+                 Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS                 CREATED_BY_NAME,
+                 CASE
+                   WHEN ETRL.creation_date IS NULL THEN ''
+                   ELSE Format(ETRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 CREATION_DATE,
+                 Isnull(CONVERT(VARCHAR(50), ETRL.last_updated_by), '')    AS                 LAST_UPDATED_BY,
+                 Isnull(updatedby.emp_full_name, '')						                  UPDATED_BY_NAME,
+                 CASE
+                   WHEN ETRL.last_update_date IS NULL THEN ''
+                   ELSE Format(ETRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 LAST_UPDATE_DATE
+          FROM   task_endlist_trl ETRL
+                 INNER JOIN task_hdr THDR
+                         ON ETRL.mkey = THDR.mkey
+                 INNER JOIN employee_mst createdby
+                         ON ETRL.created_by = createdby.mkey
+                 LEFT JOIN employee_mst updatedby
+                        ON ETRL.last_updated_by = updatedby.mkey and updatedby.DELETE_FLAG = 'N'
+          WHERE  ETRL.delete_flag = 'N'
+                 AND THDR.delete_flag = 'N'
+				 and createdby.DELETE_FLAG = 'N'
+                 AND THDR.mkey = @TASK_MKEY
+		ORDER BY ETRL.SR_NO;
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------            
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @USER_ID,
+            'TMS',
+            @API_NAME,
+            @ERROR_MESSAGE,
+            @API_METHOD;
+      -------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+-----------------------------------------------------------------------------
+go
+

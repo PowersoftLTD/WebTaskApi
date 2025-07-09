@@ -350,10 +350,6 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("Task_Mkey")]
         public int? TASK_MKEY { get; set; }
-        //[JsonPropertyName("Doc_Mkey")]
-        //public int DOC_MKEY { get; set; }
-        //[JsonPropertyName("Document_Category")]
-        //public int DOCUMENT_CATEGORY { get; set; }
 
         [JsonPropertyName("Check_Doc_List")]
         public Dictionary<string, string>? CHECKLIST_DOC_LST { get; set; }
@@ -394,17 +390,29 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Building_Mkey")]
         public int BUILDING_MKEY { get; set; }
 
-        [JsonPropertyName("Document_Mkey")]
-        public int DOCUMENT_MKEY { get; set; }
+        [JsonPropertyName("Doc_Type_Mkey")]
+        public int Doc_Type_Mkey { get; set; }
 
-        [JsonPropertyName("Document_Category")]
-        public int DOCUMENT_CATEGORY { get; set; }
+        [JsonPropertyName("Doc_Type_Name")]
+        public string Doc_Type_Name { get; set; }
 
-        [JsonPropertyName("Type_Desc")]
-        public string TYPE_DESC { get; set; }
+        [JsonPropertyName("Doc_Cat_Mkey")]
+        public int Doc_Cat_Mkey { get; set; }
 
-        [JsonPropertyName("Document_Name")]
-        public string DOCUMENT_NAME { get; set; }
+        [JsonPropertyName("Doc_Cat_Name")]
+        public string Doc_Cat_Name { get; set; }
+
+        //[JsonPropertyName("Document_Mkey")]
+        //public int DOCUMENT_MKEY { get; set; }
+
+        //[JsonPropertyName("Document_Category")]
+        //public int DOCUMENT_CATEGORY { get; set; }
+
+        //[JsonPropertyName("Type_Desc")]
+        //public string TYPE_DESC { get; set; }
+
+        //[JsonPropertyName("Document_Name")]
+        //public string DOCUMENT_NAME { get; set; }
 
         [JsonPropertyName("App_Check")]
         public char APP_CHECK { get; set; }
@@ -1066,24 +1074,17 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Building_Mkey")]
         public int BUILDING_MKEY { get; set; }
-
-        [JsonPropertyName("Document_Mkey")]
-        public int DOCUMENT_MKEY { get; set; }
-
+        
         [JsonPropertyName("Doc_Type_Mkey")]
         public int Doc_Type_Mkey { get; set; }
+        [JsonPropertyName("Doc_Type_Name")]
+        public string Doc_Type_Name { get; set; }
 
-        [JsonPropertyName("Document_Category")]
-        public int DOCUMENT_CATEGORY { get; set; }
-
-        [JsonPropertyName("Type_Desc")]
-        public string TYPE_DESC { get; set; }
+        [JsonPropertyName("Doc_Cat_Mkey")]
+        public int Doc_Cat_mkey { get; set; }
 
         [JsonPropertyName("Doc_Cat_Name")]
         public string Doc_Cat_Name { get; set; }
-
-        [JsonPropertyName("Document_Name")]
-        public string DOCUMENT_NAME { get; set; }
 
         [JsonPropertyName("App_Check")]
         public char APP_CHECK { get; set; }

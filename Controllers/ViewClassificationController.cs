@@ -129,7 +129,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpGet("Instruction-List")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Instruction>>> GetAllInstruction()
