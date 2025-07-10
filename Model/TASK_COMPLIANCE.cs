@@ -649,17 +649,29 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("BUILDING_MKEY")]
         public int BUILDING_MKEY { get; set; }
 
-        [JsonPropertyName("DOCUMENT_MKEY")]
-        public string DOCUMENT_MKEY { get; set; }
+        [JsonPropertyName("Doc_Type_Mkey")]
+        public int Doc_Type_Mkey { get; set; }
 
-        [JsonPropertyName("TYPE_CODE")]
-        public string TYPE_CODE { get; set; }
+        [JsonPropertyName("Doc_Type_Name")]
+        public string Doc_Type_Name { get; set; }
 
-        [JsonPropertyName("TYPE_DESC")]
-        public string TYPE_DESC { get; set; }
+        [JsonPropertyName("Doc_Cat_Mkey")]
+        public int Doc_Cat_Mkey { get; set; }
 
-        [JsonPropertyName("DOC_MKEY")]
-        public int? DOC_MKEY { get; set; }
+        [JsonPropertyName("Doc_Cat_Name")]
+        public string Doc_Cat_Name { get; set; }
+
+        //[JsonPropertyName("DOCUMENT_MKEY")]
+        //public string DOCUMENT_MKEY { get; set; }
+
+        //[JsonPropertyName("TYPE_CODE")]
+        //public string TYPE_CODE { get; set; }
+
+        //[JsonPropertyName("TYPE_DESC")]
+        //public string TYPE_DESC { get; set; }
+
+        //[JsonPropertyName("DOC_MKEY")]
+        //public int? DOC_MKEY { get; set; }
 
         [JsonPropertyName("DOC_NUMBER")]
         public string? DOC_NUMBER { get; set; }

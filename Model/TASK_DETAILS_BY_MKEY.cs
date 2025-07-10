@@ -164,7 +164,7 @@ namespace TaskManagement.API.Model
         //public string? FILE_PATH { get; set; }
 
         [JsonPropertyName("Task_Attachment")]
-        public List<TASK_MEDIA_NT> tASK_MEDIA_NTs {get;set;}
+        public List<TASK_MEDIA_NT> tASK_MEDIA_NTs { get; set; }
 
         [JsonPropertyName("Task_Checklist")]
         public List<TASK_COMPLIANCE_CHECK_END_LIST_OUTPUT_NT>? tASK_CHECKLIST_TABLE_INPUT_NT { get; set; }
@@ -177,6 +177,9 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Responsible_Emp_Name")]
         public string? Responsible_Emp_Name { get; set; }
+
+        [JsonPropertyName("Update_Task_Flag")]
+        public string? Update_Task_Flag { get; set; }
 
         [JsonPropertyName("Process_Flag")]
         public string? Process_Flag { get; set; }
@@ -212,7 +215,7 @@ namespace TaskManagement.API.Model
         public string? FILE_NAME { get; set; }
         [JsonPropertyName("File_Path")]
         public string? FILE_PATH { get; set; }
-       
+
         [JsonPropertyName("Created_By_Id")]
         public string? CREATED_BY_ID { get; set; }
 
@@ -292,17 +295,17 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Doc_Type_Name")]
         public string Doc_Type_Name { get; set; }
 
-        [JsonPropertyName("Document_Category")]
-        public string Document_Category { get; set; }
+        //[JsonPropertyName("Document_Category")]
+        //public string Document_Category { get; set; }
 
-        [JsonPropertyName("Type_Code")]
-        public string TYPE_CODE { get; set; }
+        //[JsonPropertyName("Type_Code")]
+        //public string TYPE_CODE { get; set; }
 
-        [JsonPropertyName("Type_Desc")]
-        public string TYPE_DESC { get; set; }
+        //[JsonPropertyName("Type_Desc")]
+        //public string TYPE_DESC { get; set; }
 
-        [JsonPropertyName("Doc_Mkey")]
-        public int? DOC_MKEY { get; set; }
+        //[JsonPropertyName("Doc_Mkey")]
+        //public int? DOC_MKEY { get; set; }
 
         [JsonPropertyName("Doc_Number")]
         public string? DOC_NUMBER { get; set; }

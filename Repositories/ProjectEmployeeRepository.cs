@@ -915,15 +915,21 @@ namespace TaskManagement.API.Repositories
                             {
                                 var parmetersMedia = new DynamicParameters();
                                 parmetersMedia.Add("@TASK_MKEY", tASK_DETAILS_BY_MKEYInput_NT.Mkey);
-                                parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.DOC_MKEY);
+                                parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.Doc_Type_Mkey);
                                 parmetersMedia.Add("@USER_ID", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
                                 parmetersEndList.Add("@Session_User_Id", tASK_DETAILS_BY_MKEYInput_NT.Session_User_Id);
                                 parmetersEndList.Add("@Business_Group_Id", tASK_DETAILS_BY_MKEYInput_NT.Business_Group_Id);
                                 var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA_NT>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                                foreach (var EndListAttch in GetTaskEndList)
+                                if (TaskEndListMedia.Any())
                                 {
-                                    EndListAttch.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
+                                    foreach (var EndListAttch in GetTaskEndList)
+                                    {
+                                        if (EndListAttch.Doc_Type_Mkey == TaskCompliance.Doc_Type_Mkey)
+                                        {
+                                            EndListAttch.TASK_OUTPUT_ATTACHMENT = TaskEndListMedia.ToList();
+                                        }
+                                    }
                                 }
                             }
                             foreach (var TaskMaster in TaskDashDetails)
@@ -2286,8 +2292,8 @@ namespace TaskManagement.API.Repositories
                                             var parametersEndList = new DynamicParameters();
                                             parametersEndList.Add("@MKEY", add_TaskInput_NT.TASK_NO);
                                             parametersEndList.Add("@SR_NO", TEndList.SR_NO);
-                                            parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
-                                            parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                                            parametersEndList.Add("@DOC_TYPE_MKEY", Convert.ToInt32(DocCategory));
+                                            parametersEndList.Add("@DOC_CAT_MKEY", docMkey.Key.ToString());
                                             parametersEndList.Add("@CREATED_BY", TEndList.CREATED_BY);
                                             parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG);
                                             parametersEndList.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
@@ -3686,7 +3692,7 @@ namespace TaskManagement.API.Repositories
 
                             var parmetersMedia = new DynamicParameters();
                             parmetersMedia.Add("@TASK_MKEY", tASK_COMPLIANCE_INPUT.TASK_MKEY);
-                            parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.DOC_MKEY);
+                            parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.Doc_Cat_Mkey);
                             parmetersMedia.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
                             var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
 
@@ -3789,7 +3795,7 @@ namespace TaskManagement.API.Repositories
 
                             var parmetersMedia = new DynamicParameters();
                             parmetersMedia.Add("@TASK_MKEY", tASK_COMPLIANCE_INPUT.TASK_MKEY);
-                            parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.Doc_Cat_Mkey);
+                            parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.Doc_Type_Mkey);
                             parmetersMedia.Add("@USER_ID", tASK_COMPLIANCE_INPUT.USER_ID);
                             var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
 
@@ -4590,16 +4596,6 @@ namespace TaskManagement.API.Repositories
 
                     if (GetTaskEnd.Any())
                     {
-                        //foreach (var item in GetTaskEnd)
-                        //{
-                        //    if (item.CHECK_DOC_LST == null)
-                        //    {
-                        //        item.CHECK_DOC_LST = new Dictionary<string, object>(); // Initialize if null
-                        //    }
-                        //    // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-                        //    item.CHECK_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-                        //}
-
                         // Commit the transaction if everything is successful
                         var sqlTransaction = (SqlTransaction)transaction;
                         await sqlTransaction.CommitAsync();
@@ -5283,7 +5279,7 @@ namespace TaskManagement.API.Repositories
 
                                 var parmetersMedia = new DynamicParameters();
                                 parmetersMedia.Add("@TASK_MKEY", tASK_ENDLIST_TABLE_INPUT.MKEY);
-                                parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.DOC_MKEY);
+                                parmetersMedia.Add("@DOC_CATEGORY_MKEY", TaskCompliance.Doc_Cat_Mkey);
                                 parmetersMedia.Add("@USER_ID", tASK_ENDLIST_TABLE_INPUT.CREATED_BY);
                                 var TaskEndListMedia = await db.QueryAsync<TASK_OUTPUT_MEDIA>("SP_GET_TASK_ENDLIST_MEDIA", parmetersMedia, commandType: CommandType.StoredProcedure, transaction: transaction);
 

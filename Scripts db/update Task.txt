@@ -33769,4 +33769,1468 @@ AS
   END 
 -----------------------------------------------------------------------------
 go
+--------------------------------------------------------
+Date:  10-07-2025
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_TASK_ENDLIST]    Script Date: 10-07-2025 10:34:51 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:    
+-- Create date: 
+-- Description:  
+-- EXEC SP_GET_TASK_ENDLIST 440,  443,149,'ddfd','sdf',926
+-- =============================================
+ALTER PROCEDURE [dbo].[SP_GET_TASK_ENDLIST]
+  -- Add the parameters for the stored procedure here
+  @PROPERTY_MKEY INT,
+  @BUILDING_MKEY INT,
+  @TASK_MKEY     INT,
+  @API_NAME      NVARCHAR(200),
+  @API_METHOD    NVARCHAR(100),
+  @USER_ID       INT
+AS
+  BEGIN
+      SET nocount ON;
+
+      BEGIN try
+          SELECT ETRL.mkey,
+                 sr_no,
+                 THDR.project_id                                           AS                 PROPERTY_MKEY,
+                 THDR.sub_project_id                                       AS                 BUILDING_MKEY,
+                 document_mkey                                             AS                 Doc_Cat_mkey,
+                 document_name                                             AS                 Doc_Cat_Name,
+                 document_category_mkey                                    AS                 Doc_Type_Mkey,
+                 document_category                                         AS                 Doc_Type_Name,
+                 --document_mkey,
+                 --document_name                                             AS                 TYPE_CODE,
+                 --document_category_mkey                                    AS                 DOC_MKEY,
+                 --document_category							               AS				  [TYPE_DESC],
+                 doc_num_app_flag,
+                 doc_num_valid_flag,
+                 doc_num_date_app_flag,
+                 doc_attach_app_flag,
+                 Isnull(doc_number, '')                                    AS                 DOC_NUMBER,
+                 Isnull(doc_date, '')                                      AS                 DOC_DATE,
+                 Isnull(validity_date, '')								   AS                 VALIDITY_DATE,
+                 Isnull(CONVERT(VARCHAR(50), ETRL.created_by), '')         AS                 CREATED_BY_ID,
+                 Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS                 CREATED_BY_NAME,
+                 CASE
+                   WHEN ETRL.creation_date IS NULL THEN ''
+                   ELSE Format(ETRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 CREATION_DATE,
+                 Isnull(CONVERT(VARCHAR(50), ETRL.last_updated_by), '')    AS                 LAST_UPDATED_BY,
+                 Isnull(updatedby.emp_full_name, '')						                  UPDATED_BY_NAME,
+                 CASE
+                   WHEN ETRL.last_update_date IS NULL THEN ''
+                   ELSE Format(ETRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 LAST_UPDATE_DATE
+          FROM   task_endlist_trl ETRL
+                 INNER JOIN task_hdr THDR
+                         ON ETRL.mkey = THDR.mkey
+                 INNER JOIN employee_mst createdby
+                         ON ETRL.created_by = createdby.mkey
+                 LEFT JOIN employee_mst updatedby
+                        ON ETRL.last_updated_by = updatedby.mkey and updatedby.DELETE_FLAG = 'N'
+          WHERE  ETRL.delete_flag = 'N'
+                 AND THDR.delete_flag = 'N'
+				 and createdby.DELETE_FLAG = 'N'
+                 --AND (THDR.PROJECT_ID = @PROPERTY_MKEY OR THDR.PROJECT_ID IS NULL)
+                 --AND (THDR.SUB_PROJECT_ID = @BUILDING_MKEY OR THDR.SUB_PROJECT_ID IS NULL)
+                 AND THDR.mkey = @TASK_MKEY;
+      --ORDER BY 
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------            
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @USER_ID,
+            'TMS',
+            @API_NAME,
+            @ERROR_MESSAGE,
+            @API_METHOD;
+      -------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+
+
+------------------------------------------------------------------------------------------
+Alter view [dbo].[V_USER_FILTER] as     
+  Select  TMST.MKEY, tmst.TYPE_CODE, tmst.TYPE_DESC as 'Key'    
+  , Case when tmst.TYPE_DESC = 'DEFAULT' THEN 'Actionable'     
+  when tmst.TYPE_DESC = 'ALLOCATEDTOME' THEN 'Allocated To Me'     
+  when tmst.TYPE_DESC = 'ALLOCATEDBYME' THEN 'Allocated By Me'     
+  when tmst.TYPE_DESC = 'COMPLETEDBYME' THEN 'Completed By Me'     
+  when tmst.TYPE_DESC = 'COMPLETEDFORME' THEN 'Completed For Me'     
+  when tmst.TYPE_DESC = 'CANCELCLOSE' THEN 'Cancelled'     
+  when tmst.TYPE_DESC = 'RECURRING' THEN 'Recurring'     
+  when tmst.TYPE_DESC = 'COMPLIANCE' THEN 'Compliance'     
+  when tmst.TYPE_DESC = 'APPROVAL' THEN 'Approval'     
+  when tmst.TYPE_DESC = 'GENERAL' THEN 'General'     
+  when tmst.TYPE_DESC = 'SYSTEM' THEN 'System'     
+  when tmst.TYPE_DESC = 'EMAIL' THEN 'Email'     
+  when tmst.TYPE_DESC = 'RERA COMPLAIN' THEN 'Rera Complain'     
+  ELSE tmst.TYPE_DESC    
+  END AS 'DisplayName',TMST.ATTRIBUTE4,TMST.ATTRIBUTE5    
+   ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,      
+   Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,      
+   CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,      
+   Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,      
+   Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,      
+   CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE      
+  From TYPE_MST TMST INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY    
+  LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = EMST.MKEY    
+  where TMST.ATTRIBUTE2 ='Filter' and TMST.DELETE_FLAG = 'N'  
+  UNION ALL  
+  SELECT TMST.MKEY,TYPE_CODE,[TYPE_DESC] AS [KEY],[TYPE_DESC] AS DisplayName,'-1' AS ATTRIBUTE1,'0' AS ATTRIBUTE5       
+  ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,      
+   Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,      
+   CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,      
+   Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,      
+   Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,      
+   CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE      
+  FROM TYPE_MST TMST  
+  INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY    
+  LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = EMST.MKEY AND LMST.DELETE_FLAG = 'N'  
+  WHERE TYPE_CODE = 'PROJECT' AND PARENT_ID = 0 AND TMST.DELETE_FLAG = 'N'  
+  UNION ALL  
+  SELECT 0 as MKEY,'Building' TYPE_CODE,'Building' AS [KEY],'Building' AS DisplayName,'0' AS ATTRIBUTE1,'0' AS ATTRIBUTE5       
+  ,0 AS CREATED_BY_ID,      
+   '' AS CREATED_BY_NAME,      
+   GETDATE() AS CREATION_DATE,      
+   0 AS LAST_UPDATED_BY,      
+   '' UPDATED_BY_NAME,      
+   Getdate() AS LAST_UPDATE_DATE; 
+---------------------------------------------------------------
+Go
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_TASK_ENDLIST_NT]    Script Date: 10-07-2025 11:45:33 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:    
+-- Create date: 
+-- Description:  
+-- EXEC SP_GET_TASK_ENDLIST_NT 409,  443,8462,'ddfd','sdf',926
+-- =============================================
+ALTER PROCEDURE [dbo].[SP_GET_TASK_ENDLIST_NT]
+  -- Add the parameters for the stored procedure here
+		@PROPERTY_MKEY INT = null,
+		@BUILDING_MKEY INT= null,
+		@TASK_MKEY     INT,
+		@API_NAME      NVARCHAR(200) = null,
+		@API_METHOD    NVARCHAR(100) = null,
+		@USER_ID       INT,
+		@Session_User_Id          INT = NULL,  
+		@Business_Group_Id	  INT = NULL
+AS
+  BEGIN
+      SET nocount ON;
+
+      BEGIN try
+          SELECT ETRL.mkey,
+                 sr_no,
+                 THDR.project_id                                           AS                 PROPERTY_MKEY,
+                 THDR.sub_project_id                                       AS                 BUILDING_MKEY,
+                 document_mkey                                             AS                 Doc_Cat_mkey,
+                 document_name                                             AS                 Doc_Cat_Name,
+                 document_category_mkey                                    AS                 Doc_Type_Mkey,
+                 document_category                                         AS                 Doc_Type_Name,
+                 --document_mkey,
+                 --document_name                                             AS                 TYPE_CODE,
+                 --document_category_mkey                                    AS                 DOC_MKEY,
+                 --document_category							               AS				  [TYPE_DESC],
+                 doc_num_app_flag,
+                 doc_num_valid_flag,
+                 doc_num_date_app_flag,
+                 doc_attach_app_flag,
+                 Isnull(doc_number, '')                                    AS                 DOC_NUMBER,
+                 Isnull(doc_date, '')                                      AS                 DOC_DATE,
+                 Isnull(validity_date, '')								   AS                 VALIDITY_DATE,
+                 Isnull(CONVERT(VARCHAR(50), ETRL.created_by), '')         AS                 CREATED_BY_ID,
+                 Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS                 CREATED_BY_NAME,
+                 CASE
+                   WHEN ETRL.creation_date IS NULL THEN ''
+                   ELSE Format(ETRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 CREATION_DATE,
+                 Isnull(CONVERT(VARCHAR(50), ETRL.last_updated_by), '')    AS                 LAST_UPDATED_BY,
+                 Isnull(updatedby.emp_full_name, '')						                  UPDATED_BY_NAME,
+                 CASE
+                   WHEN ETRL.last_update_date IS NULL THEN ''
+                   ELSE Format(ETRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 LAST_UPDATE_DATE
+          FROM   task_endlist_trl ETRL
+                 INNER JOIN task_hdr THDR
+                         ON ETRL.mkey = THDR.mkey
+                 INNER JOIN employee_mst createdby
+                         ON ETRL.created_by = createdby.mkey
+                 LEFT JOIN employee_mst updatedby
+                        ON ETRL.last_updated_by = updatedby.mkey and updatedby.DELETE_FLAG = 'N'
+          WHERE  ETRL.delete_flag = 'N'
+                 AND THDR.delete_flag = 'N'
+				 and createdby.DELETE_FLAG = 'N'
+                 AND THDR.mkey = @TASK_MKEY
+		ORDER BY ETRL.SR_NO;
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------            
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @USER_ID,
+            'TMS',
+            @API_NAME,
+            @ERROR_MESSAGE,
+            @API_METHOD;
+      -------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+--------------------------------------------------------------
+Go
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSET_UPDATE_TASK_ENDLIST_NT]    Script Date: 10-07-2025 12:22:45 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- AUTHOR:    
+-- CREATE DATE: 
+-- DESCRIPTION:  
+-- EXEC SP_INSET_UPDATE_TASK_ENDLIST 11083,2,15,440,443,'DEF-123','2025-03-12','2025-03-12',926,'N','INERT','ADD'
+-- =============================================
+ALTER PROCEDURE [dbo].[SP_INSET_UPDATE_TASK_ENDLIST_NT]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE
+  @MKEY          INT,
+  @SR_NO         INT,
+  @DOC_MKEY      INT,
+  @PROPERTY_MKEY INT,
+  @BUILDING_MKEY INT,
+  @DOC_NUMBER    NVARCHAR(200),
+  @DOC_DATE      NVARCHAR(20),
+  @VALIDITY_DATE NVARCHAR(20),
+  @COMMENT       NVARCHAR(max) = NULL,
+  @CREATED_BY    INT,
+  @DELETE_FLAG   CHAR,
+  @API_NAME      NVARCHAR(200),
+  @API_METHOD    NVARCHAR(100),
+  @Session_User_Id          INT = NULL,  
+@Business_Group_Id	  INT = NULL
+AS
+  BEGIN
+      SET NOCOUNT ON;
+      BEGIN TRY
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          INSERT INTO TASK_ENDLIST_TRL_H
+                      (HIST_DATE,
+                       MKEY,
+                       SR_NO,
+                       DOCUMENT_MKEY,
+                       DOCUMENT_NAME,
+                       DOCUMENT_CATEGORY_MKEY,
+                       DOCUMENT_CATEGORY,
+                       DOC_NUM_APP_FLAG,
+                       DOC_NUM_VALID_FLAG,
+                       DOC_NUM_DATE_APP_FLAG,
+                       DOC_ATTACH_APP_FLAG,
+                       DOC_NUMBER,
+                       DOC_DATE,
+                       VALIDITY_DATE,
+					   COMMENT,
+                       ATTRIBUTE1,
+                       ATTRIBUTE2,
+                       ATTRIBUTE3,
+                       ATTRIBUTE4,
+                       ATTRIBUTE5,
+                       CREATED_BY,
+                       CREATION_DATE,
+                       LAST_UPDATED_BY,
+                       LAST_UPDATE_DATE,
+                       DELETE_FLAG)
+          SELECT GETDATE(),
+                 MKEY,
+                 SR_NO,
+                 DOCUMENT_MKEY,
+                 DOCUMENT_NAME,
+                 DOCUMENT_CATEGORY_MKEY,
+                 DOCUMENT_CATEGORY,
+                 DOC_NUM_APP_FLAG,
+                 DOC_NUM_VALID_FLAG,
+                 DOC_NUM_DATE_APP_FLAG,
+                 DOC_ATTACH_APP_FLAG,
+                 DOC_NUMBER,
+                 DOC_DATE,
+                 VALIDITY_DATE,
+				 COMMENT,
+                 ATTRIBUTE1,
+                 ATTRIBUTE2,
+                 ATTRIBUTE3,
+                 ATTRIBUTE4,
+                 ATTRIBUTE5,
+                 CREATED_BY,
+                 CREATION_DATE,
+                 LAST_UPDATED_BY,
+                 LAST_UPDATE_DATE,
+                 DELETE_FLAG
+          FROM   TASK_ENDLIST_TRL
+          WHERE  MKEY = @MKEY
+                 AND SR_NO = @SR_NO
+                 AND DOCUMENT_CATEGORY_MKEY = @DOC_MKEY
+                 AND DELETE_FLAG = 'N';
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          UPDATE TASK_ENDLIST_TRL
+          SET    DOC_NUMBER = @DOC_NUMBER,
+                 DOC_DATE = @DOC_DATE,
+                 VALIDITY_DATE = @VALIDITY_DATE,
+				 COMMENT = @COMMENT,
+				 DELETE_FLAG = @DELETE_FLAG  
+          WHERE  MKEY = @MKEY
+                 AND SR_NO = @SR_NO
+                 AND DOCUMENT_CATEGORY_MKEY = @DOC_MKEY
+                 AND DELETE_FLAG = 'N';
+
+				 
+				declare @UpActionTrlSR_NO int,@UPTASK_PARENT_ID	int,@UPTASK_MAIN_NODE_ID int; 
+				
+				SELECT @UpActionTrlSR_NO = isnull(max(t.SR_NO),0)+1 FROM TASK_ACTION_TRL t WHERE MKEY = @MKEY;   --SR_NO
+				select @UPTASK_PARENT_ID = TASK_PARENT_ID from task_hdr where mkey = @MKEY and delete_flag = 'N';
+				select @UPTASK_MAIN_NODE_ID = TASK_MAIN_NODE_ID from task_hdr where mkey = @MKEY and delete_flag = 'N';
+
+					  INSERT INTO [dbo].[TASK_ACTION_TRL] 
+								(                                      
+								[MKEY],
+								[SR_NO],
+								[TASK_MKEY],
+								[TASK_PARENT_ID],
+								[TASK_MAIN_NODE_ID],
+								[ACTION_TYPE],
+								PROGRESS_PERC,
+								[DESCRIPTION_COMMENT],
+								[STATUS],
+								[CREATED_BY],
+								[CREATION_DATE],
+								[DELETE_FLAG]
+								)  
+						VALUES (  
+								@MKEY,		--@Mkey
+								@UpActionTrlSR_NO,
+								@MKEY,		--@TASK_MKEY
+								ISNULL(@UPTASK_PARENT_ID,@MKEY),		--@TASK_PARENT_ID
+								ISNULL(@UPTASK_MAIN_NODE_ID,@MKEY),		--@TASK_MAIN_NODE_ID
+								'Outcome is updated',		--@ACTION_TYPE
+								'0',                       --PROGRESS_PERC
+								@COMMENT,		--@DESCRIPTION_COMMENT
+								'CREATED',		--@STATUS
+								@CREATED_BY,		--@CREATED_BY
+								GETDATE(),			--@CREATION_DATE
+								'N'
+								)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			SELECT ETRL.MKEY,SR_NO,THDR.PROJECT_ID AS PROPERTY_MKEY, THDR.SUB_PROJECT_ID AS BUILDING_MKEY
+					, DOCUMENT_MKEY,DOCUMENT_NAME as TYPE_CODE,DOCUMENT_CATEGORY_MKEY as DOC_MKEY,DOCUMENT_CATEGORY as [TYPE_DESC]
+					,DOC_NUM_APP_FLAG,DOC_NUM_VALID_FLAG,DOC_NUM_DATE_APP_FLAG,DOC_ATTACH_APP_FLAG,DOC_NUMBER,DOC_DATE,VALIDITY_DATE
+					,Isnull(CONVERT(VARCHAR(50), ETRL.created_by), '') AS CREATED_BY_ID
+					,Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME
+					,CASE
+						WHEN ETRL.creation_date IS NULL THEN ''
+						ELSE Format(ETRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+					END AS CREATION_DATE
+					,Isnull(CONVERT(VARCHAR(50), ETRL.last_updated_by), '') AS LAST_UPDATED_BY
+					,Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME
+					,CASE
+						WHEN ETRL.last_update_date IS NULL THEN ''
+						ELSE Format(ETRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+					END AS LAST_UPDATE_DATE
+
+					FROM TASK_ENDLIST_TRL ETRL INNER JOIN TASK_HDR THDR ON ETRL.MKEY = THDR.MKEY
+					INNER JOIN EMPLOYEE_MST createdby ON ETRL.created_by = createdby.mkey
+					LEFT JOIN EMPLOYEE_MST updatedby ON ETRL.last_updated_by = updatedby.mkey
+					WHERE ETRL.DELETE_FLAG = 'N'
+					AND THDR.DELETE_FLAG = 'N'
+					AND THDR.PROJECT_ID = @PROPERTY_MKEY
+					AND THDR.SUB_PROJECT_ID = @BUILDING_MKEY
+					AND THDR.MKEY = @MKEY
+					and SR_NO = @SR_NO;
+      END TRY
+
+      BEGIN CATCH
+          -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          SELECT ERROR_NUMBER()    AS ERRORNUMBER,
+                 ERROR_SEVERITY()  AS ERRORSEVERITY,
+                 ERROR_STATE()     AS ERRORSTATE,
+                 ERROR_PROCEDURE() AS ERRORPROCEDURE,
+                 ERROR_LINE()      AS ERRORLINE,
+                 ERROR_MESSAGE()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+
+          SET @ERROR_MESSAGE = ERROR_MESSAGE();
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          EXEC SP_P_TMS_INSERT_ERROR_DES
+            @CREATED_BY,
+            'TMS',
+            @API_NAME,
+            @ERROR_MESSAGE,
+            @API_METHOD;
+      -------------------------------------------------------------------------------------------------------------------------------  
+      END CATCH
+  END
+
+-----------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_TASK_ENDLIST_MEDIA]    Script Date: 10-07-2025 12:45:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+--	EXEC SP_GET_TASK_ENDLIST_MEDIA 8398,384,926
+ALTER PROCEDURE [dbo].[SP_GET_TASK_ENDLIST_MEDIA]
+	@TASK_MKEY INT,
+	@DOC_CATEGORY_MKEY INT,
+	@USER_ID INT
+	AS
+	BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	BEGIN TRY
+	
+		SELECT 
+		ETRL.MKEY,ETRL.SR_NO,ETRL.DOC_CATEGORY_MKEY,ETRL.FILE_NAME,ETRL.FILE_PATH
+		,Isnull(CONVERT(VARCHAR(50), ETRL.created_by), '') AS CREATED_BY_ID,
+				Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME,
+				CASE
+					WHEN ETRL.creation_date IS NULL THEN
+				''
+				ELSE
+					Format(ETRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+				END AS CREATION_DATE,
+				Isnull(CONVERT(VARCHAR(50), ETRL.last_updated_by), '') AS LAST_UPDATED_BY,
+				Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME,
+				CASE
+					WHEN ETRL.last_update_date IS NULL THEN
+					''
+				ELSE
+					Format(ETRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+				END AS LAST_UPDATE_DATE
+		FROM TASK_ENDLIST_MEDIA_TRL ETRL
+		INNER JOIN 
+				EMPLOYEE_MST createdby
+			ON 
+				ETRL.created_by = createdby.mkey
+			LEFT JOIN 
+				EMPLOYEE_MST updatedby
+			ON 
+				ETRL.last_updated_by = updatedby.mkey
+		WHERE ETRL.MKEY = @TASK_MKEY AND DOC_CATEGORY_MKEY = @DOC_CATEGORY_MKEY 
+		AND ETRL.DELETE_FLAG = 'N' AND createdby.DELETE_FLAG = 'N'; 
+		
+		--SELECT 
+		--		HDR.MKEY
+		--		,HDR.SR_NO
+		--		,HDR.PROJECT_DOC_MKEY
+		--		,HDR.FILE_NAME
+		--		,HDR.FILE_PATH
+		--		,Isnull(CONVERT(VARCHAR(50), HDR.created_by), '') AS CREATED_BY_ID,
+		--		Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME,
+		--		CASE
+		--			WHEN HDR.creation_date IS NULL THEN
+		--		''
+		--		ELSE
+		--			Format(HDR.creation_date, 'yyyy-MM-dd HH:mm:ss')
+		--		END AS CREATION_DATE,
+		--		Isnull(CONVERT(VARCHAR(50), HDR.last_updated_by), '') AS LAST_UPDATED_BY,
+		--		Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME,
+		--		CASE
+		--			WHEN HDR.last_update_date IS NULL THEN
+		--			''
+		--		ELSE
+		--			Format(HDR.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+		--		END AS LAST_UPDATE_DATE
+		--FROM PROJECT_DOC_DEPOSITORY_TRL_MEDIA HDR
+		--	INNER JOIN 
+		--		EMPLOYEE_MST createdby
+		--	ON 
+		--		HDR.created_by = createdby.mkey
+		--	LEFT JOIN 
+		--		EMPLOYEE_MST updatedby
+		--	ON 
+		--		HDR.last_updated_by = updatedby.mkey
+		--WHERE HDR.MKEY = @MKEY
+		--AND HDR.DELETE_FLAG = 'N'
+		--AND createdby.DELETE_FLAG = 'N'
+		--order by hdr.MKEY, hdr.SR_NO;
+	END TRY
+	BEGIN CATCH
+	-------------------------------------------------------------------------------------------------------------------------------          
+		SELECT ERROR_NUMBER()    AS ERRORNUMBER,
+				ERROR_SEVERITY()  AS ERRORSEVERITY,
+				ERROR_STATE()     AS ERRORSTATE,
+				ERROR_PROCEDURE() AS ERRORPROCEDURE,
+				ERROR_LINE()      AS ERRORLINE,
+				ERROR_MESSAGE()   AS ERRORMESSAGE;
+		-------------------------------------------------------------------------------------------------------------------------------
+		DECLARE @ERROR_MESSAGE  VARCHAR(MAX) = NULL;
+		SET @ERROR_MESSAGE = ERROR_MESSAGE();
+		-------------------------------------------------------------------------------------------------------------------------------
+		--EXEC sp_P_TMS_INSERT_ERROR_DES @CREATED_BY,'TMS',@ATTRIBUTE1,@ERROR_MESSAGE,@ATTRIBUTE2;
+	-------------------------------------------------------------------------------------------------------------------------------
+	END CATCH
+END
+-----------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_TASK_DASHBOARD_NT]    Script Date: 10-07-2025 16:56:54 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--    EXEC SP_TASK_DASHBOARD_NT 926,'Future',926,1
+--   EXEC SP_TASK_DASHBOARD_NT 926,5,926,2
+ALTER PROCEDURE [dbo].[SP_TASK_DASHBOARD_NT] (@CURRENT_EMP_MKEY  INT,
+                                              @USER_FILTER       VARCHAR(max) =NULL,--'ALLOCATEDBYME,ALLOCATEDTOME,COMPLETEDBYME,COMPLETEDFORME,CANCELCLOSE',
+                                              @Session_User_Id   INT,
+                                              @Business_Group_Id INT)
+--@STATUS_FILTER     NVARCHAR(max) = NULL,--'Completed,Cancelled,Pending,Review',
+--@DURATION_FILTER   NVARCHAR(max) = NULL, -- Today,Future,Overdue,Next 3 Days,Next 7 Days,Next 2 Weeks,Next Month,
+--@PriorityFilter    VARCHAR(max) =NULL,--'High,Medium,Low',
+-- @TypeFilter        VARCHAR(max) =NULL,--'RECURRING,APPROVAL,COMPLIANCE,APPROVAL,GENERAL,SYSTEM,EMAIL,RERA COMPLAIN';
+AS
+  set nocount on
+  BEGIN
+
+      DECLARE @DAY INT
+
+      SET @DAY=0;
+
+      DECLARE @sql NVARCHAR(max) = '';
+      DECLARE @start INT = 1,
+              @end   INT;
+      DECLARE @hasWhereClause BIT = 0,@hasUserClause BIT = 0,@hasPriorityClause BIT = 0,@hasTypeClause BIT = 0,@hasSTATUSClause BIT = 0
+	  ,@hasDurationClause BIT = 0;
+      DECLARE @WhereClause    NVARCHAR(max) = '',
+			  @PROJECT_MKEY  INT,	
+			  @SUB_PROJECT_MKEY INT,
+              @filter         VARCHAR(500),
+              @TaskTypeMkey   NVARCHAR(50),
+			  @PriorityClause NVARCHAR(max) = '',
+              @TypeClause     NVARCHAR(max) = '',
+              @STATUSClause   NVARCHAR(max) = '',
+              @DurationClause NVARCHAR(max) = '',
+			  @hasProjectClause BIT = 0,
+			  @ProjectClause NVARCHAR(max) = '',
+			  @hasSubProjectClause BIT = 0,
+			  @SubProjectClause NVARCHAR(max) = '',
+			  @UserClause	  NVARCHAR(max) = '',
+			  @CONCATFILETR BIT  = 0;
+
+      SET @sql = 'SELECT  T_HDR.mkey as Sr_No, T_HDR.mkey,Isnull(TMST.type_desc, ''NA'') CATEGORY,T_HDR.task_no
+				 ,dbo.[Initcap](Isnull(CREATOR.emp_full_name, ''NA'')) CREATOR,   dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, ''NA'')) RESPONSIBLE
+				 ,dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, ''NA'')) ACTIONABLE,   T_HDR.creation_date,
+				 CASE WHEN T_HDR.status IN ( ''CREATED'' ) THEN ''Not Started'' WHEN T_HDR.status LIKE ''%SUB TASK CREATED%'' THEN ''Not Started''                        
+				 WHEN T_HDR.status LIKE ''%SUBTASK CREATED%'' THEN ''Not Started''                         
+				 WHEN T_HDR.status IN ( ''WORK IN PROGRESS'', ''CLOSE INITIATED'', ''CANCEL INITIATED'', ''RE-WORK'' ) THEN ''In Progress''                         
+				 WHEN T_HDR.status IN ( ''CLOSE'', ''COMPLETED'' ) THEN ''Completed''                      ELSE ''Others''                    END AS Dashboard_Status,   
+				 T_HDR.completion_date AS COMPLETION_DATE,                       dbo.[Initcap](T_HDR.task_name) AS TASK_NAME,                       
+				 T_HDR.task_description,T_HDR.tags,dbo.[Initcap](T_HDR.status) AS STATUS,
+				 CASE
+				 WHEN Isnull(CREATOR.first_name, ''NA'') != Isnull(RESPONSIBLE.first_name, ''NA'') 
+				 THEN dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) + '' > '' + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, ''NA''))                         
+				 ELSE dbo.[Initcap](Isnull(CREATOR.first_name, ''NA''))                       END AS RESPONSIBLE_TAG,                      
+				 dbo.[Initcap](Isnull(PMST.type_desc, '''')) AS PROJECT_NAME,                       dbo.Tasknamestring(T_HDR.mkey) AS TASK_HISTORY,                       
+				 Isnull(Rtrim(T_HDR.[priority]), '''') AS [Priority],                       
+				 Isnull(T_HDR.STATUS_PERC, ''0'') AS Progress_Percentage,                       
+				 Isnull(parent_counts.parenttaskcount, 0) AS SubTask_Count,                       
+				 T_HDR.CREATED_BY                
+				 FROM task_hdr T_HDR                
+				 LEFT JOIN employee_mst CREATOR ON CREATOR.mkey = T_HDR.created_by AND CREATOR.delete_flag = ''N''                
+				 LEFT JOIN employee_mst RESPONSIBLE ON RESPONSIBLE.mkey = T_HDR.assigned_to AND RESPONSIBLE.delete_flag = ''N''                
+				 LEFT JOIN employee_mst ACTIONABLE ON ACTIONABLE.mkey = T_HDR.resposible_emp_mkey AND ACTIONABLE.delete_flag = ''N''               
+				 LEFT JOIN type_mst TMST ON TMST.master_mkey = T_HDR.caregory AND TMST.type_code = ''CATEGORY'' AND TMST.delete_flag = ''N''               
+				 LEFT JOIN type_mst PMST ON PMST.master_mkey = T_HDR.project_id AND PMST.type_code = ''PROJECT'' AND PMST.delete_flag = ''N''               
+				 LEFT JOIN (SELECT task_parent_id, Count(*) AS ParentTaskCount                          
+				 FROM task_hdr WHERE task_parent_id IS NOT NULL AND mkey NOT IN (task_parent_id) AND delete_flag = ''N''                           
+				 GROUP BY task_parent_id) parent_counts ON T_HDR.mkey = parent_counts.task_parent_id
+				 WHERE Isnull(T_HDR.status_flag, ''A'') IN (''A'') AND T_HDR.delete_flag = ''N'' '    ;
+
+    /* @USER_FILTER */
+    IF ( @USER_FILTER <> ''
+         AND @USER_FILTER IS NOT NULL ) -- @USER_FILTER is not null OR
+	BEGIN
+		WHILE @start <= Len(@USER_FILTER)
+			BEGIN
+                SET @end = Charindex(',', @USER_FILTER, @start);
+
+                IF @end = 0
+				SET @end = Len(@USER_FILTER) + 1;
+
+                SET @filter = Ltrim(Rtrim(Substring(@USER_FILTER, @start, @end - @start)));
+				--SET @hasUserClause = 0;
+				-- @UserClause
+                IF ( @filter = 'Default'
+                      OR @filter = 'ALLOCATEDBYME'
+                      OR @filter = 'ALLOCATEDTOME'
+                      OR @filter = 'COMPLETEDBYME'
+                      OR @filter = 'COMPLETEDFORME'
+                      OR @filter = 'CANCELCLOSE' )
+				BEGIN
+					IF @filter = 'Default'
+					BEGIN
+						IF @hasUserClause = 0
+						BEGIN
+							--SET @sql += ' AND ( T_HDR.created_by = ' + @CURRENT_EMP_MKEY + ' )';
+							SET @UserClause	+= ' ( T_HDR.RESPOSIBLE_EMP_MKEY = '+ CONVERT(NVARCHAR,@CURRENT_EMP_MKEY) + ' )	
+													and (T_HDR.STATUS not in (''CANCEL'',''CANCELLED'',''CLOSE'',''COMPLETED'',''Completed''))';
+							SET @hasUserClause = 1;
+						END
+							ELSE
+                            BEGIN
+								SET @UserClause +=' OR ( T_HDR.RESPOSIBLE_EMP_MKEY = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)+')
+													and (T_HDR.STATUS not in (''CANCEL'',''CANCELLED'',''CLOSE'',''COMPLETED'',''Completed''))';
+                            END
+                        END
+
+					IF @filter = 'ALLOCATEDBYME'
+					BEGIN
+                        IF @hasUserClause = 0
+						BEGIN
+                                --SET @sql += ' AND ( T_HDR.created_by = ' + @CURRENT_EMP_MKEY + ' )';
+                                SET @UserClause += ' ( T_HDR.created_by = '+ CONVERT(NVARCHAR,@CURRENT_EMP_MKEY)+ ')
+													and (T_HDR.STATUS not in (''CANCEL'',''CANCELLED'',''CLOSE'',''COMPLETED'',''Completed''))';
+													-- OR T_HDR.resposible_emp_mkey = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)+ ')
+                                SET @hasUserClause = 1;
+                        END
+						ELSE
+                        BEGIN
+                                SET @UserClause +=' OR ( T_HDR.created_by = '+ CONVERT(NVARCHAR,@CURRENT_EMP_MKEY)+' )
+													and (T_HDR.STATUS not in (''CANCEL'',''CANCELLED'',''CLOSE'',''COMPLETED''))';
+													--OR T_HDR.resposible_emp_mkey = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)+')
+                        END
+                    END
+
+                    IF @filter = 'ALLOCATEDTOME'
+                    BEGIN
+                        IF @hasUserClause = 0
+                            BEGIN
+                                SET @UserClause += ' ( CONVERT(int,T_HDR.assigned_to) = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) +'
+													OR T_HDR.resposible_emp_mkey = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)+')
+												and T_HDR.STATUS not in (''CANCEL'',''CANCELLED'',''CLOSE'',''COMPLETED'',''Completed'')';
+                               -- + ' OR T_HDR.resposible_emp_mkey = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)+')';
+                                --SET @sql += ' AND ( T_HDR.assigned_to = ' + @CURRENT_EMP_MKEY + ' OR T_HDR.resposible_emp_mkey = ' + @CURRENT_EMP_MKEY + ')';
+                                SET @hasUserClause = 1;
+                            END
+                        ELSE
+                            --SET @sql += ' OR ( T_HDR.assigned_to = ' + @CURRENT_EMP_MKEY + ' OR T_HDR.resposible_emp_mkey = ' + @CURRENT_EMP_MKEY + ')';
+                            SET @UserClause +=' OR ( CONVERT(int,T_HDR.assigned_to) = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) +'
+												OR T_HDR.resposible_emp_mkey = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)+')
+												and T_HDR.STATUS not in (''CANCEL'',''CANCELLED'',''CLOSE'',''COMPLETED'',''Completed'')';
+											--+ ' OR T_HDR.resposible_emp_mkey = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) +')';
+                    END
+					
+                    IF @filter = 'COMPLETEDBYME'
+                    BEGIN
+                        IF @hasUserClause = 0
+                            BEGIN
+                                SET @UserClause +=
+                                ' ( CONVERT(int,T_HDR.assigned_to) = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+                                +
+                                ' AND T_HDR.status IN (''COMPLETED'',''Completed''))';
+                                --SET @sql += ' AND ( T_HDR.assigned_to = ' + @CURRENT_EMP_MKEY + ' AND T_HDR.status IN (''COMPLETED''))';
+                                SET @hasUserClause = 1;
+                            END
+                        ELSE
+                            --SET @sql += ' OR ( T_HDR.assigned_to = ' + @CURRENT_EMP_MKEY + ' AND T_HDR.status IN (''COMPLETED'')) ';
+                            SET @UserClause +=
+                            ' OR ( CONVERT(int,T_HDR.assigned_to) = '
+                            + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+                            + ' AND T_HDR.status IN (''COMPLETED'',''Completed''))';
+                    END
+
+                    IF @filter = 'COMPLETEDFORME'
+                    BEGIN
+                        IF @hasUserClause = 0
+                            BEGIN
+                                --SET @sql += ' AND ( T_HDR.created_by = ' + @CURRENT_EMP_MKEY + ' AND T_HDR.assigned_to != ' + @CURRENT_EMP_MKEY + ' AND T_HDR.status IN (''COMPLETED''))';
+                                SET @UserClause += ' ( T_HDR.created_by = ' + CONVERT(NVARCHAR,@CURRENT_EMP_MKEY) 
+												+ ' AND CONVERT(int,T_HDR.assigned_to) != ' + CONVERT(NVARCHAR,@CURRENT_EMP_MKEY)
+                                                + ') AND T_HDR.status IN (''COMPLETED'',''Completed'')';
+                                SET @hasUserClause = 1;
+                            END
+                        ELSE
+                            --SET @sql += ' OR ( T_HDR.created_by = ' + @CURRENT_EMP_MKEY + ' AND T_HDR.assigned_to != ' + @CURRENT_EMP_MKEY + ' AND T_HDR.status IN (''COMPLETED'')) ';
+                            SET @UserClause += ' OR ( T_HDR.created_by = '+ CONVERT(NVARCHAR,@CURRENT_EMP_MKEY)
+                                                +' AND CONVERT(int,T_HDR.assigned_to) != '+ CONVERT(NVARCHAR,@CURRENT_EMP_MKEY)
+                                                + ') AND T_HDR.status IN (''COMPLETED'',''Completed'')';
+                    END
+
+					IF @filter = 'CANCELCLOSE'
+					BEGIN
+						IF @hasUserClause = 0
+							BEGIN
+								SET @UserClause += ' ( T_HDR.created_by = '+ CONVERT(NVARCHAR,@CURRENT_EMP_MKEY)
+													+ ' OR T_HDR.resposible_emp_mkey = ' + CONVERT(nvarchar,@CURRENT_EMP_MKEY)
+													+ ') AND T_HDR.status IN (''CANCEL'', ''CANCELLED'')';
+								-- OR T_HDR.resposible_emp_mkey = ' + CONVERT(nvarchar,@CURRENT_EMP_MKEY) + ' AND T_HDR.status IN (''CANCEL'', ''CANCELLED'')
+								--SET @sql += ' AND ( T_HDR.created_by = ' + @CURRENT_EMP_MKEY + ' OR T_HDR.resposible_emp_mkey = ' + @CURRENT_EMP_MKEY + ' AND T_HDR.status IN (''CANCEL'', ''CANCELLED''))';
+								SET @hasUserClause = 1;
+							END
+						ELSE
+							--SET @sql += ' OR ( T_HDR.created_by = ' + @CURRENT_EMP_MKEY + ' OR T_HDR.resposible_emp_mkey = ' + @CURRENT_EMP_MKEY + ' AND T_HDR.status IN (''CANCEL'', ''CANCELLED'')) ';
+							SET @UserClause += ' OR ( T_HDR.created_by = '+ CONVERT(NVARCHAR,@CURRENT_EMP_MKEY)
+											+  ' OR T_HDR.resposible_emp_mkey = ' + CONVERT(nvarchar,@CURRENT_EMP_MKEY)
+											+  ') AND T_HDR.status IN (''CANCEL'', ''CANCELLED'') ';
+					--OR T_HDR.resposible_emp_mkey = ' + CONVERT(nvarchar,@CURRENT_EMP_MKEY) + ' AND T_HDR.status IN (''CANCEL'', ''CANCELLED'')
+					END
+				END
+				-- end @UserClause
+				
+				--@PriorityClause
+				IF( @filter = 'High'
+                     OR @filter = 'Low'
+                     OR @filter = 'Medium' )
+				BEGIN
+					/*Priority Filter */
+					IF @filter = 'High'
+					BEGIN
+						IF @hasPriorityClause = 0
+						BEGIN
+							--SET @sql += ' AND LTRIM(RTRIM(T_HDR.[priority])) = ''High''';
+							SET @PriorityClause += ' (LTRIM(RTRIM(T_HDR.[priority])) = ''High'')';
+							SET @hasPriorityClause = 1;
+						END
+						ELSE
+							--SET @sql += ' OR LTRIM(RTRIM(T_HDR.[priority])) = ''High''';
+							SET @PriorityClause += ' OR (LTRIM(RTRIM(T_HDR.[priority])) = ''High'')';
+					END
+
+					IF @filter = 'Low'
+					BEGIN
+						IF @hasPriorityClause = 0
+						BEGIN
+							--SET @sql += ' AND LTRIM(RTRIM(T_HDR.[priority])) = ''Low''';
+							SET @PriorityClause += ' ( LTRIM(RTRIM(T_HDR.[priority])) = ''Low'')';
+							SET @hasPriorityClause = 1;
+						END
+						ELSE
+							--SET @sql += ' OR LTRIM(RTRIM(T_HDR.[priority])) = ''Low''';
+							SET @PriorityClause += ' OR ( LTRIM(RTRIM(T_HDR.[priority])) = ''Low'')';
+					END
+
+					IF @filter = 'Medium'
+					BEGIN
+						IF @hasPriorityClause = 0
+						BEGIN
+							--SET @sql += ' AND LTRIM(RTRIM(T_HDR.[priority])) = ''Medium''';
+							SET @PriorityClause +=' (LTRIM(RTRIM(T_HDR.[priority])) = ''Medium'')';
+							SET @hasPriorityClause = 1;
+						END
+						ELSE
+							--SET @sql += ' OR LTRIM(RTRIM(T_HDR.[priority])) = ''Medium''';
+							SET @PriorityClause += ' OR (LTRIM(RTRIM(T_HDR.[priority])) = ''Medium'') ';
+					END
+					/* End Priority */
+				END
+				--SET @hasWhereClause = 0;
+				
+				--@TypeClause
+				IF ( @filter = 'RECURRING'
+				OR @filter = 'Approval'
+				OR @filter = 'COMPLIANCE'
+				OR @filter = 'GENERAL'
+				OR @filter = 'SYSTEM'
+				OR @filter = 'Email'
+				OR @filter = 'RERA COMPLAIN' )
+				BEGIN
+				/*Type Filter*/
+					IF @filter = 'RECURRING'
+					BEGIN
+						SELECT @TaskTypeMkey = master_mkey
+						FROM   type_mst
+						WHERE  type_code = 'TASK_TYPE'
+						AND type_desc = @filter
+						AND delete_flag = 'N';
+
+						IF @hasTypeClause = 0
+						BEGIN
+							SET @TypeClause += ' (TASK_TYPE = ' + @TaskTypeMkey + ') ';
+							SET @hasTypeClause = 1;
+						END
+						ELSE
+							SET @TypeClause += ' OR ( TASK_TYPE = '+ @TaskTypeMkey + ') ';
+					END
+
+					IF @filter = 'Approval'
+					BEGIN
+						SELECT @TaskTypeMkey = master_mkey
+						FROM   type_mst
+						WHERE  type_code = 'TASK_TYPE'
+						AND type_desc = @filter
+						AND delete_flag = 'N';
+
+						IF @hasTypeClause = 0
+						BEGIN
+							SET @TypeClause += ' ( TASK_TYPE = ' + @TaskTypeMkey + ') ';
+							SET @hasTypeClause = 1;
+						END
+						ELSE
+							SET @TypeClause += ' OR (TASK_TYPE = ' + @TaskTypeMkey + ') ';
+					END
+
+					IF @filter = 'COMPLIANCE'
+					BEGIN
+						SELECT @TaskTypeMkey = master_mkey
+						FROM   type_mst
+						WHERE  type_code = 'TASK_TYPE'
+						AND type_desc = @filter
+						AND delete_flag = 'N';
+
+						IF @hasTypeClause = 0
+						BEGIN
+							SET @TypeClause += ' (TASK_TYPE = ' + @TaskTypeMkey + ') ';
+							SET @hasTypeClause = 1;
+						END
+						ELSE
+							SET @TypeClause += ' OR (TASK_TYPE = ' + @TaskTypeMkey + ') ';
+					END
+
+					IF @filter = 'GENERAL'
+					BEGIN
+						SELECT @TaskTypeMkey = master_mkey
+						FROM   type_mst
+						WHERE  type_code = 'TASK_TYPE'
+						AND type_desc = @filter
+						AND delete_flag = 'N';
+
+						IF @hasTypeClause = 0
+						BEGIN
+							SET @TypeClause += ' ( TASK_TYPE = ' + @TaskTypeMkey + ') ';
+							SET @hasTypeClause = 1;
+						END
+						ELSE
+							SET @TypeClause +=' OR ( TASK_TYPE = ' + @TaskTypeMkey + ') ';
+					END
+
+					IF @filter = 'SYSTEM'
+					BEGIN
+						SELECT @TaskTypeMkey = master_mkey
+						FROM   type_mst
+						WHERE  type_code = 'TASK_TYPE'
+						AND type_desc = @filter
+						AND delete_flag = 'N';
+
+						IF @hasTypeClause = 0
+						BEGIN
+							SET @TypeClause += ' (TASK_TYPE = '+ @TaskTypeMkey + ') ';
+							SET @hasTypeClause = 1;
+						END
+						ELSE
+							SET @TypeClause += 'OR ( TASK_TYPE = ' + @TaskTypeMkey + ') ';
+					END
+
+					IF @filter = 'Email'
+					BEGIN
+						SELECT @TaskTypeMkey = master_mkey
+						FROM   type_mst
+						WHERE  type_code = 'TASK_TYPE'
+						AND type_desc = @filter
+						AND delete_flag = 'N';
+
+						IF @hasTypeClause = 0
+						BEGIN
+							SET @TypeClause +=' (TASK_TYPE = ' + @TaskTypeMkey + ') ';
+							SET @hasTypeClause = 1;
+						END
+						ELSE
+							SET @TypeClause +=' OR ( TASK_TYPE = '+ @TaskTypeMkey + ') ';
+					END
+
+					IF @filter = 'RERA COMPLAIN'
+					BEGIN
+						SELECT @TaskTypeMkey = master_mkey
+						FROM   type_mst
+						WHERE  type_code = 'TASK_TYPE'
+						AND type_desc = @filter
+						AND delete_flag = 'N';
+
+					IF @hasTypeClause = 0
+					BEGIN
+						SET @TypeClause += ' (TASK_TYPE = ' + @TaskTypeMkey + ') ';
+						SET @hasTypeClause = 1;
+					END
+					ELSE
+						SET @TypeClause += ' OR ( TASK_TYPE = ' + @TaskTypeMkey + ') ';
+					END
+					/*End Type Filter*/
+				END
+			
+				--SET @hasWhereClause = 0;
+				--end @@TypeClause
+
+				-- @STATUSClause
+				IF ( @filter = 'Pending'
+					OR @filter = 'Review'
+					OR @filter = 'Completed'
+					OR @filter = 'Cancelled' )
+					BEGIN
+						/*Status Filter*/
+						IF @filter = 'Pending'
+						BEGIN
+							IF @hasSTATUSClause = 0
+							BEGIN
+								SET @STATUSClause += '( STATUS_PERC = 0.0 AND T_HDR.completion_date < GETDATE()  
+													and T_HDR.status IN (''CREATED'', ''SUB TASK CREATED'',''WORK IN PROGRESS'',''RE-WORK'')) ';
+								SET @hasSTATUSClause = 1;
+							END
+							ELSE
+								SET @STATUSClause +=' OR ( STATUS_PERC = 0.0 AND T_HDR.completion_date < GETDATE()  
+													and T_HDR.status IN (''CREATED'', ''SUB TASK CREATED'',''WORK IN PROGRESS'',''RE-WORK'')) ';
+						END
+
+						IF @filter = 'Review'
+						BEGIN
+							IF @hasSTATUSClause = 0
+							BEGIN
+								SET @STATUSClause +=' (T_HDR.STATUS IN (''Close Initiated'',''Cancel Initiated'')) ';
+								SET @hasSTATUSClause = 1;
+							END
+							ELSE
+								SET @STATUSClause += ' OR ( T_HDR.STATUS IN (''Close Initiated'',''Cancel Initiated'')) ';
+						END
+
+						IF @filter = 'Completed'
+						BEGIN
+							IF @hasSTATUSClause = 0
+							BEGIN
+								SET @STATUSClause +=' (T_HDR.status IN (''COMPLETED'') AND STATUS_PERC = 100) ';
+								SET @hasSTATUSClause = 1;
+							END
+							ELSE
+								SET @STATUSClause += ' OR (T_HDR.status IN (''COMPLETED'') AND STATUS_PERC = 100) ';
+						END
+
+						IF @filter = 'Cancelled'
+						BEGIN
+							IF @hasSTATUSClause = 0
+							BEGIN
+								SET @STATUSClause +=' (T_HDR.status IN (''CANCEL'', ''CANCELLED'')) ';
+								SET @hasSTATUSClause = 1;
+							END
+							ELSE
+								SET @STATUSClause += ' OR (T_HDR.status IN (''CANCEL'', ''CANCELLED'')) ';
+						END
+						/*End Status Filter*/
+					END
+				--SET @hasWhereClause = 0;
+				-- end @STATUSClause
+
+				-- @DurationClause
+				IF( @filter = 'Today'
+				OR @filter = 'Overdue'
+				OR @filter = 'Future'
+				OR @filter = 'Next 3 Days'
+				OR @filter = 'Next 7 Days'
+				OR @filter = 'Next 2 Weeks'
+				OR @filter = 'Next Month' 
+				or Isnumeric(@filter) = 1)
+				BEGIN
+					IF @filter = 'Today'
+					BEGIN
+						IF @hasDurationClause = 0
+						BEGIN
+							SET @DurationClause += ' (CONVERT(VARCHAR, T_HDR.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103))
+												AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') '
+							--' ( T_HDR.ASSIGNED_TO = ' + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) + ' OR T_HDR.RESPOSIBLE_EMP_MKEY = '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) +
+							--					')  AND CONVERT(VARCHAR, T_HDR.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103) ';
+										--	AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'',''Close Initiated'' ,''Cancel Initiated'') ';
+							SET @hasDurationClause = 1;
+						END
+						ELSE
+						BEGIN
+							SET @DurationClause += ' OR ( CONVERT(VARCHAR, T_HDR.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103))
+													AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') '; 
+							--AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'',''Close Initiated'' ,''Cancel Initiated'') ';
+						END
+					END
+
+					IF @filter = 'Overdue'
+					BEGIN
+						IF @hasDurationClause = 0
+						BEGIN
+							SET @DurationClause +=' (T_HDR.COMPLETION_DATE < convert(DATETIME, convert(VARCHAR, getdate(), 103), 103))
+													AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+									--			(T_HDR.RESPOSIBLE_EMP_MKEY = ' + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+								--				+') AND T_HDR.COMPLETION_DATE < convert(DATETIME, convert(VARCHAR, getdate(), 103), 103) ';
+											--     AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+							SET @hasDurationClause = 1;
+						END
+						ELSE
+							SET @DurationClause += ' OR ( T_HDR.COMPLETION_DATE < convert(DATETIME, convert(VARCHAR, getdate(), 103), 103))
+														AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+							-- OR (T_HDR.RESPOSIBLE_EMP_MKEY = ' + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+							--AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+					END
+
+					IF @filter = 'Future'
+					BEGIN
+						IF @hasDurationClause = 0
+						BEGIN
+							SET @DurationClause += ' (T_HDR.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103))
+													AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') '
+													--or (T_HDR.ASSIGNED_TO= '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) +' )'
+
+							--' (T_HDR.RESPOSIBLE_EMP_MKEY = ' + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) 
+							--+ '  OR T_HDR.ASSIGNED_TO = ' + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+							----+ ' )   AND  T_HDR.STATUS NOT IN (''COMPLETED'',''CANCELLED'',''Close Initiated'',''Cancel Initiated'')  
+							--+ ' and T_HDR.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103) ';
+							SET @hasDurationClause = 1;
+						END
+						ELSE
+							SET @DurationClause += ' OR (T_HDR.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103))
+													AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+													--or (T_HDR.ASSIGNED_TO= '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) +' )
+					END
+
+					IF @filter = 'Next 3 Days'
+					BEGIN
+						IF @hasDurationClause = 0
+						BEGIN
+							--SET @DurationClause +=' (T_HDR.STATUS IN (''Close Initiated'',''Cancel Initiated'')) ';
+							SET @DurationClause +=' (T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY, 3, GETDATE())) 
+												   AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+							SET @hasDurationClause = 1;
+						END
+						ELSE
+							--SET @DurationClause += ' OR T_HDR.STATUS IN (''Close Initiated'',''Cancel Initiated'') ';
+							SET @DurationClause +=' OR (T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY, 3, GETDATE())) 
+													AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+					END
+
+					IF @filter = 'Next 7 Days'
+					BEGIN
+						IF @hasDurationClause = 0
+						BEGIN
+							--SET @DurationClause += '(STATUS_PERC = 0.0 AND T_HDR.completion_date < GETDATE() 
+							--            and T_HDR.status IN (''CREATED'', ''SUB TASK CREATED'',''WORK IN PROGRESS'',''RE-WORK'')) ';
+							SET @DurationClause += ' (T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY, 7, GETDATE())) ';
+							SET @hasDurationClause = 1;
+						END
+						ELSE
+							--SET @DurationClause +=' OR (STATUS_PERC = 0.0 AND T_HDR.completion_date < GETDATE() 
+							--            and T_HDR.status IN (''CREATED'', ''SUB TASK CREATED'',''WORK IN PROGRESS'',''RE-WORK'')) ';
+							SET @DurationClause += ' OR (T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY, 7, GETDATE())) ';
+					END
+
+					IF @filter = 'Next 2 Weeks'
+					BEGIN
+						IF @hasDurationClause = 0
+						BEGIN
+						--SET @DurationClause +=' (T_HDR.status IN (''COMPLETED'') AND STATUS_PERC = 100) ';
+							SET @DurationClause +=' (T_HDR.RESPOSIBLE_EMP_MKEY = '
+							+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+							+
+							' AND  T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY, 14, GETDATE())) '
+							;
+							SET @hasDurationClause = 1;
+						END
+						ELSE
+							--SET @DurationClause += ' OR (T_HDR.status IN (''COMPLETED'') AND STATUS_PERC = 100) ';
+							SET @DurationClause +=' OR (T_HDR.RESPOSIBLE_EMP_MKEY = '
+							+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+							+
+							' AND  T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY, 14, GETDATE())) ';
+					END
+
+					IF @filter = 'Next Month'
+					BEGIN
+						IF @hasDurationClause = 0
+						BEGIN
+							--SET @DurationClause += ' (T_HDR.status IN (''CANCEL'', ''CANCELLED'')) ';
+							--SET @DurationClause += ' ( T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(MONTH, 1, GETDATE()))';
+							SET @DurationClause += ' (T_HDR.RESPOSIBLE_EMP_MKEY = '
+							+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+							+
+							' AND  T_HDR.completion_date BETWEEN DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE())+1, 0)   
+								AND DATEADD(MONTH, DATEDIFF(MONTH, -1, GETDATE())+1, -1) )';
+							SET @hasDurationClause = 1;
+						END
+						ELSE
+							--SET @DurationClause += ' OR ( T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(MONTH, 1, GETDATE()))';
+							--SET @DurationClause +=' OR (T_HDR.status IN (''CANCEL'', ''CANCELLED'')) ';
+							SET @DurationClause += ' OR (T_HDR.RESPOSIBLE_EMP_MKEY = '
+							+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)
+							+
+							' AND  T_HDR.completion_date BETWEEN DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE())+1, 0)   
+							AND DATEADD(MONTH, DATEDIFF(MONTH, -1, GETDATE())+1, -1) )';
+					END
+
+					IF ( Isnumeric(@filter) = 1 )
+					BEGIN
+					
+						IF @hasDurationClause = 0
+						BEGIN
+						
+							--SET @DurationClause +=' (T_HDR.STATUS IN (''Close Initiated'',''Cancel Initiated'')) ';
+							--SET @DurationClause += ' ( T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY,' + CONVERT(NVARCHAR, @filter) + ' , GETDATE())) 
+							--					  AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+							SET @DurationClause += '(T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY, ' + CONVERT(NVARCHAR, @filter) + ', GETDATE())) 
+										AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') '
+
+							--' (T_HDR.RESPOSIBLE_EMP_MKEY = ' + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY)+
+							--' AND  T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY,' + CONVERT(NVARCHAR, @filter) + ' , GETDATE())) ';
+							SET @hasDurationClause = 1;
+						END
+						ELSE
+							print 'Isnumeric(@filter)outside: '+ convert(nvarchar,Isnumeric(@filter) )
+							--SET @DurationClause += ' OR T_HDR.STATUS IN (''Close Initiated'',''Cancel Initiated'') ';
+							--SET @DurationClause +=' AND (T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY,'+ CONVERT(NVARCHAR, @filter) + ', GETDATE())) 
+							--					 AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') ';
+							SET @DurationClause += 'or (T_HDR.completion_date BETWEEN GETDATE()-1 AND DATEADD(DAY, ' + CONVERT(NVARCHAR, @filter) + ', GETDATE())) 
+												   AND T_HDR.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'') '
+						END
+				/*End Duration Filter*/
+				END
+				
+				SELECT @PROJECT_MKEY = MKEY FROM TYPE_MST WHERE DELETE_FLAG = 'N' AND TYPE_CODE = 'PROJECT' and PARENT_ID = 0 AND LOWER(TYPE_DESC) = LOWER(@filter);
+			
+				IF(@PROJECT_MKEY > 0)
+				BEGIN
+					IF @hasProjectClause = 0
+					BEGIN
+						SET @ProjectClause += ' T_HDR.PROJECT_ID = '+ CONVERT(nvarchar, @PROJECT_MKEY) +' ';
+						SET @hasProjectClause = 1;
+					END
+					ELSE
+					BEGIN
+						SET @ProjectClause += ' OR ( T_HDR.PROJECT_ID = '+ CONVERT(nvarchar, @PROJECT_MKEY) +' ) '; 
+					END
+				END
+
+				SELECT @SUB_PROJECT_MKEY = MKEY FROM TYPE_MST WHERE DELETE_FLAG = 'N' AND TYPE_CODE = 'PROJECT' AND PARENT_ID !=0 AND LOWER(TYPE_DESC) = LOWER(@filter);
+
+				IF(@SUB_PROJECT_MKEY > 0)
+				BEGIN
+					IF @hasSubProjectClause = 0
+					BEGIN
+						SET @SubProjectClause += ' T_HDR.SUB_PROJECT_ID = '+ CONVERT(nvarchar, @SUB_PROJECT_MKEY ) +' ';
+						SET @hasSubProjectClause = 1;
+					END
+					ELSE
+					BEGIN
+						SET @SubProjectClause += ' OR ( T_HDR.SUB_PROJECT_ID = '+ CONVERT(nvarchar, @SUB_PROJECT_MKEY ) +') '; 
+					END
+				END
+
+				SET @start = @end + 1;
+				
+			END
+	END
+			
+			IF ( @ProjectClause != '' OR @ProjectClause != NULL)
+			BEGIN
+				SET @sql += ' AND ( ' + @ProjectClause + ' ) ';  
+				SET @CONCATFILETR = 1;
+			END	
+			IF ( @SubProjectClause != '' OR @SubProjectClause != NULL)
+			BEGIN
+				SET @sql += ' AND ( ' + @SubProjectClause + ' ) '; 
+				SET @CONCATFILETR = 1;
+			END
+
+			IF ( @PriorityClause != '' OR @PriorityClause != NULL)
+			BEGIN
+				SET @sql += ' AND ( ' + @PriorityClause + ' ) ';  
+				SET @CONCATFILETR = 1;
+			END	
+			IF ( @DurationClause != '' OR @DurationClause != NULL)
+			BEGIN
+				SET @sql += ' AND ( ' + @DurationClause + ' ) '; 
+				SET @CONCATFILETR = 1;
+			END
+			IF ( @STATUSClause != '' OR @STATUSClause != NULL)
+			BEGIN
+				SET @sql += ' AND ( ' + @STATUSClause + ' ) '; 
+				SET @CONCATFILETR = 1;
+			END
+			IF ( @TypeClause != '' OR @TypeClause != NULL)
+			BEGIN
+				SET @sql += ' AND ( ' + @TypeClause + ' ) ';
+				SET @CONCATFILETR = 1;
+			END
+			IF ( @UserClause != '' OR @UserClause != NULL)
+			BEGIN
+				SET @sql += ' AND ( ' + @UserClause + ' ) ';  
+				SET @CONCATFILETR = 1;
+			END
+			ELSE
+			BEGIN
+				if (@filter = 'Future')
+				BEGIN
+					SET @sql += ' and ( T_HDR.RESPOSIBLE_EMP_MKEY =  '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) + '  
+								 or T_HDR.ASSIGNED_TO= '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) +' )';
+				END
+				ELSE
+				BEGIN
+						SET @sql += ' and ( T_HDR.RESPOSIBLE_EMP_MKEY =  '+ CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) + ' )'; 
+							 --OR T_HDR.assigned_to = ' + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) + '
+							--' OR T_HDR.created_by = ' + CONVERT(NVARCHAR, @CURRENT_EMP_MKEY) + ' ) ';
+				END
+			END
+			
+	
+		EXEC Sp_executesql	@sql;
+
+		EXEC Sp_dashboard_count @CURRENT_EMP_MKEY;
+
+END 
+
+------------------------------------------------------------------------------------
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_TASK_DETAILS_BY_MKEY_NT]    Script Date: 10-07-2025 17:07:01 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--	exec SP_TASK_DETAILS_BY_MKEY_NT 8415,2693,0
+--exec SP_TASK_DETAILS_BY_MKEY_NT 1,926,1
+ALTER procedure [dbo].[SP_TASK_DETAILS_BY_MKEY_NT](@HDR_MKEY VARCHAR(250),@Session_User_Id          INT = null,  
+@Business_Group_Id	  INT = null)
+AS
+  BEGIN
+      DECLARE @DAY INT
+
+      SET @DAY=0
+
+      SELECT T_HDR.mkey,
+             T_HDR.task_no,
+             T_HDR.isnode,
+             T_HDR.task_parent_id,
+             T_HDR.task_main_node_id,
+			 T_HDR.Task_Type,
+             T_HDR.status,
+             T_HDR.status_perc,
+             T_HDR.task_created_by,
+             T_HDR.approver_id,
+             T_HDR.approve_action_date,
+			 T_HDR.ASSIGNED_TO,
+			 E_MST.EMP_FULL_NAME			AS 'Assigned_To_Name',
+             T_MST.type_desc                           CAREGORY,
+             T_HDR.project_id                          PROJECT_MKEY,
+			 T_HDR.sub_project_id                    AS BUILDING_MKEY,
+             P_MST.type_desc                           'PROJECT',
+			 P_MST.type_desc                           'Project_Name',
+             S_P_MST.type_desc                         'Sub_PROJECT',
+			 S_P_MST.type_desc						AS 'Building_Name',
+             T_HDR.caregory                            CATEGORY_MKEY,
+             T_HDR.creation_date,
+             T_HDR.task_name,
+             T_HDR.task_description,
+             E_MST.emp_full_name,
+
+			
+			 ----When Task owner created the task
+			 case when T_HDR.TASK_CREATED_BY = @Session_User_Id  /* Inside Task Owner login*/
+			 and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') and T_HDR.STATUS_PERC = 0.0 then 'Y' 
+			 /*Task owner created the task and it is currently on created status and progress is 0%  then all tabs are enabled for task owner 
+			 and task owner can add tabs list like Checklist, Authority, Outcome and Compliance via remark but with 0%  progress and WIP status update.  
+			 Otherwise any progress between 0% to 100% with WIP status will lead to disable all tabs for task owner.*/ 
+
+			 --When Task owner created the task 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id) /* Inside assignee login */
+			 and T_HDR.STATUS_PERC between 0.0 and 100.0 /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change 
+			 the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side. 
+			 Assignee can able to update all tabs  */
+			 and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') Then 'Y'  
+
+			 --When Task owner created the task 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id and T_HDR.TASK_CREATED_BY = @Session_User_Id) /* Inside assignee login */
+			 --and T_HDR.STATUS_PERC between 0.0 and 100.0 
+			 /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change 
+			 the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side. 
+			 Assignee can able to update all tabs  */
+			 and T_HDR.STATUS not in  ('CANCEL','CANCELLED','CLOSE','COMPLETED') Then 'Y'  
+			 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 /*When Assignee change to close initiate(100%) */
+							-- Inside assignee login 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id) 
+			 and T_HDR.STATUS_PERC = 100.0 
+			 and  T_HDR.STATUS in ('CLOSE INITIATED')  then 'N'
+			 /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so, 
+			 in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s 
+			 and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */
+			 
+			 /* When Assignee change to  cancel initiate (0%) Inside assignee login */
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS in ('CANCEL INITIATED')  then 'N' 
+			 /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so, 
+			 in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s 
+			 and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */
+
+			 /*When Assignee change to close initiate(100%) or cancel initiate (0%) */
+			  --Inside Task Owner login 
+			 when  T_HDR.TASK_CREATED_BY = @Session_User_Id	 
+			 and T_HDR.STATUS_PERC between 0.0 and 100.0 and T_HDR.STATUS in ('CLOSE INITIATED','CANCEL INITIATED')  then 'Y' 
+			 /* Now inside task owner log in all tabs are enabled and task owner can do all changes in tabs and the status which are visible 
+			 to the task owner is Cancel or Close and Re-work as per the assignee action if assignee triggered Close initiate then task owner can see 
+			 the Close or if Cancel Initiate is triggered by the assignee then task owner can see Cancel and re-work is by default */
+			 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 /*When Task owner change status to re-work  */
+			 ---Inside Task Owner login
+			 WHEN  T_HDR.TASK_CREATED_BY= @Session_User_Id	
+			 and T_HDR.STATUS in ('RE-WORK')  then 'N' /*-- When task owner change status to re-work instead of Close or Cancel then all tabs are disabled 
+														at task owner side now task owner is not able to do any changes inside any tab.*/
+			 /* When Task owner change status to re-work */
+			 --- Inside assignee login
+			 WHEN  (T_HDR.ASSIGNED_TO = @Session_User_Id) 
+			 and T_HDR.STATUS in ('RE-WORK')  then 'Y' /* When the task owner gives a task to re-work to the assignee then status will change to re-work for the assignee 
+														 and now all tabs are enabled for assignee and can do any changes inside any tab.*/
+	 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) or (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS in ('CANCEL','CANCELLED','CLOSE')  then 'N' /* When task owner can do Cancel or Close instead of re-work 
+																			 then all tabs are disabled for task owner as well as assignee */
+ ---------------------------------------------------------------------------------------------------------------------------------------------------
+			WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) and (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS not in ('CANCEL','CANCELLED','CLOSE')  then 'Y' /* When Task Owner and Assignee are same then enabled  */
+---------------------------------------------------------------------------------------------------------------------------------------------------
+			 ELSE 'N'
+			 end as 'Update_Task_Flag',
+			 -- Date 10-07-2025 temparary remove
+			 ----When Task owner created the task
+			 case when T_HDR.TASK_CREATED_BY = @Session_User_Id  /* Inside Task Owner login*/
+			 and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') and T_HDR.STATUS_PERC = 0.0 then 'Y' 
+			 /*Task owner created the task and it is currently on created status and progress is 0%  then all tabs are enabled for task owner 
+			 and task owner can add tabs list like Checklist, Authority, Outcome and Compliance via remark but with 0%  progress and WIP status update.  
+			 Otherwise any progress between 0% to 100% with WIP status will lead to disable all tabs for task owner.*/ 
+
+			  --When Task owner created the task
+			 --case when T_HDR.RESPOSIBLE_EMP_MKEY = @Session_User_Id  /* Inside Task Owner login*/
+			 --and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') and T_HDR.STATUS_PERC = 0.0 then 'Y' 
+			 --/*Task owner created the task and it is currently on created status and progress is 0%  then all tabs are enabled for task owner 
+			 --and task owner can add tabs list like Checklist, Authority, Outcome and Compliance via remark but with 0%  progress and WIP status update.  
+			 --Otherwise any progress between 0% to 100% with WIP status will lead to disable all tabs for task owner.*/ 
+
+
+			 --When Task owner created the task 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id) /* Inside assignee login */
+			 and T_HDR.STATUS_PERC between 0.0 and 100.0 /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change 
+			 the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side. 
+			 Assignee can able to update all tabs  */
+			 and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') Then 'Y'  
+
+			 --When Task owner created the task 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id and T_HDR.TASK_CREATED_BY = @Session_User_Id) /* Inside assignee login */
+			 --and T_HDR.STATUS_PERC between 0.0 and 100.0 
+			 /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change 
+			 the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side. 
+			 Assignee can able to update all tabs  */
+			 and T_HDR.STATUS not in  ('CANCEL','CANCELLED','CLOSE','COMPLETED') Then 'Y'  
+			 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 /*When Assignee change to close initiate(100%) */
+							-- Inside assignee login 
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id) 
+			 and T_HDR.STATUS_PERC = 100.0 
+			 and  T_HDR.STATUS in ('CLOSE INITIATED')  then 'N'
+			 /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so, 
+			 in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s 
+			 and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */
+			 
+			 /* When Assignee change to  cancel initiate (0%) Inside assignee login */
+			 when (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS in ('CANCEL INITIATED')  then 'N' 
+			 /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so, 
+			 in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s 
+			 and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */
+
+			 /*When Assignee change to close initiate(100%) or cancel initiate (0%) */
+			  --Inside Task Owner login 
+			 when  T_HDR.TASK_CREATED_BY = @Session_User_Id	 
+			 and T_HDR.STATUS_PERC between 0.0 and 100.0 and T_HDR.STATUS in ('CLOSE INITIATED','CANCEL INITIATED')  then 'Y' 
+			 /* Now inside task owner log in all tabs are enabled and task owner can do all changes in tabs and the status which are visible 
+			 to the task owner is Cancel or Close and Re-work as per the assignee action if assignee triggered Close initiate then task owner can see 
+			 the Close or if Cancel Initiate is triggered by the assignee then task owner can see Cancel and re-work is by default */
+			 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 /*When Task owner change status to re-work  */
+			 ---Inside Task Owner login
+			 WHEN  T_HDR.TASK_CREATED_BY= @Session_User_Id	
+			 and T_HDR.STATUS in ('RE-WORK')  then 'N' /*-- When task owner change status to re-work instead of Close or Cancel then all tabs are disabled 
+														at task owner side now task owner is not able to do any changes inside any tab.*/
+			 /* When Task owner change status to re-work */
+			 --- Inside assignee login
+			 WHEN  (T_HDR.ASSIGNED_TO = @Session_User_Id) 
+			 and T_HDR.STATUS in ('RE-WORK')  then 'Y' /* When the task owner gives a task to re-work to the assignee then status will change to re-work for the assignee 
+														 and now all tabs are enabled for assignee and can do any changes inside any tab.*/
+	 ---------------------------------------------------------------------------------------------------------------------------------------------------
+			 WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) or (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS in ('CANCEL','CANCELLED','CLOSE')  then 'N' /* When task owner can do Cancel or Close instead of re-work 
+																			 then all tabs are disabled for task owner as well as assignee */
+ ---------------------------------------------------------------------------------------------------------------------------------------------------
+			WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) and (T_HDR.ASSIGNED_TO = @Session_User_Id)
+			 and T_HDR.STATUS not in ('CANCEL','CANCELLED','CLOSE')  then 'Y' /* When Task Owner and Assignee are same then enabled  */
+---------------------------------------------------------------------------------------------------------------------------------------------------
+			 ELSE 'N'
+			 end as 'Process_Flag',
+             T_HDR.tags,
+             CONVERT(VARCHAR(10), T_HDR.completion_date, 120)COMPLETION_DATE,
+			 CONVERT(VARCHAR(10), parentHDR.COMPLETION_DATE, 120)  as Task_Parent_Completion_Date,
+             --Isnull(file_name, '')                     [FILE_NAME],
+             --Isnull(file_path, '')                     FILE_PATH,
+             T_HDR.resposible_emp_mkey
+			,ISNULL(RTrim(T_HDR.Priority),'') AS [Priority] 
+			,ISNULL(CONVERT(NVARCHAR(20), T_HDR.Tentative_Start_Date),null) AS Tentative_Start_Date
+			,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Tentative_End_Date),null) AS Tentative_End_Date
+			,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Actual_Start_Date),null) AS Actual_Start_Date
+			,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Actual_End_Date),null) AS Actual_End_Date
+      FROM   task_hdr T_HDR
+			join TASK_HDR parentHDR on T_HDR.TASK_PARENT_ID = parentHDR.MKEY
+             JOIN employee_mst E_MST
+               ON E_MST.mkey = T_HDR.assigned_to
+             LEFT JOIN type_mst T_MST
+                    ON T_MST.master_mkey = T_HDR.caregory
+             --AND T_MST.TYPE_CODE='CATEGORY'
+             LEFT JOIN type_mst P_MST
+                    ON P_MST.master_mkey = T_HDR.project_id
+             LEFT JOIN type_mst S_P_MST
+                    ON S_P_MST.master_mkey = T_HDR.sub_project_id
+             --LEFT JOIN task_media_trl T_MEDIA
+             --       ON T_MEDIA.mkey = T_HDR.mkey
+             --          AND T_MEDIA.delete_flag = 'N'
+      WHERE  T_HDR.mkey = @HDR_MKEY;
+  END
+
+
+----------------------------------------------------
 
