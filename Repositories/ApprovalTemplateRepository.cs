@@ -114,6 +114,108 @@ namespace TaskManagement.API.Repositories
                 return new List<OutPutApprovalTemplates> { approvalTemplate };
             }
         }
+        public async Task<IEnumerable<OutPutApprovalTemplates_NT>> GetAllApprovalTemplateNTAsync(APPROVAL_TEMPLATE_HDR_INPUT_NT aPPROVAL_TEMPLATE_HDR_NT)
+        {
+            int strMKEY = 0;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@MKEY", null);
+                    parmeters.Add("@ATTRIBUTE1", aPPROVAL_TEMPLATE_HDR_NT.LoggedInID.ToString());
+                    parmeters.Add("@Session_User_Id", aPPROVAL_TEMPLATE_HDR_NT.Session_User_Id.ToString());
+                    parmeters.Add("@Business_Group_Id", aPPROVAL_TEMPLATE_HDR_NT.Business_Group_Id.ToString());
+                    var approvalTemplates = await db.QueryAsync<OutPutApprovalTemplatesNT>("SP_GET_APPROVAL_TEMPLATE_NT", parmeters, commandType: CommandType.StoredProcedure);
+
+                    if (approvalTemplates.Any())
+                    {
+                        var ErrorResult = new List<OutPutApprovalTemplates_NT>
+                        {
+                            new OutPutApprovalTemplates_NT
+                            {
+                                Status = "Ok",
+                                Message = "Get Data Successfuly!!!",
+                                Data = approvalTemplates
+                            }
+                        };
+                        return ErrorResult;
+                    }
+
+                    // Iterate over each approval template header to populate subtasks, end result docs, and checklist docs
+                    foreach (var approvalTemplate in approvalTemplates)
+                    {
+                        strMKEY = approvalTemplate.MKEY;
+                        // Fetch the associated subtasks
+                        var subtasks = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>(
+                            "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
+                            new { HEADER_MKEY = approvalTemplate.MKEY });
+
+                        approvalTemplate.Subtask_List = subtasks.ToList(); // Populate the SUBTASK_LIST property
+
+
+                        string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY" +
+                            " AND DELETE_FLAG = 'N'; ";
+                        var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
+
+                        // Initialize the END_RESULT_DOC_LST dictionary
+                        approvalTemplate.End_Result_Doc_Lst = new Dictionary<string, object>();
+
+                        // Populate the dictionary with the key-value pairs
+                        foreach (var item in keyValuePairs)
+                        {
+                            // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                            approvalTemplate.End_Result_Doc_Lst.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                        }
+
+                        sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST" +
+                            " WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
+                        var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
+
+                        // Initialize the END_RESULT_DOC_LST dictionary
+                        approvalTemplate.Checklist_Doc_Lst = new Dictionary<string, object>();
+
+                        // Populate the dictionary with the key-value pairs
+                        foreach (var item in keyValuePairsCheckList)
+                        {
+                            // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                            approvalTemplate.Checklist_Doc_Lst.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                        }
+
+                        strMKEY = approvalTemplate.MKEY;
+                        // Fetch the associated subtasks
+                        var Sanctioning_Department = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>(
+                            "SELECT * FROM V_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';",
+                            new { MKEY = approvalTemplate.MKEY });
+
+                        approvalTemplate.Sanctioning_Department_List = Sanctioning_Department.ToList();
+                    }
+                    var successsResult = new List<OutPutApprovalTemplates_NT>
+                    {
+                        new OutPutApprovalTemplates_NT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = approvalTemplates
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResult = new List<OutPutApprovalTemplates_NT>
+                    {
+                        new OutPutApprovalTemplates_NT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = null
+                        }
+                    };
+                return ErrorResult;
+            }
+        }
         public async Task<OutPutApprovalTemplates> GetApprovalTemplateByIdAsync(int id, int LoggedIN)
         {
             try
@@ -655,6 +757,477 @@ namespace TaskManagement.API.Repositories
                 return ErrorApprovalTemplates;
             }
         }
+        public async Task<ActionResult<OutPutApprovalTemplates>> CreateApprovalTemplateAsyncNT(InsertApprovalTemplatesNT insertApprovalTemplates)
+        {
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var OBJ_APPROVAL_TEMPLATE_HDR = insertApprovalTemplates;
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@BUILDING_TYPE", insertApprovalTemplates.BUILDING_TYPE);
+                    parameters.Add("@BUILDING_STANDARD", insertApprovalTemplates.BUILDING_STANDARD);
+                    parameters.Add("@STATUTORY_AUTHORITY", insertApprovalTemplates.STATUTORY_AUTHORITY);
+                    parameters.Add("@SHORT_DESCRIPTION", insertApprovalTemplates.SHORT_DESCRIPTION);
+                    parameters.Add("@LONG_DESCRIPTION", insertApprovalTemplates.LONG_DESCRIPTION);
+                    parameters.Add("@ABBR", insertApprovalTemplates.MAIN_ABBR);
+                    parameters.Add("@APPROVAL_DEPARTMENT", insertApprovalTemplates.AUTHORITY_DEPARTMENT);
+                    parameters.Add("@RESPOSIBLE_EMP_MKEY", insertApprovalTemplates.RESPOSIBLE_EMP_MKEY);
+                    parameters.Add("@JOB_ROLE", insertApprovalTemplates.JOB_ROLE);
+                    parameters.Add("@NO_DAYS_REQUIRED", insertApprovalTemplates.DAYS_REQUIERD);
+                    parameters.Add("@SEQ_ORDER", insertApprovalTemplates.SEQ_ORDER);
+                    parameters.Add("@TAGS", insertApprovalTemplates.TAGS);
+                    parameters.Add("@CREATED_BY", insertApprovalTemplates.CREATED_BY);
+                    parameters.Add("@TAGS", insertApprovalTemplates.TAGS);
+                    var objOutPutApprovalTemplates = await db.QueryFirstOrDefaultAsync<OutPutApprovalTemplates>("SP_INSERT_APPROVAL_TEMPLATE", parameters,
+                        commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (objOutPutApprovalTemplates.Status != "Ok")
+                    {
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                                // Handle rollback exception (may occur if transaction is already completed)
+                                // Log or handle the rollback failure if needed
+                                objOutPutApprovalTemplates.Status = "Error";
+                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            }
+
+                            var ErrorApprovalTemplates = new OutPutApprovalTemplates
+                            {
+                                MKEY = 0,
+                                Status = objOutPutApprovalTemplates.Status,
+                                Message = objOutPutApprovalTemplates.Message
+                            };
+                            return ErrorApprovalTemplates;
+                        }
+                    }
+
+                    DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+                    try
+                    {
+                        // Create a DataTable for bulk insert END_RESULT_DOC_LST
+                        var dataTable = new DataTable();
+                        dataTable.Columns.Add("MKEY", typeof(int));
+                        dataTable.Columns.Add("SR_NO", typeof(int));
+                        dataTable.Columns.Add("DOCUMENT_NAME", typeof(string));
+                        dataTable.Columns.Add("DOCUMENT_CATEGORY", typeof(string));
+                        dataTable.Columns.Add("CREATED_BY", typeof(int));
+                        dataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
+                        dataTable.Columns.Add("DELETE_FLAG", typeof(char));
+
+                        if (OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST != null)
+                        {
+                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_ENDRESULT t " +
+                                "WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';", new { MKEY = objOutPutApprovalTemplates.MKEY }, commandType: CommandType.Text,
+                                transaction: transaction);
+                            // Populate the DataTable with product data
+                            foreach (var END_DOC_LIST in OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST)
+                            {
+                                dataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, SR_No, END_DOC_LIST.Key, END_DOC_LIST.Value,
+                                    insertApprovalTemplates.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                SR_No = SR_No + 1;
+                            }
+                            SR_No = 0;
+
+                            // Use SqlBulkCopy for bulk insert
+                            using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
+                            {
+                                DestinationTableName = "APPROVAL_TEMPLATE_TRL_ENDRESULT"
+                            };
+
+                            bulkCopy.ColumnMappings.Add("MKEY", "MKEY");
+                            bulkCopy.ColumnMappings.Add("SR_NO", "SR_NO");
+                            bulkCopy.ColumnMappings.Add("DOCUMENT_NAME", "DOCUMENT_NAME");
+                            bulkCopy.ColumnMappings.Add("DOCUMENT_CATEGORY", "DOCUMENT_CATEGORY");
+                            bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
+                            bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
+                            bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+
+                            // Execute the bulk copy
+                            await bulkCopy.WriteToServerAsync(dataTable);
+
+                            /*
+                             * TO GET INSERTED VALUE IN END RESULT
+                             * */
+                            // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
+                            string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
+                            var keyValuePairs = await db.QueryAsync(sql, new { MKEY = objOutPutApprovalTemplates.MKEY }, transaction: transaction);
+
+                            // Initialize the END_RESULT_DOC_LST dictionary
+                            objOutPutApprovalTemplates.END_RESULT_DOC_LST = new Dictionary<string, object>();
+
+                            // Populate the dictionary with the key-value pairs
+                            foreach (var item in keyValuePairs)
+                            {
+                                // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                                objOutPutApprovalTemplates.END_RESULT_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                            }
+                        }
+                        /*-------------------------------------------------------------------------------------------------------------------
+                        TO INSERT END RESULT LIST
+                        */
+
+
+                        //-------------------------------------------------------------------------------------------------------------------
+                        /*-------------------------------------------------------------------------------------------------------------------
+                       TO INSERT CHECK LIST
+                       */
+                        // Populate the DataTable with product data
+                        dataTable.Rows.Clear();
+                        //using var transactionCheckList = connection.BeginTransaction();
+
+                        if (OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST != null)
+                        {
+                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_CHECKLIST t " +
+                                "WHERE MKEY = @MKEY AND DELETE_FLAG = 'N'", new { MKEY = objOutPutApprovalTemplates.MKEY }, commandType: CommandType.Text
+                                , transaction: transaction);
+
+                            foreach (var CHECK_LIST in OBJ_APPROVAL_TEMPLATE_HDR.CHECKLIST_DOC_LST)
+                            {
+                                dataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, SR_No, CHECK_LIST.Key, CHECK_LIST.Value,
+                                    insertApprovalTemplates.CREATED_BY, dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                SR_No = SR_No + 1;
+                            }
+                            SR_No = 0;
+
+                            // Use SqlBulkCopy for bulk insert
+                            using var bulkCopyCheckList = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
+                            {
+                                DestinationTableName = "APPROVAL_TEMPLATE_TRL_CHECKLIST"
+                            };
+
+                            bulkCopyCheckList.ColumnMappings.Add("MKEY", "MKEY");
+                            bulkCopyCheckList.ColumnMappings.Add("SR_NO", "SR_NO");
+                            bulkCopyCheckList.ColumnMappings.Add("DOCUMENT_NAME", "DOCUMENT_NAME");
+                            bulkCopyCheckList.ColumnMappings.Add("DOCUMENT_CATEGORY", "DOCUMENT_CATEGORY");
+                            bulkCopyCheckList.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
+                            bulkCopyCheckList.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
+                            bulkCopyCheckList.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+
+                            // Execute the bulk copy
+                            await bulkCopyCheckList.WriteToServerAsync(dataTable);
+
+                            // Commit transaction
+                            //await transactionCheckList.CommitAsync();
+
+
+                            // Query the APPROVAL_TEMPLATE_TRL_CHECKLIST for key-value pairs
+                            var sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
+                            var keyValuePairs = await db.QueryAsync(sql, new { MKEY = objOutPutApprovalTemplates.MKEY }, transaction: transaction);
+
+                            // Initialize the END_RESULT_DOC_LST dictionary
+                            objOutPutApprovalTemplates.CHECKLIST_DOC_LST = new Dictionary<string, object>();
+
+                            // Populate the dictionary with the key-value pairs
+                            foreach (var item in keyValuePairs)
+                            {
+                                // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                                objOutPutApprovalTemplates.CHECKLIST_DOC_LST.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                            }
+                        }
+
+                        //------------------------------------------------------------------------------------------------------------------------------
+                    }
+                    catch
+                    {
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                                // Handle rollback exception (may occur if transaction is already completed)
+                                // Log or handle the rollback failure if needed
+                                objOutPutApprovalTemplates.Status = "Error";
+                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            }
+                        }
+                    }
+
+                    // using var transactionSubTask = connection.BeginTransaction();
+                    try
+                    {
+                        // Create a DataTable for bulk insert of subtasks (SEQNO, SRNO, ABBR)
+                        var subtaskDataTable = new DataTable();
+                        subtaskDataTable.Columns.Add("HEADER_MKEY", typeof(int));
+                        subtaskDataTable.Columns.Add("SEQ_NO", typeof(string));  // task_no
+                        subtaskDataTable.Columns.Add("SUBTASK_ABBR", typeof(string));
+                        subtaskDataTable.Columns.Add("SUBTASK_MKEY", typeof(int));
+                        subtaskDataTable.Columns.Add("SUBTASK_PARENT_ID", typeof(int));
+                        subtaskDataTable.Columns.Add("CREATED_BY", typeof(int));
+                        subtaskDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
+                        subtaskDataTable.Columns.Add("DELETE_FLAG", typeof(char));
+
+                        bool flagID = false;
+                        if (OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Any())
+                        {
+                            if (OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST != null && OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST.Count > 0)
+                            {
+                                foreach (var subtask in OBJ_APPROVAL_TEMPLATE_HDR.SUBTASK_LIST) // Assuming SUBTASK_LIST is a list of subtasks
+                                {
+                                    var parametersApproval = new DynamicParameters();
+                                    parametersApproval.Add("@APPROVAL_MKEY", objOutPutApprovalTemplates.MKEY);
+                                    parametersApproval.Add("@MKEY", subtask.SUBTASK_MKEY);
+                                    var ApprovalTemplates = await db.QueryFirstOrDefaultAsync<OutPutApprovalTemplates>("SP_GET_CHECK_APPROVAL", parametersApproval,
+                                        commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    if (objOutPutApprovalTemplates.MKEY == subtask.SUBTASK_MKEY || ApprovalTemplates.Status != "Ok")
+                                    {
+                                        if (transaction != null && !transactionCompleted)
+                                        {
+                                            try
+                                            {
+                                                // Rollback only if the transaction is not yet completed
+                                                transaction.Rollback();
+                                            }
+                                            catch (InvalidOperationException rollbackEx)
+                                            {
+                                                // Handle rollback exception (may occur if transaction is already completed)
+                                                // Log or handle the rollback failure if needed
+                                                objOutPutApprovalTemplates.Status = "Error";
+                                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
+                                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                            }
+                                            var ErrorApprovalTemplates = new OutPutApprovalTemplates
+                                            {
+                                                MKEY = 0,
+                                                Status = "Error",
+                                                Message = "Approval Header Mkey and Sub Approval is same"
+                                            };
+                                            return ErrorApprovalTemplates;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        subtaskDataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, subtask.SEQ_NO, subtask.SUBTASK_ABBR, subtask.SUBTASK_MKEY
+                                            , objOutPutApprovalTemplates.MKEY, OBJ_APPROVAL_TEMPLATE_HDR.CREATED_BY
+                                            , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                    }
+                                }
+
+                                // Use SqlBulkCopy to insert subtasks
+                                using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
+                                {
+                                    DestinationTableName = "APPROVAL_TEMPLATE_TRL_SUBTASK"  // Ensure this matches your table name
+                                };
+
+                                bulkCopy.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
+                                bulkCopy.ColumnMappings.Add("SUBTASK_ABBR", "SUBTASK_ABBR");
+                                bulkCopy.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
+                                bulkCopy.ColumnMappings.Add("SUBTASK_MKEY", "SUBTASK_MKEY");
+                                bulkCopy.ColumnMappings.Add("SUBTASK_PARENT_ID", "SUBTASK_PARENT_ID");
+                                bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
+                                bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
+                                bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+
+                                await bulkCopy.WriteToServerAsync(subtaskDataTable);
+
+                                // Commit the transactionSubTask
+                                //await transactionSubTask.CommitAsync();
+
+                                // Optionally, fetch the inserted values (if necessary)
+                                string sql = "SELECT HEADER_MKEY,SEQ_NO,SUBTASK_MKEY,SUBTASK_ABBR FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';";
+                                var subtaskKeyValuePairs = await db.QueryAsync(sql, new { HEADER_MKEY = objOutPutApprovalTemplates.MKEY }, transaction: transaction);
+
+                                // Assuming the model has a SUBTASK_LIST dictionary to hold these values
+                                objOutPutApprovalTemplates.SUBTASK_LIST = new List<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>();  // Assuming Subtask is a class for this data
+
+                                foreach (var item in subtaskKeyValuePairs)
+                                {
+                                    objOutPutApprovalTemplates.SUBTASK_LIST.Add(new OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK
+                                    {
+                                        HEADER_MKEY = item.HEADER_MKEY,
+                                        SEQ_NO = item.SEQ_NO,
+                                        SUBTASK_MKEY = item.SUBTASK_MKEY,
+                                        SUBTASK_ABBR = item.SUBTASK_ABBR
+                                    });
+                                }
+                            }
+                        }
+                        //return aPPROVAL_TEMPLATE_HDR;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                                // Handle rollback exception (may occur if transaction is already completed)
+                                // Log or handle the rollback failure if needed
+                                objOutPutApprovalTemplates.Status = "Error";
+                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            }
+                        }
+                    }
+
+                    try
+                    {
+                        var SanctioningDataTable = new DataTable();
+                        SanctioningDataTable.Columns.Add("MKEY", typeof(int));
+                        SanctioningDataTable.Columns.Add("SR_NO", typeof(int));
+                        SanctioningDataTable.Columns.Add("LEVEL", typeof(string));
+                        SanctioningDataTable.Columns.Add("SANCTIONING_DEPARTMENT", typeof(string));
+                        SanctioningDataTable.Columns.Add("SANCTIONING_AUTHORITY", typeof(string));
+                        SanctioningDataTable.Columns.Add("START_DATE", typeof(DateTime));
+                        SanctioningDataTable.Columns.Add("END_DATE", typeof(DateTime));
+                        SanctioningDataTable.Columns.Add("CREATED_BY", typeof(int));
+                        SanctioningDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
+                        SanctioningDataTable.Columns.Add("DELETE_FLAG", typeof(char));
+                        bool flagID = false;
+                        if (OBJ_APPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST.Count > 0)
+                        {
+                            var SR_No = await db.QuerySingleAsync<int>("SELECT isnull(max(t.SR_NO),0) + 1 FROM APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT t" +
+                                " WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';", new { MKEY = objOutPutApprovalTemplates.MKEY }, commandType: CommandType.Text,
+                                transaction: transaction);
+
+                            // Populate the DataTable with subtasks
+                            foreach (var SANCTIONING_DEPARTMENT in OBJ_APPROVAL_TEMPLATE_HDR.SANCTIONING_DEPARTMENT_LIST) // Assuming SUBTASK_LIST is a list of subtasks
+                            {
+
+                                SanctioningDataTable.Rows.Add(objOutPutApprovalTemplates.MKEY, SR_No, SANCTIONING_DEPARTMENT.LEVEL
+                                    , SANCTIONING_DEPARTMENT.SANCTIONING_DEPARTMENT, SANCTIONING_DEPARTMENT.SANCTIONING_AUTHORITY
+                                    , SANCTIONING_DEPARTMENT.START_DATE, SANCTIONING_DEPARTMENT.END_DATE == null ? null : SANCTIONING_DEPARTMENT.END_DATE, insertApprovalTemplates.CREATED_BY
+                                    , dateTime.ToString("yyyy/MM/dd hh:mm:ss"), 'N');
+                                SR_No = SR_No + 1;
+                            }
+
+                            // Use SqlBulkCopy to insert subtasks
+                            using var bulkCopy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
+                            {
+                                DestinationTableName = "APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT"  // Ensure this matches your table name
+                            };
+
+                            bulkCopy.ColumnMappings.Add("MKEY", "MKEY");
+                            bulkCopy.ColumnMappings.Add("SR_NO", "SR_NO");
+                            bulkCopy.ColumnMappings.Add("LEVEL", "LEVEL");
+                            bulkCopy.ColumnMappings.Add("SANCTIONING_DEPARTMENT", "SANCTIONING_DEPARTMENT");
+                            bulkCopy.ColumnMappings.Add("SANCTIONING_AUTHORITY", "SANCTIONING_AUTHORITY");
+                            bulkCopy.ColumnMappings.Add("START_DATE", "START_DATE");
+                            bulkCopy.ColumnMappings.Add("END_DATE", "END_DATE");
+                            bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
+                            bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+
+                            await bulkCopy.WriteToServerAsync(SanctioningDataTable);
+
+                            // Commit the transactionSubTask
+                            // await transactionSubTask.CommitAsync();
+
+                            // Optionally, fetch the inserted values (if necessary)
+                            string sql = "SELECT * from APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT WHERE MKEY = @MKEY " +
+                                "AND DELETE_FLAG = 'N';";
+                            var SANCTIONING_DEPARTMENT_TRL = await db.QueryAsync(sql, new { MKEY = objOutPutApprovalTemplates.MKEY }, transaction: transaction);
+
+                            // Assuming the model has a SUBTASK_LIST dictionary to hold these values
+                            objOutPutApprovalTemplates.SANCTIONING_DEPARTMENT_LIST = new List<OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>();  // Assuming Subtask is a class for this data
+
+                            foreach (var item in SANCTIONING_DEPARTMENT_TRL)
+                            {
+                                objOutPutApprovalTemplates.SANCTIONING_DEPARTMENT_LIST.Add(new OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT
+                                {
+                                    MKEY = item.MKEY,
+                                    LEVEL = item.LEVEL,
+                                    SANCTIONING_DEPARTMENT = item.SANCTIONING_DEPARTMENT,
+                                    SANCTIONING_AUTHORITY = item.SANCTIONING_AUTHORITY,
+                                    START_DATE = item.START_DATE,
+                                    END_DATE = item.END_DATE
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+                                // Handle rollback exception (may occur if transaction is already completed)
+                                // Log or handle the rollback failure if needed
+                                objOutPutApprovalTemplates.Status = "Error";
+                                objOutPutApprovalTemplates.Message = rollbackEx.Message;
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                            }
+                        }
+                    }
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+                    return objOutPutApprovalTemplates;
+                }
+            }
+            catch (SqlException ex)
+            {
+                var ErrorApprovalTemplates = new OutPutApprovalTemplates
+                {
+                    MKEY = 0,
+                    Status = "Error",
+                    Message = ex.Message
+                };
+                return ErrorApprovalTemplates;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+                var ErrorApprovalTemplates = new OutPutApprovalTemplates
+                {
+                    MKEY = 0,
+                    Status = "Error",
+                    Message = ex.Message
+                };
+                return ErrorApprovalTemplates;
+            }
+        }
         public async Task<APPROVAL_TEMPLATE_HDR> CheckABBRAsync(string ABBR)
         {
             try
@@ -677,6 +1250,125 @@ namespace TaskManagement.API.Repositories
             }
 
         }
+        public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>>> CheckABBRAsyncNT(APPROVAL_TEMPLATE_HDR_INPUT aPPROVAL_TEMPLATE_HDR_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_Id", aPPROVAL_TEMPLATE_HDR_INPUT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", aPPROVAL_TEMPLATE_HDR_INPUT.Business_Group_Id);
+                    parmeters.Add("@PropertyMkey", aPPROVAL_TEMPLATE_HDR_INPUT.strABBR);
+
+                    var TaskDashFilter = await db.QueryAsync<APPROVAL_TEMPLATE_HDR_NT>("SP_GET_APPROVAL_TEMPLATE_ABBR_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new List<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>
+                    {
+                        new APPROVAL_TEMPLATE_HDR_NT_OUTPUT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = TaskDashFilter
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>
+                {
+                    new APPROVAL_TEMPLATE_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $"SQL Error: {sqlEx.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>
+                {
+                    new APPROVAL_TEMPLATE_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $"Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            finally
+            {
+                // Ensure transaction is committed or rolled back appropriately
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        transaction.Rollback();  // Rollback in case of any issues
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
+                    }
+                }
+            }
+
+        }
         public async Task<IEnumerable<APPROVAL_TEMPLATE_HDR>> AbbrAndShortDescAsync(string strBuilding, string strStandard, string strAuthority)
         {
             try
@@ -696,6 +1388,128 @@ namespace TaskManagement.API.Repositories
                 return null;
             }
         }
+
+        public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>>> AbbrAndShortDescAsyncNT(GetAbbrAndShortAbbrOutPutNT getAbbrAndShortAbbrOutPutNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@BUILDING_TYPE", getAbbrAndShortAbbrOutPutNT.Building);
+                    parmeters.Add("@BUILDING_STANDARD", getAbbrAndShortAbbrOutPutNT.Standard);
+                    parmeters.Add("@STATUTORY_AUTHORITY", getAbbrAndShortAbbrOutPutNT.Authority);
+                    parmeters.Add("@Session_User_Id", getAbbrAndShortAbbrOutPutNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", getAbbrAndShortAbbrOutPutNT.Business_Group_Id);
+
+                    var TaskDashFilter = await db.QueryAsync<APPROVAL_TEMPLATE_HDR_NT>("SP_GET_ABBR_AND_SHORT_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new List<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>
+                    {
+                        new APPROVAL_TEMPLATE_HDR_NT_OUTPUT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = TaskDashFilter
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>
+                {
+                    new APPROVAL_TEMPLATE_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $"SQL Error: {sqlEx.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>
+                {
+                    new APPROVAL_TEMPLATE_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $"Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            finally
+            {
+                // Ensure transaction is committed or rolled back appropriately
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        transaction.Rollback();  // Rollback in case of any issues
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
+                    }
+                }
+            }
+        }
+
         public async Task<ActionResult<OutPutApprovalTemplates>> UpdateApprovalTemplateAsync(UpdateApprovalTemplates updateApprovalTemplates)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -987,7 +1801,7 @@ namespace TaskManagement.API.Repositories
                                 transaction: transaction);
 
                             // Populate the DataTable with subtasks
-                            foreach (var SANCTIONING_DEPARTMENT in updateApprovalTemplates.SANCTIONING_DEPARTMENT_LIST) 
+                            foreach (var SANCTIONING_DEPARTMENT in updateApprovalTemplates.SANCTIONING_DEPARTMENT_LIST)
                             {
 
                                 SanctioningDataTable.Rows.Add(updateApprovalTemplates.MKEY, SR_No, SANCTIONING_DEPARTMENT.LEVEL

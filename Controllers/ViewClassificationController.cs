@@ -159,6 +159,31 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpGet("Standard-Type-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<StatutoryTypeNT>>> GetViewStandardTypeNT(ClassificationNT classificationNT)
+        {
+            try
+            {
+                var classifications = await _repository.GetViewStandard_TypeAsyncNT(classificationNT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<StatutoryTypeNT>
+                {
+                    new StatutoryTypeNT
+                    {
+                        Status = "Error",
+                        Message = $" Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+        }
+
+
         [HttpGet("Statutory-type")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllViewStatutory_Auth()
@@ -173,6 +198,31 @@ namespace TaskManagement.API.Controllers
                 return StatusCode(400, ex.Message);
             }
         }
+
+        [HttpGet("Statutory-type-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<StatutoryTypeNT>>> GetAllViewStatutoryAuthNT(ClassificationNT classificationNT)
+        {
+            try
+            {
+                var classifications = await _repository.GetViewStatutory_AuthAsyncNT(classificationNT);
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<StatutoryTypeNT>
+                {
+                    new StatutoryTypeNT
+                    {
+                        Status = "Error",
+                        Message = $" Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+        }
+
 
         [HttpGet("JOB-ROLE-type")]
         [Authorize]

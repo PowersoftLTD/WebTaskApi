@@ -90,6 +90,21 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Approval-Template-Get-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<OutPutApprovalTemplates_NT>>> GetApprovalTemplate_NT(APPROVAL_TEMPLATE_HDR_INPUT_NT aPPROVAL_TEMPLATE_HDR_NT)
+        {
+            try
+            {
+                var Task = await _repository.GetAllApprovalTemplateNTAsync(aPPROVAL_TEMPLATE_HDR_NT);
+                return Ok(Task);
+            }
+            catch (Exception ex)
+            {
+                return Ok(ex.Message);
+            }
+        }
+
         [HttpGet("GetByID")]
         [Authorize]
         public async Task<ActionResult<OutPutApprovalTemplates>> GetApprovalTemplateID(int id, int LoggedIN)
@@ -176,6 +191,44 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Approval-Template-Insert-Update-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<OutPutApprovalTemplates_NT>>> CreateTASK_NT([FromBody] InsertApprovalTemplatesNT insertApprovalTemplatesNT)
+        {
+            try
+            {
+                bool flagSeq_no = false;
+                double IndexSeq_NO = 0.0;
+                var model = await _repository.CreateApprovalTemplateAsyncNT(insertApprovalTemplatesNT);
+                if (model == null)
+                {
+
+                    var errorResponse = new OutPutApprovalTemplates();
+                    errorResponse.Status = "Error";
+                    errorResponse.Message = "An error occurd!!!";
+                    return Ok(errorResponse);
+                }
+                else
+                {
+                    if (model.Value.Status != "Ok")
+                    {
+                        var errorResponse = new OutPutApprovalTemplates();
+                        errorResponse.Status = "Error";
+                        errorResponse.Message = model.Value.Message;
+                        return Ok(errorResponse);
+                    }
+                    return Ok(model);
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new OutPutApprovalTemplates();
+                errorResponse.Status = "Error";
+                errorResponse.Message = ex.Message;
+                return Ok(errorResponse);
+            }
+        }
+
         [HttpGet("GetCheckABBR")]
         [Authorize]
         public async Task<ActionResult<APPROVAL_TEMPLATE_HDR>> GetCheckABBR(string strABBR)
@@ -201,6 +254,37 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpGet("Approval-Template-Get-Check-ABBR-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>>> GetCheckABBR_NT(APPROVAL_TEMPLATE_HDR_INPUT aPPROVAL_TEMPLATE_HDR_INPUT)
+        {
+            try
+            {
+                var result = await _repository.CheckABBRAsyncNT(aPPROVAL_TEMPLATE_HDR_INPUT);
+                if (result != null)
+                {
+                    return Ok(true);
+                }
+                else
+                {
+                    return Ok(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>
+                {
+                    new APPROVAL_TEMPLATE_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $"Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+        }
+
         [HttpGet("GetAbbrAndShortAbbr")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR>>> GetAbbrAndShortAbbr(string Building, string Standard, string Authority)
@@ -208,6 +292,29 @@ namespace TaskManagement.API.Controllers
             try
             {
                 var result = await _repository.AbbrAndShortDescAsync(Building, Standard, Authority);
+                if (result != null)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogError(ex, "Error in GetAbbrAndShortAbbr method");
+                return BadRequest($"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpGet("Approval-Template-Get-Abbr-And-ShortAbbr-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>>> GetAbbrAndShortAbbrNT(GetAbbrAndShortAbbrOutPutNT getAbbrAndShortAbbrOutPutNT)
+        {
+            try
+            {
+                var result = await _repository.AbbrAndShortDescAsyncNT(getAbbrAndShortAbbrOutPutNT);
                 if (result != null)
                 {
                     return Ok(result);

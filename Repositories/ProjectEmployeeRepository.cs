@@ -6371,12 +6371,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@PropertyMkey", doc_Type_Doc_CategoryInput.PropertyMkey);
 
                     var TaskDashFilter = await db.QueryAsync<TaskDashBoardUserFilterNT>("SP_GET_TASK_DASHBOARD_FILTER", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                    //var UserFilter = TaskDashFilter.Read<TaskDashBoardUserFilterNT>().ToList();
-                    //var PriorityFilter = TaskDashFilter.Read<TaskDashBoardPriorityFilterNT>().ToList();
-                    //var DurationFilter = TaskDashFilter.Read<TaskDashBoardDurationFilterNT>().ToList();
-                    //var TaskType = TaskDashFilter.Read<TaskDashBoardTaskTypeNT>().ToList();
-
+                  
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;

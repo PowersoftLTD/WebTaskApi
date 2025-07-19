@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,9 @@ namespace TaskManagement.API.Repositories
 {
     public class VIewClassification : IViewClassification
     {
+        private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         public IDapperDbConnection _dapperDbConnection;
+        private readonly string _connectionString;
         public VIewClassification(IDapperDbConnection dapperDbConnection)
         {
             _dapperDbConnection = dapperDbConnection;
@@ -209,11 +212,245 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Standard_Type");
             }
         }
+        public async Task<IEnumerable<StatutoryTypeNT>> GetViewStandard_TypeAsyncNT(ClassificationNT classificationNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_Id", classificationNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", classificationNT.Business_Group_Id);
+
+                    var TaskDashFilter = await db.QueryAsync<StatutoryTypeOutNT>("SP_GET_STANDARD_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new List<StatutoryTypeNT>
+                    {
+                        new StatutoryTypeNT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = TaskDashFilter
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<StatutoryTypeNT>
+                {
+                    new StatutoryTypeNT
+                    {
+                        Status = "Error",
+                        Message = $"SQL Error: {sqlEx.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<StatutoryTypeNT>
+                {
+                    new StatutoryTypeNT
+                    {
+                        Status = "Error",
+                        Message = $"Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            finally
+            {
+                // Ensure transaction is committed or rolled back appropriately
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        transaction.Rollback();  // Rollback in case of any issues
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
+                    }
+                }
+            }
+        }
         public async Task<IEnumerable<V_Building_Classification>> GetViewStatutory_AuthAsync()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())
             {
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Statutory_Auth");
+            }
+        }
+        public async Task<IEnumerable<StatutoryTypeNT>> GetViewStatutory_AuthAsyncNT(ClassificationNT classificationNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_Id", classificationNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", classificationNT.Business_Group_Id);
+
+                    var TaskDashFilter = await db.QueryAsync<StatutoryTypeOutNT>("SP_GET_STATUTORY_AUTHORITY_NT", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    var successsResult = new List<StatutoryTypeNT>
+                    {
+                        new StatutoryTypeNT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = TaskDashFilter
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Handle SQL exceptions specifically
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the SQL error
+                var errorResult = new List<StatutoryTypeNT>
+                {
+                    new StatutoryTypeNT
+                    {
+                        Status = "Error",
+                        Message = $"SQL Error: {sqlEx.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                // Generic error handling for non-SQL related issues
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+
+                // Log the generic error
+                var errorResult = new List<StatutoryTypeNT>
+                {
+                    new StatutoryTypeNT
+                    {
+                        Status = "Error",
+                        Message = $"Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            finally
+            {
+                // Ensure transaction is committed or rolled back appropriately
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        transaction.Rollback();  // Rollback in case of any issues
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        Console.WriteLine($"Final rollback failed: {rollbackEx.Message}");
+                    }
+                }
             }
         }
         public async Task<IEnumerable<V_Building_Classification>> GetViewJOB_ROLEAsync()
@@ -223,7 +460,6 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_JOB_ROLE");
             }
         }
-
         public async Task<IEnumerable<V_Job_Role_NT_OutPut>> GetViewJOB_ROLE_NTAsync(V_Department_NT_Input v_Department_NT_Input)
         {
             //using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -285,7 +521,6 @@ namespace TaskManagement.API.Repositories
             }
 
         }
-
         public async Task<IEnumerable<V_Building_Classification>> GetViewDepartment()
         {
             using (IDbConnection db = _dapperDbConnection.CreateConnection())

@@ -92,6 +92,15 @@ namespace TaskManagement.API.Model
         public string? RESPONSIBLE_TAG { get; set; }
         [JsonPropertyName("Project_Name")]
         public string? PROJECT_NAME { get; set; }
+        [JsonPropertyName("Updation_Date")]
+        public DateTime? Updation_Date { get; set; }
+        [JsonPropertyName("Update_Task_Flag")]
+        public string? Update_Task_Flag { get; set; }
+        [JsonPropertyName("Process_Flag")]
+        public string? Process_Flag { get; set; }
+        [JsonPropertyName("Task_Type")]
+        public string? Task_Type { get; set; }
+
         [JsonPropertyName("Priority")]
         public string? Priority { get; set; }
         [JsonPropertyName("Progress_Percentage")]

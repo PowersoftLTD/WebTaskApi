@@ -37115,49 +37115,331 @@ Date: 19-07-2025
  
 
 
-   Alter view [dbo].[V_USER_FILTER] as       
-  Select  TMST.MKEY, tmst.TYPE_CODE, tmst.TYPE_DESC as 'Key'      
-  , Case when tmst.TYPE_DESC = 'DEFAULT' THEN 'Actionable'       
-  when tmst.TYPE_DESC = 'ALLOCATEDTOME' THEN 'Allocated To Me'       
-  when tmst.TYPE_DESC = 'ALLOCATEDBYME' THEN 'Allocated By Me'       
-  when tmst.TYPE_DESC = 'COMPLETEDBYME' THEN 'Completed By Me'       
-  when tmst.TYPE_DESC = 'COMPLETEDFORME' THEN 'Completed For Me'       
-  when tmst.TYPE_DESC = 'CANCELCLOSE' THEN 'Cancelled'       
-  when tmst.TYPE_DESC = 'RECURRING' THEN 'Recurring'       
-  when tmst.TYPE_DESC = 'COMPLIANCE' THEN 'Compliance'       
-  when tmst.TYPE_DESC = 'APPROVAL' THEN 'Approval'       
-  when tmst.TYPE_DESC = 'GENERAL' THEN 'General'       
-  when tmst.TYPE_DESC = 'SYSTEM' THEN 'System'       
-  when tmst.TYPE_DESC = 'EMAIL' THEN 'Email'       
-  when tmst.TYPE_DESC = 'RERA COMPLAIN' THEN 'Rera Complain'       
-  ELSE tmst.TYPE_DESC      
-  END AS 'DisplayName',TMST.ATTRIBUTE4,TMST.ATTRIBUTE5      
-   ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,        
-   Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,        
-   CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,        
-   Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,        
-   Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,        
-   CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE        
-  From TYPE_MST TMST INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY      
-  LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = LMST.MKEY      
-  where TMST.ATTRIBUTE2 ='Filter' and TMST.DELETE_FLAG = 'N'    
-  UNION ALL    
-  SELECT TMST.MKEY,TYPE_CODE,[TYPE_DESC] AS [KEY],[TYPE_DESC] AS DisplayName,'-1' AS ATTRIBUTE1,'0' AS ATTRIBUTE5         
-  ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,        
-   Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,        
-   CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,        
-   Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,        
-   Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,        
-   CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE        
-  FROM TYPE_MST TMST    
-  INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY      
-  LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = LMST.MKEY AND LMST.DELETE_FLAG = 'N'    
-  WHERE TYPE_CODE = 'PROJECT' AND PARENT_ID = 0 AND TMST.DELETE_FLAG = 'N'    
-  UNION ALL    
-  SELECT 0 as MKEY,'Building' TYPE_CODE,'Building' AS [KEY],'Building' AS DisplayName,'0' AS ATTRIBUTE1,'0' AS ATTRIBUTE5         
-  ,0 AS CREATED_BY_ID,        
-   '' AS CREATED_BY_NAME,        
-   GETDATE() AS CREATION_DATE,        
-   0 AS LAST_UPDATED_BY,        
-   '' UPDATED_BY_NAME,        
-   Getdate() AS LAST_UPDATE_DATE; 
+
+	 Alter view [dbo].[V_USER_FILTER] as               
+ Select  TMST.MKEY, tmst.TYPE_CODE, tmst.TYPE_DESC as 'Key'              
+ , Case when tmst.TYPE_DESC = 'DEFAULT' THEN 'Actionable'               
+ when tmst.TYPE_DESC = 'ALLOCATEDTOME' THEN 'Allocated To Me'               
+ when tmst.TYPE_DESC = 'ALLOCATEDBYME' THEN 'Allocated By Me'               
+ when tmst.TYPE_DESC = 'COMPLETEDBYME' THEN 'Completed By Me'               
+ when tmst.TYPE_DESC = 'COMPLETEDFORME' THEN 'Completed For Me'               
+ when tmst.TYPE_DESC = 'CANCELCLOSE' THEN 'Cancelled'               
+ when tmst.TYPE_DESC = 'RECURRING' THEN 'Recurring'               
+ when tmst.TYPE_DESC = 'COMPLIANCE' THEN 'Compliance'               
+ when tmst.TYPE_DESC = 'APPROVAL' THEN 'Approval'               
+ when tmst.TYPE_DESC = 'GENERAL' THEN 'General'               
+ when tmst.TYPE_DESC = 'SYSTEM' THEN 'System'               
+ when tmst.TYPE_DESC = 'EMAIL' THEN 'Email'               
+ when tmst.TYPE_DESC = 'RERA COMPLAIN' THEN 'Rera Complain'               
+ ELSE tmst.TYPE_DESC              
+ END AS 'DisplayName',TMST.ATTRIBUTE4,TMST.ATTRIBUTE5        
+,0 as PropertyMkey,'' as PropertyName      
+ ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,                
+ Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,                
+ CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,                
+ Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,                
+ Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,                
+ CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE                
+ From TYPE_MST TMST INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY              
+ LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = LMST.MKEY              
+ where TMST.ATTRIBUTE2 ='Filter' and TMST.DELETE_FLAG = 'N'            
+ UNION ALL            
+ SELECT TMST.MKEY,TYPE_CODE,[TYPE_DESC] AS [KEY],[TYPE_DESC] AS DisplayName,'-1' AS ATTRIBUTE1,'0' AS ATTRIBUTE5       
+ ,0 as PropertyMkey,'' as PropertyName      
+ ,Isnull(CONVERT(VARCHAR(50), TMST.created_by), '') AS CREATED_BY_ID,                
+ Isnull(CONVERT(VARCHAR(50), EMST.emp_full_name), '') AS CREATED_BY_NAME,                
+ CASE  WHEN TMST.creation_date IS NULL THEN  ''  ELSE  Format(TMST.creation_date, 'yyyy-MM-dd HH:mm:ss') END AS CREATION_DATE,                
+ Isnull(CONVERT(VARCHAR(50), TMST.last_updated_by), '') AS LAST_UPDATED_BY,                
+ Isnull(LMST.emp_full_name, '') UPDATED_BY_NAME,                
+ CASE WHEN TMST.last_update_date IS NULL THEN  ''  ELSE  Format(TMST.last_update_date, 'yyyy-MM-dd HH:mm:ss') END AS LAST_UPDATE_DATE                
+ FROM TYPE_MST TMST            
+ INNER JOIN EMPLOYEE_MST EMST ON TMST.CREATED_BY = EMST.MKEY              
+ LEFT JOIN EMPLOYEE_MST LMST ON TMST.LAST_UPDATED_BY = LMST.MKEY AND LMST.DELETE_FLAG = 'N'            
+ WHERE TYPE_CODE = 'PROJECT' AND PARENT_ID = 0 AND TMST.DELETE_FLAG = 'N'            
+ UNION ALL            
+ SELECT 0 as MKEY,'Building' TYPE_CODE,'Building' AS [KEY],'No data found' AS DisplayName,'0' AS ATTRIBUTE1,'0' AS ATTRIBUTE5      
+ ,0 as PropertyMkey,'' as PropertyName      
+ ,0 AS CREATED_BY_ID,                
+ '' AS CREATED_BY_NAME,                
+ GETDATE() AS CREATION_DATE,                
+ 0 AS LAST_UPDATED_BY,                
+ '' UPDATED_BY_NAME,                
+ Getdate() AS LAST_UPDATE_DATE; 
+----------------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_APPROVAL_TEMPLATE]    Script Date: 19-07-2025 15:10:59 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+    
+CREATE PROCEDURE [dbo].[SP_GET_APPROVAL_TEMPLATE_NT]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE      
+	@MKEY       NUMERIC = NULL,
+	@Session_User_Id		INT,  
+	@Business_Group_Id	  INT,
+	@ATTRIBUTE1 VARCHAR = NULL,-- USER ID  
+	@ATTRIBUTE2 VARCHAR = NULL,-- FORM NAME  
+	@ATTRIBUTE3 VARCHAR = NULL -- FUCNTION/METHOD NAME  
+AS
+  BEGIN
+      -- SET NOCOUNT ON ADDED TO PREVENT EXTRA RESULT SETS FROM      
+      -- INTERFERING WITH SELECT STATEMENTS.      
+      SET nocount ON;
+
+      BEGIN try ;
+          -- TO CHECK THE @MKEY IS NULL OR EMPTY IF EMPTY THE SHOW ALL ROWS      
+          --IF ( @MKEY IS NOT NULL  
+          --     AND LEN(@MKEY) > 0 )  
+          --  BEGIN  
+          SELECT HDR.mkey,
+                 building_type,
+                 Rtrim(Ltrim(BUILDCLASS.type_desc)) AS BUILDING_TYPE_NAME,
+                 building_standard,
+                 Rtrim(Ltrim(STND.type_desc))       AS BUILDING_STANDARD_NAME,
+                 statutory_authority,
+                 Rtrim(Ltrim(STAAUTH.type_desc))    AS STATUTORY_AUTHORITY_NAME,
+                 short_description,
+                 long_description,
+                 main_abbr,
+                 authority_department,
+                 resposible_emp_mkey,
+                 HDR.job_role,
+                 days_requierd,
+                 seq_order,
+                 HDR.attribute1,
+                 HDR.attribute2,
+                 HDR.attribute3,
+                 HDR.attribute4,
+                 HDR.attribute5,
+                 HDR.created_by,
+                 HDR.creation_date,
+                 HDR.last_updated_by,
+                 HDR.last_update_date,
+                 sanction_authority,
+                 sanction_department,
+                 end_result_doc,
+                 checklist_doc,
+                 HDR.delete_flag
+				 ,HDR.TAGS as tags
+				 ,HDR.RESPOSIBLE_EMP_MKEY
+				 ,MST.EMP_FULL_NAME AS RESPOSIBLE_EMP_NAME
+          FROM   approval_template_hdr HDR
+                 JOIN type_mst BUILDCLASS
+                   ON HDR.building_type = BUILDCLASS.mkey
+                      AND BUILDCLASS.type_code = 'BUILDCLASS'
+                 JOIN type_mst STND
+                   ON HDR.building_standard = STND.mkey
+                      AND STND.type_code = 'STND'
+                 JOIN type_mst STAAUTH
+                   ON HDR.statutory_authority = STAAUTH.mkey
+                      AND STAAUTH.type_code = 'STAAUTH'
+				LEFT JOIN EMPLOYEE_MST MST ON MST.MKEY = HDR.RESPOSIBLE_EMP_MKEY AND MST.DELETE_FLAG = 'N'
+          WHERE  ( HDR.mkey = @MKEY
+                    OR @MKEY IS NULL )
+                 AND HDR.delete_flag = 'N'
+          ORDER  BY HDR.mkey;
+      --        END  
+      --      ELSE  
+      --        BEGIN  
+      --            SELECT HDR.MKEY,  
+      --BUILDING_TYPE  
+      --,RTRIM(LTRIM(BUILDCLASS.TYPE_DESC)) AS BUILDING_TYPE_NAME  
+      --,BUILDING_STANDARD  
+      --, RTRIM(LTRIM(STND.TYPE_DESC)) AS BUILDING_STANDARD_NAME  
+      --,STATUTORY_AUTHORITY  
+      --,RTRIM(LTRIM(STAAUTH.TYPE_DESC)) AS STATUTORY_AUTHORITY_NAME  
+      --,SHORT_DESCRIPTION  
+      --,LONG_DESCRIPTION  
+      --,MAIN_ABBR  
+      --,AUTHORITY_DEPARTMENT  
+      --,RESPOSIBLE_EMP_MKEY  
+      --,JOB_ROLE  
+      --,DAYS_REQUIERD  
+      --,SEQ_ORDER  
+      --,HDR.ATTRIBUTE1  
+      --,HDR.ATTRIBUTE2  
+      --,HDR.ATTRIBUTE3  
+      --,HDR.ATTRIBUTE4  
+      --,HDR.ATTRIBUTE5  
+      --,HDR.CREATED_BY  
+      --,HDR.CREATION_DATE  
+      --,HDR.LAST_UPDATED_BY  
+      --,HDR.LAST_UPDATE_DATE  
+      --,SANCTION_AUTHORITY  
+      --,SANCTION_DEPARTMENT  
+      --,END_RESULT_DOC  
+      --,CHECKLIST_DOC  
+      --,HDR.DELETE_FLAG   
+      --FROM APPROVAL_TEMPLATE_HDR  HDR  
+      --join TYPE_MST BUILDCLASS on HDR.BUILDING_TYPE = BUILDCLASS.MKEY and BUILDCLASS.TYPE_CODE='BUILDCLASS'   
+      -- join TYPE_MST STND on HDR.BUILDING_STANDARD = STND.MKEY and STND.TYPE_CODE='STND'   
+      -- join TYPE_MST STAAUTH on HDR.STATUTORY_AUTHORITY = STAAUTH.MKEY and STAAUTH.TYPE_CODE='STAAUTH'   
+      --WHERE hdr.DELETE_FLAG = 'N'  
+      --ORDER BY  hdr.MKEY;  
+      --        END  
+      END try
+
+      BEGIN catch
+          ------------------------------------------------------------------------------------------------------------------------------------  
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          ------------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @ATTRIBUTE1,
+            'TMS',
+            @ATTRIBUTE2,
+            @ERROR_MESSAGE,
+            attribute3;
+      ------------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+----------------------------------------------------------------------------------
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_APPROVAL_TEMPLATE]    Script Date: 19-07-2025 15:10:59 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+    
+CREATE PROCEDURE [dbo].[SP_GET_APPROVAL_TEMPLATE_ABBR_NT]
+	@ABBR       NVARCHAR(255) = NULL,
+	@Session_User_Id		INT,  
+	@Business_Group_Id	  INT
+AS
+  BEGIN
+      SET nocount ON;
+      BEGIN try 
+			
+			SELECT HDR.MKEY,BUILDING_TYPE,BUILDING_STANDARD
+			,STATUTORY_AUTHORITY, SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY
+			,JOB_ROLE,DAYS_REQUIERD,HDR.SEQ_ORDER,HDR.ATTRIBUTE1,HDR.ATTRIBUTE2,HDR.ATTRIBUTE3,HDR.ATTRIBUTE4,HDR.ATTRIBUTE5,HDR.CREATED_BY
+			,HDR.CREATION_DATE,HDR.LAST_UPDATED_BY,HDR.LAST_UPDATE_DATE,SANCTION_AUTHORITY, SANCTION_DEPARTMENT,END_RESULT_DOC
+			,CHECKLIST_DOC,HDR.DELETE_FLAG  
+			FROM APPROVAL_TEMPLATE_HDR HDR INNER JOIN APPROVAL_TEMPLATE_TRL_SUBTASK TRL_SUB 
+			ON HDR.MKEY = TRL_SUB.HEADER_MKEY 
+			WHERE LOWER(MAIN_ABBR) = LOWER(@ABBR) OR  LOWER(SUBTASK_ABBR) = LOWER(@ABBR)
+			AND HDR.DELETE_FLAG = 'N' 
+			AND TRL_SUB.DELETE_FLAG = 'N'
+      END try
+
+      BEGIN catch
+          ------------------------------------------------------------------------------------------------------------------------------------  
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          ------------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @Session_User_Id,
+            'TMS',
+            'APPROVAL TEMPLATE ABBR',
+            @ERROR_MESSAGE,
+            'GET';
+      ------------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+
+----------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_ABBR_AND_SHORT]    Script Date: 19-07-2025 17:43:56 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- ALTER date: <ALTER Date,,>
+-- Description:	<Description,,>
+-- EXEC SP_GET_ABBR_AND_SHORT 201,301,12
+-- =============================================
+CREATE PROCEDURE [dbo].[SP_GET_ABBR_AND_SHORT_NT] 
+	-- Add the parameters for the stored procedure here
+	@BUILDING_TYPE VARCHAR(50),
+	@BUILDING_STANDARD VARCHAR(50),
+	@STATUTORY_AUTHORITY VARCHAR(50),
+	@Session_User_Id          INT,  
+	@Business_Group_Id	  INT
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT HDR.MKEY,MAIN_ABBR AS ABBR_SHORT_DESC,BUILDING_TYPE,
+	BUILDING_STANDARD ,STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,
+	DAYS_REQUIERD,SANCTION_AUTHORITY  ,STUFF((SELECT DISTINCT ', ' + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))
+	FROM APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2 WHERE ENDLIST2.MKEY = HDR.MKEY FOR XML PATH('')), 1, 1, '') AS END_RESULT_DOC
+	FROM [dbo].[APPROVAL_TEMPLATE_HDR] HDR LEFT JOIN APPROVAL_TEMPLATE_TRL_SUBTASK SUBTASK ON HDR.MKEY = SUBTASK.HEADER_MKEY
+	WHERE BUILDING_TYPE = @BUILDING_TYPE AND BUILDING_STANDARD = @BUILDING_STANDARD
+	AND STATUTORY_AUTHORITY = @STATUTORY_AUTHORITY AND HDR.DELETE_FLAG = 'N'
+	GROUP BY HDR.MKEY,MAIN_ABBR,SHORT_DESCRIPTION,BUILDING_TYPE,BUILDING_STANDARD
+	,STATUTORY_AUTHORITY,SHORT_DESCRIPTION,LONG_DESCRIPTION,MAIN_ABBR,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD
+	,SANCTION_AUTHORITY
+END
+
+
+
+----------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_ABBR_AND_SHORT]    Script Date: 19-07-2025 17:43:56 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[SP_GET_STATUTORY_AUTHORITY_NT] 
+	-- Add the parameters for the stored procedure here
+	@Session_User_Id          INT,  
+	@Business_Group_Id	  INT
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+   	SELECT * FROM V_Statutory_Auth;
+
+END
+
+
+
+-----------------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_ABBR_AND_SHORT]    Script Date: 19-07-2025 17:43:56 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[SP_GET_STANDARD_TYPE_NT] 
+	-- Add the parameters for the stored procedure here
+	@Session_User_Id          INT,  
+	@Business_Group_Id	  INT
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+   	SELECT * FROM V_Standard_Type;
+
+END

@@ -69,7 +69,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("mKEY")]
         public string? mKEY { get; set; }
 
-
         [JsonPropertyName("unique_id")]
         public int unique_id { get; set; }
         [JsonPropertyName("TASK_PARENT_ID")]
