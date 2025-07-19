@@ -276,18 +276,44 @@ namespace TaskManagement.API.Repositories
                         parameters.Add("@RESPONSE_STATUS", null);
                         parameters.Add("@MESSAGE", null);
 
-                        var GetCompliance = await db.QueryAsync<ComplianceOutPutNT>("SP_COMPLIANCE_INSERT_UPDATE", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        var GetCompliance = await db.QueryAsync<ComplianceOutPutNT>("SP_COMPLIANCE_INSERT_UPDATE_NT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        string ErrorMessage = string.Empty;
 
                         if (GetCompliance.Any())
                         {
-                            //if (GetCompliance)
 
-                            var ResponseStatus = GetCompliance.Select(x => x.ResponseStatus.ToString().First());
-                            var sqlTransaction = (SqlTransaction)transaction;
-                            await sqlTransaction.CommitAsync();
-                            transactionCompleted = true;
+                            foreach (var ErrorVar in GetCompliance)
+                            {
+                                if (ErrorVar.ResponseStatus == "Error")
+                                {
+                                    ErrorMessage = ErrorVar.Message;
+                                    break;
+                                }
+                            }
 
-                            return new List<ComplianceOutput_LIST_NT>
+                            if (ErrorMessage != string.Empty)
+                            {
+                                var sqlTransaction = (SqlTransaction)transaction;
+                                await sqlTransaction.CommitAsync();
+                                transactionCompleted = true;
+
+                                return new List<ComplianceOutput_LIST_NT>
+                                {
+                                    new ComplianceOutput_LIST_NT
+                                    {
+                                        STATUS = "Error",
+                                        MESSAGE = ErrorMessage,
+                                        DATA = null
+                                    }
+                                };
+                            }
+                            else
+                            {
+                                var sqlTransaction = (SqlTransaction)transaction;
+                                await sqlTransaction.CommitAsync();
+                                transactionCompleted = true;
+
+                                return new List<ComplianceOutput_LIST_NT>
                                 {
                                     new ComplianceOutput_LIST_NT
                                     {
@@ -296,6 +322,8 @@ namespace TaskManagement.API.Repositories
                                         DATA = GetCompliance
                                     }
                                 };
+                            }
+
                         }
                         else
                         {

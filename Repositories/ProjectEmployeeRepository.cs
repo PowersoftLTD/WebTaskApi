@@ -2674,6 +2674,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@ATTRIBUTE4", add_TaskInput_NT.ATTRIBUTE4);
                     parmeters.Add("@ATTRIBUTE5", add_TaskInput_NT.ATTRIBUTE5);
                     parmeters.Add("@CREATED_BY", add_TaskInput_NT.CREATED_BY);
+                    parmeters.Add("@CREATED_BY", add_TaskInput_NT.CREATED_BY);
                     parmeters.Add("@CREATION_DATE", add_TaskInput_NT.CREATION_DATE);
                     parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.LAST_UPDATED_BY);
                     parmeters.Add("@APPROVE_ACTION_DATE", add_TaskInput_NT.APPROVE_ACTION_DATE);
@@ -5106,10 +5107,17 @@ namespace TaskManagement.API.Repositories
                 }
 
                 var parametersCheckList = new DynamicParameters();
+                //parametersCheckList.Add("@Parameter1", input.TASK_MKEY); // mkey
+                //parametersCheckList.Add("@Parameter2", "Checklist is added"); //ACTION_TYPE
+                //parametersCheckList.Add("@Parameter3", input.COMMENT); //STATUS
+                //parametersCheckList.Add("@Parameter4", "0");  // DESCRIPTION_COMMENT
+                //parametersCheckList.Add("@Parameter5", input.Session_User_ID); // Logdin user
+                //parametersCheckList.Add("@Parameter6", input.Business_Group_ID);
+
                 parametersCheckList.Add("@Parameter1", input.TASK_MKEY); // mkey
-                parametersCheckList.Add("@Parameter2", "Checklist is added"); //ACTION_TYPE
-                parametersCheckList.Add("@Parameter3", input.COMMENT); //STATUS
-                parametersCheckList.Add("@Parameter4", "0");  // DESCRIPTION_COMMENT
+                parametersCheckList.Add("@Parameter2", "Progress"); //ACTION_TYPE
+                parametersCheckList.Add("@Parameter3", "Work In Progress"); //STATUS
+                parametersCheckList.Add("@Parameter4", input.COMMENT);  // DESCRIPTION_COMMENT
                 parametersCheckList.Add("@Parameter5", input.Session_User_ID); // Logdin user
                 parametersCheckList.Add("@Parameter6", input.Business_Group_ID);
 
@@ -5444,6 +5452,37 @@ namespace TaskManagement.API.Repositories
 
                     if (flagInsert == false)
                     {
+
+                        var parametersCheckList = new DynamicParameters();
+                        parametersCheckList.Add("@Parameter1", tASK_ENDLIST_TABLE_INPUT.MKEY); // mkey
+                        parametersCheckList.Add("@Parameter2", "Progress"); //ACTION_TYPE
+                        parametersCheckList.Add("@Parameter3", "Work In Progress"); //STATUS
+                        parametersCheckList.Add("@Parameter4", tASK_ENDLIST_TABLE_INPUT.COMMENT);  // DESCRIPTION_COMMENT
+                        parametersCheckList.Add("@Parameter5", tASK_ENDLIST_TABLE_INPUT.Session_User_Id); // Logdin user
+                        parametersCheckList.Add("@Parameter6", tASK_ENDLIST_TABLE_INPUT.Business_Group_Id);
+
+                        var TaskFile = await db.ExecuteAsync("SP_INSERT_TASK_ACTION_CHECKLIST_ENDLIST_TRL", parametersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        if (TaskFile == null || TaskFile == 0)
+                        {
+                            // Handle other unexpected exceptions
+                            if (transaction != null && !transactionCompleted)
+                            {
+                                try
+                                {
+                                    // Rollback only if the transaction is not yet completed
+                                    transaction.Rollback();
+                                }
+                                catch (InvalidOperationException rollbackEx)
+                                {
+
+                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                    //TranError.Message = ex.Message;
+                                    //return TranError;
+                                }
+                            }
+                        }
+
                         var parmeters = new DynamicParameters();
                         parmeters.Add("@PROPERTY_MKEY", null);
                         parmeters.Add("@BUILDING_MKEY", null);
@@ -5776,7 +5815,7 @@ namespace TaskManagement.API.Repositories
                             ResultAll = GetTaskEnd.ToList();
                         }
                     }
-
+                   
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
@@ -6323,12 +6362,13 @@ namespace TaskManagement.API.Repositories
                         await sqlConnection.OpenAsync();  // Ensure the connection is open
                     }
 
-                    transaction = db.BeginTransaction();
+                    transaction = db.BeginTransaction(); 
                     transactionCompleted = false;  // Reset transaction state
 
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@Session_User_Id", doc_Type_Doc_CategoryInput.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", doc_Type_Doc_CategoryInput.Business_Group_Id);
+                    parmeters.Add("@PropertyMkey", doc_Type_Doc_CategoryInput.PropertyMkey);
 
                     var TaskDashFilter = await db.QueryAsync<TaskDashBoardUserFilterNT>("SP_GET_TASK_DASHBOARD_FILTER", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 

@@ -950,7 +950,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<ActionResult<IEnumerable<GetAuthorityStatus>>> GetAuthorityStatusAsync()
         {
             try
