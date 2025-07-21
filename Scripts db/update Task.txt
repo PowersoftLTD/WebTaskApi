@@ -37443,3 +37443,25 @@ BEGIN
    	SELECT * FROM V_Standard_Type;
 
 END
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_ABBR_AND_SHORT]    Script Date: 19-07-2025 17:43:56 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[SP_GET_STANDARD_TYPE_NT] 
+	-- Add the parameters for the stored procedure here
+	@Session_User_Id          INT,  
+	@Business_Group_Id	  INT
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+   	SELECT * FROM V_Standard_Type;
+
+END
+
+
