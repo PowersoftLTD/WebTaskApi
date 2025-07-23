@@ -1086,7 +1086,7 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Building_Mkey")]
         public int BUILDING_MKEY { get; set; }
-        
+
         [JsonPropertyName("Doc_Type_Mkey")]
         public int Doc_Type_Mkey { get; set; }
         [JsonPropertyName("Doc_Type_Name")]
@@ -1317,6 +1317,8 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Task_No")]
         public string TASK_NO { get; set; }
+        [JsonPropertyName("Task_Parent_Id")]
+        public string task_Parent_id { get; set; }
         [JsonPropertyName("Category")]
         public string? CATEGORY { get; set; }
         [JsonPropertyName("Creator")]

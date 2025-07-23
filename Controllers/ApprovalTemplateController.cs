@@ -200,32 +200,36 @@ namespace TaskManagement.API.Controllers
                 bool flagSeq_no = false;
                 double IndexSeq_NO = 0.0;
                 var model = await _repository.CreateApprovalTemplateAsyncNT(insertApprovalTemplatesNT);
-                if (model == null)
+                if (model != null)
                 {
-
-                    var errorResponse = new OutPutApprovalTemplates();
-                    errorResponse.Status = "Error";
-                    errorResponse.Message = "An error occurd!!!";
-                    return Ok(errorResponse);
+                    return model;
                 }
                 else
                 {
-                    if (model.Value.Status != "Ok")
+                    var errorResult = new List<OutPutApprovalTemplates_NT>
                     {
-                        var errorResponse = new OutPutApprovalTemplates();
-                        errorResponse.Status = "Error";
-                        errorResponse.Message = model.Value.Message;
-                        return Ok(errorResponse);
-                    }
-                    return Ok(model);
+                        new OutPutApprovalTemplates_NT
+                        {
+                            Status = "Error",
+                            Message = $"Error: {model.Value}",
+                            Data = null
+                        }
+                    };
+                    return errorResult;
                 }
             }
             catch (Exception ex)
             {
-                var errorResponse = new OutPutApprovalTemplates();
-                errorResponse.Status = "Error";
-                errorResponse.Message = ex.Message;
-                return Ok(errorResponse);
+                var errorResult = new List<OutPutApprovalTemplates_NT>
+                {
+                    new OutPutApprovalTemplates_NT
+                    {
+                        Status = "Error",
+                        Message = $"Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
             }
         }
 

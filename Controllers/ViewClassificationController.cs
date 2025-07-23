@@ -183,7 +183,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpGet("Statutory-type")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetAllViewStatutory_Auth()
@@ -222,7 +221,6 @@ namespace TaskManagement.API.Controllers
                 return errorResult;
             }
         }
-
 
         [HttpGet("JOB-ROLE-type")]
         [Authorize]
@@ -275,7 +273,6 @@ namespace TaskManagement.API.Controllers
                 return ErrorResponse;
             }
         }
-
 
         [HttpGet("DEPARTMENT")]
         [Authorize]
