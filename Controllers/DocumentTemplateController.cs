@@ -47,6 +47,38 @@ namespace TaskManagement.API.Controllers
             return Ok(TASK);
         }
 
+        [HttpPost("Document-Template-Get-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<DOC_TEMPLATE_HDR_OUTPUT_NT>>> GetDocumentTemplatesNT(DocTemplateGetInputNT docTemplateGetInputNT)
+        {
+            try
+            {
+                if (docTemplateGetInputNT == null)
+                {
+                    var response = new DOC_TEMPLATE_HDR_OUTPUT_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Please Enter the details",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                var TASK = await _repository.GetDocumentTempByIdAsyncNT(docTemplateGetInputNT);
+                return TASK;
+            }
+            catch (Exception ex)
+            {
+                var response = new DOC_TEMPLATE_HDR_OUTPUT_NT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<DOC_TEMPLATE_HDR>> CreateTASK(DOC_TEMPLATE_HDR dOC_TEMPLATE_HDR)
@@ -105,6 +137,74 @@ namespace TaskManagement.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(400, ex.Message);
+            }
+        }
+
+        [HttpPost("Document-Template-Insert-Update-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<DOC_TEMPLATE_HDR_OUTPUT_NT>>> InsertUpdateDocTemplateNT(DOC_TEMPLATE_HDR_NT_INPUT dOC_TEMPLATE_HDR_NT_INPUT)
+        {
+            bool flag_check = false;
+            string Error_filed = string.Empty;
+            try
+            {
+                if (dOC_TEMPLATE_HDR_NT_INPUT.DOC_NAME == null)
+                {
+                    flag_check = true;
+                    Error_filed = Error_filed + ", DOC_NAME ";
+                }
+                if (dOC_TEMPLATE_HDR_NT_INPUT.DOC_ABBR == null)
+                {
+                    flag_check = true;
+                    Error_filed = Error_filed + ", DOC_ABBR ";
+                }
+                if (dOC_TEMPLATE_HDR_NT_INPUT.DOC_CATEGORY == null)
+                {
+                    flag_check = true;
+                    Error_filed = Error_filed + ", DOC_CATEGORY ";
+                }
+                if (dOC_TEMPLATE_HDR_NT_INPUT.DOC_NUM_FIELD_NAME == null)
+                {
+                    flag_check = true;
+                    Error_filed = Error_filed + ", DOC_NUM_FIELD_NAME ";
+                }
+
+                if (dOC_TEMPLATE_HDR_NT_INPUT.DOC_NUM_DATE_NAME == null)
+                {
+                    flag_check = true;
+                    Error_filed = Error_filed + ", DOC_NUM_DATE_NAME ";
+                }
+
+                if (flag_check == false)
+                {
+                    var model = await _repository.InsertUpdateDocTemplateAsyncNT(dOC_TEMPLATE_HDR_NT_INPUT);
+                    return model;
+                }
+                else
+                {
+                    //var model = new DOC_TEMPLATE_HDR();
+                    //model.Status = "Error";
+                    //model.Message = "Error occurd";
+                    //return model;
+
+                    var response = new DOC_TEMPLATE_HDR_OUTPUT_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = "Error occurd",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                var response = new DOC_TEMPLATE_HDR_OUTPUT_NT
+                {
+                    STATUS = "Error",
+                    MESSAGE = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
             }
         }
 
@@ -298,7 +398,7 @@ namespace TaskManagement.API.Controllers
             {
                 if (insertInstructionInput.DOC_INSTR == "")
                 {
-                    flagCheck = true; 
+                    flagCheck = true;
                     strMessage = strMessage + " Please enter Doc Instruction, ";
                 }
                 if (insertInstructionInput.CREATED_BY == 0)
@@ -338,5 +438,64 @@ namespace TaskManagement.API.Controllers
                 return response;
             }
         }
+
+        [HttpPost("DocumentTemplate-Insert-Instruction-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<DocCategoryOutPutNT>>> InsertInstructionNT(InsertInstructionInputNT insertInstructionInputNT)
+        {
+            bool flagCheck = false;
+            string strMessage = string.Empty;
+
+            try
+            {
+                if (insertInstructionInputNT.DOC_INSTR == "")
+                {
+                    flagCheck = true;
+                    strMessage = strMessage + " Please enter Doc Instruction, ";
+                }
+                if (insertInstructionInputNT.CREATED_BY == 0)
+                {
+                    flagCheck = true;
+                    strMessage = strMessage + " Please enter Created By, ";
+                }
+                if (insertInstructionInputNT.COMPANY_ID == 0)
+                {
+                    flagCheck = true;
+                    strMessage = strMessage + " Please enter Company ID ";
+                }
+
+                if (flagCheck == true)
+                {
+                    var ErrorResult = new List<DocCategoryOutPutNT>
+                    {
+                        new DocCategoryOutPutNT
+                        {
+                            Status = "Error",
+                            Message = strMessage,
+                            Data = null
+                        }
+                    };
+                    return ErrorResult;
+
+                }
+                var InsertDoc_Category = await _repository.InsertInstructionAsynNT(insertInstructionInputNT);
+
+                return InsertDoc_Category;
+            }
+            catch (Exception ex)
+            {
+                var ErrorResult = new List<DocCategoryOutPutNT>
+                {
+                    new DocCategoryOutPutNT
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data = null
+                    }
+                };
+                return ErrorResult;
+            }
+        }
+
     }
 }

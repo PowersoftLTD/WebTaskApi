@@ -41,6 +41,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@ATTRIBUTE1", LoggedIN.ToString());
                     var approvalTemplates = await db.QueryAsync<OutPutApprovalTemplates>("SP_GET_APPROVAL_TEMPLATE", parmeters, commandType: CommandType.StoredProcedure);
                     //var approvalTemplates1 = await db.QueryAsync<OutPutApprovalTemplates>("select MKEY, DOCUMENT_NAME, count(DOCUMENT_NAME) from APPROVAL_TEMPLATE_TRL_ENDRESULT group by MKEY,DOCUMENT_NAME having count(DOCUMENT_NAME) > 1;", CommandType.Text);
+                   
 
                     if (approvalTemplates == null || !approvalTemplates.Any())
                     {
@@ -1381,6 +1382,14 @@ namespace TaskManagement.API.Repositories
 
                         }
 
+                        #region Insert END_RESULT_DOC_LST
+                        var parametersTRL = new DynamicParameters();
+                        parametersTRL.Add("@MKEY", insertApprovalTemplates.Mkey);
+                        parametersTRL.Add("@LOGGED_IN", insertApprovalTemplates.CREATED_BY);
+                        parametersTRL.Add("@STATUS", null);
+                        var DeleteApprovalTrl = await db.QueryFirstOrDefaultAsync<dynamic>("SP_DELETE_APPROVAL_TEMPLATE_TRL", parametersTRL, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        #endregion
+
                         foreach (var MKeyApp in objOutPutApprovalTemplates)
                         {
                             MkeyApprTemp = MKeyApp.MKEY;
@@ -2019,7 +2028,6 @@ namespace TaskManagement.API.Repositories
                 return null;
             }
         }
-
         public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>>> AbbrAndShortDescAsyncNT(GetAbbrAndShortAbbrOutPutNT getAbbrAndShortAbbrOutPutNT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -2140,7 +2148,6 @@ namespace TaskManagement.API.Repositories
                 }
             }
         }
-
         public async Task<ActionResult<OutPutApprovalTemplates>> UpdateApprovalTemplateAsync(UpdateApprovalTemplates updateApprovalTemplates)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);

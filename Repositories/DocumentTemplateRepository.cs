@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -45,6 +46,67 @@ namespace TaskManagement.API.Repositories
             catch (Exception)
             {
                 return null;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<DOC_TEMPLATE_HDR_OUTPUT_NT>>> GetDocumentTempByIdAsyncNT(DocTemplateGetInputNT docTemplateGetInputNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    //transaction = db.BeginTransaction();
+                    //transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+
+                    parmeters.Add("@MKEY", docTemplateGetInputNT.id);
+                    parmeters.Add("@ATTRIBUT1", docTemplateGetInputNT.LoggedIN);
+                    parmeters.Add("@ATTRIBUT2", null);
+                    parmeters.Add("@ATTRIBUT3", null);
+                    parmeters.Add("@Session_User_Id", docTemplateGetInputNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", docTemplateGetInputNT.Business_Group_Id);
+
+                    var taskStatusDistributonNTs = await db.QueryAsync<DOC_TEMPLATE_HDR_NT>("SP_GET_DOCUMENT_TEMPLATES_NT", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var successsResult = new List<DOC_TEMPLATE_HDR_OUTPUT_NT>
+                    {
+                        new DOC_TEMPLATE_HDR_OUTPUT_NT
+                        {
+                            STATUS = "Ok",
+                            MESSAGE = "Get data successfully!!!",
+                            Data = taskStatusDistributonNTs
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the generic error
+                var errorResult = new List<DOC_TEMPLATE_HDR_OUTPUT_NT>
+                        {
+                            new DOC_TEMPLATE_HDR_OUTPUT_NT
+                            {
+                                STATUS = "Error",
+                                MESSAGE = ex.Message,
+                                Data = null
+                            }
+                        };
+                return errorResult;
             }
         }
         public async Task<DOC_TEMPLATE_HDR> CreateDocumentTemplateAsync(DOC_TEMPLATE_HDR dOC_TEMPLATE_HDR)
@@ -467,6 +529,92 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<ActionResult<IEnumerable<DocCategoryOutPutNT>>> InsertInstructionAsynNT(InsertInstructionInputNT insertInstructionInputNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var CheckDocCategory = await db.QueryFirstOrDefaultAsync<int>("SELECT count(*) TOTAL_COUNT FROM TYPE_MST " +
+                        " WHERE TYPE_CODE = 'INSTR' AND DELETE_FLAG = 'N' AND LOWER(TYPE_DESC) = LOWER(@TYPE_DESC) GROUP BY [TYPE_DESC]; ",
+                        new { TYPE_DESC = insertInstructionInputNT.DOC_INSTR }, transaction: transaction);
+
+                    if (CheckDocCategory > 0)
+                    {
+                        var ErrorResult = new List<DocCategoryOutPutNT>
+                            {
+                                new DocCategoryOutPutNT
+                                {
+                                    Status = "Error",
+                                    Message ="Category already exists!!!",
+                                    Data = null
+                                }
+                            };
+                        return ErrorResult;
+
+                    }
+                    else
+                    {
+                        var parmeters = new DynamicParameters();
+                        parmeters.Add("@DOC_INSTR", insertInstructionInputNT.DOC_INSTR);
+                        parmeters.Add("@CREATED_BY", insertInstructionInputNT.CREATED_BY);
+                        parmeters.Add("@COMPANY_ID", insertInstructionInputNT.COMPANY_ID);
+                        parmeters.Add("@Session_User_Id", insertInstructionInputNT.Session_User_Id);
+                        parmeters.Add("@Business_Group_Id", insertInstructionInputNT.Business_Group_Id);
+
+                        var InsertDocCategory = await db.QueryAsync<GetTaskTypeOutPutNT>("SP_INSERT_INSTRUCTION_NT",
+                            parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+                        
+                        var SuccessResult = new List<DocCategoryOutPutNT>
+                            {
+                                new DocCategoryOutPutNT
+                                {
+                                    Status = "Ok",
+                                    Message ="Inserted Successfully!!!",
+                                    Data = InsertDocCategory
+                                }
+                            };
+                        return SuccessResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResult = new List<DocCategoryOutPutNT>
+                {
+                    new DocCategoryOutPutNT
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data = null
+                    }
+                };
+                return ErrorResult;
+            }
+        }
+
         public async Task<DocCategoryOutPut_List> UpdateDocumentCategory(DocCategoryUpdateInput docCategoryUpdateInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -594,6 +742,104 @@ namespace TaskManagement.API.Repositories
                     Message = ex.Message,
                     Data = null
                 };
+                return errorResult;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<DOC_TEMPLATE_HDR_OUTPUT_NT>>> InsertUpdateDocTemplateAsyncNT(DOC_TEMPLATE_HDR_NT_INPUT dOC_TEMPLATE_HDR_NT_INPUT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@MKEY", dOC_TEMPLATE_HDR_NT_INPUT.MKEY);
+                    parameters.Add("@DOC_CATEGORY", dOC_TEMPLATE_HDR_NT_INPUT.DOC_CATEGORY);
+                    parameters.Add("@DOC_NAME", dOC_TEMPLATE_HDR_NT_INPUT.DOC_NAME);
+                    parameters.Add("@DOC_ABBR", dOC_TEMPLATE_HDR_NT_INPUT.DOC_ABBR);
+                    parameters.Add("@DOC_NUM_FIELD_NAME", dOC_TEMPLATE_HDR_NT_INPUT.DOC_NUM_FIELD_NAME);
+                    parameters.Add("@DOC_NUM_DATE_NAME", dOC_TEMPLATE_HDR_NT_INPUT.DOC_NUM_DATE_NAME);
+                    parameters.Add("@DOC_NUM_APP_FLAG", dOC_TEMPLATE_HDR_NT_INPUT.DOC_NUM_APP_FLAG);
+                    parameters.Add("@DOC_NUM_VALID_FLAG", dOC_TEMPLATE_HDR_NT_INPUT.DOC_NUM_VALID_FLAG);
+                    parameters.Add("@DOC_NUM_DATE_APP_FLAG", dOC_TEMPLATE_HDR_NT_INPUT.DOC_NUM_DATE_APP_FLAG);
+                    parameters.Add("@DOC_ATTACH_APP_FLAG", dOC_TEMPLATE_HDR_NT_INPUT.DOC_ATTACH_APP_FLAG);
+                    parameters.Add("@COMPANY_ID", dOC_TEMPLATE_HDR_NT_INPUT.COMPANY_ID);
+                    parameters.Add("@CREATED_BY", dOC_TEMPLATE_HDR_NT_INPUT.CREATED_BY);
+                    parameters.Add("@ATTRIBUTE1", dOC_TEMPLATE_HDR_NT_INPUT.ATTRIBUTE1);
+                    parameters.Add("@ATTRIBUTE2", dOC_TEMPLATE_HDR_NT_INPUT.ATTRIBUTE2);
+                    parameters.Add("@Delete_Flag", dOC_TEMPLATE_HDR_NT_INPUT.Delete_Flag);
+                    parameters.Add("@Session_User_Id", dOC_TEMPLATE_HDR_NT_INPUT.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", dOC_TEMPLATE_HDR_NT_INPUT.Business_Group_Id);
+
+                    // Ensure the transaction is passed to the query
+                    var dOC_TEMPLATE = await db.QueryAsync<DOC_TEMPLATE_HDR_NT>("SP_INSERT_DOCUMENT_TEMPLATES_NT",
+                        parameters,
+                        transaction: transaction,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    if (dOC_TEMPLATE.Any())
+                    {
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+
+                        var successsResult = new List<DOC_TEMPLATE_HDR_OUTPUT_NT>
+                            {
+                            new DOC_TEMPLATE_HDR_OUTPUT_NT
+                                {
+                                STATUS = "Ok",
+                                MESSAGE = "Inserted Successfully!!!",
+                                Data= dOC_TEMPLATE
+                                }
+                        };
+                        return successsResult;
+
+                    }
+                    else
+                    {
+                       
+
+                        var successsResult = new List<DOC_TEMPLATE_HDR_OUTPUT_NT>
+                            {
+                            new DOC_TEMPLATE_HDR_OUTPUT_NT
+                                {
+                                STATUS = "Error",
+                                MESSAGE = "Insertion failed!!!",
+                                Data = null
+                                }
+                        };
+                        return successsResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<DOC_TEMPLATE_HDR_OUTPUT_NT>
+                    {
+                        new DOC_TEMPLATE_HDR_OUTPUT_NT
+                        {
+                            STATUS = "Error",
+                            MESSAGE = ex.Message,
+                            Data = null
+                        }
+                    };
                 return errorResult;
             }
         }
