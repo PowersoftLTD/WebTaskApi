@@ -37,13 +37,24 @@ namespace TaskManagement.API.Model
         public string DOC_INSTR { get; set; }
         [JsonPropertyName("CREATED_BY")]
         public int CREATED_BY { get; set; }
-        [JsonPropertyName("COMPANY_ID")]
-        public int COMPANY_ID { get; set; }
+        //[JsonPropertyName("COMPANY_ID")]
+        //public int COMPANY_ID { get; set; }
         [JsonPropertyName("Session_User_Id")]
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]
         public int Business_Group_Id { get; set; }
+    }
 
+    public class DocTypeInputNT
+    {
+        [JsonPropertyName("Doc_Name")]
+        public string DOC_INSTR { get; set; }
+        [JsonPropertyName("Created_By")]
+        public int CREATED_BY { get; set; }
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
     }
 
     public class DocCategoryUpdateInput

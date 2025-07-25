@@ -529,7 +529,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<ActionResult<IEnumerable<DocCategoryOutPutNT>>> InsertInstructionAsynNT(InsertInstructionInputNT insertInstructionInputNT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -576,7 +575,6 @@ namespace TaskManagement.API.Repositories
                         var parmeters = new DynamicParameters();
                         parmeters.Add("@DOC_INSTR", insertInstructionInputNT.DOC_INSTR);
                         parmeters.Add("@CREATED_BY", insertInstructionInputNT.CREATED_BY);
-                        parmeters.Add("@COMPANY_ID", insertInstructionInputNT.COMPANY_ID);
                         parmeters.Add("@Session_User_Id", insertInstructionInputNT.Session_User_Id);
                         parmeters.Add("@Business_Group_Id", insertInstructionInputNT.Business_Group_Id);
 
@@ -614,7 +612,6 @@ namespace TaskManagement.API.Repositories
                 return ErrorResult;
             }
         }
-
         public async Task<DocCategoryOutPut_List> UpdateDocumentCategory(DocCategoryUpdateInput docCategoryUpdateInput)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -837,6 +834,89 @@ namespace TaskManagement.API.Repositories
                         {
                             STATUS = "Error",
                             MESSAGE = ex.Message,
+                            Data = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+        public async Task<ActionResult<IEnumerable<DocCategoryOutPutNT>>> DocTypeAsynNT(DocTypeInputNT docTypeInputNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@DOC_CATEGORY", docTypeInputNT.DOC_INSTR);
+                    parameters.Add("@CREATED_BY", docTypeInputNT.CREATED_BY);
+                    parameters.Add("@Session_User_Id", docTypeInputNT.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", docTypeInputNT.Business_Group_Id);
+
+                    // Ensure the transaction is passed to the query
+                    var dOC_TEMPLATE = await db.QueryAsync<GetTaskTypeOutPutNT>("SP_INSERT_DOC_CATEGORY_NT",
+                        parameters,
+                        transaction: transaction,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    if (dOC_TEMPLATE.Any())
+                    {
+                        var sqlTransaction = (SqlTransaction)transaction;
+                        await sqlTransaction.CommitAsync();
+                        transactionCompleted = true;
+
+                        var successsResult = new List<DocCategoryOutPutNT>
+                            {
+                            new DocCategoryOutPutNT
+                                {
+                                Status = "Ok",
+                                Message = "Inserted Successfully!!!",
+                                Data= dOC_TEMPLATE
+                                }
+                        };
+                        return successsResult;
+
+                    }
+                    else
+                    {
+                        var successsResult = new List<DocCategoryOutPutNT>
+                            {
+                            new DocCategoryOutPutNT
+                            {
+                                Status = "Error",
+                                Message = "Insertion failed!!!",
+                                Data = null
+                            }
+                        };
+                        return successsResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<DocCategoryOutPutNT>
+                    {
+                        new DocCategoryOutPutNT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
                             Data = null
                         }
                     };

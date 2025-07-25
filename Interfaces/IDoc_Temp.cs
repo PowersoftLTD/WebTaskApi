@@ -15,6 +15,9 @@ namespace TaskManagement.API.Interfaces
         Task<bool> UpdateDocumentTemplateAsync(DOC_TEMPLATE_HDR dOC_TEMPLATE_HDR);
         Task<bool> DeleteDocumentTemplateAsync(int id, int LastUpatedBy);
         Task<DocCategoryOutPut_List> InsertDocumentCategory(DocCategoryInput docCategoryInput);
+
+        Task<ActionResult<IEnumerable<DocCategoryOutPutNT>>> DocTypeAsynNT(DocTypeInputNT docTypeInputNT);
+
         Task<DocCategoryOutPut_List> InsertInstructionAsyn(InsertInstructionInput insertInstructionInput);
 
         Task<ActionResult<IEnumerable<DocCategoryOutPutNT>>> InsertInstructionAsynNT(InsertInstructionInputNT insertInstructionInputNT);

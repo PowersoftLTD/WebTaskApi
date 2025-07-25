@@ -387,6 +387,58 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("DocumentTemplate-Insert-Doc-Category-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<DocCategoryOutPutNT>>> InsertDocCategoryNT(DocTypeInputNT docTypeInputNT)
+        {
+            bool flagCheck = false;
+            string strMessage = string.Empty;
+
+            try
+            {
+                if (docTypeInputNT.DOC_INSTR == "")
+                {
+                    flagCheck = true;
+                    strMessage = strMessage + " Please enter Doc Name, ";
+                }
+                if (docTypeInputNT.CREATED_BY == 0)
+                {
+                    flagCheck = true;
+                    strMessage = strMessage + " Please enter Created By, ";
+                }
+                if (flagCheck == true)
+                {
+                    var ErrorResult = new List<DocCategoryOutPutNT>
+                    {
+                        new DocCategoryOutPutNT
+                        {
+                            Status = "Error",
+                            Message = strMessage,
+                            Data = null
+                        }
+                    };
+                    return ErrorResult;
+
+                }
+                var InsertDoc_Category = await _repository.DocTypeAsynNT(docTypeInputNT);
+
+                return InsertDoc_Category;
+            }
+            catch (Exception ex)
+            {
+                var ErrorResult = new List<DocCategoryOutPutNT>
+                {
+                    new DocCategoryOutPutNT
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data = null
+                    }
+                };
+                return ErrorResult;
+            }
+        }
+
         [HttpPost("DocumentTemplate-Insert-Instruction")]
         [Authorize]
         public async Task<DocCategoryOutPut_List> InsertInstruction(InsertInstructionInput insertInstructionInput)
@@ -458,12 +510,6 @@ namespace TaskManagement.API.Controllers
                     flagCheck = true;
                     strMessage = strMessage + " Please enter Created By, ";
                 }
-                if (insertInstructionInputNT.COMPANY_ID == 0)
-                {
-                    flagCheck = true;
-                    strMessage = strMessage + " Please enter Company ID ";
-                }
-
                 if (flagCheck == true)
                 {
                     var ErrorResult = new List<DocCategoryOutPutNT>
