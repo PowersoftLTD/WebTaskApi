@@ -70,6 +70,74 @@ namespace TaskManagement.API.Repositories
                 return null;
             }
         }
+
+        public async Task<ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> GetAllProjectDefinationAsyncNT(ProjectHdrNT projectHdrNT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@MKEY", projectHdrNT.ProjectMkey);
+                    parmeters.Add("@Session_User_Id", projectHdrNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", projectHdrNT.Business_Group_Id);
+
+                    var pROJECT_HDRs = await db.QueryAsync<PROJECT_HDR_NT>("SP_GET_PROJECT_DEFINATION_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    if (pROJECT_HDRs == null || !pROJECT_HDRs.Any())
+                    {
+                        var ProjectError = new List<PROJECT_HDR_NT_OUTPUT>
+                        {
+                            new PROJECT_HDR_NT_OUTPUT
+                            {
+                                Status = "OK",
+                                Message = "Data not found",
+                                Data = null
+                            }
+                        };
+                        return ProjectError;
+                    }
+                    foreach (var apprvalProject in pROJECT_HDRs)
+                    {
+                        var parmetersApproval= new DynamicParameters();
+                        parmetersApproval.Add("@HEADER_MKEY", apprvalProject.MKEY);
+                        parmetersApproval.Add("@Session_User_Id", projectHdrNT.Session_User_Id);
+                        parmetersApproval.Add("@Business_Group_Id", projectHdrNT.Business_Group_Id);
+
+                        var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>("SP_GET_APPROVAL_SUBTASK_DETAILS_NT", parmetersApproval, commandType: CommandType.StoredProcedure);
+                        
+                        //var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>("SELECT * FROM  V_APPROVAL_SUBTASK_DETAILS " +
+                        //    "WHERE HEADER_MKEY = @HEADER_MKEY;",
+                        //         new { HEADER_MKEY = apprvalProject.MKEY });
+                        apprvalProject.APPROVALS_ABBR_LIST = approvalAbbr.ToList(); // Populate the SUBTASK_LIST property
+                    }
+
+                    var successResult = new List<PROJECT_HDR_NT_OUTPUT>
+                    {
+                        new PROJECT_HDR_NT_OUTPUT
+                        {
+                            Status = "Ok",
+                            Message = $"Get Data Successfuly!!!",
+                            Data = pROJECT_HDRs
+                        }
+                    };
+                    return successResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<PROJECT_HDR_NT_OUTPUT>
+                {
+                    new PROJECT_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $" Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+        }
+
         public async Task<PROJECT_HDR> GetProjectDefinationByIdAsync(int id, int LoggedIN, string FormName, string MethodName)
         {
             try

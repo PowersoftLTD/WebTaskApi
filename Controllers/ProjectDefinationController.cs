@@ -39,6 +39,30 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Project-Defination-Get-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> GetAllProjectDefinationNT(ProjectHdrNT projectHdrNT)
+        {
+            try
+            {
+                var Task = await _repository.GetAllProjectDefinationAsyncNT(projectHdrNT);
+                return Task;
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<PROJECT_HDR_NT_OUTPUT>
+                {
+                    new PROJECT_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $" Error: {ex.Message}",
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+        }
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<PROJECT_HDR>>> GetProjectDefination(int id, int LoggedIN, string FormName, string MethodName)
@@ -327,6 +351,28 @@ namespace TaskManagement.API.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<dynamic>>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE,
             string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
+        {
+            try
+            {
+                var Task = await _repository.GetApprovalDetails(LoggedInID, BUILDING_TYPE, BUILDING_STANDARD, STATUTORY_AUTHORITY);
+                if (Task != null & Task.Count() > 0)
+                {
+                    return Ok(Task);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception)
+            {
+                return new List<PROJECT_TRL_APPROVAL_ABBR_LIST>();
+            }
+        }
+
+        [HttpGet("ProjectDefination/Get-Approval-Details-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<dynamic>>> GetApprovalDetailsNT(int LoggedInID, int BUILDING_TYPE,string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
         {
             try
             {

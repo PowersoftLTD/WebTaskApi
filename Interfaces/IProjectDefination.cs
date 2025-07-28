@@ -1,10 +1,14 @@
-﻿using TaskManagement.API.Model;
+﻿using Microsoft.AspNetCore.Mvc;
+using TaskManagement.API.Model;
 
 namespace TaskManagement.API.Interfaces
 {
     public interface IProjectDefination
     {
         Task<IEnumerable<PROJECT_HDR>> GetAllProjectDefinationAsync(int LoggedIN, string FormName, string MethodName);
+
+        Task <ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> GetAllProjectDefinationAsyncNT(ProjectHdrNT projectHdrNT);
+
         Task<PROJECT_HDR> GetProjectDefinationByIdAsync(int id, int LoggedIN, string FormName, string MethodName);
         Task<PROJECT_HDR> CreateProjectDefinationAsync(PROJECT_HDR pROJECT_HDR);
         Task<PROJECT_HDR> UpdateProjectDefinationAsync(PROJECT_HDR pROJECT_HDR);

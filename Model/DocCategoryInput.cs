@@ -33,12 +33,14 @@ namespace TaskManagement.API.Model
 
     public class InsertInstructionInputNT
     {
+        [JsonPropertyName("Mkey")]
+        public int? Mkey { get; set; }
         [JsonPropertyName("DOC_INSTR")]
         public string DOC_INSTR { get; set; }
         [JsonPropertyName("CREATED_BY")]
         public int CREATED_BY { get; set; }
-        //[JsonPropertyName("COMPANY_ID")]
-        //public int COMPANY_ID { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public string? Delete_Flag { get; set; }
         [JsonPropertyName("Session_User_Id")]
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]
@@ -47,10 +49,15 @@ namespace TaskManagement.API.Model
 
     public class DocTypeInputNT
     {
+        [JsonPropertyName("Mkey")]
+        public int? Mkey { get; set; }
         [JsonPropertyName("Doc_Name")]
         public string DOC_INSTR { get; set; }
         [JsonPropertyName("Created_By")]
         public int CREATED_BY { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public string? Delete_Flag { get; set; }
+
         [JsonPropertyName("Session_User_Id")]
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]

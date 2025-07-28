@@ -41474,4 +41474,1296 @@ END
 
 ---------------------------------------------------------------------------------------
 
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_DOC_CATEGORY_NT]    Script Date: 25-07-2025 15:58:03 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+	-- =============================================
+	-- AUTHOR:    AMIT SHUDDHALWAR
+	-- CREATE DATE: 
+	-- DESCRIPTION:  TO CREATE DOC CATEGORY AND TYPE DESC
+	-- EXEC SP_INSERT_DOC_CATEGORY_NT 692,'RTR CAT HUB',926,'N',926,1
+	-- =============================================
+	ALTER PROCEDURE [dbo].[SP_INSERT_DOC_CATEGORY_NT]
+	-- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE
+	@Mkey			int,
+	@DOC_CATEGORY VARCHAR(200),
+	@CREATED_BY   INT,
+	@Delete_Flag		char,
+	@Session_User_Id      INT,  
+	@Business_Group_Id	  INT
+
+	AS
+	BEGIN
+	-- SET NOCOUNT ON ADDED TO PREVENT EXTRA RESULT SETS FROM
+	-- INTERFERING WITH SELECT STATEMENTS.
+	SET NOCOUNT ON;
+
+	BEGIN TRY
+	DECLARE @MAXCOUNT INT;
+	PRINT '@MKEY: '+ CONVERT(NVARCHAR,@MKEY)
+		if(@Mkey = 0)
+		BEGIN
+			SELECT @MAXCOUNT = count(*) FROM V_Doc_Category where [TYPE_DESC] = @DOC_CATEGORY and DELETE_FLAG = 'N';
+			IF ( @MAXCOUNT > 0 ) 
+			BEGIN
+				SELECT 'The Documnet is present';
+			END
+			ELSE
+			BEGIN
+				SELECT @MAXCOUNT = MAX(MKEY)
+				FROM   TYPE_MST
+				--WHERE  DELETE_FLAG = 'N';
+				------------------------------------------------------------------------------------------------------------------------
+				-- INSERT STATEMENTS FOR PROCEDURE HERE
+				------------------------------------------------------------------------------------------------------------------------
+				INSERT INTO TYPE_MST
+				(MKEY,
+				COMPANY_ID,
+				TYPE_CODE,
+				TYPE_DESC,
+				TYPE_ABBR,
+				PARENT_ID,
+				MASTER_MKEY,
+				EFFECTIVE_START_DATE,
+				ENABLE_FLAG,
+				CREATED_BY,
+				CREATION_DATE,
+				DELETE_FLAG)
+				VALUES ((@MAXCOUNT + 1),
+				0,
+				'DOC_CATEGORY',
+				@DOC_CATEGORY,
+				'DOC_CATEGORY',
+				0,
+				(@MAXCOUNT + 1),
+				GETDATE(),
+				'N',
+				@CREATED_BY,
+				GETDATE(),
+				@Delete_Flag );
+				------------------------------------------------------------------------------------------------------------------------
+				SELECT * FROM V_Doc_Category where MKEY = (@MAXCOUNT + 1) and DELETE_FLAG = 'N';
+			END
+		END
+		ELSE
+		BEGIN
+			PRINT '@MKEY INSIDE : '+ CONVERT(NVARCHAR,@MKEY)
+			UPDATE TYPE_MST 
+			SET DELETE_FLAG = @DELETE_FLAG , TYPE_DESC =  @DOC_CATEGORY, LAST_UPDATED_BY = @CREATED_BY , LAST_UPDATE_DATE = GETDATE()
+			WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';
+
+			SELECT * FROM V_Doc_Category where MKEY = @Mkey and DELETE_FLAG = 'N';
+		END																																						
+		
+	END TRY
+	BEGIN CATCH
+	-------------------------------------------------------------------------------------------------------------------------------            
+	SELECT ERROR_NUMBER()    AS ERRORNUMBER,
+	ERROR_SEVERITY()  AS ERRORSEVERITY,
+	ERROR_STATE()     AS ERRORSTATE,
+	ERROR_PROCEDURE() AS ERRORPROCEDURE,
+	ERROR_LINE()      AS ERRORLINE,
+	ERROR_MESSAGE()   AS ERRORMESSAGE;
+
+	-------------------------------------------------------------------------------------------------------------------------------  
+	DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+	SET @ERROR_MESSAGE = ERROR_MESSAGE();
+	-------------------------------------------------------------------------------------------------------------------------------  
+	EXEC SP_P_TMS_INSERT_ERROR_DES
+	@CREATED_BY,
+	'TMS',
+	'INSERT DOC CATEGORY',
+	@ERROR_MESSAGE,
+	'INSERT';
+	-------------------------------------------------------------------------------------------------------------------------------  
+	END CATCH
+	END
+
+
+----------------------------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_INSTRUCTION_NT]    Script Date: 25-07-2025 16:25:51 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ -- =============================================  
+ -- AUTHOR:    AMIT SHUDDHALWAR  
+ -- CREATE DATE:   
+ -- DESCRIPTION:  TO CREATE DOC INSTRUCTION  
+ --	EXEC SP_INSERT_INSTRUCTION_NT 582,'INSTRUCTION MASTER',926,'Y',926,1  
+ -- =============================================  
+   ALTER PROCEDURE [dbo].[SP_INSERT_INSTRUCTION_NT]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE  
+  @MKEY INT, 
+  @DOC_INSTR  VARCHAR(200),
+  @CREATED_BY INT,
+  @DELETE_FLAG   CHAR,
+  @Session_User_Id INT,
+  @Business_Group_Id INT
+AS
+  BEGIN
+      -- SET NOCOUNT ON ADDED TO PREVENT EXTRA RESULT SETS FROM  
+      -- INTERFERING WITH SELECT STATEMENTS.  
+      SET nocount ON;
+
+      BEGIN try
+          DECLARE @MAXCOUNT INT, @INSTR_MKEY INT;
+		  if(@MKEY = 0)
+		  BEGIN
+			SELECT @MAXCOUNT = Count(*)
+          FROM   type_mst
+          WHERE  [type_desc] = @DOC_INSTR
+                 AND type_code = 'INSTR'
+                 AND delete_flag = 'N';
+          IF ( @MAXCOUNT > 0 )
+            BEGIN
+                SELECT 'The Instruction is present';
+            END
+          ELSE
+            BEGIN
+                SELECT @MAXCOUNT = Max(mkey)
+                FROM   type_mst
+
+                --WHERE  DELETE_FLAG = 'N';  
+                ------------------------------------------------------------------------------------------------------------------------  
+                -- INSERT STATEMENTS FOR PROCEDURE HERE  
+                ------------------------------------------------------------------------------------------------------------------------  
+				SELECT @INSTR_MKEY = MASTER_MKEY
+				FROM   type_mst
+				WHERE  [type_desc] = 'INSTR'
+                AND type_code = 'INSTR'
+                AND delete_flag = 'N';
+ ------------------------------------------------------------------------------------------------------------------------  
+                INSERT INTO type_mst
+                            (mkey,
+                             company_id,
+                             type_code,
+                             type_desc,
+                             type_abbr,
+                             parent_id,
+                             master_mkey,
+                             effective_start_date,
+                             enable_flag,
+                             created_by,
+                             creation_date,
+                             delete_flag)
+                VALUES      (( @MAXCOUNT + 1 ),
+                             1,
+                             'INSTR',
+                             @DOC_INSTR,
+                             'INSTR',
+                             @INSTR_MKEY,
+                             ( @MAXCOUNT + 1 ),
+                             Getdate(),
+                             'N',
+                             @CREATED_BY,
+                             Getdate(),
+                             'N' );
+
+                ------------------------------------------------------------------------------------------------------------------------  
+                SELECT *
+                FROM   type_mst
+                WHERE  mkey = ( @MAXCOUNT + 1 )
+                       AND delete_flag = 'N';
+            END
+		  END
+		  ELSE
+		  BEGIN
+				UPDATE TYPE_MST 
+				SET DELETE_FLAG = @DELETE_FLAG , [TYPE_DESC] =  @DOC_INSTR, LAST_UPDATED_BY = @CREATED_BY, LAST_UPDATE_DATE = GETDATE()
+				WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';
+				-------------------------------------------------------------------------------------------------------------------
+				SELECT * FROM TYPE_MST where MKEY = @MKEY and DELETE_FLAG = 'N';
+		  END
+      END try
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------              
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------    
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+          SET @ERROR_MESSAGE = Error_message();
+          -------------------------------------------------------------------------------------------------------------------------------    
+          EXEC Sp_p_tms_insert_error_des
+            @CREATED_BY,
+            'TMS',
+            'INSERT INSTRUCTION',
+            @ERROR_MESSAGE,
+            'INSERT/UPDATE';
+      -------------------------------------------------------------------------------------------------------------------------------    
+      END catch
+  END 
+---------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_INSTRUCTION_NT]    Script Date: 25-07-2025 16:25:51 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ -- =============================================  
+ -- AUTHOR:    AMIT SHUDDHALWAR  
+ -- CREATE DATE:   
+ -- DESCRIPTION:  TO CREATE DOC INSTRUCTION  
+ --	EXEC SP_INSERT_INSTRUCTION_NT 582,'HRC Approval can be applied simultaneously along with concessions.',926,'Y',926,1  
+ -- =============================================  
+   ALTER PROCEDURE [dbo].[SP_INSERT_INSTRUCTION_NT]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE  
+  @MKEY INT, 
+  @DOC_INSTR  VARCHAR(200),
+  @CREATED_BY INT,
+  @DELETE_FLAG   CHAR,
+  @Session_User_Id INT,
+  @Business_Group_Id INT
+AS
+  BEGIN
+      -- SET NOCOUNT ON ADDED TO PREVENT EXTRA RESULT SETS FROM  
+      -- INTERFERING WITH SELECT STATEMENTS.  
+      SET nocount ON;
+
+      BEGIN try
+          DECLARE @MAXCOUNT INT, @INSTR_MKEY INT;
+		  if(@MKEY = 0)
+		  BEGIN
+			SELECT @MAXCOUNT = Count(*)
+          FROM   type_mst
+          WHERE  [type_desc] = @DOC_INSTR
+                 AND type_code = 'INSTR'
+                 AND delete_flag = 'N';
+          IF ( @MAXCOUNT > 0 )
+            BEGIN
+                SELECT 'The Instruction is present';
+            END
+          ELSE
+            BEGIN
+                SELECT @MAXCOUNT = Max(mkey)
+                FROM   type_mst
+
+                --WHERE  DELETE_FLAG = 'N';  
+                ------------------------------------------------------------------------------------------------------------------------  
+                -- INSERT STATEMENTS FOR PROCEDURE HERE  
+                ------------------------------------------------------------------------------------------------------------------------  
+				SELECT @INSTR_MKEY = MASTER_MKEY
+				FROM   type_mst
+				WHERE  [type_desc] = 'INSTR'
+                AND type_code = 'INSTR'
+                AND delete_flag = 'N';
+ ------------------------------------------------------------------------------------------------------------------------  
+                INSERT INTO type_mst
+                            (mkey,
+                             company_id,
+                             type_code,
+                             type_desc,
+                             type_abbr,
+                             parent_id,
+                             master_mkey,
+                             effective_start_date,
+                             enable_flag,
+                             created_by,
+                             creation_date,
+                             delete_flag)
+                VALUES      (( @MAXCOUNT + 1 ),
+                             1,
+                             'INSTR',
+                             @DOC_INSTR,
+                             'INSTR',
+                             @INSTR_MKEY,
+                             ( @MAXCOUNT + 1 ),
+                             Getdate(),
+                             'N',
+                             @CREATED_BY,
+                             Getdate(),
+                             'N' );
+
+                ------------------------------------------------------------------------------------------------------------------------  
+                SELECT *
+                FROM   type_mst
+                WHERE  mkey = ( @MAXCOUNT + 1 )
+                       AND delete_flag = 'N';
+            END
+		  END
+		  ELSE
+		  BEGIN
+				UPDATE TYPE_MST 
+				SET DELETE_FLAG = @DELETE_FLAG , [TYPE_DESC] =  @DOC_INSTR, LAST_UPDATED_BY = @CREATED_BY, LAST_UPDATE_DATE = GETDATE()
+				WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';
+				-------------------------------------------------------------------------------------------------------------------
+				SELECT * FROM TYPE_MST where MKEY = @MKEY and DELETE_FLAG = 'N';
+		  END
+      END try
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------              
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------    
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+          SET @ERROR_MESSAGE = Error_message();
+          -------------------------------------------------------------------------------------------------------------------------------    
+          EXEC Sp_p_tms_insert_error_des
+            @CREATED_BY,
+            'TMS',
+            'INSERT INSTRUCTION',
+            @ERROR_MESSAGE,
+            'INSERT/UPDATE';
+      -------------------------------------------------------------------------------------------------------------------------------    
+      END catch
+  END 
+---------------------------------------------------------------------------------------
+DATE : 28-07-2025
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_PROJECT_DEFINATION]    Script Date: 28-07-2025 14:11:46 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================    
+-- AUTHOR:  AMIT SHUDDHALWAR    
+-- CREATE DATE: 19-09-2024    
+-- DESCRIPTION: TO GET TASK RECURSIVE TABLE DETAILS (HDR,TRL)   
+-- EXEC SP_GET_PROJECT_DEFINATION_NT 54,926,1
+-- =============================================    
+CREATE PROCEDURE [dbo].[SP_GET_PROJECT_DEFINATION_NT]
+    -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE    
+    @MKEY				INT = NULL,
+    @Session_User_Id    INT,  
+	@Business_Group_Id	INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY;
+      
+        SELECT HDR.MKEY,
+               BUILDING_MKEY AS PROJECT_NAME,
+               BNAME.TYPE_DESC AS BUILDING_NAME,
+               PROJECT_ABBR,
+               PROPERTY,
+               PNAME.TYPE_DESC AS PROPERTY_NAME,
+               LEGAL_ENTITY,
+               PROJECT_ADDRESS,
+               BUILDING_CLASSIFICATION,
+               RTRIM(LTRIM(BUILDCLASS.TYPE_DESC)) AS BUILDING_TYPE_NAME,
+               BUILDING_STANDARD,
+               RTRIM(LTRIM(STND.TYPE_DESC)) AS BUILDING_STANDARD_NAME,
+               STATUTORY_AUTHORITY,
+               RTRIM(LTRIM(STAAUTH.TYPE_DESC)) AS STATUTORY_AUTHORITY_NAME,
+               HDR.ATTRIBUTE1,
+               HDR.ATTRIBUTE2,
+               HDR.ATTRIBUTE3,
+               HDR.ATTRIBUTE4,
+               HDR.ATTRIBUTE5,
+               HDR.CREATED_BY,
+               HDR.CREATION_DATE,
+               HDR.LAST_UPDATED_BY,
+               HDR.LAST_UPDATE_DATE,
+               HDR.DELETE_FLAG
+        FROM PROJECT_HDR HDR
+            join TYPE_MST BUILDCLASS
+                on HDR.BUILDING_CLASSIFICATION = BUILDCLASS.MKEY
+                   and BUILDCLASS.TYPE_CODE = 'BUILDCLASS'
+            join TYPE_MST STND
+                on HDR.BUILDING_STANDARD = STND.MKEY
+                   and STND.TYPE_CODE = 'STND'
+            join TYPE_MST STAAUTH
+                on HDR.STATUTORY_AUTHORITY = STAAUTH.MKEY
+                   and STAAUTH.TYPE_CODE = 'STAAUTH'
+            left join TYPE_MST BNAME
+                on HDR.BUILDING_MKEY = BNAME.MASTER_MKEY
+                   and BNAME.TYPE_CODE = 'PROJECT'
+            left join TYPE_MST PNAME
+                on HDR.PROPERTY = PNAME.MASTER_MKEY
+                   and PNAME.TYPE_CODE = 'PROJECT'
+        WHERE (
+                  HDR.MKEY = @MKEY
+                  OR @MKEY IS NULL
+              )
+              --AND CREATED_BY = @ATTRIBUT1
+              AND HDR.DELETE_FLAG = 'N'
+        ORDER BY HDR.MKEY;
+    END TRY
+    BEGIN CATCH
+        ------------------------------------------------------------------------------------------------------------------------------------
+        SELECT ERROR_NUMBER() AS ERRORNUMBER,
+               ERROR_SEVERITY() AS ERRORSEVERITY,
+               ERROR_STATE() AS ERRORSTATE,
+               ERROR_PROCEDURE() AS ERRORPROCEDURE,
+               ERROR_LINE() AS ERRORLINE,
+               ERROR_MESSAGE() AS ERRORMESSAGE;
+        -------------------------------------------------------------------------------------------------------------------------------
+        DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+        SET @ERROR_MESSAGE = ERROR_MESSAGE();
+        ------------------------------------------------------------------------------------------------------------------------------------
+        EXEC sp_P_TMS_INSERT_ERROR_DES 'PROJECT GET',
+                                       'TMS',
+                                       'PROJECT GET',
+                                       @ERROR_MESSAGE,
+                                       @Session_User_Id;
+    ------------------------------------------------------------------------------------------------------------------------------------
+    END CATCH
+END
+
+---------------------------------------------------------------------------------------
+ALTER PROCEDURE [dbo].[SP_INSERT_INSTRUCTION_NT]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE  
+  @MKEY INT, 
+  @DOC_INSTR  VARCHAR(200),
+  @CREATED_BY INT,
+  @DELETE_FLAG   CHAR,
+  @Session_User_Id INT,
+  @Business_Group_Id INT
+AS
+  BEGIN
+      -- SET NOCOUNT ON ADDED TO PREVENT EXTRA RESULT SETS FROM  
+      -- INTERFERING WITH SELECT STATEMENTS.  
+      SET nocount ON;
+
+      BEGIN try
+          DECLARE @MAXCOUNT INT, @INSTR_MKEY INT;
+		  if(@MKEY = 0)
+		  BEGIN
+			SELECT @MAXCOUNT = Count(*)
+          FROM   type_mst
+          WHERE  [type_desc] = @DOC_INSTR
+                 AND type_code = 'INSTR'
+                 AND delete_flag = 'N';
+          IF ( @MAXCOUNT > 0 )
+            BEGIN
+                SELECT 'The Instruction is present';
+            END
+          ELSE
+            BEGIN
+                SELECT @MAXCOUNT = Max(mkey)
+                FROM   type_mst
+
+                --WHERE  DELETE_FLAG = 'N';  
+                ------------------------------------------------------------------------------------------------------------------------  
+                -- INSERT STATEMENTS FOR PROCEDURE HERE  
+                ------------------------------------------------------------------------------------------------------------------------  
+				SELECT @INSTR_MKEY = MASTER_MKEY
+				FROM   type_mst
+				WHERE  [type_desc] = 'INSTR'
+                AND type_code = 'INSTR'
+                AND delete_flag = 'N';
+ ------------------------------------------------------------------------------------------------------------------------  
+                INSERT INTO type_mst
+                            (mkey,
+                             company_id,
+                             type_code,
+                             type_desc,
+                             type_abbr,
+                             parent_id,
+                             master_mkey,
+                             effective_start_date,
+                             enable_flag,
+                             created_by,
+                             creation_date,
+                             delete_flag)
+                VALUES      (( @MAXCOUNT + 1 ),
+                             1,
+                             'INSTR',
+                             @DOC_INSTR,
+                             'INSTR',
+                             @INSTR_MKEY,
+                             ( @MAXCOUNT + 1 ),
+                             Getdate(),
+                             'N',
+                             @CREATED_BY,
+                             Getdate(),
+                             'N' );
+
+                ------------------------------------------------------------------------------------------------------------------------  
+                SELECT *
+                FROM   type_mst
+                WHERE  mkey = ( @MAXCOUNT + 1 )
+                       AND delete_flag = 'N';
+            END
+		  END
+		  ELSE
+		  BEGIN
+				UPDATE TYPE_MST 
+				SET DELETE_FLAG = @DELETE_FLAG , [TYPE_DESC] =  @DOC_INSTR, LAST_UPDATED_BY = @CREATED_BY, LAST_UPDATE_DATE = GETDATE()
+				WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';
+				-------------------------------------------------------------------------------------------------------------------
+				SELECT * FROM TYPE_MST where MKEY = @MKEY and DELETE_FLAG = 'N';
+		  END
+      END try
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------              
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------    
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+          SET @ERROR_MESSAGE = Error_message();
+          -------------------------------------------------------------------------------------------------------------------------------    
+          EXEC Sp_p_tms_insert_error_des
+            @CREATED_BY,
+            'TMS',
+            'INSERT INSTRUCTION',
+            @ERROR_MESSAGE,
+            'INSERT/UPDATE';
+      -------------------------------------------------------------------------------------------------------------------------------    
+      END catch
+  END 
+
+-------------------------------------------------------------------------------------------
+
+
+CREATE PROCEDURE SP_GET_APPROVAL_SUBTASK_DETAILS_NT
+	-- Add the parameters for the stored procedure here
+	@HEADER_MKEY		INT,
+	@Session_User_Id	INT,
+	@Business_Group_Id	INT
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT * FROM  V_APPROVAL_SUBTASK_DETAILS WHERE HEADER_MKEY = @HEADER_MKEY;
+
+END
+GO
+------------------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT]    Script Date: 28-07-2025 17:27:12 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- exec SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT 'Approval', 157,464,null,null,null,null,null,null,null,null,null,null,926,1
+-- exec SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT  'Compliance', NULL,NULL,null,null,null,null,null,null,null,null,null,null,926,1
+-- exec SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT  'Milestones', NULL,NULL,null,null,null,null,null,null,null,null,null,null,926,1
+
+ALTER PROCEDURE [dbo].[SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT]
+    @TASK_TYPE NVARCHAR(255),
+	-- Common for all task type
+    @ProjectMkey NVARCHAR(255) = NULL,
+    @BuildingMkey NVARCHAR(255) = NULL,
+    @FILTER VARCHAR(MAX) = NULL,
+    -- Approval filter
+	@BUILDING_TYPE NVARCHAR(MAX) = NULL,
+    @BUILDING_STANDARD NVARCHAR(MAX) = NULL,
+    @STATUTORY_AUTHORITY NVARCHAR(MAX) = NULL,
+	-- Compliance Filter
+	@ResponsibleDepart NVARCHAR(MAX) = NULL,
+    @JobRole NVARCHAR(MAX) = NULL,
+    @ResponsiblePerson NVARCHAR(MAX)= NULL,
+	@RaisedAt NVARCHAR(MAX) = NULL,
+	@RaisedAtBefore NVARCHAR(MAX) = NULL,
+	@Status NVARCHAR(MAX) = NULL,
+    @Session_User_Id INT = NULL,  
+    @Business_Group_Id INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        DECLARE @sql NVARCHAR(MAX) = NULL,
+                @WhereClause NVARCHAR(MAX) = NULL,
+                @TaskTypeMkey INT;
+	
+        -- Create temporary tables instead of table variables
+        IF OBJECT_ID('tempdb..#TableOutputProjectMkey') IS NOT NULL DROP TABLE #TableOutputProjectMkey;
+        CREATE TABLE #TableOutputProjectMkey (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBuildingMkey') IS NOT NULL DROP TABLE #TableOutputBuildingMkey;
+        CREATE TABLE #TableOutputBuildingMkey (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBUILDING_TYPE') IS NOT NULL DROP TABLE #TableOutputBUILDING_TYPE;
+        CREATE TABLE #TableOutputBUILDING_TYPE (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputBUILDING_STANDARD') IS NOT NULL DROP TABLE #TableOutputBUILDING_STANDARD;
+        CREATE TABLE #TableOutputBUILDING_STANDARD (mkey INT);
+
+        IF OBJECT_ID('tempdb..#TableOutputSTATUTORY_AUTHORITY') IS NOT NULL DROP TABLE #TableOutputSTATUTORY_AUTHORITY;
+        CREATE TABLE #TableOutputSTATUTORY_AUTHORITY (mkey INT);
+
+		-- Compliance
+		  IF OBJECT_ID('tempdb..#TableOutputResponsibleDepart') IS NOT NULL DROP TABLE #TableOutputResponsibleDepart;
+        CREATE TABLE #TableOutputResponsibleDepart (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputJobRole') IS NOT NULL DROP TABLE #TableOutputJobRole;
+        CREATE TABLE #TableOutputJobRole (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputResponsiblePerson') IS NOT NULL DROP TABLE #TableOutputResponsiblePerson;
+        CREATE TABLE #TableOutputResponsiblePerson (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputRaisedAt') IS NOT NULL DROP TABLE #TableOutputRaisedAt;
+        CREATE TABLE #TableOutputRaisedAt (mkey INT);
+
+		  IF OBJECT_ID('tempdb..#TableOutputRaisedAtBefore') IS NOT NULL DROP TABLE #TableOutputRaisedAtBefore;
+        CREATE TABLE #TableOutputRaisedAtBefore (mkey INT);
+
+        -- Populate #TableOutputProjectMkey
+        INSERT INTO #TableOutputProjectMkey
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@ProjectMkey, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+        -- Populate #TableOutputBuildingMkey
+        INSERT INTO #TableOutputBuildingMkey
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@BuildingMkey, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+        -- Populate #TableOutputBUILDING_TYPE
+        INSERT INTO #TableOutputBUILDING_TYPE
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@BUILDING_TYPE AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+        -- Populate #TableOutputBUILDING_STANDARD
+        INSERT INTO #TableOutputBUILDING_STANDARD
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@BUILDING_STANDARD AS VARCHAR), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+        -- Populate #TableOutputSTATUTORY_AUTHORITY
+        INSERT INTO #TableOutputSTATUTORY_AUTHORITY
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(@STATUTORY_AUTHORITY, ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+		/******/
+		 INSERT INTO #TableOutputResponsibleDepart
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@ResponsibleDepart AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+		 INSERT INTO #TableOutputJobRole
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@JobRole AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+		 INSERT INTO #TableOutputResponsiblePerson
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+        FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@ResponsiblePerson AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+		 INSERT INTO #TableOutputRaisedAt
+        SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+		FROM (
+            SELECT CAST('<M>' + REPLACE(CAST(@RaisedAt AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+        ) AS A
+        CROSS APPLY CVS.nodes('/M') AS Split(a);
+		 INSERT INTO #TableOutputRaisedAtBefore
+			SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)
+			FROM (
+			SELECT CAST('<M>' + REPLACE(CAST(@RaisedAtBefore AS NVARCHAR(max)), ',', '</M><M>') + '</M>' AS XML) AS CVS
+			) AS A
+			CROSS APPLY CVS.nodes('/M') AS Split(a);
+		/******/
+		
+        IF @TASK_TYPE = 'APPROVAL'
+        BEGIN
+			SELECT @TaskTypeMkey = MKEY
+			FROM TYPE_MST
+			WHERE TYPE_CODE = 'Task_Type' AND DELETE_FLAG = 'N' AND TYPE_DESC = 'Approval';
+		
+		SET @sql = ' Select ISNULL(SUB.SUBTASK_MKEY, athdr.MKEY) AS MKEY  ,Isnull(TMST.type_desc, ''NA'') CATEGORY 
+		,ISNULL(thdr.task_no, Ahdr.SEQ_NO)AS task_no ,ISNULL(SUB.SUBTASK_ABBR, athdr.MAIN_ABBR ) AS TASKNAME 
+		,ISNULL(SUB.SUBTASK_PARENT_ID , 0) AS task_Parent_id ,dbo.[Initcap](Isnull(CREATOR.emp_full_name, ''NA'')) CREATOR 
+		,dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, ''NA'')) RESPONSIBLE ,dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, ''NA'')) ACTIONABLE 
+		,ISNULL(thdr.creation_date,phdr.CREATION_DATE) AS  creation_date ,ISNULL(dbo.[Initcap](thdr.task_name),athdr.MAIN_ABBR) AS TASK_NAME 
+		,ISNULL(thdr.task_description, athdr.SHORT_DESCRIPTION) AS task_description 
+		,ISNULL(thdr.creation_date,phdr.CREATION_DATE) AS  creation_date ,athdr.BUILDING_TYPE ,athdr.BUILDING_STANDARD 
+		,athdr.STATUTORY_AUTHORITY ,CASE                       WHEN thdr.status IN ( ''CREATED'' ) THEN ''Not Started''                       
+		WHEN thdr.status LIKE ''%SUB TASK CREATED%'' THEN ''Not Started''                       
+		WHEN thdr.status LIKE ''%SUBTASK CREATED%'' THEN ''Not Started''                       
+		WHEN thdr.status IN ( ''WORK IN PROGRESS'', ''CLOSE INITIATED'', ''CANCEL INITIATED'', ''RE-WORK'' ) THEN ''In Progress''
+		WHEN thdr.status IN ( ''CLOSE'', ''COMPLETED'' ) THEN ''Completed''                      
+		ELSE ''Others''                     
+		END AS Dashboard_Status ,thdr.completion_date AS COMPLETION_DATE ,ISNULL(dbo.[Initcap](thdr.task_name),athdr.MAIN_ABBR) AS TASK_NAME 
+		,ISNULL(thdr.task_description, athdr.SHORT_DESCRIPTION) AS task_description ,ISNULL(thdr.tags,athdr.TAGS) AS tags 
+		,dbo.[Initcap](thdr.status) AS STATUS ,CASE                       
+		WHEN Isnull(CREATOR.first_name, ''NA'') != Isnull(RESPONSIBLE.first_name, ''NA'')  
+		THEN dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) + '' > '' + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, ''NA''))
+		ELSE dbo.[Initcap](Isnull(CREATOR.first_name, ''NA''))                     
+		END AS RESPONSIBLE_TAG                    
+		,dbo.[Initcap](Isnull(TProject.type_desc, '''')) AS PROJECT_NAME                    
+		,dbo.Tasknamestring(thdr.mkey) AS TASK_HISTORY ,Isnull(Rtrim(thdr.[priority]), '''') AS [Priority] 
+		,Isnull(thdr.percent_complete, ''0'') AS Progress_Percentage ,Isnull(parent_counts.parenttaskcount, 0) AS SubTask_Count 
+		, CASE WHEN thdr.task_no IS NULL THEN ''N'' ELSE ''Y'' END Is_Taskmkey
+		,thdr.CREATED_BY 
+		FROM APPROVAL_TEMPLATE_HDR  athdr LEFT JOIN APPROVAL_TEMPLATE_TRL_SUBTASK SUB  ON athdr.MKEY = SUB.SUBTASK_MKEY 
+		AND SUB.DELETE_FLAG = ''N'' INNER JOIN PROJECT_TRL_APPROVAL_ABBR Ahdr ON athdr.MKEY = Ahdr.APPROVAL_MKEY AND Ahdr.DELETE_FLAG = ''N'' 
+		INNER JOIN PROJECT_HDR phdr ON phdr.MKEY = Ahdr.HEADER_MKEY AND phdr.DELETE_FLAG = ''N'' 
+		left join TASK_HDR thdr ON thdr.MKEY = Ahdr.TASK_NO_MKEY and Ahdr.TASK_NO_MKEY is not null 
+		LEFT JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID 
+		AND TProject.DELETE_FLAG = ''N'' LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' 
+		AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N'' 
+		LEFT JOIN type_mst TMST ON TMST.master_mkey = thdr.CAREGORY AND TMST.type_code = ''CATEGORY'' AND TMST.delete_flag = ''N''   
+		LEFT JOIN employee_mst CREATOR ON CREATOR.mkey = thdr.created_by AND CREATOR.delete_flag = ''N''              
+		LEFT JOIN employee_mst RESPONSIBLE ON RESPONSIBLE.mkey = thdr.assigned_to AND RESPONSIBLE.delete_flag = ''N''              
+		LEFT JOIN employee_mst ACTIONABLE ON ACTIONABLE.mkey = thdr.resposible_emp_mkey AND ACTIONABLE.delete_flag = ''N'' 
+		LEFT JOIN (SELECT task_parent_id, Count(*) AS ParentTaskCount                         
+		FROM task_hdr WHERE task_parent_id IS NOT NULL AND mkey NOT IN (task_parent_id) AND delete_flag = ''N''                         
+		GROUP BY task_parent_id) parent_counts ON thdr.mkey = parent_counts.task_parent_id   
+		WHERE athdr.DELETE_FLAG = ''N'' AND phdr.DELETE_FLAG = ''N'' AND Ahdr.DELETE_FLAG = ''N'' '; 
+		set @WhereClause = '';
+		--set @sql = 'SELECT thdr.mkey as Sr_No, thdr.mkey,Isnull(TMST.type_desc, ''NA'') CATEGORY
+		--			,thdr.task_no,dbo.[Initcap](Isnull(CREATOR.emp_full_name, ''NA'')) CREATOR,
+		--			dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, ''NA'')) RESPONSIBLE,
+		--			dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, ''NA'')) ACTIONABLE,
+		--			thdr.creation_date,  
+		--			athdr.BUILDING_TYPE,athdr.BUILDING_STANDARD,athdr.STATUTORY_AUTHORITY,
+		--			CASE                      
+		--			WHEN thdr.status IN ( ''CREATED'' ) THEN ''Not Started''                      
+		--			WHEN thdr.status LIKE ''%SUB TASK CREATED%'' THEN ''Not Started''                      
+		--			WHEN thdr.status LIKE ''%SUBTASK CREATED%'' THEN ''Not Started''                      
+		--			WHEN thdr.status IN ( ''WORK IN PROGRESS'', ''CLOSE INITIATED'', ''CANCEL INITIATED'', ''RE-WORK'' ) THEN ''In Progress''                      
+		--			WHEN thdr.status IN ( ''CLOSE'', ''COMPLETED'' ) THEN ''Completed''                      ELSE ''Others''                    
+		--			END AS Dashboard_Status, 
+		--			thdr.completion_date AS COMPLETION_DATE,                    
+		--			dbo.[Initcap](thdr.task_name) AS TASK_NAME,                    
+		--			thdr.task_description,                    
+		--			thdr.tags,                    
+		--			dbo.[Initcap](thdr.status) AS STATUS,                   
+		--			CASE                      
+		--			WHEN Isnull(CREATOR.first_name, ''NA'') != Isnull(RESPONSIBLE.first_name, ''NA'') 
+		--			THEN dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) + '' > '' + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, ''NA''))                      
+		--			ELSE dbo.[Initcap](Isnull(CREATOR.first_name, ''NA''))                    
+		--			END AS RESPONSIBLE_TAG,                   
+		--			dbo.[Initcap](Isnull(TProject.type_desc, '''')) AS PROJECT_NAME,                    
+		--			dbo.Tasknamestring(thdr.mkey) AS TASK_HISTORY,                    
+		--			Isnull(Rtrim(thdr.[priority]), '''') AS [Priority],                    
+		--			Isnull(thdr.percent_complete, ''0'') AS Progress_Percentage,                    
+		--			Isnull(parent_counts.parenttaskcount, 0) AS SubTask_Count,                    
+		--			thdr.CREATED_BY     
+		--			FROM TASK_HDR thdr
+		--			INNER JOIN PROJECT_TRL_APPROVAL_ABBR Ahdr ON thdr.MKEY = Ahdr.TASK_NO_MKEY
+		--			INNER JOIN PROJECT_HDR phdr ON phdr.MKEY = Ahdr.HEADER_MKEY AND phdr.DELETE_FLAG = ''N''
+		--			INNER JOIN APPROVAL_TEMPLATE_HDR athdr ON athdr.MKEY = Ahdr.APPROVAL_MKEY AND Ahdr.DELETE_FLAG = ''N''
+		--			LEFT JOIN EMPLOYEE_MST emst ON thdr.ASSIGNED_TO = emst.MKEY AND emst.DELETE_FLAG = ''N''
+		--			LEFT JOIN employee_mst CREATOR ON CREATOR.mkey = thdr.created_by AND CREATOR.delete_flag = ''N''             
+		--			LEFT JOIN employee_mst RESPONSIBLE ON RESPONSIBLE.mkey = thdr.assigned_to AND RESPONSIBLE.delete_flag = ''N''             
+		--			LEFT JOIN employee_mst ACTIONABLE ON ACTIONABLE.mkey = thdr.resposible_emp_mkey AND ACTIONABLE.delete_flag = ''N''
+		--			LEFT JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID AND TProject.DELETE_FLAG = ''N''
+		--			LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N''
+		--			LEFT JOIN type_mst TMST ON TMST.master_mkey = thdr.CAREGORY AND TMST.type_code = ''CATEGORY'' AND TMST.delete_flag = ''N''  
+		--			LEFT JOIN (SELECT task_parent_id, Count(*) AS ParentTaskCount                        
+		--			FROM task_hdr WHERE task_parent_id IS NOT NULL AND mkey NOT IN (task_parent_id) AND delete_flag = ''N''                        
+		--			GROUP BY task_parent_id) parent_counts ON thdr.mkey = parent_counts.task_parent_id
+		--			WHERE thdr.DELETE_FLAG = ''N''
+  --                    AND Ahdr.DELETE_FLAG = ''N''
+  --                    AND phdr.DELETE_FLAG = ''N''
+  --                    AND athdr.DELETE_FLAG = ''N'' ';
+
+					--Set @sql = 'Select ISNULL(CONVERT(NVARCHAR, thdr.mkey),athdr.MKEY) as Sr_No
+					--,ISNULL(thdr.mkey, athdr.MKEY) AS MKEY 
+					--,Isnull(TMST.type_desc, ''NA'') CATEGORY
+					--,ISNULL(thdr.task_no, Ahdr.SEQ_NO)AS task_no
+					--,ISNULL(thdr.TASK_PARENT_ID, athdr.MKEY ) AS task_Parent_id
+					--,dbo.[Initcap](Isnull(CREATOR.emp_full_name, ''NA'')) CREATOR
+					--,dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, ''NA'')) RESPONSIBLE
+					--,dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, ''NA'')) ACTIONABLE
+					--,ISNULL(thdr.creation_date,phdr.CREATION_DATE) AS  creation_date
+					--,athdr.BUILDING_TYPE
+					--,athdr.BUILDING_STANDARD
+					--,athdr.STATUTORY_AUTHORITY
+					--,CASE                      
+					--WHEN thdr.status IN ( ''CREATED'' ) THEN ''Not Started''                      
+					--WHEN thdr.status LIKE ''%SUB TASK CREATED%'' THEN ''Not Started''                      
+					--WHEN thdr.status LIKE ''%SUBTASK CREATED%'' THEN ''Not Started''                      
+					--WHEN thdr.status IN ( ''WORK IN PROGRESS'', ''CLOSE INITIATED'', ''CANCEL INITIATED'', ''RE-WORK'' ) THEN ''In Progress''                      
+					--WHEN thdr.status IN ( ''CLOSE'', ''COMPLETED'' ) THEN ''Completed''                      ELSE ''Others''                    
+					--END AS Dashboard_Status
+					--,thdr.completion_date AS COMPLETION_DATE
+					--,ISNULL(dbo.[Initcap](thdr.task_name),athdr.MAIN_ABBR) AS TASK_NAME
+					--,ISNULL(thdr.task_description, athdr.SHORT_DESCRIPTION) AS task_description
+					--,ISNULL(thdr.tags,athdr.TAGS) AS tags
+					--,dbo.[Initcap](thdr.status) AS STATUS
+					--,CASE                      
+					--WHEN Isnull(CREATOR.first_name, ''NA'') != Isnull(RESPONSIBLE.first_name, ''NA'') 
+					--THEN dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) + '' > '' + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, ''NA''))                      
+					--ELSE dbo.[Initcap](Isnull(CREATOR.first_name, ''NA''))                    
+					--END AS RESPONSIBLE_TAG                   
+					--,dbo.[Initcap](Isnull(TProject.type_desc, '''')) AS PROJECT_NAME                   
+					--,dbo.Tasknamestring(thdr.mkey) AS TASK_HISTORY
+					--,Isnull(Rtrim(thdr.[priority]), '''') AS [Priority]
+					--,Isnull(thdr.percent_complete, ''0'') AS Progress_Percentage
+					--,Isnull(parent_counts.parenttaskcount, 0) AS SubTask_Count
+					--,thdr.CREATED_BY
+					--FROM APPROVAL_TEMPLATE_HDR  athdr
+					--INNER JOIN PROJECT_TRL_APPROVAL_ABBR Ahdr  ON athdr.MKEY = Ahdr.APPROVAL_MKEY AND Ahdr.DELETE_FLAG = ''N''
+					--INNER JOIN PROJECT_HDR phdr ON phdr.MKEY = Ahdr.HEADER_MKEY AND phdr.DELETE_FLAG = ''N''
+					--left join TASK_HDR thdr ON thdr.MKEY = Ahdr.TASK_NO_MKEY and Ahdr.TASK_NO_MKEY is not null
+					--LEFT JOIN EMPLOYEE_MST emst ON thdr.ASSIGNED_TO = emst.MKEY AND emst.DELETE_FLAG = ''N''
+					--LEFT JOIN employee_mst CREATOR ON CREATOR.mkey = thdr.created_by AND CREATOR.delete_flag = ''N''             
+					--LEFT JOIN employee_mst RESPONSIBLE ON RESPONSIBLE.mkey = thdr.assigned_to AND RESPONSIBLE.delete_flag = ''N''             
+					--LEFT JOIN employee_mst ACTIONABLE ON ACTIONABLE.mkey = thdr.resposible_emp_mkey AND ACTIONABLE.delete_flag = ''N''
+					--LEFT JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID AND TProject.DELETE_FLAG = ''N''
+					--LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N''
+					--LEFT JOIN type_mst TMST ON TMST.master_mkey = thdr.CAREGORY AND TMST.type_code = ''CATEGORY'' AND TMST.delete_flag = ''N''  
+					--LEFT JOIN (SELECT task_parent_id, Count(*) AS ParentTaskCount                        
+					--FROM task_hdr WHERE task_parent_id IS NOT NULL AND mkey NOT IN (task_parent_id) AND delete_flag = ''N''                        
+					--GROUP BY task_parent_id) parent_counts ON thdr.mkey = parent_counts.task_parent_id ';
+					  ----thdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + '                      AND
+       ----          set @WhereClause =' WHERE thdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + '
+       ----               AND thdr.DELETE_FLAG = ''N''
+       ----               AND Ahdr.DELETE_FLAG = ''N''
+       ----               AND phdr.DELETE_FLAG = ''N''
+       ----               AND athdr.DELETE_FLAG = ''N''
+					  ----AND (thdr.RESPOSIBLE_EMP_MKEY = ' + CONVERT(NVARCHAR, @Session_User_Id) + '
+       ----               OR thdr.CREATED_BY = ' + CONVERT(NVARCHAR, @Session_User_Id) + ') ';
+					if 	ISNULL(@ProjectMkey, '') <> ''	
+					begin
+						set @WhereClause += ' and phdr.PROPERTY In (SELECT mkey FROM #TableOutputProjectMkey) ';
+					end
+					
+					if 	ISNULL(@BuildingMkey, '') <> ''	
+					begin
+						set @WhereClause += ' and phdr.BUILDING_MKEY in (SELECT mkey FROM #TableOutputBuildingMkey) ';
+					end
+					
+					if 	ISNULL(@BUILDING_TYPE, '') <> ''	
+					begin
+						set @WhereClause += ' and athdr.BUILDING_TYPE In (SELECT mkey FROM #TableOutputBUILDING_TYPE)';
+					end
+
+					if 	ISNULL(@BUILDING_STANDARD, '') <> ''	
+					begin
+						set @WhereClause += ' and athdr.BUILDING_STANDARD in (SELECT mkey FROM #TableOutputBUILDING_STANDARD)';
+					end
+					if 	ISNULL(@STATUTORY_AUTHORITY, '') <> ''	
+					begin
+						set @WhereClause += ' and athdr.STATUTORY_AUTHORITY in (SELECT mkey FROM #TableOutputSTATUTORY_AUTHORITY)';
+					end
+					
+					PRINT '@sql:1 '+  @WhereClause
+					 
+        END
+		Else IF @TASK_TYPE = 'COMPLIANCE' --(SELECT type_desc FROM TYPE_MST	WHERE TYPE_CODE = 'Compliance' AND DELETE_FLAG = 'N') 
+		Begin
+			SELECT @TaskTypeMkey = MKEY
+			FROM TYPE_MST
+			WHERE TYPE_CODE = 'Task_Type' AND DELETE_FLAG = 'N' AND TYPE_DESC = 'COMPLIANCE';
+
+			SET @sql = ' SELECT  ISNULL(thdr.mkey,chdr.MKEY) as Sr_No,ISNULL(thdr.mkey,chdr.MKEY) AS mkey
+						,Isnull(TMST.type_desc, ''NA'') CATEGORY
+						,ISNULL (thdr.task_no,chdr.MKEY) AS task_no
+						,''0'' AS task_Parent_id
+						,dbo.[Initcap](Isnull(CREATOR.emp_full_name, ''NA'')) CREATOR
+						,dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, ''NA'')) RESPONSIBLE,
+						dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, ''NA'')) ACTIONABLE
+						,ISNULL(thdr.creation_date, chdr.CREATION_DATE) AS CREATION_DATE
+						,CASE WHEN thdr.status IN ( ''CREATED'' ) THEN ''Not Started''                      
+						WHEN thdr.status LIKE ''%SUB TASK CREATED%'' THEN ''Not Started'' WHEN thdr.status LIKE ''%SUBTASK CREATED%'' THEN ''Not Started''                      
+						WHEN thdr.status IN ( ''WORK IN PROGRESS'', ''CLOSE INITIATED'', ''CANCEL INITIATED'', ''RE-WORK'' ) THEN ''In Progress''                      
+						WHEN thdr.status IN ( ''CLOSE'', ''COMPLETED'' ) THEN ''Completed'' ELSE ''Others'' END AS Dashboard_Status
+						,ISNULL(thdr.completion_date ,chdr.TO_BE_COMPLETED_BY)  AS COMPLETION_DATE
+						,ISNULL(dbo.[Initcap](thdr.task_name), chdr.SHORT_DESCRIPTION) AS TASK_NAME
+						,ISNULL(thdr.task_description, chdr.Long_description) as task_description
+						,ISNULL(thdr.tags, TGS.TAGS_NAME) AS tags
+						,ISNULL(dbo.[Initcap](thdr.status),CASE WHEN chdr.STATUS = ''N'' THEN ''NEW'' WHEN chdr.STATUS = ''I'' THEN ''INITIATED''
+							WHEN chdr.STATUS = ''C'' THEN ''CLOSE'' END ) AS STATUS
+						, CASE                      
+						WHEN Isnull(CREATOR.first_name, ''NA'') != Isnull(RESPONSIBLE.first_name, ''NA'') 
+						THEN dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) + '' > '' + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, ''NA''))                      
+						ELSE dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) END AS RESPONSIBLE_TAG,                   
+						dbo.[Initcap](Isnull(TProject.type_desc, '''')) AS PROJECT_NAME,dbo.Tasknamestring(thdr.mkey) AS TASK_HISTORY,  
+						Isnull(Rtrim(thdr.[priority]), '''') AS [Priority],Isnull(thdr.percent_complete, ''0'') AS Progress_Percentage,                    
+						Isnull(parent_counts.parenttaskcount, 0) AS SubTask_Count
+						,chdr.RESPONSIBLE_DEPARTMENT
+						,chdr.JOB_ROLE
+						,chdr.RESPONSIBLE_PERSON
+						,chdr.STATUS as ComplianceSTATUS
+						,chdr.RAISED_AT
+						,chdr.RAISED_AT_BEFORE
+						,ISNULL(thdr.CREATED_BY , chdr.CREATED_BY) AS CREATED_BY   
+						from COMPLIANCE_HDR chdr 
+						left join TASK_HDR thdr on	thdr.MKEY = chdr.TASK_NO_MKEY
+						LEFT JOIN COMPLIANCE_TRL_TAGS TGS ON chdr.MKEY = TGS.COMPLIANCE_MKEY
+						LEFT JOIN employee_mst CREATOR ON CREATOR.mkey = chdr.created_by AND CREATOR.delete_flag = ''N''             
+						LEFT JOIN employee_mst RESPONSIBLE ON RESPONSIBLE.mkey = chdr.CREATED_BY AND RESPONSIBLE.delete_flag = ''N''             
+						LEFT JOIN employee_mst ACTIONABLE ON ACTIONABLE.mkey = chdr.RESPONSIBLE_PERSON  AND ACTIONABLE.delete_flag = ''N''
+						LEFT JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = chdr.PROPERTY AND TProject.DELETE_FLAG = ''N''
+						LEFT JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = chdr.BUILDING AND TBuilding.DELETE_FLAG = ''N''
+						left join TYPE_MST Dmst on chdr.RESPONSIBLE_DEPARTMENT = Dmst.MASTER_MKEY and Dmst.TYPE_CODE=''DEPARTMENT'' AND Dmst.DELETE_FLAG = ''N''
+						LEFT JOIN type_mst TMST ON TMST.master_mkey = thdr.CAREGORY AND TMST.type_code = ''CATEGORY'' AND TMST.delete_flag = ''N''  
+						left join employee_mst Rmst on rmst.MKEY = chdr.RESPONSIBLE_PERSON and Rmst.DELETE_FLAG = ''N''
+						left join TYPE_MST Jmst on chdr.JOB_ROLE = Jmst.MASTER_MKEY and Jmst.TYPE_CODE=''JOBROLE'' AND Jmst.DELETE_FLAG = ''N''
+						left JOIN APPROVAL_TEMPLATE_HDR RaisedHDR ON RaisedHDR.MKEY = chdr.RAISED_AT and RaisedHDR.DELETE_FLAG = ''N''
+						left JOIN APPROVAL_TEMPLATE_HDR RaisedBeforeHDR ON RaisedBeforeHDR.MKEY = chdr.RAISED_AT_BEFORE and RaisedBeforeHDR.DELETE_FLAG = ''N''
+						LEFT JOIN (SELECT task_parent_id, Count(*) AS ParentTaskCount 
+						FROM task_hdr WHERE task_parent_id IS NOT NULL AND mkey NOT IN (task_parent_id) AND delete_flag = ''N''                        
+						GROUP BY task_parent_id) parent_counts ON thdr.mkey = parent_counts.task_parent_id ';
+
+			--Set @sql = 'SELECT  thdr.mkey as Sr_No, thdr.mkey,Isnull(TMST.type_desc, ''NA'') CATEGORY
+			--		,thdr.task_no,dbo.[Initcap](Isnull(CREATOR.emp_full_name, ''NA'')) CREATOR
+			--		,dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, ''NA'')) RESPONSIBLE,
+			--			dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, ''NA'')) ACTIONABLE,thdr.creation_date,                    
+			--			CASE WHEN thdr.status IN ( ''CREATED'' ) THEN ''Not Started''                      
+			--			WHEN thdr.status LIKE ''%SUB TASK CREATED%'' THEN ''Not Started'' WHEN thdr.status LIKE ''%SUBTASK CREATED%'' THEN ''Not Started''                      
+			--			WHEN thdr.status IN ( ''WORK IN PROGRESS'', ''CLOSE INITIATED'', ''CANCEL INITIATED'', ''RE-WORK'' ) THEN ''In Progress''                      
+			--			WHEN thdr.status IN ( ''CLOSE'', ''COMPLETED'' ) THEN ''Completed'' ELSE ''Others'' END AS Dashboard_Status, 
+			--			thdr.completion_date AS COMPLETION_DATE, dbo.[Initcap](thdr.task_name) AS TASK_NAME,                    
+			--			thdr.task_description,thdr.tags,dbo.[Initcap](thdr.status) AS STATUS, CASE                      
+			--			WHEN Isnull(CREATOR.first_name, ''NA'') != Isnull(RESPONSIBLE.first_name, ''NA'') 
+			--			THEN dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) + '' > '' + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, ''NA''))                      
+			--			ELSE dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) END AS RESPONSIBLE_TAG,                   
+			--			dbo.[Initcap](Isnull(TProject.type_desc, '''')) AS PROJECT_NAME,dbo.Tasknamestring(thdr.mkey) AS TASK_HISTORY,  
+			--			Isnull(Rtrim(thdr.[priority]), '''') AS [Priority],Isnull(thdr.percent_complete, ''0'') AS Progress_Percentage,                    
+			--			Isnull(parent_counts.parenttaskcount, 0) AS SubTask_Count,
+			--			chdr.RESPONSIBLE_DEPARTMENT,chdr.JOB_ROLE,chdr.RESPONSIBLE_PERSON,chdr.STATUS as ComplianceSTATUS,chdr.RAISED_AT
+			--			,chdr.RAISED_AT_BEFORE,thdr.CREATED_BY            
+			--	from COMPLIANCE_HDR chdr left join TASK_HDR thdr on thdr.MKEY = chdr.TASK_NO_MKEY
+			--	LEFT JOIN employee_mst CREATOR ON CREATOR.mkey = thdr.created_by AND CREATOR.delete_flag = ''N''             
+			--	LEFT JOIN employee_mst RESPONSIBLE ON RESPONSIBLE.mkey = thdr.assigned_to AND RESPONSIBLE.delete_flag = ''N''             
+			--	LEFT JOIN employee_mst ACTIONABLE ON ACTIONABLE.mkey = thdr.resposible_emp_mkey AND ACTIONABLE.delete_flag = ''N''
+			--	Inner JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID AND TProject.DELETE_FLAG = ''N''
+			--	Inner JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N''
+			--	left join TYPE_MST Dmst on chdr.RESPONSIBLE_DEPARTMENT = Dmst.MASTER_MKEY and Dmst.TYPE_CODE=''DEPARTMENT'' AND Dmst.DELETE_FLAG = ''N''
+			--	LEFT JOIN type_mst TMST ON TMST.master_mkey = thdr.CAREGORY AND TMST.type_code = ''CATEGORY'' AND TMST.delete_flag = ''N''  
+			--	left join employee_mst Rmst on rmst.MKEY = chdr.RESPONSIBLE_PERSON and Rmst.DELETE_FLAG = ''N''
+			--	left join TYPE_MST Jmst on chdr.JOB_ROLE = Jmst.MASTER_MKEY and Jmst.TYPE_CODE=''JOBROLE'' AND Jmst.DELETE_FLAG = ''N''
+			--	left JOIN APPROVAL_TEMPLATE_HDR RaisedHDR ON RaisedHDR.MKEY = chdr.RAISED_AT and RaisedHDR.DELETE_FLAG = ''N''
+			--	left JOIN APPROVAL_TEMPLATE_HDR RaisedBeforeHDR ON RaisedBeforeHDR.MKEY = chdr.RAISED_AT_BEFORE and RaisedBeforeHDR.DELETE_FLAG = ''N''
+			--	LEFT JOIN (SELECT task_parent_id, Count(*) AS ParentTaskCount                        
+			--	FROM task_hdr WHERE task_parent_id IS NOT NULL AND mkey NOT IN (task_parent_id) AND delete_flag = ''N''                        
+			--	GROUP BY task_parent_id) parent_counts ON thdr.mkey = parent_counts.task_parent_id
+			--	 Where chdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + ' ';
+
+					--Set @WhereClause =' Where chdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + '';
+					
+					if 	ISNULL(@ProjectMkey, '') <> ''	
+					begin
+						set @WhereClause += ' and chdr.PROPERTY In (SELECT mkey FROM #TableOutputProjectMkey)';
+					end
+
+					if 	ISNULL(@BuildingMkey, '') <> ''	
+					begin
+						set @WhereClause += ' and chdr.BUILDING in (SELECT mkey FROM #TableOutputBuildingMkey)';
+					end
+
+					if 	ISNULL(@ResponsibleDepart, '') <> ''	
+					begin
+						set @WhereClause += ' and RESPONSIBLE_DEPARTMENT in (SELECT mkey FROM #TableOutputResponsibleDepart)';
+					end
+
+					if 	ISNULL(@ResponsiblePerson, '') <> ''	
+					begin
+						set @WhereClause += ' and chdr.RESPONSIBLE_PERSON in (SELECT mkey FROM #TableOutputResponsiblePerson)';
+						--print 'responsible: '+ ' and chdr.RESPONSIBLE_PERSON in (SELECT mkey FROM #TableOutputResponsiblePerson)'; 
+					end
+					if 	ISNULL(@JobRole, '') <> ''	
+					begin
+						set @WhereClause += ' and chdr.JOB_ROLE in (SELECT mkey FROM #TableOutputJobRole)';
+					end
+					if 	ISNULL(@RaisedAt, '') <> ''	
+					begin
+						set @WhereClause += ' and chdr.RAISED_AT in (SELECT mkey FROM #TableOutputRaisedAt)';
+					end
+
+					if 	ISNULL(@RaisedAtBefore, '') <> ''	
+					begin
+						set @WhereClause += ' and chdr.RAISED_AT_BEFORE in (SELECT mkey FROM #TableOutputRaisedAtBefore)';
+					end
+
+					if 	ISNULL(@Status, '') <> ''	
+					begin
+						set @WhereClause += ' and chdr.STATUS in ('''+ REPLACE('I,N', ',', ''',''') + ''')';
+					end
+		end
+		Else IF @TASK_TYPE = 'Milestones' --(SELECT type_desc FROM TYPE_MST	WHERE TYPE_CODE = 'Compliance' AND DELETE_FLAG = 'N') 
+		BEGIN
+				SELECT @TaskTypeMkey = MKEY
+				FROM TYPE_MST
+				WHERE TYPE_CODE = 'Task_Type' AND DELETE_FLAG = 'N' AND TYPE_DESC = 'Milestones';
+				Set @sql = '
+						SELECT thdr.mkey as Sr_No, thdr.mkey,Isnull(TMST.type_desc, ''NA'') CATEGORY
+						,thdr.task_no
+						,thdr.TASK_PARENT_ID AS task_Parent_id
+						,dbo.[Initcap](Isnull(CREATOR.emp_full_name, ''NA'')) CREATOR
+						,dbo.[Initcap](Isnull(RESPONSIBLE.emp_full_name, ''NA'')) RESPONSIBLE,
+						dbo.[Initcap](Isnull(ACTIONABLE.emp_full_name, ''NA'')) ACTIONABLE,thdr.creation_date,                    
+						CASE WHEN thdr.status IN ( ''CREATED'' ) THEN ''Not Started''                      
+						WHEN thdr.status LIKE ''%SUB TASK CREATED%'' THEN ''Not Started'' WHEN thdr.status LIKE ''%SUBTASK CREATED%'' THEN ''Not Started''                      
+						WHEN thdr.status IN ( ''WORK IN PROGRESS'', ''CLOSE INITIATED'', ''CANCEL INITIATED'', ''RE-WORK'' ) THEN ''In Progress''                      
+						WHEN thdr.status IN ( ''CLOSE'', ''COMPLETED'' ) THEN ''Completed'' ELSE ''Others'' END AS Dashboard_Status, 
+						thdr.completion_date AS COMPLETION_DATE, dbo.[Initcap](thdr.task_name) AS TASK_NAME,                    
+						thdr.task_description,thdr.tags,dbo.[Initcap](thdr.status) AS STATUS, CASE                      
+						WHEN Isnull(CREATOR.first_name, ''NA'') != Isnull(RESPONSIBLE.first_name, ''NA'') 
+						THEN dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) + '' > '' + dbo.[Initcap](Isnull(RESPONSIBLE.first_name, ''NA''))                      
+						ELSE dbo.[Initcap](Isnull(CREATOR.first_name, ''NA'')) END AS RESPONSIBLE_TAG, 
+						dbo.[Initcap](Isnull(TProject.type_desc, '''')) AS PROJECT_NAME,dbo.Tasknamestring(thdr.mkey) AS TASK_HISTORY,  
+						Isnull(Rtrim(thdr.[priority]), '''') AS [Priority],Isnull(thdr.percent_complete, ''0'') AS Progress_Percentage,
+						Isnull(parent_counts.parenttaskcount, 0) AS SubTask_Count
+						FROM TASK_HDR thdr
+						LEFT JOIN employee_mst CREATOR ON CREATOR.mkey = thdr.created_by AND CREATOR.delete_flag = ''N''             
+						LEFT JOIN employee_mst RESPONSIBLE ON RESPONSIBLE.mkey = thdr.assigned_to AND RESPONSIBLE.delete_flag = ''N''             
+						LEFT JOIN employee_mst ACTIONABLE ON ACTIONABLE.mkey = thdr.resposible_emp_mkey AND ACTIONABLE.delete_flag = ''N''
+						Inner JOIN TYPE_MST TProject ON TProject.TYPE_CODE = ''Project'' AND TProject.MASTER_MKEY = thdr.PROJECT_ID AND TProject.DELETE_FLAG = ''N''
+						Inner JOIN TYPE_MST TBuilding ON TBuilding.TYPE_CODE = ''Project'' AND TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID AND TBuilding.DELETE_FLAG = ''N''
+						LEFT JOIN type_mst TMST ON TMST.master_mkey = thdr.CAREGORY AND TMST.type_code = ''CATEGORY'' AND TMST.delete_flag = ''N''  
+						LEFT JOIN (SELECT task_parent_id, Count(*) AS ParentTaskCount                        
+						FROM task_hdr WHERE task_parent_id IS NOT NULL AND mkey NOT IN (task_parent_id) AND delete_flag = ''N''
+						GROUP BY task_parent_id) parent_counts ON thdr.mkey = parent_counts.task_parent_id
+						Where Is_Scheduled IS NOT NULL AND thdr.DELETE_FLAG = ''N'' 
+						AND thdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + ' ';
+						--WHERE Is_Scheduled IS NOT NULL AND thdr.DELETE_FLAG = ''N'' 
+						--AND TASK_CREATED_BY = '+ @Session_User_Id +' OR CREATED_BY = '+ @Session_User_Id +' AND TASK_TYPE = '+ @TaskTypeMkey +' ';
+
+						--Set @WhereClause =' Where Is_Scheduled IS NOT NULL AND thdr.DELETE_FLAG = ''N'' 
+						--					AND thdr.TASK_TYPE = ' + CONVERT(NVARCHAR, @TaskTypeMkey) + '';
+					
+						if 	ISNULL(@ProjectMkey, '') <> ''	
+						begin
+							set @WhereClause += ' and thdr.PROPERTY In (SELECT mkey FROM #TableOutputProjectMkey)';
+						end
+
+						if 	ISNULL(@BuildingMkey, '') <> ''	
+						begin
+							set @WhereClause += ' and thdr.BUILDING in (SELECT mkey FROM #TableOutputBuildingMkey)';
+						end
+						print '@sqlMilestone: '+ @sql;
+		END
+			IF @FILTER = 'Today'
+			BEGIN
+				SET @WhereClause += ' And (CONVERT(VARCHAR, thdr.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103)
+										AND thdr.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Pending'
+			BEGIN
+				SET @WhereClause +=' AND (STATUS_PERC = 0.0 AND thdr.completion_date < GETDATE() 
+										and thdr.status IN (''CREATED'', ''SUB TASK CREATED'',''WORK IN PROGRESS'',''RE-WORK'')) ';
+			END
+			IF @FILTER = 'Review'
+			BEGIN
+				SET @WhereClause += ' AND (thdr.STATUS IN (''Close Initiated'',''Cancel Initiated''))';
+			END
+			IF @FILTER = 'Completed'
+			BEGIN
+				SET @WhereClause += ' And (thdr.status IN (''COMPLETED'') AND STATUS_PERC = 100) ';
+			END
+			IF @FILTER = 'Cancelled'
+			BEGIN
+				SET @WhereClause +=' AND (thdr.status IN (''CANCEL'', ''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Overdue'
+			BEGIN
+				SET @WhereClause += ' And (thdr.completion_date < GETDATE() AND thdr.status not IN (''CANCEL'', ''COMPLETED'',''CANCELLED'')) ';
+			END
+			IF @FILTER = 'Future'
+			BEGIN
+				SET @WhereClause +=' AND (thdr.STATUS NOT IN (''COMPLETED'',''CANCELLED'',''Close Initiated'',''Cancel Initiated'')) 
+										and thdr.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103) ';
+			END
+			
+			if (((@ProjectMkey != null or @BuildingMkey != null))  -- (@ProjectMkey != '' or @BuildingMkey != '') OR
+				OR (@WhereClause  is not null OR @WhereClause  != null))
+			Begin
+				Set @sql +=' '+ @WhereClause + ' order by thdr.PROJECT_ID, thdr.SUB_PROJECT_ID,thdr.MKEY; ';
+				print '@@WhereClause:pr '+ @WhereClause;
+				print '@sql:pr '+ @sql;
+			End
+			Else
+			Begin
+				IF ( @TASK_TYPE = 'APPROVAL')
+				BEGIN
+					Set @sql += '  AND phdr.CREATED_BY = '+ CONVERT(NVARCHAR, @Session_User_Id) +' 
+						Order by thdr.PROJECT_ID, thdr.SUB_PROJECT_ID,thdr.MKEY; ';
+						
+				END
+				ELSE
+				BEGIN
+						Set @sql += '  And (thdr.RESPOSIBLE_EMP_MKEY = '+ CONVERT(NVARCHAR,@Session_User_Id) +' 
+						OR thdr.CREATED_BY = '+CONVERT(NVARCHAR, @Session_User_Id) +' 
+						OR thdr.TASK_CREATED_BY = '+CONVERT(NVARCHAR, @Session_User_Id) +' )
+						Order by thdr.PROJECT_ID, thdr.SUB_PROJECT_ID,thdr.MKEY; ';
+						print '@sqloutside: '+ @sql;
+				END
+			End
+			
+			EXEC Sp_executesql @sql;
+			-- End 
+
+			-- Filter count
+			Select 'Todays' as DurationFilter,Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey , '') <> '' THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			And (CONVERT(VARCHAR, thdr.completion_date, 103) = CONVERT(VARCHAR, GETDATE(), 103)
+			AND thdr.status not IN ('CANCEL', 'COMPLETED','CANCELLED'))
+			
+			Union 
+			
+			Select 'Pending' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+				AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey, '') <> '' THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (STATUS_PERC = 0.0 AND thdr.completion_date < GETDATE() 
+			and thdr.status IN ('CREATED', 'SUB TASK CREATED','WORK IN PROGRESS','RE-WORK'))
+			
+			Union 
+			
+			Select 'Review' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN  
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey, '') <> '' THEN  
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (thdr.STATUS IN ('Close Initiated','Cancel Initiated'))
+			
+			Union 
+			
+			Select 'Overdue' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where
+			CASE
+				WHEN @TaskTypeMkey != 0    THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN 
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey, '') <> '' THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			And (thdr.completion_date < GETDATE() AND thdr.status not IN ('CANCEL', 'COMPLETED','CANCELLED')) 
+			
+			Union 
+			
+			Select 'Future' as DurationFilter, Count(*) DurationCount
+			From TASK_HDR thdr Left Join EMPLOYEE_MST emst on thdr.ASSIGNED_TO = emst.MKEY
+			left join TYPE_MST TProject on TProject.MASTER_MKEY = thdr.PROJECT_ID 
+			left join TYPE_MST TBuilding on TBuilding.MASTER_MKEY = thdr.SUB_PROJECT_ID
+			Where 
+			CASE
+				WHEN @TaskTypeMkey != 0  THEN 
+					CASE WHEN thdr.TASK_TYPE = @TaskTypeMkey THEN 1 ELSE 0 END
+				ELSE 1 
+				END = 1
+			AND	CASE
+					WHEN ISNULL(@ProjectMkey, '') <> '' THEN
+						CASE WHEN thdr.PROJECT_ID in (SELECT mkey FROM #TableOutputProjectMkey) THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			AND	CASE
+					WHEN ISNULL(@BuildingMkey, '') <> '' THEN 
+						CASE WHEN thdr.SUB_PROJECT_ID in (SELECT mkey FROM #TableOutputBuildingMkey)  THEN 1 ELSE 0 END
+					ELSE 1 
+					END = 1
+			And (RESPOSIBLE_EMP_MKEY = @Session_User_Id OR thdr.CREATED_BY = @Session_User_Id ) 
+			AND (thdr.STATUS NOT IN ('COMPLETED','CANCELLED','Close Initiated','Cancel Initiated')) 
+			and thdr.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103); 
+
+        -- Final execution
+        --PRINT '@sql: ' + @sql;
+        --EXEC sp_executesql @sql;
+
+        -- Return summary counts for filters (if needed) here...
+        -- You can retain your UNION queries for 'Todays', 'Pending', etc., after this
+
+    END TRY
+    BEGIN CATCH
+        SELECT
+            ERROR_NUMBER() AS ERRORNUMBER,
+            ERROR_SEVERITY() AS ERRORSEVERITY,
+            ERROR_STATE() AS ERRORSTATE,
+            ERROR_PROCEDURE() AS ERRORPROCEDURE,
+            ERROR_LINE() AS ERRORLINE,
+            ERROR_MESSAGE() AS ERRORMESSAGE;
+
+        DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+        SET @ERROR_MESSAGE = ERROR_MESSAGE();
+
+        EXEC Sp_p_tms_insert_error_des
+            @Session_User_Id,
+            'TMS',
+            'Get Task Projects',
+            @ERROR_MESSAGE,
+            'Get';
+    END CATCH
+END
+
+
+---------------------------------------------------------------------------------------
+
+
 

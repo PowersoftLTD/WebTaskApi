@@ -573,8 +573,10 @@ namespace TaskManagement.API.Repositories
                     else
                     {
                         var parmeters = new DynamicParameters();
+                        parmeters.Add("@Mkey", insertInstructionInputNT.Mkey);
                         parmeters.Add("@DOC_INSTR", insertInstructionInputNT.DOC_INSTR);
                         parmeters.Add("@CREATED_BY", insertInstructionInputNT.CREATED_BY);
+                        parmeters.Add("@Delete_Flag", insertInstructionInputNT.Delete_Flag);
                         parmeters.Add("@Session_User_Id", insertInstructionInputNT.Session_User_Id);
                         parmeters.Add("@Business_Group_Id", insertInstructionInputNT.Business_Group_Id);
 
@@ -864,8 +866,10 @@ namespace TaskManagement.API.Repositories
                     transactionCompleted = false;  // Reset transaction state
 
                     var parameters = new DynamicParameters();
+                    parameters.Add("@Mkey", docTypeInputNT.Mkey);
                     parameters.Add("@DOC_CATEGORY", docTypeInputNT.DOC_INSTR);
                     parameters.Add("@CREATED_BY", docTypeInputNT.CREATED_BY);
+                    parameters.Add("@Delete_Flag", docTypeInputNT.Delete_Flag);
                     parameters.Add("@Session_User_Id", docTypeInputNT.Session_User_Id);
                     parameters.Add("@Business_Group_Id", docTypeInputNT.Business_Group_Id);
 

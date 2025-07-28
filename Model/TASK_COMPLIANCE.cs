@@ -1369,6 +1369,8 @@ namespace TaskManagement.API.Model
         public string? RAISED_AT { get; set; }
         [JsonPropertyName("RaisedAtBefore")]
         public string? RAISED_AT_BEFORE { get; set; }
+        [JsonPropertyName("Is_Taskmkey")]
+        public string? Is_Taskmkey { get; set; }
 
         [JsonPropertyName("Created_By")]
         public string? CREATED_BY { get; set; }
