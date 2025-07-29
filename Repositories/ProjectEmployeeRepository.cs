@@ -5815,7 +5815,7 @@ namespace TaskManagement.API.Repositories
                             ResultAll = GetTaskEnd.ToList();
                         }
                     }
-                   
+
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
@@ -6362,7 +6362,7 @@ namespace TaskManagement.API.Repositories
                         await sqlConnection.OpenAsync();  // Ensure the connection is open
                     }
 
-                    transaction = db.BeginTransaction(); 
+                    transaction = db.BeginTransaction();
                     transactionCompleted = false;  // Reset transaction state
 
                     var parmeters = new DynamicParameters();
@@ -6371,7 +6371,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@PropertyMkey", doc_Type_Doc_CategoryInput.PropertyMkey);
 
                     var TaskDashFilter = await db.QueryAsync<TaskDashBoardUserFilterNT>("SP_GET_TASK_DASHBOARD_FILTER", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                  
+
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
@@ -6745,9 +6745,23 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@Business_Group_Id", taskProjectDashboardInput.Business_Group_Id);
 
                     var taskStatusDistributonNTs = await db.QueryMultipleAsync("SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    
+                    List<TaskProjectsDashboardNT> taskProjectsDashboardNT = new List<TaskProjectsDashboardNT>();
+                    List<TaskProjectsDashboardCountNT> taskProjectsDashboardCountNT = new List<TaskProjectsDashboardCountNT>();
 
-                    var data = taskStatusDistributonNTs.Read<TaskProjectsDashboardNT>().ToList();
-                    var data1 = taskStatusDistributonNTs.Read<TaskProjectsDashboardCountNT>().ToList();
+                    try
+                    {
+                        taskProjectsDashboardNT = taskStatusDistributonNTs.Read<TaskProjectsDashboardNT>().ToList();
+                    }
+                    catch { }
+
+                    try
+                    {
+                        taskProjectsDashboardCountNT = taskStatusDistributonNTs.Read<TaskProjectsDashboardCountNT>().ToList();
+                    }
+                    catch { }
+
+
 
                     //var sqlTransaction = (SqlTransaction)transaction;
                     //await sqlTransaction.CommitAsync();
@@ -6759,8 +6773,8 @@ namespace TaskManagement.API.Repositories
                         {
                             STATUS = "Ok",
                             MESSAGE = "Get data successfully!!!",
-                            Data = data,
-                            Data1 = data1
+                            Data = taskProjectsDashboardNT,
+                            Data1 = taskProjectsDashboardCountNT
                         }
                     };
                     return successsResult;

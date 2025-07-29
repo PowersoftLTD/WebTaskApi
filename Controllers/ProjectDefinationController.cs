@@ -179,6 +179,92 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+
+        [HttpPost("Project-Defination-Insert/Update-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> CreateProjectDefinationNT(PROJECT_HDR_INPUT_NT pROJECT_HDR_INPUT_NT)
+        {
+            try
+            {
+                var ProjectDefination = await _repository.CreateProjectDefinationAsyncNT(pROJECT_HDR_INPUT_NT);
+                return ProjectDefination;
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<PROJECT_HDR_NT_OUTPUT>
+                {
+                    new PROJECT_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $" Error: " + ex.Message,
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
+            #region try projct
+            //try
+            //{
+            //    if (ModelState.IsValid)
+            //    {
+            //        if (pROJECT_HDR_INPUT_NT.PROJECT_ABBR == null)
+            //        {
+            //            return StatusCode(400, "Please insert details of " + pROJECT_HDR_INPUT_NT.PROJECT_ABBR);
+            //        }
+            //        if (pROJECT_HDR_INPUT_NT.PROPERTY == null)
+            //        {
+            //            return StatusCode(400, "Please insert details of  " + pROJECT_HDR_INPUT_NT.PROPERTY);
+            //        }
+
+            //        if (pROJECT_HDR_INPUT_NT.PROJECT_NAME == null)
+            //        {
+            //            return StatusCode(400, "Please insert details of  " + pROJECT_HDR_INPUT_NT.PROJECT_NAME);
+            //        }
+
+            //        var model = await _repository.CreateProjectDefinationAsyncNT(pROJECT_HDR_INPUT_NT);
+            //        if (model == null)
+            //        {
+            //            var ErrorDoc = new PROJECT_HDR();
+            //            var response = new ApiResponse<PROJECT_HDR>
+            //            {
+            //                Status = "Error",
+            //                Message = "Error occured",
+            //                Data = ErrorDoc // No data in case of exception
+            //            };
+            //            return Ok(response);
+            //        }
+            //        else
+            //        {
+            //            return model;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        var ErrorDoc = new PROJECT_HDR();
+            //        var response = new ApiResponse<PROJECT_HDR>
+            //        {
+            //            Status = "Error",
+            //            Message = "Error occured",
+            //            Data = ErrorDoc // No data in case of exception
+            //        };
+            //        return Ok(response);
+
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    var ErrorDoc = new PROJECT_HDR();
+            //    var response = new ApiResponse<PROJECT_HDR>
+            //    {
+            //        Status = "Error",
+            //        Message = ex.Message,
+            //        Data = ErrorDoc // No data in case of exception
+            //    };
+            //    return Ok(response);
+            //}
+            #endregion
+        }
+
         [HttpPut("ProjectDefination/Update-Project-Defination")]
         [Authorize]
         public async Task<IActionResult> UpdateProjectDefination(int MKEY, PROJECT_HDR pROJECT_HDR)

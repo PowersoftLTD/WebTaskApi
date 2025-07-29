@@ -1333,6 +1333,8 @@ namespace TaskManagement.API.Model
         public string? CREATION_DATE { get; set; }
         [JsonPropertyName("Completion_Date")]
         public string COMPLETION_DATE { get; set; }
+        [JsonPropertyName("Start_Date")]
+        public string START_DATE { get; set; }
         [JsonPropertyName("Task_Name")]
         public string? TASK_NAME { get; set; }
         [JsonPropertyName("Task_Description")]

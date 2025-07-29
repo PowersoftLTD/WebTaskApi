@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using Azure;
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -98,13 +99,13 @@ namespace TaskManagement.API.Repositories
                     }
                     foreach (var apprvalProject in pROJECT_HDRs)
                     {
-                        var parmetersApproval= new DynamicParameters();
+                        var parmetersApproval = new DynamicParameters();
                         parmetersApproval.Add("@HEADER_MKEY", apprvalProject.MKEY);
                         parmetersApproval.Add("@Session_User_Id", projectHdrNT.Session_User_Id);
                         parmetersApproval.Add("@Business_Group_Id", projectHdrNT.Business_Group_Id);
 
                         var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>("SP_GET_APPROVAL_SUBTASK_DETAILS_NT", parmetersApproval, commandType: CommandType.StoredProcedure);
-                        
+
                         //var approvalAbbr = await db.QueryAsync<PROJECT_TRL_APPROVAL_ABBR>("SELECT * FROM  V_APPROVAL_SUBTASK_DETAILS " +
                         //    "WHERE HEADER_MKEY = @HEADER_MKEY;",
                         //         new { HEADER_MKEY = apprvalProject.MKEY });
@@ -594,6 +595,169 @@ namespace TaskManagement.API.Repositories
                 return Enumerable.Empty<PROJECT_APPROVAL_DETAILS_OUTPUT>(); //return ApprovalsKeyValuePairs;
             }
 
+        }
+
+        public async Task<ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> CreateProjectDefinationAsyncNT(PROJECT_HDR_INPUT_NT pROJECT_HDR_INPUT_NT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+                    transaction = db.BeginTransaction(); // Begin a transaction
+
+                    // var OBJ_PROJECT_HDR = pROJECT_HDR;
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@BUILDING_MKEY", pROJECT_HDR_INPUT_NT.PROJECT_NAME);
+                    parameters.Add("@PROJECT_ABBR", pROJECT_HDR_INPUT_NT.PROJECT_ABBR);
+                    parameters.Add("@PROPERTY", pROJECT_HDR_INPUT_NT.PROPERTY);
+                    parameters.Add("@LEGAL_ENTITY", pROJECT_HDR_INPUT_NT.LEGAL_ENTITY);
+                    parameters.Add("@PROJECT_ADDRESS", pROJECT_HDR_INPUT_NT.PROJECT_ADDRESS);
+                    parameters.Add("@BUILDING_CLASSIFICATION", pROJECT_HDR_INPUT_NT.BUILDING_CLASSIFICATION);
+                    parameters.Add("@BUILDING_STANDARD", pROJECT_HDR_INPUT_NT.BUILDING_STANDARD);
+                    parameters.Add("@STATUTORY_AUTHORITY", pROJECT_HDR_INPUT_NT.STATUTORY_AUTHORITY);
+                    parameters.Add("@CREATED_BY", pROJECT_HDR_INPUT_NT.CREATED_BY);
+                    parameters.Add("@LAST_UPDATED_BY", pROJECT_HDR_INPUT_NT.LAST_UPDATED_BY);
+                    parameters.Add("@ATTRIBUTE1", pROJECT_HDR_INPUT_NT.ATTRIBUTE1);
+                    parameters.Add("@ATTRIBUTE2", pROJECT_HDR_INPUT_NT.ATTRIBUTE2);
+                    parameters.Add("@ATTRIBUTE3", pROJECT_HDR_INPUT_NT.ATTRIBUTE3);
+
+                    // Insert project definition
+                    var OBJ_PROJECT_HDR = await db.QueryAsync<PROJECT_HDR_NT>("SP_INSERT_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (OBJ_PROJECT_HDR.Any())
+                    {
+                        // Create a DataTable for bulk insert of approval data
+                        var approvalsDataTable = new DataTable();
+                        approvalsDataTable.Columns.Add("HEADER_MKEY", typeof(int));
+                        approvalsDataTable.Columns.Add("SEQ_NO", typeof(string));
+                        approvalsDataTable.Columns.Add("APPROVAL_MKEY", typeof(int));
+                        approvalsDataTable.Columns.Add("APPROVAL_ABBRIVATION", typeof(string));
+                        approvalsDataTable.Columns.Add("APPROVAL_DESCRIPTION", typeof(string));
+                        approvalsDataTable.Columns.Add("DAYS_REQUIRED", typeof(int));
+                        approvalsDataTable.Columns.Add("RESPOSIBLE_EMP_MKEY", typeof(int));
+                        approvalsDataTable.Columns.Add("TENTATIVE_START_DATE", typeof(string));
+                        approvalsDataTable.Columns.Add("TENTATIVE_END_DATE", typeof(string));
+                        approvalsDataTable.Columns.Add("DEPARTMENT", typeof(int));
+                        approvalsDataTable.Columns.Add("JOB_ROLE", typeof(int));
+                        approvalsDataTable.Columns.Add("OUTPUT_DOCUMENT", typeof(string));
+                        approvalsDataTable.Columns.Add("STATUS", typeof(string));
+                        approvalsDataTable.Columns.Add("CREATED_BY", typeof(int));
+                        approvalsDataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
+
+                        foreach (var approvalsList in pROJECT_HDR_INPUT_NT.APPROVALS_ABBR_LIST)
+                        {
+                            var RESPOSIBLE_EMP_MKEY = approvalsList.RESPOSIBLE_EMP_MKEY ?? 0;
+                            var row = approvalsDataTable.NewRow();
+                            row["HEADER_MKEY"] = OBJ_PROJECT_HDR.Select(x => x.MKEY).ToString();
+                            row["SEQ_NO"] = approvalsList.TASK_NO;
+                            row["APPROVAL_MKEY"] = approvalsList.APPROVAL_MKEY;
+                            row["APPROVAL_ABBRIVATION"] = approvalsList.APPROVAL_ABBRIVATION;
+                            row["APPROVAL_DESCRIPTION"] = approvalsList.APPROVAL_DESCRIPTION;
+                            row["DAYS_REQUIRED"] = approvalsList.DAYS_REQUIRED;
+                            row["RESPOSIBLE_EMP_MKEY"] = RESPOSIBLE_EMP_MKEY;
+                            row["TENTATIVE_START_DATE"] = string.IsNullOrEmpty(approvalsList.TENTATIVE_START_DATE)
+                            ? DBNull.Value
+                            : (object)DateTime.Parse(approvalsList.TENTATIVE_START_DATE);
+                            row["TENTATIVE_END_DATE"] = string.IsNullOrEmpty(approvalsList.TENTATIVE_END_DATE)
+                                   ? DBNull.Value
+                                   : (object)DateTime.Parse(approvalsList.TENTATIVE_END_DATE);
+                            row["DEPARTMENT"] = approvalsList.DEPARTMENT;
+                            row["JOB_ROLE"] = approvalsList.JOB_ROLE;
+                            row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
+                            row["STATUS"] = "Ready to Initiate";//approvalsList.STATUS;
+                            row["CREATED_BY"] = pROJECT_HDR_INPUT_NT.CREATED_BY;
+                            row["CREATION_DATE"] = dateTime;
+
+                            approvalsDataTable.Rows.Add(row);
+                        }
+
+                        // Use SqlBulkCopy to insert the approval data into the database
+                        using var bulkCopy = new SqlBulkCopy((SqlConnection)db, SqlBulkCopyOptions.Default, (SqlTransaction)transaction)
+                        {
+                            DestinationTableName = "PROJECT_TRL_APPROVAL_ABBR"
+                        };
+
+                        // Map columns from DataTable to database columns
+                        bulkCopy.ColumnMappings.Add("HEADER_MKEY", "HEADER_MKEY");
+                        bulkCopy.ColumnMappings.Add("SEQ_NO", "SEQ_NO");
+                        bulkCopy.ColumnMappings.Add("APPROVAL_MKEY", "APPROVAL_MKEY");
+                        bulkCopy.ColumnMappings.Add("APPROVAL_ABBRIVATION", "APPROVAL_ABBRIVATION");
+                        bulkCopy.ColumnMappings.Add("APPROVAL_DESCRIPTION", "APPROVAL_DESCRIPTION");
+                        bulkCopy.ColumnMappings.Add("DAYS_REQUIRED", "DAYS_REQUIRED");
+                        bulkCopy.ColumnMappings.Add("RESPOSIBLE_EMP_MKEY", "RESPOSIBLE_EMP_MKEY");
+                        bulkCopy.ColumnMappings.Add("TENTATIVE_START_DATE", "TENTATIVE_START_DATE");
+                        bulkCopy.ColumnMappings.Add("TENTATIVE_END_DATE", "TENTATIVE_END_DATE");
+                        bulkCopy.ColumnMappings.Add("DEPARTMENT", "DEPARTMENT");
+                        bulkCopy.ColumnMappings.Add("JOB_ROLE", "JOB_ROLE");
+                        bulkCopy.ColumnMappings.Add("OUTPUT_DOCUMENT", "OUTPUT_DOCUMENT");
+                        bulkCopy.ColumnMappings.Add("STATUS", "STATUS");
+                        bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
+                        bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
+
+                        await bulkCopy.WriteToServerAsync(approvalsDataTable);
+                    }
+                    else
+                    {
+                        var errorResult = new List<PROJECT_HDR_NT_OUTPUT>
+                        {
+                            new PROJECT_HDR_NT_OUTPUT
+                            {
+                                Status = "Error",
+                                Message = $" Error: " + OBJ_PROJECT_HDR.Select(x => x.Message),
+                                Data = null
+                            }
+                        };
+                        return errorResult;
+                    }
+
+                    // Commit both transactions
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+
+                    var SuccessResult = new List<PROJECT_HDR_NT_OUTPUT>
+                        {
+                            new PROJECT_HDR_NT_OUTPUT
+                            {
+                                Status = "Ok",
+                                Message = $" Insert Successfuly",
+                                Data = OBJ_PROJECT_HDR
+                            }
+                        };
+                    return SuccessResult;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null)
+                {
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.RollbackAsync(); // Rollback transaction if an exception occurs
+                }
+
+                var errorResult = new List<PROJECT_HDR_NT_OUTPUT>
+                {
+                    new PROJECT_HDR_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = $" Error: " + ex.Message,
+                        Data = null
+                    }
+                };
+                return errorResult;
+            }
         }
     }
 }
