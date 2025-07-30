@@ -43510,6 +43510,816 @@ END
 
 ---------------------------------------------------------------------------------------
 
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_PROJECT_NT]    Script Date: 29-07-2025 18:11:01 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[SP_GET_PROJECT_NT](@TYPE_CODE VARCHAR(MAX),@MASTER_MKEY VARCHAR(250),@Session_User_Id INT = null,  
+@Business_Group_Id	  INT = null)
+AS
+BEGIN
+if(@TYPE_CODE='CATEGORY')
+begin
+SELECT * FROM TYPE_MST WHERE TYPE_CODE=@TYPE_CODE
+--AND MASTER_MKEY = COALESCE(NULLIF('' + @MASTER_MKEY + '', '0'), MASTER_MKEY) 
+ORDER BY 1 
+end
+if(@TYPE_CODE='PROJECT')
+begin
+SELECT * FROM TYPE_MST WHERE TYPE_CODE=@TYPE_CODE and PARENT_ID=0
+end
+if(@TYPE_CODE='PROJECT_VIEW')
+begin
+--SELECT * FROM TYPE_MST WHERE TYPE_CODE=@TYPE_CODE and PARENT_ID=0
+SELECT * FROM V_PROJECT_VIEW WHERE TYPE_CODE='PROJECT' and PARENT_ID=0
+end
+END
+go
+--------------------------------------------------------------
+Date :30-7-2025
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_APPROVAL_TEMPLATE]    Script Date: 30-07-2025 11:49:39 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		AMIT SHUDDHALWAR
+-- Create date: 2024-11-06
+-- Description:	TO CREATE APPROVAL TEMPLATE DETAILS
+-- =============================================
+CREATE PROCEDURE [dbo].[SP_INSERT_APPROVAL_TEMPLATE_NT]
+	-- Add the parameters for the stored procedure here
+	@MKEY						NUMERIC	 = NULL
+	,@BUILDING_TYPE				NUMERIC	= NULL
+	,@BUILDING_STANDARD			NUMERIC	= NULL 
+	,@STATUTORY_AUTHORITY		NUMERIC	 = NULL
+	,@SHORT_DESCRIPTION			NVARCHAR(MAX) = NULL
+	,@LONG_DESCRIPTION			NVARCHAR(MAX) = NULL
+	,@ABBR						NVARCHAR(50) = NULL
+	,@APPROVAL_DEPARTMENT		NUMERIC = NULL
+	,@RESPOSIBLE_EMP_MKEY		NUMERIC = NULL
+	,@JOB_ROLE					NUMERIC = NULL
+	,@NO_DAYS_REQUIRED			NUMERIC	= NULL
+	,@SEQ_ORDER					NVARCHAR(10)= NULL																												
+	--,@ATTRIBUTE1				NVARCHAR(200) = NULL  -- FORM NAME
+	--,@ATTRIBUTE2				NVARCHAR(200) = NULL    -- FUCNTION/METHOD NAME
+	--,@ATTRIBUTE3				NVARCHAR(200) = NULL
+	,@CREATED_BY				NUMERIC	
+	--,@SANCTION_AUTHORITY		NUMERIC
+	--,@SANCTION_DEPARTMENT		NVARCHAR(300)
+	--,@END_RESULT_DOC			NVARCHAR(MAX) = NULL
+	--,@CHECKLIST_DOC				NVARCHAR(MAX) = NULL
+	,@TAGS						NVARCHAR(MAX) = NULL,
+	@Session_User_Id          INT,  
+	@Business_Group_Id	  INT
+	AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	BEGIN TRY
+----------------------------------------------------------------------------------------------------------------------------------------
+		-- SELECT  @MKEY = ISNULL(MAX(MKEY),0) + 1 FROM APPROVAL_TEMPLATE_HDR;
+----------------------------------------------------------------------------------------------------------------------------------------
+		Declare @DCount int
+----------------------------------------------------------------------------------------------------------------------------------------
+		Select @DCount = COUNT(*) from APPROVAL_TEMPLATE_HDR Where LOWER(MAIN_ABBR) = LOWER(@ABBR) and DELETE_FLAG = 'N';
+----------------------------------------------------------------------------------------------------------------------------------------		
+		If (@DCount > 0)
+		Begin
+			Select 'Error' as [Status] , 'Duplicate' as [Message];
+		End
+		Else
+		Begin
+			INSERT INTO APPROVAL_TEMPLATE_HDR (
+												BUILDING_TYPE
+												,BUILDING_STANDARD
+												,STATUTORY_AUTHORITY
+												,MAIN_ABBR
+												,SHORT_DESCRIPTION
+												,LONG_DESCRIPTION
+												,AUTHORITY_DEPARTMENT
+												,RESPOSIBLE_EMP_MKEY
+												,JOB_ROLE
+												,DAYS_REQUIERD
+												,SEQ_ORDER
+												--,SANCTION_AUTHORITY
+												--,SANCTION_DEPARTMENT
+												,CREATED_BY
+												,CREATION_DATE
+												--,END_RESULT_DOC
+												--,CHECKLIST_DOC
+												,DELETE_FLAG
+												,TAGS)
+										VALUES(
+												@BUILDING_TYPE			
+												,@BUILDING_STANDARD		
+												,@STATUTORY_AUTHORITY
+												,@ABBR
+												,@SHORT_DESCRIPTION
+												,@LONG_DESCRIPTION
+												,@APPROVAL_DEPARTMENT
+												,@RESPOSIBLE_EMP_MKEY
+												,@JOB_ROLE
+												,@NO_DAYS_REQUIRED
+												,@SEQ_ORDER
+												--,@SANCTION_AUTHORITY
+												--,@SANCTION_DEPARTMENT
+												,@CREATED_BY			
+												,GETDATE()			
+												--,@END_RESULT_DOC		
+												--,@CHECKLIST_DOC			
+												,'N'
+												,ISNULL(@TAGS,NULL)
+												);
+			SET @MKEY  = SCOPE_IDENTITY();
+
+			SELECT	
+				 HDR.MKEY,
+				 HDR.BUILDING_TYPE
+				,HDR.BUILDING_STANDARD
+				,HDR.STATUTORY_AUTHORITY
+				,HDR.MAIN_ABBR
+				,HDR.SHORT_DESCRIPTION
+				,HDR.LONG_DESCRIPTION
+				,HDR.AUTHORITY_DEPARTMENT
+				,HDR.RESPOSIBLE_EMP_MKEY
+				,HDR.JOB_ROLE
+				,HDR.DAYS_REQUIERD
+				,HDR.SEQ_ORDER
+				,HDR.TAGS
+				,'Ok' as [Status]
+				,'Aprroval added successfully' as [Message]
+			FROM APPROVAL_TEMPLATE_HDR HDR 
+			WHERE HDR.MKEY = @MKEY
+			AND HDR.DELETE_FLAG = 'N';
+		End
+----------------------------------------------------------------------------------------------------------------------------------------
+	END TRY
+	BEGIN CATCH
+	-------------------------------------------------------------------------------------------------------------------------------          
+		SELECT ERROR_NUMBER()    AS ERRORNUMBER,
+				ERROR_SEVERITY()  AS ERRORSEVERITY,
+				ERROR_STATE()     AS ERRORSTATE,
+				ERROR_PROCEDURE() AS ERRORPROCEDURE,
+				ERROR_LINE()      AS ERRORLINE,
+				ERROR_MESSAGE()   AS ERRORMESSAGE;
+	-------------------------------------------------------------------------------------------------------------------------------
+		DECLARE @ERROR_MESSAGE  VARCHAR(MAX) = NULL;
+		SET @ERROR_MESSAGE = ERROR_MESSAGE();
+	-------------------------------------------------------------------------------------------------------------------------------
+		EXEC sp_P_TMS_INSERT_ERROR_DES @CREATED_BY,'TMS','Insert Approval Template',@ERROR_MESSAGE,'Save Button';
+	-------------------------------------------------------------------------------------------------------------------------------
+	END CATCH
+END
+Go
+
+--------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_PROJECT_DEFINATION]    Script Date: 30-07-2025 11:31:54 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================  
+-- Author:  AMIT SHUDDHALWAR  
+-- Create date: 2024-11-06  
+-- Description: TO CREATE APPROVAL TEMPLATE DETAILS  
+-- =============================================  
+CREATE PROCEDURE [dbo].[SP_INSERT_PROJECT_DEFINATION_NT]
+    -- Add the parameters for the stored procedure here  
+    @BUILDING_MKEY INT = NULL,
+    @PROJECT_ABBR NVARCHAR(200) = NULL,
+    @PROPERTY NUMERIC,
+    @LEGAL_ENTITY NVARCHAR(500) = NULL,
+    @PROJECT_ADDRESS NVARCHAR(MAX) = NULL,
+    @BUILDING_CLASSIFICATION NUMERIC = NULL,
+    @BUILDING_STANDARD NUMERIC = NULL,
+    @STATUTORY_AUTHORITY NUMERIC = NULL,
+    @ATTRIBUTE1 NVARCHAR(200) = NULL, -- USER  
+    @ATTRIBUTE2 NVARCHAR(200) = NULL, -- FORM NAME  
+    @ATTRIBUTE3 NVARCHAR(200) = NULL, -- FUCNTION/METHOD NAME  
+    @CREATED_BY NUMERIC = NULL,
+    @LAST_UPDATED_BY NUMERIC,
+	@Session_User_Id          INT,  
+	@Business_Group_Id	  INT
+
+AS
+BEGIN
+    -- SET NOCOUNT ON added to prevent extra result sets from  
+    -- interfering with SELECT statements.  
+    SET NOCOUNT ON;
+    BEGIN TRY
+        DECLARE @MKEY NUMERIC,
+                @countProperty int;
+
+        SELECT @countProperty = COUNT(*)
+        FROM PROJECT_HDR
+        WHERE PROPERTY = @PROPERTY
+              AND BUILDING_MKEY = @BUILDING_MKEY
+              AND DELETE_FLAG = 'N';
+
+        IF (@countProperty > 0)
+        BEGIN
+            SELECT MKEY,
+                   BUILDING_MKEY AS PROJECT_NAME,
+                   PROJECT_ABBR,
+                   PROPERTY,
+                   LEGAL_ENTITY,
+                   PROJECT_ADDRESS,
+                   BUILDING_CLASSIFICATION,
+                   BUILDING_STANDARD,
+                   STATUTORY_AUTHORITY,
+                   ATTRIBUTE1,
+                   ATTRIBUTE2,
+                   ATTRIBUTE3,
+                   CREATED_BY,
+                   LAST_UPDATED_BY,
+                   'Error' as [Status],
+                   'Already exist property mkey and Building mkey' as [Message]
+            FROM PROJECT_HDR
+            WHERE PROPERTY = @PROPERTY
+                  AND BUILDING_MKEY = @BUILDING_MKEY
+                  AND DELETE_FLAG = 'N';
+        END
+        ELSE
+        BEGIN
+            -- Insert statements for procedure here  
+            INSERT INTO PROJECT_HDR
+            (
+                BUILDING_MKEY,
+                PROJECT_ABBR,
+                PROPERTY,
+                LEGAL_ENTITY,
+                PROJECT_ADDRESS,
+                BUILDING_CLASSIFICATION,
+                BUILDING_STANDARD,
+                STATUTORY_AUTHORITY,
+                CREATED_BY,
+                CREATION_DATE,
+                LAST_UPDATED_BY,
+                LAST_UPDATE_DATE,
+                DELETE_FLAG
+            )
+            VALUES
+            (@BUILDING_MKEY,
+             @PROJECT_ABBR,
+             @PROPERTY,
+             @LEGAL_ENTITY,
+             @PROJECT_ADDRESS,
+             @BUILDING_CLASSIFICATION,
+             @BUILDING_STANDARD,
+             @STATUTORY_AUTHORITY,
+             @CREATED_BY,
+             GETDATE(),
+             @LAST_UPDATED_BY,
+             GETDATE(),
+             'N'
+            )
+            ----------------------------------------------------------------------------------------------------------------------------------------  
+            SET @MKEY = SCOPE_IDENTITY();
+            ----------------------------------------------------------------------------------------------------------------------------------------  
+            SELECT MKEY,
+                   BUILDING_MKEY AS PROJECT_NAME,
+                   PROJECT_ABBR,
+                   PROPERTY,
+                   LEGAL_ENTITY,
+                   PROJECT_ADDRESS,
+                   BUILDING_CLASSIFICATION,
+                   BUILDING_STANDARD,
+                   STATUTORY_AUTHORITY,
+                   ATTRIBUTE1,
+                   ATTRIBUTE2,
+                   ATTRIBUTE3,
+                   CREATED_BY,
+                   LAST_UPDATED_BY
+            FROM PROJECT_HDR
+            WHERE MKEY = @MKEY;
+        END
+    ----------------------------------------------------------------------------------------------------------------------------------------  
+    END TRY
+    BEGIN CATCH
+        -------------------------------------------------------------------------------------------------------------------------------            
+        SELECT ERROR_NUMBER() AS ERRORNUMBER,
+               ERROR_SEVERITY() AS ERRORSEVERITY,
+               ERROR_STATE() AS ERRORSTATE,
+               ERROR_PROCEDURE() AS ERRORPROCEDURE,
+               ERROR_LINE() AS ERRORLINE,
+               ERROR_MESSAGE() AS ERRORMESSAGE;
+        -------------------------------------------------------------------------------------------------------------------------------  
+        DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+        SET @ERROR_MESSAGE = ERROR_MESSAGE();
+        -------------------------------------------------------------------------------------------------------------------------------  
+        EXEC sp_P_TMS_INSERT_ERROR_DES @ATTRIBUTE1,
+                                       'TMS',
+                                       @ATTRIBUTE2,
+                                       @ERROR_MESSAGE,
+                                       @ATTRIBUTE3;
+    -------------------------------------------------------------------------------------------------------------------------------  
+    END CATCH
+END
+----------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GetLoginUser]    Script Date: 30-07-2025 15:36:37 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--   exec SP_GetLoginUser 'jagdish.galvankar@powersoft.in','jagdi@9002'
+ALTER PROCEDURE [dbo].[SP_GetLoginUser] (@LoginName        NVARCHAR(255),
+                                         @P_LOGIN_PASSWORD VARCHAR(max) = NULL)
+AS
+  BEGIN
+      DECLARE @dcount INT
+
+      SELECT @dcount = Count(*)
+      FROM   employee_mst
+      WHERE  ( email_id_official = @LoginName
+                OR Cast(contact_no AS NVARCHAR(20)) = @LoginName )
+             AND [login_password] = @P_LOGIN_PASSWORD
+             AND delete_flag = 'N'
+
+      IF( @dcount > 0 )
+        BEGIN
+            PRINT 'inside iff';
+
+            SELECT EMP_MST.[mkey],
+                   EMP_MST.[company_id],
+                   EMP_MST.[emp_code],
+                   dbo.[Initcap](EMP_MST.[emp_full_name])       EMP_FULL_NAME,
+                   dbo.[Initcap](EMP_MST.[first_name])          FIRST_NAME,
+                   dbo.[Initcap](EMP_MST.[last_name])           LAST_NAME,
+                   EMP_MST.[role_id],
+                   EMP_MST.[project_id],
+                   EMP_MST.[designation_id],
+                   EMP_MST.[department_id],
+                   EMP_MST.[contact_no],
+                   EMP_MST.[email_id_official],
+                   EMP_MST.[email_id_personal],
+                   EMP_MST.[login_name],
+                   EMP_MST.[login_password],
+                   EMP_MST.[ra1_mkey],
+                   EMP_MST.[ra2_mkey],
+                   EMP_MST.[effective_start_date],
+                   EMP_MST.[effective_end_date],
+                   EMP_MST.[email_frequency],
+                   EMP_MST.[browser_notification],
+                   EMP_MST.[web_token],
+                   EMP_MST.[mobile_token],
+                   EMP_MST.[attribute1],
+                   Isnull(EMP_MST.[attribute2], 'N')            AS ATTRIBUTE2,
+                   EMP_MST.[attribute3],
+                   EMP_MST.[attribute4],
+                   EMP_MST.[attribute5],
+                   EMP_MST.[created_by],
+                   EMP_MST.[creation_date],
+                   EMP_MST.[last_updated_by],
+                   EMP_MST.[last_update_date],
+                   EMP_MST.[delete_flag],
+                   EMP_MST.[isforgotpassword],
+                   CONVERT(VARCHAR(max), EMP_MST.[temppassword])TEMPPASSWORD,
+                   BUSINESS_GROUPS.business_group_id,
+                   BUSINESS_GROUPS.NAME
+                   BUSINESS_GROUPS_NAME,
+                   COMP.NAME                                    COMPANY_NAME,
+                   resset_flag
+				   ,EMP_MST.[mkey] AS Session_User_ID 
+            FROM   [dbo].[employee_mst] EMP_MST
+                   JOIN company_mst COMP
+                     ON EMP_MST.[company_id] = COMP.company_id
+                        AND COMP.delete_flag = 'N'
+                   JOIN business_groups_mst BUSINESS_GROUPS
+                     ON
+            BUSINESS_GROUPS.business_group_id = COMP.business_group_id
+            AND BUSINESS_GROUPS.delete_flag = 'N'
+            WHERE  ( EMP_MST.email_id_official = @LoginName
+                      OR Cast(EMP_MST.contact_no AS NVARCHAR(20)) = @LoginName )
+                   --AND (EMP_MST.[login_password] = @P_LOGIN_PASSWORD)
+				    and (@P_LOGIN_PASSWORD IS NULL OR (EMP_MST.[login_password] = @P_LOGIN_PASSWORD))
+                   AND EMP_MST.delete_flag = 'N';
+        END
+      ELSE
+        BEGIN
+            PRINT 'out iff'
+
+            SELECT EMP_MST.[mkey],
+                   EMP_MST.[company_id],
+                   EMP_MST.[emp_code],
+                   dbo.[Initcap](EMP_MST.[emp_full_name])       EMP_FULL_NAME,
+                   dbo.[Initcap](EMP_MST.[first_name])          FIRST_NAME,
+                   dbo.[Initcap](EMP_MST.[last_name])           LAST_NAME,
+                   EMP_MST.[role_id],
+                   EMP_MST.[project_id],
+                   EMP_MST.[designation_id],
+                   EMP_MST.[department_id],
+                   EMP_MST.[contact_no],
+                   EMP_MST.[email_id_official],
+                   EMP_MST.[email_id_personal],
+                   EMP_MST.[login_name],
+                   EMP_MST.[login_password],
+                   EMP_MST.[ra1_mkey],
+                   EMP_MST.[ra2_mkey],
+                   EMP_MST.[effective_start_date],
+                   EMP_MST.[effective_end_date],
+                   EMP_MST.[email_frequency],
+                   EMP_MST.[browser_notification],
+                   EMP_MST.[web_token],
+                   EMP_MST.[mobile_token],
+                   EMP_MST.[attribute1],
+                   Isnull(EMP_MST.[attribute2], 'N')            AS ATTRIBUTE2,
+                   EMP_MST.[attribute3],
+                   EMP_MST.[attribute4],
+                   EMP_MST.[attribute5],
+                   EMP_MST.[created_by],
+                   EMP_MST.[creation_date],
+                   EMP_MST.[last_updated_by],
+                   EMP_MST.[last_update_date],
+                   EMP_MST.[delete_flag],
+                   EMP_MST.[isforgotpassword],
+                   CONVERT(VARCHAR(max), EMP_MST.[temppassword])TEMPPASSWORD,
+                   BUSINESS_GROUPS.business_group_id,
+                   BUSINESS_GROUPS.NAME
+                   BUSINESS_GROUPS_NAME,
+                   COMP.NAME                                    COMPANY_NAME,
+                   resset_flag
+            FROM   [dbo].[employee_mst] EMP_MST
+                   JOIN company_mst COMP
+                     ON EMP_MST.[company_id] = COMP.company_id
+                        AND COMP.delete_flag = 'N'
+                   JOIN business_groups_mst BUSINESS_GROUPS
+                     ON
+            BUSINESS_GROUPS.business_group_id = COMP.business_group_id
+            AND BUSINESS_GROUPS.delete_flag = 'N'
+            WHERE  ( EMP_MST.email_id_official = @LoginName
+                      OR Cast(EMP_MST.contact_no AS NVARCHAR(20)) = @LoginName )
+                   --AND EMP_MST.[login_password] = @P_LOGIN_PASSWORD
+				   AND (@P_LOGIN_PASSWORD IS NULL OR (EMP_MST.[login_password] = @P_LOGIN_PASSWORD))
+                   AND EMP_MST.delete_flag = 'N';
+        END
+  END
+--select LOGIN_PASSWORD,Cast([LOGIN_PASSWORD] As varchar),* FROM EMPLOYEE_MST where EMAIL_ID_OFFICIAL ='narendrakumar.soni@powersoft.in' and [LOGIN_PASSWORD]= CONVERT(VARBINARY(25), 'admin123' , 1)
+--exec [SP_GetLoginUser] 'narendra.soni@powersoft.in', 'admin@123'
+--exec [SP_GetLoginUser] '8879481981', 'admin@123'
+--select * from  EMPLOYEE_MST where (EMAIL_ID_OFFICIAL ='narendra.soni@powersoft.in'  or Cast(CONTACT_NO As nVarchar(20))= 'narendra.soni@powersoft.in') and [LOGIN_PASSWORD]= 'admin@123' and DELETE_FLAG='N' 
+--SELECT  EMP_MST.[MKEY],EMP_MST.[COMPANY_ID],EMP_MST.[EMP_CODE],DBO.[InitCap](EMP_MST.[EMP_FULL_NAME])EMP_FULL_NAME,DBO.[InitCap](EMP_MST.[FIRST_NAME])FIRST_NAME,DBO.[InitCap](EMP_MST.[LAST_NAME])LAST_NAME,EMP_MST.[ROLE_ID],EMP_MST.[PROJECT_ID],EMP_MST.[DESIGNATION_ID],EMP_MST.[DEPARTMENT_ID]
+--      ,EMP_MST.[CONTACT_NO],EMP_MST.[EMAIL_ID_OFFICIAL],EMP_MST.[EMAIL_ID_PERSONAL],EMP_MST.[LOGIN_NAME],EMP_MST.[LOGIN_PASSWORD],EMP_MST.[RA1_MKEY],EMP_MST.[RA2_MKEY],EMP_MST.[EFFECTIVE_START_DATE],EMP_MST.[EFFECTIVE_END_DATE],EMP_MST.[EMAIL_FREQUENCY],EMP_MST.[BROWSER_NOTIFICATION]
+--      ,EMP_MST.[WEB_TOKEN],EMP_MST.[MOBILE_TOKEN],EMP_MST.[ATTRIBUTE1],EMP_MST.[ATTRIBUTE2],EMP_MST.[ATTRIBUTE3],EMP_MST.[ATTRIBUTE4],EMP_MST.[ATTRIBUTE5],EMP_MST.[CREATED_BY]
+--      ,EMP_MST.[CREATION_DATE],EMP_MST.[LAST_UPDATED_BY],EMP_MST.[LAST_UPDATE_DATE],EMP_MST.[DELETE_FLAG],EMP_MST.[ISFORGOTPASSWORD],convert(varchar(max),EMP_MST.[TEMPPASSWORD])TEMPPASSWORD
+--      ,BUSINESS_GROUPS.BUSINESS_GROUP_ID
+--      ,BUSINESS_GROUPS.NAME BUSINESS_GROUPS_NAME
+--      ,COMP.NAME COMPANY_NAME
+--    FROM [dbo].[EMPLOYEE_MST] EMP_MST  
+--    JOIN COMPANY_MST COMP ON EMP_MST.[COMPANY_ID]=COMP.COMPANY_ID AND COMP.DELETE_FLAG='N'
+--    JOIN BUSINESS_GROUPS_MST BUSINESS_GROUPS ON BUSINESS_GROUPS.BUSINESS_GROUP_ID=COMP.BUSINESS_GROUP_ID AND BUSINESS_GROUPS.DELETE_FLAG='N'
+--    WHERE EMP_MST.MKEY=1
+--------------------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_PROJECT_DEFINATION]    Script Date: 30-07-2025 11:31:54 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================  
+-- Author:  AMIT SHUDDHALWAR  
+-- Create date: 2024-11-06  
+-- Description: TO CREATE APPROVAL TEMPLATE DETAILS  
+-- =============================================  
+ALTER PROCEDURE [dbo].[SP_INSERT_PROJECT_DEFINATION_NT]
+    -- Add the parameters for the stored procedure here  
+    @MKEY INT = NULL,
+	@BUILDING_MKEY INT = NULL,
+    @PROJECT_ABBR NVARCHAR(200) = NULL,
+    @PROPERTY NUMERIC,
+    @LEGAL_ENTITY NVARCHAR(500) = NULL,
+    @PROJECT_ADDRESS NVARCHAR(MAX) = NULL,
+    @BUILDING_CLASSIFICATION NUMERIC = NULL,
+    @BUILDING_STANDARD NUMERIC = NULL,
+    @STATUTORY_AUTHORITY NUMERIC = NULL,
+    @ATTRIBUTE1 NVARCHAR(200) = NULL, -- USER  
+    @ATTRIBUTE2 NVARCHAR(200) = NULL, -- FORM NAME  
+    @ATTRIBUTE3 NVARCHAR(200) = NULL, -- FUCNTION/METHOD NAME  
+    @CREATED_BY NUMERIC = NULL,
+    @LAST_UPDATED_BY NUMERIC,
+	@Session_User_Id          INT,  
+	@Business_Group_Id	  INT
+
+AS
+BEGIN
+    -- SET NOCOUNT ON added to prevent extra result sets from  
+    -- interfering with SELECT statements.  
+    SET NOCOUNT ON;
+    BEGIN TRY
+        DECLARE @countProperty int;
+		IF (@MKEY = 0)
+		BEGIN
+			    SELECT @countProperty = COUNT(*)
+        FROM PROJECT_HDR
+        WHERE PROPERTY = @PROPERTY
+              AND BUILDING_MKEY = @BUILDING_MKEY
+              AND DELETE_FLAG = 'N';
+        IF (@countProperty > 0)
+        BEGIN
+			SELECT PHDR.MKEY,
+                   BUILDING_MKEY,
+				   TMST.TYPE_DESC BUILDING_NAME,
+                   PROJECT_ABBR,
+                   PROPERTY,
+				   PMST.TYPE_DESC AS Property_Name, 
+                   LEGAL_ENTITY,
+                   PROJECT_ADDRESS,
+                   BUILDING_CLASSIFICATION,
+                   BUILDING_STANDARD,
+                   STATUTORY_AUTHORITY,
+                   PHDR.ATTRIBUTE1,
+                   PHDR.ATTRIBUTE2,
+                   PHDR.ATTRIBUTE3,
+                   PHDR.CREATED_BY
+                   ,Isnull(CONVERT(VARCHAR(50), PHDR.created_by), '')         AS                 CREATED_BY_ID,
+                 Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS                 CREATED_BY_NAME,
+                 CASE
+                   WHEN PHDR.creation_date IS NULL THEN ''
+                   ELSE Format(PHDR.creation_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 CREATION_DATE,
+                 Isnull(CONVERT(VARCHAR(50), PHDR.last_updated_by), '')    AS                 LAST_UPDATED_BY,
+                 Isnull(updatedby.emp_full_name, '')						                  UPDATED_BY_NAME,
+                 CASE
+                   WHEN PHDR.last_update_date IS NULL THEN ''
+                   ELSE Format(PHDR.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 LAST_UPDATE_DATE
+				 , 'Error' as [Status],
+                   'Already exist property mkey and Building mkey' as [Message]
+            FROM PROJECT_HDR PHDR INNER JOIN TYPE_MST TMST ON PHDR.BUILDING_MKEY = TMST.MASTER_MKEY AND TMST.TYPE_CODE = 'PROJECT' AND TMST.PARENT_ID != 0
+			INNER JOIN TYPE_MST PMST ON PHDR.PROPERTY = PMST.MASTER_MKEY AND PMST.TYPE_CODE = 'PROJECT' AND PMST.PARENT_ID = 0
+			INNER JOIN employee_mst createdby
+                         ON PHDR.created_by = createdby.mkey
+                 LEFT JOIN employee_mst updatedby
+                        ON PHDR.last_updated_by = updatedby.mkey and updatedby.DELETE_FLAG = 'N'
+			WHERE PHDR.PROPERTY = @PROPERTY
+                  AND PHDR.BUILDING_MKEY = @BUILDING_MKEY
+			AND PHDR.DELETE_FLAG = 'N' 
+			AND TMST.DELETE_FLAG = 'N' 
+			AND PMST.DELETE_FLAG = 'N';
+
+        END
+        ELSE
+        BEGIN
+            -- Insert statements for procedure here  
+            INSERT INTO PROJECT_HDR
+            (
+                BUILDING_MKEY,
+                PROJECT_ABBR,
+                PROPERTY,
+                LEGAL_ENTITY,
+                PROJECT_ADDRESS,
+                BUILDING_CLASSIFICATION,
+                BUILDING_STANDARD,
+                STATUTORY_AUTHORITY,
+                CREATED_BY,
+                CREATION_DATE,
+                LAST_UPDATED_BY,
+                LAST_UPDATE_DATE,
+                DELETE_FLAG
+            )
+            VALUES
+            (@BUILDING_MKEY,
+             @PROJECT_ABBR,
+             @PROPERTY,
+             @LEGAL_ENTITY,
+             @PROJECT_ADDRESS,
+             @BUILDING_CLASSIFICATION,
+             @BUILDING_STANDARD,
+             @STATUTORY_AUTHORITY,
+             @CREATED_BY,
+             GETDATE(),
+             @LAST_UPDATED_BY,
+             GETDATE(),
+             'N'
+            )
+            ----------------------------------------------------------------------------------------------------------------------------------------  
+            SET @MKEY = SCOPE_IDENTITY();
+            ----------------------------------------------------------------------------------------------------------------------------------------  
+            SELECT PHDR.MKEY,
+                   BUILDING_MKEY,
+				   TMST.TYPE_DESC BUILDING_NAME,
+                   PROJECT_ABBR,
+                   PROPERTY,
+				   PMST.TYPE_DESC AS Property_Name, 
+                   LEGAL_ENTITY,
+                   PROJECT_ADDRESS,
+                   BUILDING_CLASSIFICATION,
+                   BUILDING_STANDARD,
+                   STATUTORY_AUTHORITY,
+                   PHDR.ATTRIBUTE1,
+                   PHDR.ATTRIBUTE2,
+                   PHDR.ATTRIBUTE3,
+                   PHDR.CREATED_BY
+                   ,Isnull(CONVERT(VARCHAR(50), PHDR.created_by), '')         AS                 CREATED_BY_ID,
+                 Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS                 CREATED_BY_NAME,
+                 CASE
+                   WHEN PHDR.creation_date IS NULL THEN ''
+                   ELSE Format(PHDR.creation_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 CREATION_DATE,
+                 Isnull(CONVERT(VARCHAR(50), PHDR.last_updated_by), '')    AS                 LAST_UPDATED_BY,
+                 Isnull(updatedby.emp_full_name, '')						                  UPDATED_BY_NAME,
+                 CASE
+                   WHEN PHDR.last_update_date IS NULL THEN ''
+                   ELSE Format(PHDR.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+                 END                                                       AS                 LAST_UPDATE_DATE
+            FROM PROJECT_HDR PHDR INNER JOIN TYPE_MST TMST ON PHDR.BUILDING_MKEY = TMST.MASTER_MKEY AND TMST.TYPE_CODE = 'PROJECT' AND TMST.PARENT_ID != 0
+			INNER JOIN TYPE_MST PMST ON PHDR.PROPERTY = PMST.MASTER_MKEY AND PMST.TYPE_CODE = 'PROJECT' AND PMST.PARENT_ID = 0
+			INNER JOIN employee_mst createdby
+                         ON PHDR.created_by = createdby.mkey
+                 LEFT JOIN employee_mst updatedby
+                        ON PHDR.last_updated_by = updatedby.mkey and updatedby.DELETE_FLAG = 'N'
+			WHERE PHDR.MKEY = @MKEY
+			AND PHDR.DELETE_FLAG = 'N' 
+			AND TMST.DELETE_FLAG = 'N' 
+			AND PMST.DELETE_FLAG = 'N';
+        END
+		END
+		ELSE
+		BEGIN
+			INSERT INTO PROJECT_HDR_H
+								(
+								Hist_date
+								,MKEY
+								,BUILDING_MKEY
+								,PROJECT_ABBR
+								,PROPERTY
+								,LEGAL_ENTITY
+								,PROJECT_ADDRESS
+								,BUILDING_CLASSIFICATION
+								,BUILDING_STANDARD
+								,STATUTORY_AUTHORITY
+								,INITIATOR
+								,ATTRIBUTE1
+								,ATTRIBUTE2
+								,ATTRIBUTE3
+								,ATTRIBUTE4
+								,ATTRIBUTE5
+								,CREATED_BY
+								,CREATION_DATE
+								,LAST_UPDATED_BY
+								,LAST_UPDATE_DATE
+								,DELETE_FLAG)
+						SELECT GETDATE()
+								,MKEY
+								,BUILDING_MKEY
+								,PROJECT_ABBR
+								,PROPERTY
+								,LEGAL_ENTITY
+								,PROJECT_ADDRESS
+								,BUILDING_CLASSIFICATION
+								,BUILDING_STANDARD
+								,STATUTORY_AUTHORITY
+								,INITIATOR
+								,ATTRIBUTE1
+								,ATTRIBUTE2
+								,ATTRIBUTE3
+								,ATTRIBUTE4
+								,ATTRIBUTE5
+								,CREATED_BY
+								,CREATION_DATE
+								,LAST_UPDATED_BY
+								,LAST_UPDATE_DATE
+								,DELETE_FLAG
+						FROM   
+							PROJECT_HDR
+						WHERE  
+							MKEY = @MKEY
+						AND
+							DELETE_FLAG = 'N';
+          ---------------------------------------------------------------------------------------------------------------------
+          -- TO UPDATE THE ROWS IN MAIN TABLE 
+          -- IF ANY COLUMN ROW VALUE IS NULL THEN UPDATE OLD VALUE 
+			UPDATE PROJECT_HDR
+			SET   
+				BUILDING_MKEY            = isnull(@BUILDING_MKEY, BUILDING_MKEY)            
+				,PROPERTY				 = isnull(@PROPERTY,PROPERTY)
+				,BUILDING_CLASSIFICATION = isnull(@BUILDING_CLASSIFICATION,BUILDING_CLASSIFICATION)
+				,BUILDING_STANDARD		 = isnull(@BUILDING_STANDARD,BUILDING_STANDARD)		
+				,STATUTORY_AUTHORITY	 = isnull(@STATUTORY_AUTHORITY,STATUTORY_AUTHORITY)	
+				,PROJECT_ABBR			 = isnull(@PROJECT_ABBR,PROJECT_ABBR)	
+				,LEGAL_ENTITY			 = isnull(@LEGAL_ENTITY,@LEGAL_ENTITY)	
+				,PROJECT_ADDRESS		 = isnull(@PROJECT_ADDRESS,PROJECT_ADDRESS)
+				,LAST_UPDATED_BY		 = isnull(@LAST_UPDATED_BY,LAST_UPDATED_BY)			
+				,LAST_UPDATE_DATE		 = GETDATE()		
+			WHERE  MKEY = @MKEY			 
+			AND DELETE_FLAG = 'N';
+ ---------------------------------------------------------------------------------------------------------------------
+			INSERT INTO PROJECT_TRL_APPROVAL_ABBR_H
+											  (	
+												HIST_DATE
+												,HEADER_MKEY
+												,APPROVAL_MKEY
+												,SEQ_NO
+												,TASK_NO_MKEY
+												,APPROVAL_ABBRIVATION
+												,APPROVAL_DESCRIPTION
+												,DAYS_REQUIRED
+												,DEPARTMENT
+												,JOB_ROLE
+												,RESPOSIBLE_EMP_MKEY
+												,OUTPUT_DOCUMENT
+												,TENTATIVE_START_DATE
+												,TENTATIVE_END_DATE
+												,STATUS
+												,ATTRIBUTE1
+												,ATTRIBUTE2
+												,ATTRIBUTE3
+												,ATTRIBUTE4
+												,ATTRIBUTE5
+												,CREATED_BY
+												,CREATION_DATE
+												,LAST_UPDATED_BY
+												,LAST_UPDATE_DATE
+												,DELETE_FLAG)
+									SELECT		
+										GETDATE()
+										,HEADER_MKEY
+										,APPROVAL_MKEY
+										,SEQ_NO
+										,TASK_NO_MKEY
+										,APPROVAL_ABBRIVATION
+										,APPROVAL_DESCRIPTION
+										,DAYS_REQUIRED
+										,DEPARTMENT
+										,JOB_ROLE
+										,RESPOSIBLE_EMP_MKEY
+										,OUTPUT_DOCUMENT
+										,TENTATIVE_START_DATE
+										,TENTATIVE_END_DATE
+										,STATUS
+										,ATTRIBUTE1
+										,ATTRIBUTE2
+										,ATTRIBUTE3
+										,ATTRIBUTE4
+										,ATTRIBUTE5
+										,CREATED_BY
+										,CREATION_DATE
+										,LAST_UPDATED_BY
+										,LAST_UPDATE_DATE
+										,DELETE_FLAG
+								  FROM   
+									PROJECT_TRL_APPROVAL_ABBR
+								  WHERE  
+									HEADER_MKEY = @MKEY
+								  AND
+									DELETE_FLAG = 'N';
+					SELECT				 
+						MKEY
+						,PROPERTY
+						,BUILDING_MKEY
+						,PROJECT_ABBR
+						,LEGAL_ENTITY
+						,PROJECT_ADDRESS
+						,BUILDING_CLASSIFICATION
+						,BUILDING_STANDARD
+						,STATUTORY_AUTHORITY
+						,INITIATOR
+						,ATTRIBUTE1
+						,ATTRIBUTE2
+						,ATTRIBUTE3
+						,ATTRIBUTE4
+						,ATTRIBUTE5
+						,CREATED_BY
+						,CREATION_DATE
+						,LAST_UPDATED_BY
+						,LAST_UPDATE_DATE
+						,DELETE_FLAG
+						FROM   
+							PROJECT_HDR
+						WHERE  
+							MKEY = @MKEY
+						AND
+							DELETE_FLAG = 'N';
+		END
+    
+    ----------------------------------------------------------------------------------------------------------------------------------------  
+    END TRY
+    BEGIN CATCH
+        -------------------------------------------------------------------------------------------------------------------------------            
+        SELECT ERROR_NUMBER() AS ERRORNUMBER,
+               ERROR_SEVERITY() AS ERRORSEVERITY,
+               ERROR_STATE() AS ERRORSTATE,
+               ERROR_PROCEDURE() AS ERRORPROCEDURE,
+               ERROR_LINE() AS ERRORLINE,
+               ERROR_MESSAGE() AS ERRORMESSAGE;
+        -------------------------------------------------------------------------------------------------------------------------------  
+        DECLARE @ERROR_MESSAGE VARCHAR(MAX) = NULL;
+        SET @ERROR_MESSAGE = ERROR_MESSAGE();
+        -------------------------------------------------------------------------------------------------------------------------------  
+        EXEC sp_P_TMS_INSERT_ERROR_DES @ATTRIBUTE1,
+                                       'TMS',
+                                       @ATTRIBUTE2,
+                                       @ERROR_MESSAGE,
+                                       @ATTRIBUTE3;
+    -------------------------------------------------------------------------------------------------------------------------------  
+    END CATCH
+END
 
 
 

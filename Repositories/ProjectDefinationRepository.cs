@@ -71,7 +71,6 @@ namespace TaskManagement.API.Repositories
                 return null;
             }
         }
-
         public async Task<ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> GetAllProjectDefinationAsyncNT(ProjectHdrNT projectHdrNT)
         {
             try
@@ -138,7 +137,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<PROJECT_HDR> GetProjectDefinationByIdAsync(int id, int LoggedIN, string FormName, string MethodName)
         {
             try
@@ -596,7 +594,6 @@ namespace TaskManagement.API.Repositories
             }
 
         }
-
         public async Task<ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> CreateProjectDefinationAsyncNT(PROJECT_HDR_INPUT_NT pROJECT_HDR_INPUT_NT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -619,7 +616,8 @@ namespace TaskManagement.API.Repositories
 
                     // var OBJ_PROJECT_HDR = pROJECT_HDR;
                     var parameters = new DynamicParameters();
-                    parameters.Add("@BUILDING_MKEY", pROJECT_HDR_INPUT_NT.PROJECT_NAME);
+                    parameters.Add("@MKEY", pROJECT_HDR_INPUT_NT.MKEY);
+                    parameters.Add("@BUILDING_MKEY", pROJECT_HDR_INPUT_NT.BUILDING_MKEY);
                     parameters.Add("@PROJECT_ABBR", pROJECT_HDR_INPUT_NT.PROJECT_ABBR);
                     parameters.Add("@PROPERTY", pROJECT_HDR_INPUT_NT.PROPERTY);
                     parameters.Add("@LEGAL_ENTITY", pROJECT_HDR_INPUT_NT.LEGAL_ENTITY);
@@ -627,14 +625,16 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@BUILDING_CLASSIFICATION", pROJECT_HDR_INPUT_NT.BUILDING_CLASSIFICATION);
                     parameters.Add("@BUILDING_STANDARD", pROJECT_HDR_INPUT_NT.BUILDING_STANDARD);
                     parameters.Add("@STATUTORY_AUTHORITY", pROJECT_HDR_INPUT_NT.STATUTORY_AUTHORITY);
-                    parameters.Add("@CREATED_BY", pROJECT_HDR_INPUT_NT.CREATED_BY);
-                    parameters.Add("@LAST_UPDATED_BY", pROJECT_HDR_INPUT_NT.LAST_UPDATED_BY);
+                    parameters.Add("@CREATED_BY", pROJECT_HDR_INPUT_NT.Session_User_Id);
+                    parameters.Add("@LAST_UPDATED_BY", pROJECT_HDR_INPUT_NT.Session_User_Id);
                     parameters.Add("@ATTRIBUTE1", pROJECT_HDR_INPUT_NT.ATTRIBUTE1);
                     parameters.Add("@ATTRIBUTE2", pROJECT_HDR_INPUT_NT.ATTRIBUTE2);
                     parameters.Add("@ATTRIBUTE3", pROJECT_HDR_INPUT_NT.ATTRIBUTE3);
+                    parameters.Add("@Session_User_Id", pROJECT_HDR_INPUT_NT.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", pROJECT_HDR_INPUT_NT.Business_Group_Id);
 
                     // Insert project definition
-                    var OBJ_PROJECT_HDR = await db.QueryAsync<PROJECT_HDR_NT>("SP_INSERT_PROJECT_DEFINATION", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var OBJ_PROJECT_HDR = await db.QueryAsync<PROJECT_HDR_NT>("SP_INSERT_PROJECT_DEFINATION_NT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (OBJ_PROJECT_HDR.Any())
                     {
@@ -660,8 +660,9 @@ namespace TaskManagement.API.Repositories
                         {
                             var RESPOSIBLE_EMP_MKEY = approvalsList.RESPOSIBLE_EMP_MKEY ?? 0;
                             var row = approvalsDataTable.NewRow();
-                            row["HEADER_MKEY"] = OBJ_PROJECT_HDR.Select(x => x.MKEY).ToString();
-                            row["SEQ_NO"] = approvalsList.TASK_NO;
+                            var headerMkey = OBJ_PROJECT_HDR.FirstOrDefault()?.MKEY ?? 0;
+                            row["HEADER_MKEY"] = headerMkey;
+                            row["SEQ_NO"] = approvalsList.SEQ_NO;
                             row["APPROVAL_MKEY"] = approvalsList.APPROVAL_MKEY;
                             row["APPROVAL_ABBRIVATION"] = approvalsList.APPROVAL_ABBRIVATION;
                             row["APPROVAL_DESCRIPTION"] = approvalsList.APPROVAL_DESCRIPTION;
@@ -675,9 +676,9 @@ namespace TaskManagement.API.Repositories
                                    : (object)DateTime.Parse(approvalsList.TENTATIVE_END_DATE);
                             row["DEPARTMENT"] = approvalsList.DEPARTMENT;
                             row["JOB_ROLE"] = approvalsList.JOB_ROLE;
-                            row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
+                          //  row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
                             row["STATUS"] = "Ready to Initiate";//approvalsList.STATUS;
-                            row["CREATED_BY"] = pROJECT_HDR_INPUT_NT.CREATED_BY;
+                            row["CREATED_BY"] = pROJECT_HDR_INPUT_NT.Session_User_Id;
                             row["CREATION_DATE"] = dateTime;
 
                             approvalsDataTable.Rows.Add(row);
@@ -707,6 +708,7 @@ namespace TaskManagement.API.Repositories
                         bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
 
                         await bulkCopy.WriteToServerAsync(approvalsDataTable);
+
                     }
                     else
                     {
@@ -727,16 +729,15 @@ namespace TaskManagement.API.Repositories
                     await sqlTransaction.CommitAsync();
 
                     var SuccessResult = new List<PROJECT_HDR_NT_OUTPUT>
+                    {
+                        new PROJECT_HDR_NT_OUTPUT
                         {
-                            new PROJECT_HDR_NT_OUTPUT
-                            {
-                                Status = "Ok",
-                                Message = $" Insert Successfuly",
-                                Data = OBJ_PROJECT_HDR
-                            }
-                        };
+                            Status = "Ok",
+                            Message = $" Insert Successfuly",
+                            Data = OBJ_PROJECT_HDR
+                        }
+                    };
                     return SuccessResult;
-
                 }
             }
             catch (Exception ex)

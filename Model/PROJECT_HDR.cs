@@ -28,8 +28,8 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("Mkey")]
         public int? MKEY { get; set; }
-        [JsonPropertyName("Project_Name")]
-        public int? PROJECT_NAME { get; set; }  // BUILDING_MKEY
+        [JsonPropertyName("Building_Mkey")]
+        public int? Building_Mkey { get; set; }  // BUILDING_MKEY
         [JsonPropertyName("Building_Name")]
         public string? BUILDING_NAME { get; set; }
         [JsonPropertyName("Project_Abbr")]
@@ -62,22 +62,37 @@ namespace TaskManagement.API.Model
         public string? ATTRIBUTE3 { get; set; }
         [JsonPropertyName("Created_By")]
         public int? CREATED_BY { get; set; }
-        [JsonPropertyName("Last_Updated_By")]
-        public int LAST_UPDATED_BY { get; set; }
         [JsonPropertyName("Approvals_Abbr_List")]
         public List<PROJECT_TRL_APPROVAL_ABBR>? APPROVALS_ABBR_LIST { get; set; }
         [JsonIgnore]
         public string? Status { get; set; }
         [JsonIgnore]
         public string? Message { get; set; }
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
     }
 
     public class PROJECT_HDR_INPUT_NT
     {
         [JsonPropertyName("Mkey")]
         public int? MKEY { get; set; }
-        [JsonPropertyName("Project_Name")]
-        public int? PROJECT_NAME { get; set; }  // BUILDING_MKEY
+        [JsonPropertyName("Building_Mkey")]
+        public int? BUILDING_MKEY { get; set; }  // BUILDING_MKEY
         [JsonPropertyName("Building_Name")]
         public string? BUILDING_NAME { get; set; }
         [JsonPropertyName("Project_Abbr")]
@@ -108,16 +123,20 @@ namespace TaskManagement.API.Model
         public string? ATTRIBUTE2 { get; set; }
         [JsonPropertyName("Attribute3")]
         public string? ATTRIBUTE3 { get; set; }
-        [JsonPropertyName("Created_By")]
-        public int? CREATED_BY { get; set; }
-        [JsonPropertyName("Last_Updated_By")]
-        public int LAST_UPDATED_BY { get; set; }
         [JsonPropertyName("Approvals_Abbr_List")]
-        public List<PROJECT_TRL_APPROVAL_ABBR>? APPROVALS_ABBR_LIST { get; set; }
+        public List<PROJECT_TRL_APPROVAL_ABBR_NT>? APPROVALS_ABBR_LIST { get; set; }
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
         [JsonIgnore]
         public string? Status { get; set; }
         [JsonIgnore]
         public string? Message { get; set; }
+
+      
+
+
     }
 
     public class PROJECT_HDR

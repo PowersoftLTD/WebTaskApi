@@ -800,7 +800,9 @@ namespace TaskManagement.API.Repositories
                         parameters.Add("@TAGS", insertApprovalTemplates.TAGS);
                         parameters.Add("@CREATED_BY", insertApprovalTemplates.CREATED_BY);
                         parameters.Add("@TAGS", insertApprovalTemplates.TAGS);
-                        var objOutPutApprovalTemplates = await db.QueryAsync<OutPutApprovalTemplatesNT>("SP_INSERT_APPROVAL_TEMPLATE", parameters,
+                        parameters.Add("@Session_User_Id", insertApprovalTemplates.Session_User_Id);
+                        parameters.Add("@Business_Group_Id", insertApprovalTemplates.Business_Group_Id);
+                        var objOutPutApprovalTemplates = await db.QueryAsync<OutPutApprovalTemplatesNT>("SP_INSERT_APPROVAL_TEMPLATE_NT", parameters,
                             commandType: CommandType.StoredProcedure, transaction: transaction);
                         int MkeyApprTemp = 0;
                         if (!objOutPutApprovalTemplates.Any())

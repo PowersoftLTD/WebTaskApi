@@ -61,6 +61,11 @@ namespace TaskManagement.API.Model
         public List<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK>? SUBTASK_LIST { get; set; } = new List<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK>();
         [JsonPropertyName("Sanctioning_Department_List")]
         public List<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>? SANCTIONING_DEPARTMENT_LIST { get; set; } = new List<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>();
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+
     }
 
 

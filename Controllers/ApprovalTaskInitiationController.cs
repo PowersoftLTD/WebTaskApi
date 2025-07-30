@@ -66,6 +66,31 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+        [HttpPost("Approval-Task-Initiation-Get-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<APPROVAL_TASK_INITIATION_NT_OUTPUT>>> GetApprovalTaskInitiationNT(APPROVAL_TASK_INITIATION_NT_INUT aPPROVAL_TASK_INITIATION_NT_INUT)
+        {
+            try
+            {
+                var TASK = await _repository.GetApprovalTemplateByIdAsyncNT(aPPROVAL_TASK_INITIATION_NT_INUT);
+                return TASK;
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<APPROVAL_TASK_INITIATION_NT_OUTPUT>
+                {
+                    new APPROVAL_TASK_INITIATION_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = "An unexpected error occurred while retrieving the approval template!!!",
+                        Data=null
+                    }
+                };
+                return errorResult;
+            }
+        }
+
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<APPROVAL_TASK_INITIATION>> CreateApprovalTASK([FromBody] APPROVAL_TASK_INITIATION aPPROVAL_TASK_INITIATION)
@@ -198,6 +223,158 @@ namespace TaskManagement.API.Controllers
                         //    flagRequired = true;
                         //    RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";
                         //}
+                    }
+                    else
+                    {
+                        flagRequired = true;
+                    }
+                }
+
+                if (flagRequired == true)
+                {
+                    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    {
+                        Status = "Error",
+                        Message = "Please enter the details of Approval Task Initiation " + RequiredColumn,
+                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                    };
+                    return Ok(responseStatus);
+                }
+                else
+                {
+                    var model = await _repository.CreateTaskApprovalTemplateAsync(aPPROVAL_TASK_INITIATION);
+                    if (model == null || model.ResponseStatus == "Error")
+                    {
+                        var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
+                        {
+                            Status = "Error",
+                            Message = model.Message,
+                            Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                        };
+                        return Ok(responseStatus);
+                    }
+                    var response = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    {
+                        Status = "Ok",
+                        Message = "Inserted Successfully",
+                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                    };
+                    return Ok(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                var response = new ApiResponse<APPROVAL_TASK_INITIATION>
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                };
+                return Ok(response);
+            }
+        }
+
+
+
+        [HttpPost("Approval-Task-Initiation-Insert/Update-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<APPROVAL_TASK_INITIATION_NT_OUTPUT>>> CreateApprovalTASK([FromBody] APPROVAL_TASK_INITIATION aPPROVAL_TASK_INITIATION)
+        {
+            try
+            {
+                bool flagSeq_no = false, flagRequired = false;
+                double IndexSeq_NO = 0.0;
+                string RequiredColumn = string.Empty;
+
+
+                if (aPPROVAL_TASK_INITIATION.BUILDING_MKEY == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,BUILDING_MKEY ";
+                }
+                if (aPPROVAL_TASK_INITIATION.CAREGORY == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,CAREGORY ";
+                }
+                if (aPPROVAL_TASK_INITIATION.MAIN_ABBR == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,MAIN_ABBR ";
+                }
+
+                if (aPPROVAL_TASK_INITIATION.PROPERTY == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,PROPERTY ";
+                }
+                if (aPPROVAL_TASK_INITIATION.INITIATOR == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,INITIATOR ";
+                }
+
+                if (aPPROVAL_TASK_INITIATION.COMPLITION_DATE == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,COMPLITION_DATE ";
+                }
+                if (aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,RESPOSIBLE_EMP_MKEY ";
+                }
+
+                if (aPPROVAL_TASK_INITIATION.JOB_ROLE == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,JOB_ROLE ";
+                }
+
+                if (aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY == null)
+                {
+                    flagRequired = true;
+                    RequiredColumn = RequiredColumn + " ,RESPOSIBLE_EMP_MKEY ";
+                }
+
+                foreach (var ChkDate in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
+                {
+                    if (ChkDate != null)
+                    {
+
+                        if (ChkDate.APPROVAL_ABBRIVATION == null)
+                        {
+                            flagRequired = true;
+                            RequiredColumn = RequiredColumn + " ,APPROVAL_ABBRIVATION ";
+                        }
+                        if (ChkDate.DAYS_REQUIRED == null)
+                        {
+                            flagRequired = true;
+                            RequiredColumn = RequiredColumn + " ,DAYS_REQUIRED ";
+                        }
+
+                        if (ChkDate.DEPARTMENT == null)
+                        {
+                            flagRequired = true;
+                            RequiredColumn = RequiredColumn + " ,DEPARTMENT ";
+                        }
+                        if (ChkDate.JOB_ROLE == null)
+                        {
+                            flagRequired = true;
+                            RequiredColumn = RequiredColumn + " ,JOB_ROLE ";
+                        }
+
+                        if (ChkDate.TENTATIVE_START_DATE == null)
+                        {
+                            flagRequired = true;
+                            RequiredColumn = RequiredColumn + " ,TENTATIVE_START_DATE ";
+                        }
+
+                        if (ChkDate.TENTATIVE_END_DATE == null)
+                        {
+                            flagRequired = true;
+                            RequiredColumn = RequiredColumn + " ,TENTATIVE_END_DATE ";
+                        }
                     }
                     else
                     {

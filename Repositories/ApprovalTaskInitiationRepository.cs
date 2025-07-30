@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
 using System.Collections.Immutable;
 using System.Data;
@@ -58,6 +59,77 @@ namespace TaskManagement.API.Repositories
                 aPPROVAL_TASK_INITIATION.ResponseStatus = "Error";
                 aPPROVAL_TASK_INITIATION.Message = ex.Message;
                 return aPPROVAL_TASK_INITIATION; // Return null if no results
+            }
+        }
+        public async Task<ActionResult<IEnumerable<APPROVAL_TASK_INITIATION_NT_OUTPUT>>> GetApprovalTemplateByIdAsyncNT(APPROVAL_TASK_INITIATION_NT_INUT aPPROVAL_TASK_INITIATION_NT_INUT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@MKEY", aPPROVAL_TASK_INITIATION_NT_INUT.MKEY);
+                    parmeters.Add("@APPROVAL_MKEY", aPPROVAL_TASK_INITIATION_NT_INUT.APPROVAL_MKEY);
+
+                    // Fetch approval template
+                    var approvalTemplate = await db.QueryAsync<APPROVAL_TASK_INITIATION_NT>("SP_GET_APPROVAL_TASK_INITIATION", parmeters, commandType: CommandType.StoredProcedure);
+
+                    if (approvalTemplate == null)
+                    {
+                        //var aPPROVAL_TASK_INITIATION = new APPROVAL_TASK_INITIATION();
+                        //aPPROVAL_TASK_INITIATION.ResponseStatus = "Error";
+                        //aPPROVAL_TASK_INITIATION.Message = "An unexpected error occurred while retrieving the approval template.";
+                        //return aPPROVAL_TASK_INITIATION; // Return null if no results
+
+                        var errorResult = new List<APPROVAL_TASK_INITIATION_NT_OUTPUT>
+                            {
+                                new APPROVAL_TASK_INITIATION_NT_OUTPUT
+                                {
+                                    Status = "Error",
+                                    Message = "An unexpected error occurred while retrieving the approval template!!!",
+                                    Data=null
+                                }
+                            };
+                        return errorResult;
+
+                    }
+                    // Fetch subtasks
+                    var subtasks = await db.QueryAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT>("SP_GET_APPROVAL_TASK_INITIATION_TRL_SUBTASK", parmeters, commandType: CommandType.StoredProcedure);
+                    var subtaskList = subtasks.ToList();
+                    
+                    foreach (var item in approvalTemplate)
+                    {
+                        item.SUBTASK_LIST = subtaskList.ToList();
+                    }
+
+                    //approvalTemplate.STATUS = "Ok";
+                    //approvalTemplate.Message = "Get Data Sucessuly";
+                    //return approvalTemplate;
+
+                    var SuccessResult = new List<APPROVAL_TASK_INITIATION_NT_OUTPUT>
+                    {
+                        new APPROVAL_TASK_INITIATION_NT_OUTPUT
+                        {
+                            Status = "Error",
+                            Message = "An unexpected error occurred while retrieving the approval template!!!",
+                            Data= approvalTemplate
+                        }
+                    };
+                    return SuccessResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<APPROVAL_TASK_INITIATION_NT_OUTPUT>
+                {
+                    new APPROVAL_TASK_INITIATION_NT_OUTPUT
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data=null
+                    }
+                };
+                return errorResult;
             }
         }
         public async Task<APPROVAL_TASK_INITIATION> CreateTaskApprovalTemplateAsync(APPROVAL_TASK_INITIATION aPPROVAL_TASK_INITIATION)
