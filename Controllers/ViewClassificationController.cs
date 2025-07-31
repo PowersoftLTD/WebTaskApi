@@ -33,7 +33,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Building-Classification_NT")]
+        [HttpPost("Building-Classification_NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<BuildingTypeNT>>> GetAllViewBuildingClassificationNT(ClassificationNT classificationNT)
         {
@@ -159,7 +159,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Standard-Type-NT")]
+        [HttpPost("Standard-Type-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<StatutoryTypeNT>>> GetViewStandardTypeNT(ClassificationNT classificationNT)
         {
@@ -198,7 +198,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Statutory-type-NT")]
+        [HttpPost("Statutory-type-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<StatutoryTypeNT>>> GetAllViewStatutoryAuthNT(ClassificationNT classificationNT)
         {

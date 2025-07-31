@@ -97,6 +97,10 @@ namespace TaskManagement.API.Interfaces
 
         Task<ActionResult<IEnumerable<TaskDashBoardFilterOutputListNT>>> TaskProjectsFilterNTAsync(TaskProjectsFilterNT taskProjectsFilterNT);
 
+        Task<ActionResult<IEnumerable<UserProjectBuildingActivityOutputNT>>> UserProjectBuildingActivityAsyncNT(UserProjectBuildingActivityNT userProjectBuildingActivityNT);
+
+        Task<ActionResult<IEnumerable<UserProjectBuildingActivityOutputNT>>> UserProjectBuildingActivityPostAsyncNT(UserProjectBuildingActivityPostNT userProjectBuildingActivityPostNT);
+
         Task<ActionResult<string>> FileDownload(FileDownloadNT fileDownloadNT);
         Task<ActionResult<string>> FileDownload();
     }

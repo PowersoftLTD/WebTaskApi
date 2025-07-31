@@ -6854,6 +6854,126 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<ActionResult<IEnumerable<UserProjectBuildingActivityOutputNT>>> UserProjectBuildingActivityAsyncNT(UserProjectBuildingActivityNT userProjectBuildingActivityNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    //transaction = db.BeginTransaction();
+                    //transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@USER_MKEY", userProjectBuildingActivityNT.USER_MKEY);
+                    parmeters.Add("@Session_User_Id", userProjectBuildingActivityNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", userProjectBuildingActivityNT.Business_Group_Id);
+
+                    var UserActivity = await db.QueryAsync<UserProjectBuildingActivityInputNT>("SP_GET_USER_PROJECT_ACTIVITY_NT", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var successsResult = new List<UserProjectBuildingActivityOutputNT>
+                    {
+                        new UserProjectBuildingActivityOutputNT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = UserActivity
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the generic error
+                var errorResult = new List<UserProjectBuildingActivityOutputNT>
+                        {
+                            new UserProjectBuildingActivityOutputNT
+                            {
+                                Status = "Error",
+                                Message = ex.Message,
+                                Data= null
+                            }
+                        };
+                return errorResult;
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<UserProjectBuildingActivityOutputNT>>> UserProjectBuildingActivityPostAsyncNT(UserProjectBuildingActivityPostNT userProjectBuildingActivityPostNT)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;  // Track the transaction state
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    //transaction = db.BeginTransaction();
+                    //transactionCompleted = false;  // Reset transaction state
+
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@MKEY", userProjectBuildingActivityPostNT.MKEY);
+                    parmeters.Add("@USER_MKEY", userProjectBuildingActivityPostNT.USER_MKEY);
+                    parmeters.Add("@PROPERTY_MKEY", userProjectBuildingActivityPostNT.PROPERTY_MKEY);
+                    parmeters.Add("@BUILDING_MKEY", userProjectBuildingActivityPostNT.BUILDING_MKEY);
+                    parmeters.Add("@Session_User_Id", userProjectBuildingActivityPostNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", userProjectBuildingActivityPostNT.Business_Group_Id);
+                    parmeters.Add("@DELETE_FLAG", userProjectBuildingActivityPostNT.DELETE_FLAG);
+                    
+                    var UserActivity = await db.QueryAsync<UserProjectBuildingActivityInputNT>("SP_INSERT_UPDATE_USER_PROJECT_BUILDING_ACTIVITY_NT", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var successsResult = new List<UserProjectBuildingActivityOutputNT>
+                    {
+                        new UserProjectBuildingActivityOutputNT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = UserActivity
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the generic error
+                var errorResult = new List<UserProjectBuildingActivityOutputNT>
+                        {
+                            new UserProjectBuildingActivityOutputNT
+                            {
+                                Status = "Error",
+                                Message = ex.Message,
+                                Data= null
+                            }
+                        };
+                return errorResult;
+            }
+        }
+
     }
 }
 

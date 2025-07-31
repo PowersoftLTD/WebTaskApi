@@ -3152,5 +3152,71 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("User-Project-Building-Activity-Get-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UserProjectBuildingActivityOutputNT>>> UserProjectBuildingActivityGetNT(UserProjectBuildingActivityNT userProjectBuildingActivityNT)
+        {
+            try
+            {
+                if (userProjectBuildingActivityNT == null)
+                {
+                    var response = new UserProjectBuildingActivityOutputNT
+                    {
+                        Status = "Error",
+                        Message = "Please Enter the details",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.UserProjectBuildingActivityAsyncNT(userProjectBuildingActivityNT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new UserProjectBuildingActivityOutputNT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+
+        [HttpPost("User-Project-Building-Activity-Post-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UserProjectBuildingActivityOutputNT>>> UserProjectBuildingActivityPostNT(UserProjectBuildingActivityPostNT userProjectBuildingActivityPostNT)
+        {
+            try
+            {
+                if (userProjectBuildingActivityPostNT == null)
+                {
+                    var response = new UserProjectBuildingActivityOutputNT
+                    {
+                        Status = "Error",
+                        Message = "Please Enter the details",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                var RsponseStatus = await _repository.UserProjectBuildingActivityPostAsyncNT(userProjectBuildingActivityPostNT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var response = new UserProjectBuildingActivityOutputNT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+
     }
 }

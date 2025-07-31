@@ -274,11 +274,9 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
-
         [HttpPost("Approval-Task-Initiation-Insert/Update-NT")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<APPROVAL_TASK_INITIATION_NT_OUTPUT>>> CreateApprovalTASK([FromBody] APPROVAL_TASK_INITIATION aPPROVAL_TASK_INITIATION)
+        public async Task<ActionResult<IEnumerable<APPROVAL_TASK_INITIATION_NT_OUTPUT>>> CreateApprovalInitiationNT([FromBody] APPROVAL_TASK_INITIATION_INPUT_NT aPPROVAL_TASK_INITIATION_INPUT_NT)
         {
             try
             {
@@ -287,57 +285,57 @@ namespace TaskManagement.API.Controllers
                 string RequiredColumn = string.Empty;
 
 
-                if (aPPROVAL_TASK_INITIATION.BUILDING_MKEY == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.BUILDING_MKEY == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,BUILDING_MKEY ";
                 }
-                if (aPPROVAL_TASK_INITIATION.CAREGORY == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.CAREGORY == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,CAREGORY ";
                 }
-                if (aPPROVAL_TASK_INITIATION.MAIN_ABBR == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.MAIN_ABBR == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,MAIN_ABBR ";
                 }
 
-                if (aPPROVAL_TASK_INITIATION.PROPERTY == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.PROPERTY == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,PROPERTY ";
                 }
-                if (aPPROVAL_TASK_INITIATION.INITIATOR == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.INITIATOR == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,INITIATOR ";
                 }
 
-                if (aPPROVAL_TASK_INITIATION.COMPLITION_DATE == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.COMPLITION_DATE == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,COMPLITION_DATE ";
                 }
-                if (aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.RESPOSIBLE_EMP_MKEY == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,RESPOSIBLE_EMP_MKEY ";
                 }
 
-                if (aPPROVAL_TASK_INITIATION.JOB_ROLE == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.JOB_ROLE == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,JOB_ROLE ";
                 }
 
-                if (aPPROVAL_TASK_INITIATION.RESPOSIBLE_EMP_MKEY == null)
+                if (aPPROVAL_TASK_INITIATION_INPUT_NT.RESPOSIBLE_EMP_MKEY == null)
                 {
                     flagRequired = true;
                     RequiredColumn = RequiredColumn + " ,RESPOSIBLE_EMP_MKEY ";
                 }
 
-                foreach (var ChkDate in aPPROVAL_TASK_INITIATION.SUBTASK_LIST)
+                foreach (var ChkDate in aPPROVAL_TASK_INITIATION_INPUT_NT.SUBTASK_LIST)
                 {
                     if (ChkDate != null)
                     {
@@ -384,45 +382,79 @@ namespace TaskManagement.API.Controllers
 
                 if (flagRequired == true)
                 {
-                    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
+                    //var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION_NT_OUTPUT>
+                    //{
+                    //    Status = "Error",
+                    //    Message = "Please enter the details of Approval Task Initiation " + RequiredColumn,
+                    //    Data = aPPROVAL_TASK_INITIATION_INPUT_NT // No data in case of exception
+                    //};
+                    //return Ok(responseStatus);
+
+                    var ErroResult = new List<APPROVAL_TASK_INITIATION_NT_OUTPUT>
                     {
-                        Status = "Error",
-                        Message = "Please enter the details of Approval Task Initiation " + RequiredColumn,
-                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
+                        new APPROVAL_TASK_INITIATION_NT_OUTPUT
+                        {
+                            Status = "Error",
+                            Message = "Please enter the details of Approval Task Initiation " + RequiredColumn,
+                            Data= null
+                        }
                     };
-                    return Ok(responseStatus);
+                    return ErroResult;
+
                 }
                 else
                 {
-                    var model = await _repository.CreateTaskApprovalTemplateAsync(aPPROVAL_TASK_INITIATION);
-                    if (model == null || model.ResponseStatus == "Error")
-                    {
-                        var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION>
-                        {
-                            Status = "Error",
-                            Message = model.Message,
-                            Data = aPPROVAL_TASK_INITIATION // No data in case of exception
-                        };
-                        return Ok(responseStatus);
-                    }
-                    var response = new ApiResponse<APPROVAL_TASK_INITIATION>
-                    {
-                        Status = "Ok",
-                        Message = "Inserted Successfully",
-                        Data = aPPROVAL_TASK_INITIATION // No data in case of exception
-                    };
-                    return Ok(response);
+                    var model = await _repository.CreateTaskApprovalTemplateAsyncNT(aPPROVAL_TASK_INITIATION_INPUT_NT);
+
+                    //var ErroResult = new List<APPROVAL_TASK_INITIATION_NT_OUTPUT>
+                    //{
+                    //    new APPROVAL_TASK_INITIATION_NT_OUTPUT
+                    //    {
+                    //        Status = "Ok",
+                    //        Message = "Inserted Successfully",
+                    //        Data= model
+                    //    }
+                    //};
+                    return model;
+
+                    //if (model == null || model.ResponseStatus == "Error")
+                    //{
+                    //    var responseStatus = new ApiResponse<aPPROVAL_TASK_INITIATION_INPUT_NT>
+                    //    {
+                    //        Status = "Error",
+                    //        Message = model.Message,
+                    //        Data = aPPROVAL_TASK_INITIATION_INPUT_NT // No data in case of exception
+                    //    };
+                    //    return Ok(responseStatus);
+                    //}
+                    //var response = new ApiResponse<aPPROVAL_TASK_INITIATION_INPUT_NT>
+                    //{
+                    //    Status = "Ok",
+                    //    Message = "Inserted Successfully",
+                    //    Data = aPPROVAL_TASK_INITIATION_INPUT_NT // No data in case of exception
+                    //};
+                    //return Ok(response);
                 }
             }
             catch (Exception ex)
             {
-                var response = new ApiResponse<APPROVAL_TASK_INITIATION>
-                {
-                    Status = "Error",
-                    Message = ex.Message,
-                    Data = aPPROVAL_TASK_INITIATION // No data in case of exception
-                };
-                return Ok(response);
+                //var response = new ApiResponse<aPPROVAL_TASK_INITIATION_INPUT_NT>
+                //{
+                //    Status = "Error",
+                //    Message = ex.Message,
+                //    Data = aPPROVAL_TASK_INITIATION_INPUT_NT // No data in case of exception
+                //};
+                //return Ok(response);
+                var ErroResult = new List<APPROVAL_TASK_INITIATION_NT_OUTPUT>
+                    {
+                        new APPROVAL_TASK_INITIATION_NT_OUTPUT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null
+                        }
+                    };
+                return ErroResult;
             }
         }
 
@@ -488,6 +520,96 @@ namespace TaskManagement.API.Controllers
                     Data = aPPROVAL_TASK_INITIATION_TRL_SUBTASK // No data in case of exception
                 };
                 return Ok(response);
+            }
+        }
+
+        [HttpPut("Put-Approval-Template-Subtask-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT_OUTPUT>>> UpdateApprovalSubtaskNT(APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT aPPROVAL_TASK_INITIATION_TRL_SUBTASK)
+        {
+            try
+            {
+                bool flagSeq_no = false, flagRequired = false;
+                double IndexSeq_NO = 0.0;
+                string RequiredColumn = string.Empty;
+
+                if (aPPROVAL_TASK_INITIATION_TRL_SUBTASK == null)
+                {
+                    //var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT_OUTPUT>
+                    //{
+                    //    Status = "Error",
+                    //    Message = "Please enter the details of Approval Task Initiation " + RequiredColumn,
+                    //    Data = null // No data in case of exception
+                    //};
+                    //return Ok(responseStatus);
+
+                    var ErroResult = new List<APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT_OUTPUT>
+                    {
+                        new APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT_OUTPUT
+                        {
+                            Status = "Error",
+                            Message = "Please enter the details of Approval Task Initiation " + RequiredColumn,
+                            Data= null
+                        }
+                    };
+                    return ErroResult;
+
+                }
+                else
+                {
+                    var model = await _repository.UpdateApprovalSubtaskNT(aPPROVAL_TASK_INITIATION_TRL_SUBTASK);
+                    return model;
+
+                    //if (model == null)
+                    //{
+                    //    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                    //    {
+                    //        Status = "Error",
+                    //        Message = model.Message,
+                    //        Data = null // No data in case of exception
+                    //    };
+                    //    return Ok(responseStatus);
+                    //}
+                    //else if (model.TRLStatus.ToString().ToLower() != "Ok".ToString().ToLower())
+                    //{
+                    //    var responseStatus = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                    //    {
+                    //        Status = "Error",
+                    //        Message = model.Message,
+                    //        Data = null // No data in case of exception
+                    //    };
+                    //    return Ok(responseStatus);
+                    //}
+
+                    //var response = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                    //{
+                    //    Status = "Ok",
+                    //    Message = "Update Successfully",
+                    //    Data = model // No data in case of exception
+                    //};
+                    //return Ok(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                //var response = new ApiResponse<APPROVAL_TASK_INITIATION_TRL_SUBTASK>
+                //{
+                //    Status = "Error",
+                //    Message = ex.Message,
+                //    Data = aPPROVAL_TASK_INITIATION_TRL_SUBTASK // No data in case of exception
+                //};
+                //return Ok(response);
+
+                var ErrorResult = new List<APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT_OUTPUT>
+                        {
+                            new APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT_OUTPUT
+                            {
+                                Status = "Error",
+                                Message = ex.Message,
+                                Data= null
+                            }
+                        };
+                return ErrorResult;
             }
         }
     }

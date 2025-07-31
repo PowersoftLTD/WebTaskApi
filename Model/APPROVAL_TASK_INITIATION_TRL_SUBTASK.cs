@@ -3,6 +3,17 @@ using System.Text.Json.Serialization;
 
 namespace TaskManagement.API.Model
 {
+
+    public class APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT_OUTPUT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT> Data { get; set; }
+    }
+
     public class APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT
     {
         [JsonPropertyName("Mkey")]

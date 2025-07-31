@@ -258,7 +258,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Approval-Template-Get-Check-ABBR-NT")]
+        [HttpPost("Approval-Template-Get-Check-ABBR-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>>> GetCheckABBR_NT(APPROVAL_TEMPLATE_HDR_INPUT aPPROVAL_TEMPLATE_HDR_INPUT)
         {
@@ -312,7 +312,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("Approval-Template-Get-Abbr-And-ShortAbbr-NT")]
+        [HttpPost("Approval-Template-Get-Abbr-And-ShortAbbr-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>>> GetAbbrAndShortAbbrNT(GetAbbrAndShortAbbrOutPutNT getAbbrAndShortAbbrOutPutNT)
         {

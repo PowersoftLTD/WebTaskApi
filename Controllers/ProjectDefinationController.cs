@@ -456,7 +456,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpGet("ProjectDefination/Get-Approval-Details-NT")]
+        [HttpPost("ProjectDefination/Get-Approval-Details-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<dynamic>>> GetApprovalDetailsNT(int LoggedInID, int BUILDING_TYPE,string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
         {

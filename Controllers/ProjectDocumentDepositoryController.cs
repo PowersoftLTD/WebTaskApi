@@ -45,7 +45,42 @@ namespace TaskManagement.API.Controllers
             }
 
         }
-       
+
+
+        [HttpPost("Get-Project-Document-Depsitory-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List_NT>>> GetAllProjDocDepsitoryNT(ProjectDocDepositoryInputNT projectDocDepositoryInputNT)
+        {
+            try
+            {
+                var RsponseStatus = await _repository.GetAllProjectDocDeositoryAsyncNT(projectDocDepositoryInputNT);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                //var response = new UpdateProjectDocDepositoryHDROutput_List_NT
+                //{
+                //    STATUS = "Error",
+                //    MESSAGE = ex.Message,
+                //    DATA = null
+                //};
+                //return Ok(response);
+
+                var errorResult = new List<UpdateProjectDocDepositoryHDROutput_List_NT>
+                {
+                    new UpdateProjectDocDepositoryHDROutput_List_NT
+                    {
+                        STATUS = "Ok",
+                        MESSAGE = "Data not found",
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+
+        }
+
+
         [HttpPost("Post-Project-Document-Depsitory")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List>>> CreateProjDocDepsitory([FromForm] PROJECT_DOC_DEPOSITORY_HDR pROJECT_DOC_DEPOSITORY_HDR)
@@ -84,7 +119,51 @@ namespace TaskManagement.API.Controllers
             }
 
         }
-      
+
+        [HttpPost("Post-Project-Document-Depsitory-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UpdateProjectDocDepositoryHDROutput_List_NT>>> CreateProjDocDepsitoryNT([FromForm] PROJECT_DOC_DEPOSITORY_HDR_NT pROJECT_DOC_DEPOSITORY_HDR)
+        {
+            try
+            {
+                if (pROJECT_DOC_DEPOSITORY_HDR.PROJECT_DOC_FILES != null)
+                {
+                    var RsponseTTStatus = await _repository.CreateProjectDocDeositoryAsyncNT(pROJECT_DOC_DEPOSITORY_HDR);
+                    return RsponseTTStatus;
+                }
+
+                if (pROJECT_DOC_DEPOSITORY_HDR == null)
+                {
+                    var errorResult = new List<UpdateProjectDocDepositoryHDROutput_List_NT>
+                    {
+                        new UpdateProjectDocDepositoryHDROutput_List_NT
+                        {
+                            STATUS = "Error",
+                            MESSAGE = "Please Enter the details",
+                            DATA = null
+                        }
+                    };
+                    return errorResult;
+                }
+
+                var RsponseStatus = await _repository.CreateProjectDocDeositoryAsyncNT(pROJECT_DOC_DEPOSITORY_HDR);
+                return RsponseStatus;
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<UpdateProjectDocDepositoryHDROutput_List_NT>
+                {
+                    new UpdateProjectDocDepositoryHDROutput_List_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ex.Message,
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+        }
+
         [HttpGet("Get-Document-Details")]
         [Authorize]
         public async Task<ActionResult<dynamic>> GetDocumentDetails(int? MKEY, string? ATTRIBUTE1, string? ATTRIBUTE2, string? ATTRIBUTE3)

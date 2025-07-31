@@ -149,7 +149,10 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Initiator")]
         public int INITIATOR { get; set; }
-
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
         public string? ResponseStatus { get; set; }
         public string? Message { get; set; }
     }
