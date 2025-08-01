@@ -262,7 +262,17 @@ namespace TaskManagement.API.Repositories
                             var ParentTask_no = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select " +
                                 " CONVERT(VARCHAR(50),TASK_NO)AS TASK_NO from TASK_HDR WITH (NOLOCK)  WHERE MKEY = @MKEY",
                                  new { MKEY = SubParentMkey.MKEY }, transaction: transaction);
-                            TaskPrentNo = ParentTask_no.TASK_NO.ToString();
+                            
+                            try
+                            {
+                                TaskPrentNo = ParentTask_no.TASK_NO.ToString();
+                            }
+                            catch{}
+                            
+                            var Task_noParent = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION_TRL_SUBTASK>("select " +
+                                " CONVERT(VARCHAR(50),TASK_NO)AS TASK_NO from TASK_HDR WITH (NOLOCK)  WHERE MKEY = @MKEY",
+                                 new { MKEY = approvalTemplate.MKEY }, transaction: transaction);
+                            TaskPrentNo = Task_noParent.MKEY.ToString();
                         }
                         else
                         {

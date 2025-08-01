@@ -175,5 +175,28 @@ namespace TaskManagement.API.Controllers
             }
             return Ok(ProjectDocDeository);
         }
+
+        [HttpPost("Get-Document-Details-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<ProjectDocOutput_NT>>> GetDocumentDetailsNT(ProjectDocInput_NT projectDocInput_NT)
+        {
+            try
+            {
+                var ProjectDocDeository = await _repository.GetDocumentDetailsAsyncNT(projectDocInput_NT);
+                return ProjectDocDeository;
+            }
+            catch (Exception ex) {
+                var errorResult = new List<ProjectDocOutput_NT>
+                {
+                    new ProjectDocOutput_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ex.Message,
+                        DATA = null
+                    }
+                };
+                return errorResult;
+            }
+        }
     }
 }

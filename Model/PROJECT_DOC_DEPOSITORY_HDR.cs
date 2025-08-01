@@ -147,7 +147,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("PROPERTY_MKEY")]
         public int? PROPERTY_MKEY { get; set; }
         public string? propertY_NAME { get; set; }
-        
+
         [JsonPropertyName("BUILDING_MKEY")]
         public int? BUILDING_MKEY { get; set; }
 
@@ -324,5 +324,73 @@ namespace TaskManagement.API.Model
     }
 
 
+    public class ProjectDocOutput_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+
+        [JsonPropertyName("Data")]
+        public IEnumerable<ProjectDoc_NT> DATA { get; set; }
+    }
+
+
+    public class ProjectDoc_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int? MKEY { get; set; }
+        [JsonPropertyName("Type_Mst_Doc_Type_Mkey")]
+        public int? TYPE_MST_DOC_TYPE_MKEY { get; set; }
+        [JsonPropertyName("Doc_Category")]
+        public string? DOC_CATEGORY { get; set; }
+        [JsonPropertyName("Doc_Name")]
+        public string? DOC_NAME { get; set; }
+        [JsonPropertyName("Doc_Abbr")]
+        public string? DOC_ABBR { get; set; }
+        [JsonPropertyName("Doc_Num_Field_Name")]
+        public string? DOC_NUM_FIELD_NAME { get; set; }
+        [JsonPropertyName("Doc_Num_Date_Name")]
+        public string? DOC_NUM_DATE_NAME { get; set; }
+        [JsonPropertyName("Doc_Num_App_Flag")]
+        public string? DOC_NUM_APP_FLAG { get; set; }
+        [JsonPropertyName("Doc_Num_Valid_Flag")]
+        public string? DOC_NUM_VALID_FLAG { get; set; }
+        [JsonPropertyName("Doc_Num_Date_App_Flag")]
+        public string? DOC_NUM_DATE_APP_FLAG { get; set; }
+        [JsonPropertyName("Doc_Attach_App_Flag")]
+        public string? DOC_ATTACH_APP_FLAG { get; set; }
+        [JsonPropertyName("Created_By_Id")]
+        public int? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+
+        [JsonPropertyName("Delete_Flag")]
+        public string? DELETE_FLAG { get; set; }
+    }
+
+    public class ProjectDocInput_NT
+    {
+        [JsonPropertyName("Mkey")]
+        public int? MKey { get; set; }
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
 
 }

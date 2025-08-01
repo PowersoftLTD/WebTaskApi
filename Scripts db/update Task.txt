@@ -49156,4 +49156,98 @@ BEGIN
 
 END
 GO
+---------------------------------------------------------------------
+Date:01-08-2025
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_USER_PROJECT_ACTIVITY_NT]    Script Date: 01-08-2025 11:48:21 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+--		EXEC SP_GET_USER_PROJECT_ACTIVITY_NT 926,926,1
+ALTER PROCEDURE [dbo].[SP_GET_USER_PROJECT_ACTIVITY_NT]
+	-- Add the parameters for the stored procedure here
+	@USER_MKEY			INT,
+	@Session_User_Id    INT,  
+	@Business_Group_Id	INT
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	SELECT top 1 UPA.MKEY,UPA.USER_MKEY,UPA.PROPERTY_MKEY, PMST.TYPE_DESC PROPERTY_NAME
+	,UPA.BUILDING_MKEY,BMST.TYPE_DESC AS BUILDING_NAME ,UPA.DELETE_FLAG 
+	,Isnull(CONVERT(VARCHAR(50), UPA.created_by), '') AS CREATED_BY_ID,
+				Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME,
+				CASE
+					WHEN UPA.creation_date IS NULL THEN
+				''
+				ELSE
+					Format(UPA.creation_date, 'yyyy-MM-dd HH:mm:ss')
+				END AS CREATION_DATE,
+				Isnull(CONVERT(VARCHAR(50), UPA.last_updated_by), '') AS LAST_UPDATED_BY,
+				Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME,
+				CASE
+					WHEN UPA.last_update_date IS NULL THEN
+					''
+				ELSE
+					Format(UPA.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+				END AS LAST_UPDATE_DATE
+	FROM USER_PROJECT_BUILDING_ACTIVITY UPA
+	INNER JOIN TYPE_MST PMST ON PMST.MASTER_MKEY = UPA.PROPERTY_MKEY AND  PMST.DELETE_FLAG = 'N' AND PMST.TYPE_CODE = 'PROJECT' AND PMST.PARENT_ID = 0
+	INNER JOIN TYPE_MST BMST ON BMST.MASTER_MKEY = UPA.BUILDING_MKEY AND  BMST.DELETE_FLAG = 'N' AND BMST.TYPE_CODE = 'PROJECT' AND BMST.PARENT_ID != 0
+	INNER JOIN EMPLOYEE_MST createdby ON UPA.CREATED_BY = createdby.mkey
+				LEFT JOIN EMPLOYEE_MST updatedby ON UPA.last_updated_by = updatedby.mkey AND updatedby.DELETE_FLAG= 'N'
+	WHERE (UPA.USER_MKEY = @USER_MKEY OR UPA.USER_MKEY = @Session_User_Id ) AND UPA.DELETE_FLAG = 'N' AND createdby.DELETE_FLAG = 'N'
+	ORDER BY  UPA.creation_date DESC ;
+END
+---------------------------------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[GET_SP_DOCUMENT_TEMPLATE_DETAILS]    Script Date: 01-08-2025 13:49:13 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+--EXEC GET_SP_DOCUMENT_TEMPLATE_DETAILS 
+-- =============================================
+CREATE PROCEDURE GET_SP_DOCUMENT_TEMPLATE_DETAILS_NT
+	-- Add the parameters for the stored procedure here
+	@MKEY				INT = NULL,
+	@Session_User_Id    INT,  
+	@Business_Group_Id	INT
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	BEGIN TRY
+		SELECT * 
+		FROM DOC_TEMPLATE_HDR
+		WHERE MKEY = @MKEY; 
+	END TRY
+	BEGIN CATCH
+	-------------------------------------------------------------------------------------------------------------------------------          
+		SELECT ERROR_NUMBER()    AS ERRORNUMBER,
+				ERROR_SEVERITY()  AS ERRORSEVERITY,
+				ERROR_STATE()     AS ERRORSTATE,
+				ERROR_PROCEDURE() AS ERRORPROCEDURE,
+				ERROR_LINE()      AS ERRORLINE,
+				ERROR_MESSAGE()   AS ERRORMESSAGE;
+	-------------------------------------------------------------------------------------------------------------------------------
+		DECLARE @ERROR_MESSAGE  VARCHAR(MAX) = NULL;
+		SET @ERROR_MESSAGE = ERROR_MESSAGE();
+	-------------------------------------------------------------------------------------------------------------------------------
+		EXEC sp_P_TMS_INSERT_ERROR_DES 'Project Doc Depository','TMS','Project Doc Depository Get',@ERROR_MESSAGE,'Get';
+	-------------------------------------------------------------------------------------------------------------------------------
+	END CATCH
+END
+
 

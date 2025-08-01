@@ -6884,16 +6884,33 @@ namespace TaskManagement.API.Repositories
 
                     var UserActivity = await db.QueryAsync<UserProjectBuildingActivityInputNT>("SP_GET_USER_PROJECT_ACTIVITY_NT", parmeters, commandType: CommandType.StoredProcedure);
 
-                    var successsResult = new List<UserProjectBuildingActivityOutputNT>
+                    if (UserActivity.Any())
                     {
-                        new UserProjectBuildingActivityOutputNT
+                        var successsResult = new List<UserProjectBuildingActivityOutputNT>
                         {
-                            Status = "Ok",
-                            Message = "Get data successfully!!!",
-                            Data = UserActivity
-                        }
-                    };
-                    return successsResult;
+                            new UserProjectBuildingActivityOutputNT
+                            {
+                                Status = "Ok",
+                                Message = "Get data successfully!!!",
+                                Data = UserActivity
+                            }
+                        };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var successsResult = new List<UserProjectBuildingActivityOutputNT>
+                        {
+                            new UserProjectBuildingActivityOutputNT
+                            {
+                                Status = "Ok",
+                                Message = "No data found!!!",
+                                Data = UserActivity
+                            }
+                        };
+                        return successsResult;
+                    }
+                    
                 }
             }
             catch (Exception ex)

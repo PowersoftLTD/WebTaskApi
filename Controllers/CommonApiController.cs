@@ -3184,7 +3184,6 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("User-Project-Building-Activity-Post-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<UserProjectBuildingActivityOutputNT>>> UserProjectBuildingActivityPostNT(UserProjectBuildingActivityPostNT userProjectBuildingActivityPostNT)

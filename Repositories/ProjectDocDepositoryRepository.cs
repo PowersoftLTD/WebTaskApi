@@ -276,7 +276,7 @@ namespace TaskManagement.API.Repositories
                             return GenerateErrorResponse("An error occurred");
                         }
                     }
-                    
+
                     try
                     {
                         int srNo = 0;
@@ -621,6 +621,57 @@ namespace TaskManagement.API.Repositories
             catch (Exception ex)
             {
                 return new List<dynamic>();
+            }
+        }
+        public async Task<ActionResult<IEnumerable<ProjectDocOutput_NT>>> GetDocumentDetailsAsyncNT(ProjectDocInput_NT projectDocInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@MKEY", projectDocInput_NT.MKey);
+                    parmeters.Add("@Session_User_Id", projectDocInput_NT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", projectDocInput_NT.Business_Group_Id);
+
+                    var ProjDoc_Desp = await db.QueryAsync<ProjectDoc_NT>("GET_SP_DOCUMENT_TEMPLATE_DETAILS_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    if (ProjDoc_Desp.Any())
+                    {
+                        return new List<ProjectDocOutput_NT>
+                        {
+                            new ProjectDocOutput_NT
+                            {
+                                STATUS = "Ok",
+                                MESSAGE = "Successfully Inserted",
+                                DATA = ProjDoc_Desp
+                            }
+                        };
+                    }
+                    else
+                    {
+                        return new List<ProjectDocOutput_NT>
+                        {
+                            new ProjectDocOutput_NT
+                            {
+                                STATUS = "Ok",
+                                MESSAGE = "Data not found",
+                                DATA = null
+                            }
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<ProjectDocOutput_NT>
+                {
+                    new ProjectDocOutput_NT
+                    {
+                        STATUS = "Error",
+                        MESSAGE = ex.Message,
+                        DATA = null
+                    }
+                };
             }
         }
         public async Task<dynamic> GetPROJECT_DEPOSITORY_DOCUMENTAsync(int? BUILDING_TYPE, int? PROPERTY_TYPE, int? DOC_MKEY)
