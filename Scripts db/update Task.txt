@@ -50822,4 +50822,32 @@ AS
 END 
 
 ------------------------------------------------------------------------------------
+Date : 04-08-2025
+
+GO
+ALTER VIEW [dbo].[V_Doc_Type_NT] AS      
+SELECT [TYPE].MKEY AS DOC_TYPE_MKEY,[TYPE].TYPE_DESC AS DOC_TYPE_NAME    
+  ,CAT.MKEY AS Doc_Category_Mkey,CAT.TYPE_DESC AS Doc_Category_Name    
+  ,Isnull(CONVERT(VARCHAR(50), [TYPE].created_by), '') AS CREATED_BY_ID        
+  ,Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME        
+  ,CASE        
+  WHEN [TYPE].creation_date IS NULL THEN        
+  ''        
+  ELSE        
+  Format([TYPE].creation_date, 'yyyy-MM-dd HH:mm:ss')        
+  END AS CREATION_DATE        
+  ,Isnull(CONVERT(VARCHAR(50), [TYPE].last_updated_by), '') AS LAST_UPDATED_BY        
+  ,Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME        
+  ,CASE        
+  WHEN [TYPE].last_update_date IS NULL THEN        
+  ''        
+  ELSE        
+  Format([TYPE].last_update_date, 'yyyy-MM-dd HH:mm:ss')        
+  END AS LAST_UPDATE_DATE        
+  ,[TYPE].DELETE_FLAG      
+  FROM TYPE_MST [TYPE]  INNER JOIN TYPE_MST CAT ON CAT.MKEY = [TYPE].PARENT_ID    
+  INNER JOIN EMPLOYEE_MST createdby ON createdby.mkey= [TYPE].CREATED_BY    
+  LEFT JOIN  EMPLOYEE_MST updatedby ON [TYPE].LAST_UPDATED_BY = updatedby.mkey AND updatedby.DELETE_FLAG = 'N'       
+  WHERE [TYPE].TYPE_CODE = 'DOC_TYPE' AND CAT.TYPE_CODE = 'DOC_CATEGORY'  
+  AND [TYPE].DELETE_FLAG = 'N' AND CAT.DELETE_FLAG = 'N' AND createdby.DELETE_FLAG = 'N';
 
