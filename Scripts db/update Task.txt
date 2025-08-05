@@ -50851,3 +50851,161 @@ SELECT [TYPE].MKEY AS DOC_TYPE_MKEY,[TYPE].TYPE_DESC AS DOC_TYPE_NAME
   WHERE [TYPE].TYPE_CODE = 'DOC_TYPE' AND CAT.TYPE_CODE = 'DOC_CATEGORY'  
   AND [TYPE].DELETE_FLAG = 'N' AND CAT.DELETE_FLAG = 'N' AND createdby.DELETE_FLAG = 'N';
 
+-------------------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_PROJECTS_TASK_TYPE_NT]    Script Date: 05-08-2025 17:22:40 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- exec SP_GET_PROJECTS_TASK_TYPE_NT 'Approval','157',926,1  
+  
+ALTER PROCEDURE [dbo].[SP_GET_PROJECTS_TASK_TYPE_NT]  
+   @TaskType nvarchar(100),  
+   @PropertyMkey nvarchar(255) = null,  
+   @Session_User_Id          INT,    
+   @Business_Group_Id   INT  
+AS  
+BEGIN  
+    
+   IF OBJECT_ID('tempdb..#TableOutputProjectMkey') IS NOT NULL DROP TABLE #TableOutputProjectMkey;  
+   CREATE TABLE #TableOutputProjectMkey (mkey INT);  
+   if (@PropertyMkey is not null)  
+   Begin  
+    INSERT INTO #TableOutputProjectMkey  
+    SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)  
+    FROM (  
+     SELECT CAST('<M>' + REPLACE(@PropertyMkey, ',', '</M><M>') + '</M>' AS XML) AS CVS  
+    ) AS A  
+    CROSS APPLY CVS.nodes('/M') AS Split(a);  
+   End  
+	
+	
+	--EXEC SP_GET_DASHBOARD_PROJECT_NT;
+	--IF(@PropertyMkey IS NOT NULL)
+	--BEGIN
+	--	EXEC SP_GET_DASHBOARD_BUILDING_NT SELECT MKEY FROM #TableOutputProjectMkey;
+	--END
+	--ELSE
+	--BEGIN
+	--	Select 2 as sr_no, subp.Mkey      
+	--	,'Building' as [Type_Code]    
+	--	,subp.TYPE_DESC as [Key]  --'Building' as [Key]     
+	--	--,(select TYPE_DESC from TYPE_MST pPro where TYPE_CODE = 'project' and ISNULL(DELETE_FLAG,'N') = 'N' and  pPro.MKEY= subp.PARENT_ID) as [Type_Code]       
+	--	,subp.TYPE_DESC as [DisplayName],       
+	--	Pubp.MKEY as PropertyMkey,  
+	--	Pubp.TYPE_DESC as PropertyName,  
+	--	subp.Mkey as BuildingMkey,  
+	--	subp.TYPE_DESC as BuilngName,  
+	--	subp.CREATED_BY as Created_By_Id,       
+	--	'' as Created_By_Name,      
+	--	subp.Creation_Date,      
+	--	subp.Last_Updated_By,      
+	--	'' as Updated_By_Name,       
+	--	subp.Last_Update_Date      
+	--	From TYPE_MST subp       
+	--	Left join TYPE_MST Pubp on subp.PARENT_ID = Pubp.MASTER_MKEY and Pubp.TYPE_CODE = 'Project' and Pubp.PARENT_ID = 0      
+	--	--inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY        
+	--	--left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = LMST.MKEY        
+	--	where subp.TYPE_CODE = 'Project' and ISNULL(subp.DELETE_FLAG,'N') = 'N'  
+	--	AND subp.PARENT_ID IN (SELECT MKEY FROM #TableOutputProjectMkey);
+	--END
+
+ if (@TaskType = 'Approval')  
+ Begin  
+	--IF(@PropertyMkey IS NULL)
+	--BEGIN
+	--	EXEC  SP_GET_PROJECT_NT 'PROJECT',@PropertyMkey,926,2;
+	--END
+	--ELSE
+	--BEGIN
+		
+	--END
+   	Select * from  V_ProjectApproval  
+   Where [key] is not null  
+   Union all   
+   Select 2 as sr_no, subp.Mkey      
+   ,'Building' as [Type_Code]    
+   ,subp.TYPE_DESC as [Key]  --'Building' as [Key]     
+   --,(select TYPE_DESC from TYPE_MST pPro where TYPE_CODE = 'project' and ISNULL(DELETE_FLAG,'N') = 'N' and  pPro.MKEY= subp.PARENT_ID) as [Type_Code]       
+   ,subp.TYPE_DESC as [DisplayName],       
+      Pubp.MKEY as PropertyMkey,  
+     Pubp.TYPE_DESC as PropertyName,  
+     subp.Mkey as BuildingMkey,  
+     subp.TYPE_DESC as BuilngName,  
+   subp.CREATED_BY as Created_By_Id,       
+   EMST.EMP_FULL_NAME as Created_By_Name,      
+   subp.Creation_Date,      
+   subp.Last_Updated_By,      
+   LMST.EMP_FULL_NAME as Updated_By_Name,       
+   subp.Last_Update_Date      
+   From TYPE_MST subp       
+   Left join TYPE_MST Pubp on subp.PARENT_ID = Pubp.MASTER_MKEY and Pubp.TYPE_CODE = 'Project' and Pubp.PARENT_ID = 0      
+   inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY        
+   left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = LMST.MKEY        
+   where subp.TYPE_CODE = 'Project' and ISNULL(subp.DELETE_FLAG,'N') = 'N'   
+   and 1 = (CASE WHEN @PropertyMkey is not null and subp.PARENT_ID in (select mkey from #TableOutputProjectMkey) then 1 ELSE 0 END)   
+   order by sr_no   
+ End  
+   
+ If (@TaskType = 'Compliance')  
+ Begin  
+  select * from  V_ProjectsCompliance  
+  where [key] is not null  
+  Union all   
+   Select 2 as sr_no, subp.Mkey      
+    ,'Building' as [Type_Code]   
+   ,subp.TYPE_DESC as [Key]-- 'Building' as [Key]     
+   --,(select TYPE_DESC from TYPE_MST pPro where TYPE_CODE = 'project'       
+   --and ISNULL(DELETE_FLAG,'N') = 'N' and  pPro.MKEY= subp.PARENT_ID) as [Type_Code]       
+   ,subp.TYPE_DESC as [DisplayName],       
+      Pubp.MKEY as PropertyMkey,  
+     Pubp.TYPE_DESC as PropertyName,  
+     subp.Mkey as BuildingMkey,  
+     subp.TYPE_DESC as BuilngName,  
+   subp.CREATED_BY as Created_By_Id,       
+   EMST.EMP_FULL_NAME as Created_By_Name,      
+   subp.Creation_Date,      
+   subp.Last_Updated_By,      
+   LMST.EMP_FULL_NAME as Updated_By_Name,       
+   subp.Last_Update_Date      
+   From TYPE_MST subp       
+   Left join TYPE_MST Pubp on subp.PARENT_ID = Pubp.MASTER_MKEY and Pubp.TYPE_CODE = 'Project' and Pubp.PARENT_ID = 0      
+   inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY        
+   left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = LMST.MKEY        
+   where subp.TYPE_CODE = 'Project' and ISNULL(subp.DELETE_FLAG,'N') = 'N'   
+   and 1 = (CASE WHEN @PropertyMkey is not null and subp.PARENT_ID in (select mkey from #TableOutputProjectMkey) then 1 ELSE 0 END)   
+   order by sr_no   
+ End  
+ if (@TaskType = 'Milestones')  
+ Begin  
+   Select * from  V_ProjectApproval  
+   Where [key] is not null  
+   Union all   
+   Select 2 as sr_no, subp.Mkey      
+   ,'Building' as [Type_Code]    
+   ,subp.TYPE_DESC as [Key]  --'Building' as [Key]     
+   --,(select TYPE_DESC from TYPE_MST pPro where TYPE_CODE = 'project' and ISNULL(DELETE_FLAG,'N') = 'N' and  pPro.MKEY= subp.PARENT_ID) as [Type_Code]       
+   ,subp.TYPE_DESC as [DisplayName],       
+      Pubp.MKEY as PropertyMkey,  
+     Pubp.TYPE_DESC as PropertyName,  
+     subp.Mkey as BuildingMkey,  
+     subp.TYPE_DESC as BuilngName,  
+   subp.CREATED_BY as Created_By_Id,       
+   EMST.EMP_FULL_NAME as Created_By_Name,      
+   subp.Creation_Date,      
+   subp.Last_Updated_By,      
+   LMST.EMP_FULL_NAME as Updated_By_Name,       
+   subp.Last_Update_Date      
+   From TYPE_MST subp       
+   Left join TYPE_MST Pubp on subp.PARENT_ID = Pubp.MASTER_MKEY and Pubp.TYPE_CODE = 'Project' and Pubp.PARENT_ID = 0      
+   inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY        
+   left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = LMST.MKEY        
+   where subp.TYPE_CODE = 'Project' and ISNULL(subp.DELETE_FLAG,'N') = 'N'   
+   and 1 = (CASE WHEN @PropertyMkey is not null and subp.PARENT_ID in (select mkey from #TableOutputProjectMkey) then 1 ELSE 0 END)   
+   order by sr_no   
+ End  
+END  
+  
+--------------------------------------------------------------------  
+
