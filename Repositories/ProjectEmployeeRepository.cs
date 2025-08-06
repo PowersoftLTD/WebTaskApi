@@ -6825,11 +6825,9 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@Session_User_Id", taskProjectsFilterNT.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", taskProjectsFilterNT.Business_Group_Id);
                     
-                    var BuildName = await db.QueryAsync<TaskDashBoardUserFilterNT>("Select TYPE_DESC as  DisplayName from TYPE_MST where TYPE_CODE = 'Project' and PARENT_ID != 0 and DELETE_FLAG = 'N'",  commandType: CommandType.Text);
+                    //var BuildName = await db.QueryAsync<TaskDashBoardUserFilterNT>("Select TYPE_DESC as  DisplayName from TYPE_MST where TYPE_CODE = 'Project' and PARENT_ID != 0 and DELETE_FLAG = 'N'",  commandType: CommandType.Text);
 
                     var taskStatusDistributonNTs = await db.QueryAsync<TaskDashBoardUserFilterNT>("SP_GET_PROJECTS_TASK_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure);
-
-                   
 
                     var successsResult = new List<TaskDashBoardFilterOutputListNT>
                     {
@@ -6932,7 +6930,6 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
         public async Task<ActionResult<IEnumerable<UserProjectBuildingActivityOutputNT>>> UserProjectBuildingActivityPostAsyncNT(UserProjectBuildingActivityPostNT userProjectBuildingActivityPostNT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);

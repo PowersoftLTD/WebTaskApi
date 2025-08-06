@@ -51008,4 +51008,133 @@ BEGIN
 END  
   
 --------------------------------------------------------------------  
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_DASHBOARD_PROJECT_NT]    Script Date: 06-08-2025 17:10:31 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[SP_GET_DASHBOARD_PROJECT_NT]
+	AS
+	BEGIN
+		Select 1 as sr_no,subp.Mkey                            
+		,'Property'   as [Type_Code]                            
+		,subp.TYPE_DESC as [Key] --isnull(pPro.type_desc,subp.TYPE_DESC) as [Key]                      
+		,subp.TYPE_DESC as [DisplayName],                
+		0 as PropertyMkey,                
+		'' as PropertyName,                
+		0 as BuildingMkey,                
+		'' as BuilngName,                
+		subp.CREATED_BY as Created_By_Id,                             
+		'' as Created_By_Name,                            
+		subp.Creation_Date,                            
+		subp.Last_Updated_By,                            
+		'' as Updated_By_Name,                             
+		subp.Last_Update_Date                            
+		From TYPE_MST subp                             
+		--  left join TYPE_MST pPro on  pPro.TYPE_CODE = 'project' and ISNULL(pPro.DELETE_FLAG,'N') = 'N' and  pPro.MKEY= subp.PARENT_ID                      
+		--inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY                              
+		--left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = LMST.MKEY                              
+		where subp.TYPE_CODE = 'Project' 
+		AND ISNULL(subp.DELETE_FLAG,'N') = 'N' 
+		AND subp.PARENT_ID = 0;
+	END
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_DASHBOARD_BUILDING_NT]    Script Date: 06-08-2025 17:09:45 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 
+ALTER PROCEDURE [dbo].[SP_GET_DASHBOARD_BUILDING_NT]  
+ @PropertyMkey nvarchar(max) = null    
+ AS  
+ BEGIN
+	IF OBJECT_ID('tempdb..#TableOutputProjectMkey') IS NOT NULL DROP TABLE #TableOutputProjectMkey;  
+   CREATE TABLE #TableOutputProjectMkey (mkey INT);  
+	 if (@PropertyMkey is not null)  
+	   Begin  
+		INSERT INTO #TableOutputProjectMkey  
+		SELECT TRY_CAST(Split.a.value('.', 'VARCHAR(100)') AS INT)  
+		FROM (  
+		 SELECT CAST('<M>' + REPLACE(@PropertyMkey, ',', '</M><M>') + '</M>' AS XML) AS CVS  
+		) AS A  
+		CROSS APPLY CVS.nodes('/M') AS Split(a);  
+	   End 
+
+  Select 2 as sr_no,subp.Mkey                              
+  ,'Building'   as [Type_Code]                              
+  ,subp.TYPE_DESC as [Key] --isnull(pPro.type_desc,subp.TYPE_DESC) as [Key]                        
+  ,subp.TYPE_DESC as [DisplayName],                  
+  0 as PropertyMkey,                  
+  '' as PropertyName,                  
+  0 as BuildingMkey,                  
+  '' as BuilngName,                  
+  subp.CREATED_BY as Created_By_Id,                               
+  '' as Created_By_Name,                              
+  subp.Creation_Date,                              
+  subp.Last_Updated_By,                              
+  '' as Updated_By_Name,                               
+  subp.Last_Update_Date                              
+  From TYPE_MST subp                               
+  --  left join TYPE_MST pPro on  pPro.TYPE_CODE = 'project' and ISNULL(pPro.DELETE_FLAG,'N') = 'N' and  pPro.MKEY= subp.PARENT_ID                        
+  --inner JOIN EMPLOYEE_MST EMST ON subp.CREATED_BY = EMST.MKEY                                
+  --left JOIN EMPLOYEE_MST LMST ON subp.LAST_UPDATED_BY = LMST.MKEY                                
+  where subp.TYPE_CODE = 'Project'   
+  AND ISNULL(subp.DELETE_FLAG,'N') = 'N'   
+  AND subp.PARENT_ID in ( select mkey from #TableOutputProjectMkey);  
+ END
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_PROJECTS_TASK_TYPE_NT]    Script Date: 06-08-2025 17:07:46 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- exec SP_GET_PROJECTS_TASK_TYPE_NT 'Approval',null,926,1  
+  
+ALTER PROCEDURE [dbo].[SP_GET_PROJECTS_TASK_TYPE_NT]  
+   @TaskType nvarchar(100),  
+   @PropertyMkey nvarchar(255) = null,  
+   @Session_User_Id          INT,    
+   @Business_Group_Id   INT  
+AS  
+BEGIN  
+	
+	
+	DECLARE @TableOutput_TASK_DETAILS TABLE
+                              (
+                                 sr_no				int,
+								 mkey              INT,
+								 Type_Code		   NVARCHAR(255),
+								 [Key]		       NVARCHAR(255),
+								 DisplayName		NVARCHAR(255),
+								 PropertyMkey		INT,
+								 PropertyName		NVARCHAR(255),
+								 BuildingMkey		INT,
+								 BuilngName			NVARCHAR(255),
+								 Created_By_Id		INT,
+								 Created_By_Name	NVARCHAR(255),
+								 Creation_Date		NVARCHAR(100),
+								 Last_Updated_By	INT,
+								 Updated_By_Name	NVARCHAR(255),
+                               Last_Update_Date		NVARCHAR(20)
+                              );
+
+                            INSERT INTO @TableOutput_TASK_DETAILS
+							exec SP_GET_DASHBOARD_PROJECT_NT ;
+							--SELECT * FROM @TableOutput_TASK_DETAILS;
+		if(@PropertyMkey is null OR @PropertyMkey = '' OR @PropertyMkey = 'NULL')
+		BEGIN
+			PRINT 'Inside iff';
+			INSERT INTO @TableOutput_TASK_DETAILS
+			VALUES(2,0,'Building','Building','No Data',0,NULL,0,NULL,0,NULL,NULL,0,NULL,NULL)
+			SELECT * FROM @TableOutput_TASK_DETAILS;
+		END
+		ELSE
+		BEGIN
+			PRINT 'OutSide iff';
+			INSERT INTO @TableOutput_TASK_DETAILS
+			exec SP_GET_DASHBOARD_BUILDING_NT @PropertyMkey; 
+			SELECT * FROM @TableOutput_TASK_DETAILS;
+		END
+END
