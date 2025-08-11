@@ -52796,3 +52796,522 @@ AS
     END catch
   END
   ---------------------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT]    Script Date: 08-08-2025 13:25:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- exec SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT 408,0,41,380,926,'N','added checlist',null,null,nullnull,926,1
+
+--exec SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT 8414,0,384,375,926,'N','ADD CHECKIST','ADD CHECKLIST','ADD',NULL,NULL,926,1
+-- =============================================
+ALTER PROCEDURE [dbo].[SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE
+  @TASK_MKEY         INT,
+  @SR_NO             INT,
+  @Doc_Type_Mkey	 INT,-- @DOCUMENT_MKEY     INT,
+  @Doc_Cat_mkey		 INT, --@DOCUMENT_CATEGORY INT,
+  @CREATED_BY        INT,
+  @DELETE_FLAG       NVARCHAR(2),
+  @COMMENT           NVARCHAR(max) = NULL,
+  @METHOD_NAME       NVARCHAR(200),
+  @METHOD            NVARCHAR(200),
+  @OUT_STATUS        NVARCHAR(200) output,
+  @OUT_MESSAGE       NVARCHAR(200) output,
+  @Session_User_Id   INT = NULL,
+  @Business_Group_Id INT = NULL
+AS
+  BEGIN
+      
+      SET nocount ON;
+
+		DECLARE @DOCUMENT_NAME NVARCHAR(300),
+				@DCOUNT        INT;
+		BEGIN TRY
+			
+			SELECT @DCOUNT = Count(*)
+			FROM   task_checklist_trl
+			WHERE  mkey = @TASK_MKEY
+					AND document_mkey = @Doc_Type_Mkey
+					AND document_category = @Doc_Cat_mkey
+					AND delete_flag = 'N';
+
+          IF ( @DCOUNT > 0
+               AND @SR_NO = 0 )
+            BEGIN
+                SET @OUT_STATUS = 'Error';
+                SET @OUT_MESSAGE = 'Already exist Checklist in Task';
+
+                PRINT '@OUT_MESSAGE: '
+                      + CONVERT(VARCHAR(10), @OUT_MESSAGE);
+				
+				Select  CTRL.mkey,CTRL.SR_NO, 
+				THDR.project_id   AS PROPERTY_MKEY,
+				THDR.sub_project_id AS BUILDING_MKEY,
+				CTRL.DOCUMENT_MKEY AS Doc_Type_Mkey,
+				MST.TYPE_DESC AS Doc_Type_Name,
+				CTRL.DOCUMENT_CATEGORY AS Doc_Cat_mkey,
+				CTRL.DOCUMENT_NAME AS Doc_Cat_Name,CTRL.app_check,CTRL.comment,
+				Isnull(CONVERT(VARCHAR(50), CTRL.created_by), '')  AS CREATED_BY_ID,
+				Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME, CASE
+				WHEN CTRL.creation_date IS NULL THEN ''
+				ELSE Format(CTRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+				END AS CREATION_DATE,
+				Isnull(CONVERT(VARCHAR(50), CTRL.last_updated_by), '')    AS LAST_UPDATED_BY,
+				Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME,
+				CASE
+				WHEN CTRL.last_update_date IS NULL THEN ''
+				ELSE Format(CTRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+				END AS LAST_UPDATE_DATE,
+				@OUT_STATUS  AS OUT_STATUS,
+				@OUT_MESSAGE AS OUT_MESSAGE
+				FROM task_checklist_trl CTRL
+				INNER JOIN task_hdr THDR ON CTRL.mkey = THDR.mkey
+				INNER JOIN TYPE_MST MST ON MST.MASTER_MKEY =  CTRL.DOCUMENT_MKEY AND MST.DELETE_FLAG = 'N' AND MST.TYPE_CODE = 'DOC_TYPE'
+				INNER JOIN employee_mst createdby ON CTRL.created_by = createdby.mkey
+				LEFT JOIN employee_mst updatedby ON CTRL.last_updated_by = updatedby.mkey AND updatedby.DELETE_FLAG = 'N'
+				WHERE CTRL.DELETE_FLAG = 'N' AND MST .DELETE_FLAG = 'N'
+				AND THDR.DELETE_FLAG = 'N' AND THDR.DELETE_FLAG = 'N'
+				AND CTRL.mkey = @TASK_MKEY
+				ORDER BY CTRL.mkey,CTRL.SR_NO,CTRL.DOCUMENT_NAME;
+            END
+          ELSE
+            BEGIN
+                PRINT 'start';
+
+                SELECT @DOCUMENT_NAME = type_desc
+                FROM   type_mst
+                WHERE  master_mkey = @Doc_Cat_mkey
+                       AND delete_flag = 'N' ; -- AND TYPE_CODE = 'DOC_CATEGORY' 
+				 
+                IF ( @SR_NO = 0 OR @SR_NO IS NULL )
+                  BEGIN
+                      SELECT @SR_NO = Isnull(Max(sr_no), 0) + 1
+                      FROM   task_checklist_trl
+                      WHERE  mkey = @TASK_MKEY
+                             AND delete_flag = 'N';
+
+                      INSERT INTO task_checklist_trl
+                                  (mkey,
+                                   sr_no,
+                                   document_mkey,
+                                   document_name,
+                                   document_category,
+                                   comment,
+                                   delete_flag,
+                                   created_by,
+                                   creation_date)
+                      VALUES      (@TASK_MKEY,
+                                   @SR_NO,
+                                   @DOC_TYPE_MKEY,
+                                   @DOCUMENT_NAME,
+                                   @Doc_Cat_mkey,
+                                   @COMMENT,
+                                   'N',
+                                   @CREATED_BY,
+                                   Getdate());
+                   
+                  END
+                ELSE
+                  BEGIN
+
+                      INSERT INTO task_checklist_trl_h
+                                  (hist_date,
+                                   mkey,
+                                   sr_no,
+                                   document_mkey,
+                                   document_name,
+                                   document_category,
+                                   comment,
+                                   attribute1,
+                                   attribute2,
+                                   attribute3,
+                                   attribute4,
+                                   attribute5,
+                                   created_by,
+                                   creation_date,
+                                   last_updated_by,
+                                   last_update_date,
+                                   delete_flag,
+                                   app_check)
+                      SELECT Getdate(),
+                             mkey,
+                             sr_no,
+                             document_mkey,
+                             document_name,
+                             document_category,
+                             comment,
+                             attribute1,
+                             attribute2,
+                             attribute3,
+                             attribute4,
+                             attribute5,
+                             created_by,
+                             creation_date,
+                             last_updated_by,
+                             last_update_date,
+                             delete_flag,
+                             app_check
+                      FROM   task_checklist_trl
+                      WHERE  mkey = @TASK_MKEY
+                             AND sr_no = @SR_NO
+                             AND delete_flag = 'N';
+                      
+                      UPDATE task_checklist_trl
+                      SET    document_mkey = @DOC_TYPE_MKEY,
+                             document_category = @Doc_Cat_mkey,
+                             document_name = @DOCUMENT_NAME,
+                             comment = @COMMENT,
+                             last_updated_by = @CREATED_BY,
+                             last_update_date = Getdate(),
+                             delete_flag = @DELETE_FLAG
+                      WHERE  mkey = @TASK_MKEY
+                             AND sr_no = @SR_NO
+                             AND delete_flag = 'N';
+                  END
+
+                SET @OUT_STATUS = 'OK';
+                SET @OUT_MESSAGE = 'Successfuly Inserted';
+
+			Select  CTRL.mkey,CTRL.SR_NO, 
+			THDR.project_id   AS PROPERTY_MKEY,
+			THDR.sub_project_id AS BUILDING_MKEY,
+			CTRL.DOCUMENT_MKEY AS Doc_Type_Mkey,
+			MST.TYPE_DESC AS Doc_Type_Name,
+			CTRL.DOCUMENT_CATEGORY AS Doc_Cat_mkey,
+			CTRL.DOCUMENT_NAME AS Doc_Cat_Name,CTRL.app_check,CTRL.comment,
+			Isnull(CONVERT(VARCHAR(50), CTRL.created_by), '')  AS CREATED_BY_ID,
+			Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME, CASE
+			WHEN CTRL.creation_date IS NULL THEN ''
+			ELSE Format(CTRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+			END AS CREATION_DATE,
+			Isnull(CONVERT(VARCHAR(50), CTRL.last_updated_by), '')    AS LAST_UPDATED_BY,
+			Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME,
+			CASE
+			WHEN CTRL.last_update_date IS NULL THEN ''
+			ELSE Format(CTRL.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+			END AS LAST_UPDATE_DATE,
+			@OUT_STATUS  AS OUT_STATUS,
+            @OUT_MESSAGE AS OUT_MESSAGE
+			FROM task_checklist_trl CTRL
+			INNER JOIN task_hdr THDR ON CTRL.mkey = THDR.mkey
+			INNER JOIN TYPE_MST MST ON MST.MASTER_MKEY =  CTRL.DOCUMENT_MKEY AND MST.DELETE_FLAG = 'N' AND MST.TYPE_CODE = 'DOC_TYPE'
+			INNER JOIN employee_mst createdby ON CTRL.created_by = createdby.mkey
+			LEFT JOIN employee_mst updatedby ON CTRL.last_updated_by = updatedby.mkey AND updatedby.DELETE_FLAG = 'N'
+			WHERE CTRL.DELETE_FLAG = 'N' AND MST .DELETE_FLAG = 'N'
+			AND THDR.DELETE_FLAG = 'N' AND THDR.DELETE_FLAG = 'N'
+			AND CTRL.mkey = @TASK_MKEY
+			ORDER BY CTRL.mkey,CTRL.SR_NO,CTRL.DOCUMENT_NAME;
+
+                --SELECT CTRL.mkey
+                --       AS
+                --       TASK_MKEY,
+                --       CTRL.sr_no,
+                --       THDR.project_id
+                --       AS
+                --       PROPERTY_MKEY,
+                --       THDR.sub_project_id
+                --       AS
+                --       BUILDING_MKEY,
+                --       CTRL.document_mkey,
+                --       CTRL.document_name,
+                --       CTRL.document_category,
+                --       DHDR.doc_name
+                --       AS
+                --       [TYPE_DESC],
+                --       CTRL.app_check,
+                --       CTRL.comment,
+                --       Isnull(CONVERT(VARCHAR(50), CTRL.created_by), '')
+                --       AS
+                --       CREATED_BY_ID,
+                --       Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '')
+                --       AS
+                --       CREATED_BY_NAME,
+                --       CASE
+                --         WHEN CTRL.creation_date IS NULL THEN ''
+                --         ELSE Format(CTRL.creation_date, 'yyyy-MM-dd HH:mm:ss')
+                --       END
+                --       AS
+                --       CREATION_DATE,
+                --       Isnull(CONVERT(VARCHAR(50), CTRL.last_updated_by), '')
+                --       AS
+                --       LAST_UPDATED_BY,
+                --       Isnull(updatedby.emp_full_name, '')
+                --       UPDATED_BY_NAME
+                --       ,
+                --       CASE
+                --         WHEN CTRL.last_update_date IS NULL THEN ''
+                --         ELSE Format(CTRL.last_update_date,
+                --              'yyyy-MM-dd HH:mm:ss')
+                --       END
+                --       AS
+                --       LAST_UPDATE_DATE,
+                --       @OUT_STATUS  AS OUT_STATUS,
+                --       @OUT_MESSAGE AS OUT_MESSAGE
+                --FROM   task_checklist_trl CTRL
+                --       INNER JOIN task_hdr THDR
+                --               ON CTRL.mkey = THDR.mkey
+                --       LEFT JOIN doc_template_hdr DHDR
+                --              ON DHDR.type_mst_doc_type_mkey =
+                --                 CTRL.document_category
+                --       INNER JOIN employee_mst createdby
+                --               ON CTRL.created_by = createdby.mkey
+                --       LEFT JOIN employee_mst updatedby
+                --              ON CTRL.last_updated_by = updatedby.mkey
+                --WHERE  CTRL.delete_flag = 'N'
+                --       --AND DHDR.delete_flag = 'N'
+                --       AND createdby.delete_flag = 'N'
+                --       AND THDR.delete_flag = 'N'
+                --       AND CTRL.mkey = @TASK_MKEY
+                --ORDER  BY sr_no,
+                --          CONVERT(INT, CTRL.document_category)
+            END
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------          
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------
+          EXEC Sp_p_tms_insert_error_des
+            @CREATED_BY,
+            'TMS',
+            'ADD PROJECT',
+            @ERROR_MESSAGE,
+            'SAVE';
+      -------------------------------------------------------------------------------------------------------------------------------
+      END catch
+  END 
+-----------------------------------------------------------------
+11-08-2025
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_TASK_DETAILS_BY_MKEY_NT]    Script Date: 11-08-2025 18:38:55 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- exec SP_TASK_DETAILS_BY_MKEY_NT 1039,2693,0  
+--		exec SP_TASK_DETAILS_BY_MKEY_NT 9400,2690,1  
+ALTER PROCEDURE [dbo].[SP_TASK_DETAILS_BY_MKEY_NT](@HDR_MKEY VARCHAR(250),@Session_User_Id          INT = null,    
+@Business_Group_Id   INT = null)  
+AS  
+  BEGIN  
+      DECLARE @DAY INT  
+  
+      SET @DAY=0  
+  
+      SELECT T_HDR.mkey,  
+             T_HDR.task_no,  
+             T_HDR.isnode,  
+             T_HDR.task_parent_id,  
+             T_HDR.task_main_node_id,  
+    T_HDR.Task_Type,  
+             T_HDR.status,  
+             T_HDR.status_perc,  
+             T_HDR.task_created_by,  
+             T_HDR.approver_id,  
+             T_HDR.approve_action_date,  
+    T_HDR.ASSIGNED_TO,  
+    E_MST.EMP_FULL_NAME   AS 'Assigned_To_Name',  
+             T_MST.type_desc                           CAREGORY,  
+             T_HDR.project_id                          PROJECT_MKEY,  
+    T_HDR.sub_project_id                    AS BUILDING_MKEY,  
+             P_MST.type_desc                           'PROJECT',  
+    P_MST.type_desc                           'Project_Name',  
+             S_P_MST.type_desc                         'Sub_PROJECT',  
+    S_P_MST.type_desc      AS 'Building_Name',  
+             T_HDR.caregory                            CATEGORY_MKEY,  
+             T_HDR.creation_date,  
+             T_HDR.task_name,  
+             T_HDR.task_description,  
+             E_MST.emp_full_name,  
+  
+     
+    ----When Task owner created the task  
+    case when T_HDR.TASK_CREATED_BY = @Session_User_Id  /* Inside Task Owner login*/  
+    and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') and T_HDR.STATUS_PERC = 0.0 then 'Y'   
+    /*Task owner created the task and it is currently on created status and progress is 0%  then all tabs are enabled for task owner   
+    and task owner can add tabs list like Checklist, Authority, Outcome and Compliance via remark but with 0%  progress and WIP status update.    
+    Otherwise any progress between 0% to 100% with WIP status will lead to disable all tabs for task owner.*/   
+  
+    --When Task owner created the task   
+    --when (T_HDR.ASSIGNED_TO = @Session_User_Id) /* Inside assignee login */  
+    --and T_HDR.STATUS_PERC between 0.0 and 100.0 /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change   
+    --the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side.   
+    --Assignee can able to update all tabs  */  
+    --and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') Then 'Y'    
+  
+    --When Task owner created the task   
+    when (T_HDR.ASSIGNED_TO = @Session_User_Id and T_HDR.TASK_CREATED_BY = @Session_User_Id) /* Inside assignee login */  
+    --and T_HDR.STATUS_PERC between 0.0 and 100.0   
+    /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change   
+    the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side.   
+    Assignee can able to update all tabs  */  
+    and T_HDR.STATUS not in  ('CANCEL','CANCELLED','CLOSE','COMPLETED') Then 'Y'    
+    ---------------------------------------------------------------------------------------------------------------------------------------------------  
+    /*When Assignee change to close initiate(100%) */  
+       -- Inside assignee login   
+    when (T_HDR.ASSIGNED_TO = @Session_User_Id)   
+    and T_HDR.STATUS_PERC = 100.0   
+    and  T_HDR.STATUS in ('CLOSE INITIATED')  then 'N'  
+    /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so,   
+    in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s   
+    and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */  
+      
+    /* When Assignee change to  cancel initiate (0%) Inside assignee login */  
+    when (T_HDR.ASSIGNED_TO = @Session_User_Id)  
+    and T_HDR.STATUS in ('CANCEL INITIATED')  then 'N'   
+    /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so,   
+    in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s   
+    and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */  
+  
+    /*When Assignee change to close initiate(100%) or cancel initiate (0%) */  
+     --Inside Task Owner login   
+    when  T_HDR.TASK_CREATED_BY = @Session_User_Id    
+    and T_HDR.STATUS_PERC between 0.0 and 100.0 and T_HDR.STATUS in ('CLOSE INITIATED','CANCEL INITIATED')  then 'Y'   
+    /* Now inside task owner log in all tabs are enabled and task owner can do all changes in tabs and the status which are visible   
+    to the task owner is Cancel or Close and Re-work as per the assignee action if assignee triggered Close initiate then task owner can see   
+    the Close or if Cancel Initiate is triggered by the assignee then task owner can see Cancel and re-work is by default */  
+    ---------------------------------------------------------------------------------------------------------------------------------------------------  
+    /*When Task owner change status to re-work  */  
+    ---Inside Task Owner login  
+    WHEN  T_HDR.TASK_CREATED_BY= @Session_User_Id   
+    and T_HDR.STATUS in ('RE-WORK')  then 'N' /*-- When task owner change status to re-work instead of Close or Cancel then all tabs are disabled   
+              at task owner side now task owner is not able to do any changes inside any tab.*/  
+    /* When Task owner change status to re-work */  
+    --- Inside assignee login  
+    WHEN  (T_HDR.ASSIGNED_TO = @Session_User_Id)   
+    and T_HDR.STATUS in ('RE-WORK')  then 'Y' /* When the task owner gives a task to re-work to the assignee then status will change to re-work for the assignee   
+               and now all tabs are enabled for assignee and can do any changes inside any tab.*/  
+  ---------------------------------------------------------------------------------------------------------------------------------------------------  
+    WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) or (T_HDR.ASSIGNED_TO = @Session_User_Id)  
+    and T_HDR.STATUS in ('CANCEL','CANCELLED','CLOSE')  then 'N' /* When task owner can do Cancel or Close instead of re-work   
+                    then all tabs are disabled for task owner as well as assignee */  
+ ---------------------------------------------------------------------------------------------------------------------------------------------------  
+   WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) and (T_HDR.ASSIGNED_TO = @Session_User_Id)  
+    and T_HDR.STATUS not in ('CANCEL','CANCELLED','CLOSE')  then 'Y' /* When Task Owner and Assignee are same then enabled  */  
+---------------------------------------------------------------------------------------------------------------------------------------------------  
+    ELSE 'N'  
+    end as 'Update_Task_Flag',  
+    -- Date 10-07-2025 temparary remove  
+    ----When Task owner created the task  
+    case when T_HDR.RESPOSIBLE_EMP_MKEY = @Session_User_Id  /* Inside Task Owner login*/  
+    and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') and T_HDR.STATUS_PERC = 0.0 then 'Y'   
+    /*Task owner created the task and it is currently on created status and progress is 0%  then all tabs are enabled for task owner   
+    and task owner can add tabs list like Checklist, Authority, Outcome and Compliance via remark but with 0%  progress and WIP status update.    
+    Otherwise any progress between 0% to 100% with WIP status will lead to disable all tabs for task owner.*/   
+  
+     --When Task owner created the task  
+    --case when T_HDR.RESPOSIBLE_EMP_MKEY = @Session_User_Id  /* Inside Task Owner login*/  
+    --and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') and T_HDR.STATUS_PERC = 0.0 then 'Y'   
+    --/*Task owner created the task and it is currently on created status and progress is 0%  then all tabs are enabled for task owner   
+    --and task owner can add tabs list like Checklist, Authority, Outcome and Compliance via remark but with 0%  progress and WIP status update.    
+    --Otherwise any progress between 0% to 100% with WIP status will lead to disable all tabs for task owner.*/   
+  
+    --When Task owner created the task   
+    when (T_HDR.ASSIGNED_TO = @Session_User_Id) /* Inside assignee login */  
+    and T_HDR.STATUS_PERC between 0.0 and 100.0 /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change   
+    the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side.   
+    Assignee can able to update all tabs  */  
+    and T_HDR.STATUS in ('CREATED','SUB TASK CREATED','WORK IN PROGRESS') Then 'Y'    
+  
+    --When Task owner created the task   
+    when (T_HDR.ASSIGNED_TO = @Session_User_Id and T_HDR.TASK_CREATED_BY = @Session_User_Id) /* Inside assignee login */  
+    --and T_HDR.STATUS_PERC between 0.0 and 100.0   
+    /* Inside assignee login also all tabs are enabled because progress % is 0, however when assignee change   
+    the progress percent % between 0% to 100% then tabs are disabled for the task owner,but enabled at the assignee side.   
+    Assignee can able to update all tabs  */  
+    and T_HDR.STATUS not in  ('CANCEL','CANCELLED','CLOSE','COMPLETED') Then 'Y'    
+    ---------------------------------------------------------------------------------------------------------------------------------------------------  
+    /*When Assignee change to close initiate(100%) */  
+       -- Inside assignee login   
+    when (T_HDR.ASSIGNED_TO = @Session_User_Id)   
+    and T_HDR.STATUS_PERC = 100.0   
+    and  T_HDR.STATUS in ('CLOSE INITIATED')  then 'N'  
+    /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so,   
+    in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s   
+    and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */  
+      
+    /* When Assignee change to  cancel initiate (0%) Inside assignee login */  
+    when (T_HDR.ASSIGNED_TO = @Session_User_Id)  
+    and T_HDR.STATUS in ('CANCEL INITIATED')  then 'N'   
+    /* If an assignee changes the status to cancel initiate or close initiate it means progress % is whether 0% or 100% so,   
+    in this scenario all tabs are disabled to the assignee side. Assignee will never change any of tab/s   
+    and inside the task owner log in all tabs are enabled for the task owner. Task owner can update all tabs. */  
+  
+    /*When Assignee change to close initiate(100%) or cancel initiate (0%) */  
+     --Inside Task Owner login   
+    when  T_HDR.TASK_CREATED_BY = @Session_User_Id    
+    and T_HDR.STATUS_PERC between 0.0 and 100.0 and T_HDR.STATUS in ('CLOSE INITIATED','CANCEL INITIATED')  then 'Y'   
+    /* Now inside task owner log in all tabs are enabled and task owner can do all changes in tabs and the status which are visible   
+    to the task owner is Cancel or Close and Re-work as per the assignee action if assignee triggered Close initiate then task owner can see   
+    the Close or if Cancel Initiate is triggered by the assignee then task owner can see Cancel and re-work is by default */  
+    ---------------------------------------------------------------------------------------------------------------------------------------------------  
+    /*When Task owner change status to re-work  */  
+    ---Inside Task Owner login  
+    WHEN  T_HDR.TASK_CREATED_BY= @Session_User_Id   
+    and T_HDR.STATUS in ('RE-WORK')  then 'N' /*-- When task owner change status to re-work instead of Close or Cancel then all tabs are disabled   
+              at task owner side now task owner is not able to do any changes inside any tab.*/      /* When Task owner change status to re-work */  
+    --- Inside assignee login  
+    WHEN  (T_HDR.ASSIGNED_TO = @Session_User_Id)   
+    and T_HDR.STATUS in ('RE-WORK')  then 'Y' /* When the task owner gives a task to re-work to the assignee then status will change to re-work for the assignee   
+               and now all tabs are enabled for assignee and can do any changes inside any tab.*/  
+  ---------------------------------------------------------------------------------------------------------------------------------------------------  
+    WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) or (T_HDR.ASSIGNED_TO = @Session_User_Id)  
+    and T_HDR.STATUS in ('CANCEL','CANCELLED','CLOSE')  then 'N' /* When task owner can do Cancel or Close instead of re-work   
+                    then all tabs are disabled for task owner as well as assignee */  
+ ---------------------------------------------------------------------------------------------------------------------------------------------------  
+   WHEN  (T_HDR.TASK_CREATED_BY = @Session_User_Id) and (T_HDR.ASSIGNED_TO = @Session_User_Id)  
+    and T_HDR.STATUS not in ('CANCEL','CANCELLED','CLOSE')  then 'Y' /* When Task Owner and Assignee are same then enabled  */  
+---------------------------------------------------------------------------------------------------------------------------------------------------  
+    ELSE 'N'  
+    end as 'Process_Flag',  
+             T_HDR.tags,  
+             CONVERT(VARCHAR(10), T_HDR.completion_date, 120)COMPLETION_DATE,  
+    CONVERT(VARCHAR(10), parentHDR.COMPLETION_DATE, 120)  as Task_Parent_Completion_Date,  
+             --Isnull(file_name, '')                     [FILE_NAME],  
+             --Isnull(file_path, '')                     FILE_PATH,  
+             T_HDR.resposible_emp_mkey  
+   ,ISNULL(RTrim(T_HDR.Priority),'') AS [Priority]   
+   ,ISNULL(CONVERT(NVARCHAR(20), T_HDR.Tentative_Start_Date),null) AS Tentative_Start_Date  
+   ,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Tentative_End_Date),null) AS Tentative_End_Date  
+   ,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Actual_Start_Date),null) AS Actual_Start_Date  
+   ,ISNULL(CONVERT(NVARCHAR(20),T_HDR.Actual_End_Date),null) AS Actual_End_Date  
+      FROM   task_hdr T_HDR  
+   join TASK_HDR parentHDR on T_HDR.TASK_PARENT_ID = parentHDR.MKEY  
+             JOIN employee_mst E_MST  
+               ON E_MST.mkey = T_HDR.assigned_to  
+             LEFT JOIN type_mst T_MST  
+                    ON T_MST.master_mkey = T_HDR.caregory  
+             --AND T_MST.TYPE_CODE='CATEGORY'  
+             LEFT JOIN type_mst P_MST  
+                    ON P_MST.master_mkey = T_HDR.project_id  
+             LEFT JOIN type_mst S_P_MST  
+                    ON S_P_MST.master_mkey = T_HDR.sub_project_id  
+             --LEFT JOIN task_media_trl T_MEDIA  
+             --       ON T_MEDIA.mkey = T_HDR.mkey  
+             --          AND T_MEDIA.delete_flag = 'N'  
+      WHERE  T_HDR.mkey = @HDR_MKEY;  
+  END  
+  
+  
+----------------------------------------------------  
+  
+
+  
+
