@@ -1385,4 +1385,78 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("DurationCount")]
         public int? DurationCount { get; set; }
     }
+
+
+    public class TaskCheckListNTOutputList_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? STATUS { get; set; }
+        [JsonPropertyName("Message")]
+        public string? MESSAGE { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<TASK_CHECKLIST_TABLE_NT_OUTPUT_NT> DATA { get; set; }
+    }
+    public class TASK_CHECKLIST_TABLE_NT_OUTPUT_NT
+    {
+        [JsonPropertyName("Task_Mkey")]
+        public int TASK_MKEY { get; set; }
+
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+
+        [JsonPropertyName("Property_Mkey")]
+        public int PROPERTY_MKEY { get; set; }
+
+        [JsonPropertyName("Building_Mkey")]
+        public int BUILDING_MKEY { get; set; }
+
+        [JsonPropertyName("Doc_Type_Mkey")]
+        public int Doc_Type_Mkey { get; set; }
+
+        [JsonPropertyName("Doc_Type_Name")]
+        public string Doc_Type_Name { get; set; }
+
+        [JsonPropertyName("Doc_Cat_Mkey")]
+        public int Doc_Cat_Mkey { get; set; }
+
+        [JsonPropertyName("Doc_Cat_Name")]
+        public string Doc_Cat_Name { get; set; }
+
+        //[JsonPropertyName("Document_Mkey")]
+        //public int DOCUMENT_MKEY { get; set; }
+
+        //[JsonPropertyName("Document_Category")]
+        //public int DOCUMENT_CATEGORY { get; set; }
+
+        //[JsonPropertyName("Type_Desc")]
+        //public string TYPE_DESC { get; set; }
+
+        //[JsonPropertyName("Document_Name")]
+        //public string DOCUMENT_NAME { get; set; }
+
+        [JsonPropertyName("App_Check")]
+        public char APP_CHECK { get; set; }
+
+        [JsonPropertyName("Created_By_Id")]
+        public string? CREATED_BY_ID { get; set; }
+
+        [JsonPropertyName("Created_By_Name")]
+        public string? CREATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Creation_Date")]
+        public string? CREATION_DATE { get; set; }
+
+        [JsonPropertyName("Last_Updated_By")]
+        public string? LAST_UPDATED_BY { get; set; }
+
+        [JsonPropertyName("Updated_By_Name")]
+        public string? UPDATED_BY_NAME { get; set; }
+
+        [JsonPropertyName("Last_Update_Date")]
+        public string? LAST_UPDATE_DATE { get; set; }
+        [JsonIgnore]
+        public string? OUT_STATUS { get; set; }
+        [JsonIgnore]
+        public string? OUT_MESSAGE { get; set; }
+    }
 }

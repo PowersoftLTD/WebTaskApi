@@ -1829,16 +1829,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
                 {
@@ -1890,16 +1890,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (task_Compliance_Input_NT.PROPERTY_MKEY == null || task_Compliance_Input_NT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (task_Compliance_Input_NT.BUILDING_MKEY == null || task_Compliance_Input_NT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (task_Compliance_Input_NT.PROPERTY_MKEY == null || task_Compliance_Input_NT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (task_Compliance_Input_NT.BUILDING_MKEY == null || task_Compliance_Input_NT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (task_Compliance_Input_NT.USER_ID == null || task_Compliance_Input_NT.USER_ID == 0)
                 {
@@ -1951,16 +1951,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
                 {
@@ -2073,16 +2073,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_END_LIST_DETAILS.PROPERTY_MKEY == null || tASK_END_LIST_DETAILS.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_END_LIST_DETAILS.BUILDING_MKEY == null || tASK_END_LIST_DETAILS.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_END_LIST_DETAILS.PROPERTY_MKEY == null || tASK_END_LIST_DETAILS.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_END_LIST_DETAILS.BUILDING_MKEY == null || tASK_END_LIST_DETAILS.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_END_LIST_DETAILS.USER_ID == null || tASK_END_LIST_DETAILS.USER_ID == 0)
                 {
@@ -2134,16 +2134,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
                 {
@@ -2267,16 +2267,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == null || tASK_COMPLIANCE_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_COMPLIANCE_INPUT.BUILDING_MKEY == null || tASK_COMPLIANCE_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_COMPLIANCE_INPUT.USER_ID == null || tASK_COMPLIANCE_INPUT.USER_ID == 0)
                 {
@@ -2389,16 +2389,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_ENDLIST_INPUT.PROPERTY_MKEY == null || tASK_ENDLIST_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_ENDLIST_INPUT.BUILDING_MKEY == null || tASK_ENDLIST_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_ENDLIST_INPUT.PROPERTY_MKEY == null || tASK_ENDLIST_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_ENDLIST_INPUT.BUILDING_MKEY == null || tASK_ENDLIST_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_ENDLIST_INPUT.CREATED_BY == null || tASK_ENDLIST_INPUT.CREATED_BY == "0")
                 {
@@ -2450,16 +2450,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_ENDLIST_INPUT.PROPERTY_MKEY == null || tASK_ENDLIST_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_ENDLIST_INPUT.BUILDING_MKEY == null || tASK_ENDLIST_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_ENDLIST_INPUT.PROPERTY_MKEY == null || tASK_ENDLIST_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_ENDLIST_INPUT.BUILDING_MKEY == null || tASK_ENDLIST_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_ENDLIST_INPUT.CREATED_BY == null || tASK_ENDLIST_INPUT.CREATED_BY == "0")
                 {
@@ -2511,16 +2511,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_CHECKLIST_INPUT.PROPERTY_MKEY == null || tASK_CHECKLIST_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_CHECKLIST_INPUT.BUILDING_MKEY == null || tASK_CHECKLIST_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_CHECKLIST_INPUT.PROPERTY_MKEY == null || tASK_CHECKLIST_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_CHECKLIST_INPUT.BUILDING_MKEY == null || tASK_CHECKLIST_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_CHECKLIST_INPUT.CREATED_BY == null || tASK_CHECKLIST_INPUT.CREATED_BY == "0")
                 {
@@ -2572,21 +2572,21 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_CHECKLIST_INPUT.PROPERTY_MKEY == null || tASK_CHECKLIST_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_CHECKLIST_INPUT.BUILDING_MKEY == null || tASK_CHECKLIST_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_CHECKLIST_INPUT.PROPERTY_MKEY == null || tASK_CHECKLIST_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_CHECKLIST_INPUT.BUILDING_MKEY == null || tASK_CHECKLIST_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_CHECKLIST_INPUT.CREATED_BY == null || tASK_CHECKLIST_INPUT.CREATED_BY == 0)
                 {
                     FlagError = true;
-                    ErrorMessage = ErrorMessage + "Created BY is required,";
+                    ErrorMessage = ErrorMessage + "Created BY is required";
                 }
 
                 if (FlagError == true)
@@ -2633,16 +2633,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_SANCTIONING_AUTHORITY_INPUT.CREATED_BY == null || tASK_SANCTIONING_AUTHORITY_INPUT.CREATED_BY == 0)
                 {
@@ -2694,16 +2694,16 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                if (tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Property Mkey is required,";
-                }
-                if (tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == 0)
-                {
-                    FlagError = true;
-                    ErrorMessage = ErrorMessage + "Building Mkey is required,";
-                }
+                //if (tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.PROPERTY_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Property Mkey is required,";
+                //}
+                //if (tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == null || tASK_SANCTIONING_AUTHORITY_INPUT.BUILDING_MKEY == 0)
+                //{
+                //    FlagError = true;
+                //    ErrorMessage = ErrorMessage + "Building Mkey is required,";
+                //}
 
                 if (tASK_SANCTIONING_AUTHORITY_INPUT.CREATED_BY == null || tASK_SANCTIONING_AUTHORITY_INPUT.CREATED_BY == 0)
                 {
@@ -2773,7 +2773,7 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("Task-CheckList-Table-Insert-Update_NT")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TaskCheckListNTOutputList>>> PostTaskCheckListTableInsertUpdate_NT(TASK_CHECKLIST_INPUT_NT tASK_CHECKLIST_TABLE_INPUT)
+        public async Task<ActionResult<IEnumerable<TaskCheckListNTOutputList_NT>>> PostTaskCheckListTableInsertUpdate_NT(TASK_CHECKLIST_INPUT_NT tASK_CHECKLIST_TABLE_INPUT)
         {
             bool FlagError = false;
             string ErrorMessage = string.Empty;
@@ -2781,7 +2781,7 @@ namespace TaskManagement.API.Controllers
             {
                 if (tASK_CHECKLIST_TABLE_INPUT == null)
                 {
-                    var response = new TaskCheckListNTOutputList
+                    var response = new TaskCheckListNTOutputList_NT
                     {
                         STATUS = "Error",
                         MESSAGE = "Please Enter the details",
@@ -2795,7 +2795,7 @@ namespace TaskManagement.API.Controllers
             }
             catch (Exception ex)
             {
-                var response = new TaskCheckListNTOutputList
+                var response = new TaskCheckListNTOutputList_NT
                 {
                     STATUS = "Error",
                     MESSAGE = ex.Message,

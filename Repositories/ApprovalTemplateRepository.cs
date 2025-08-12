@@ -123,8 +123,7 @@ namespace TaskManagement.API.Repositories
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
-                    parmeters.Add("@MKEY", null);
-                    parmeters.Add("@ATTRIBUTE1", aPPROVAL_TEMPLATE_HDR_NT.LoggedInID.ToString());
+                    parmeters.Add("@MKEY", aPPROVAL_TEMPLATE_HDR_NT.Mkey.ToString());
                     parmeters.Add("@Session_User_Id", aPPROVAL_TEMPLATE_HDR_NT.Session_User_Id.ToString());
                     parmeters.Add("@Business_Group_Id", aPPROVAL_TEMPLATE_HDR_NT.Business_Group_Id.ToString());
                     var approvalTemplates = await db.QueryAsync<OutPutApprovalTemplatesNT>("SP_GET_APPROVAL_TEMPLATE_NT", parmeters, commandType: CommandType.StoredProcedure);

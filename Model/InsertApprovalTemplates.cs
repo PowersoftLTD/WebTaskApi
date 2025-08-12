@@ -58,9 +58,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Checklist_Doc_Lst")]
         public Dictionary<string, object>? CHECKLIST_DOC_LST { get; set; }
         [JsonPropertyName("Subtask_List")]
-        public List<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK>? SUBTASK_LIST { get; set; } = new List<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK>();
+        public List<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK_NT>? SUBTASK_LIST { get; set; } = new List<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK_NT>();
         [JsonPropertyName("Sanctioning_Department_List")]
-        public List<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>? SANCTIONING_DEPARTMENT_LIST { get; set; } = new List<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>();
+        public List<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT_NT>? SANCTIONING_DEPARTMENT_LIST { get; set; } = new List<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT_NT>();
         [JsonPropertyName("Session_User_Id")]
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]
@@ -68,7 +68,16 @@ namespace TaskManagement.API.Model
 
     }
 
+    public class INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK_NT
+    {
+        [JsonPropertyName("Seq_No")]
+        public string? SEQ_NO { get; set; }
+        [JsonPropertyName("Subtask_Abbr")]
+        public string? SUBTASK_ABBR { get; set; }
+        [JsonPropertyName("Subtask_Mkey")]
+        public int? SUBTASK_MKEY { get; set; }
 
+    }
 
     public class INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK
     {
@@ -89,6 +98,21 @@ namespace TaskManagement.API.Model
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]
         public int Business_Group_Id { get; set; }
+    }
+
+    public class INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT_NT
+    {
+        [JsonPropertyName("Level")]
+        public string LEVEL { get; set; }
+        [JsonPropertyName("Sanctioning_Department")]
+        public string SANCTIONING_DEPARTMENT { get; set; }
+        [JsonPropertyName("Sanctioning_Authority")]
+        public string SANCTIONING_AUTHORITY { get; set; }
+        [JsonPropertyName("Start_Date")]
+        public DateTime START_DATE { get; set; }
+        [JsonPropertyName("End_Date")]
+        public DateTime? END_DATE { get; set; }
+
     }
 
     public class INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT

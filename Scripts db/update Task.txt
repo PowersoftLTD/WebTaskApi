@@ -53311,7 +53311,232 @@ AS
   
   
 ----------------------------------------------------  
-  
+  Date: 12-08-2025
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_APPROVAL_TEMPLATE_NT]    Script Date: 12-08-2025 11:42:45 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================      
+-- AUTHOR:  AMIT SHUDDHALWAR      
+-- CREATE DATE: 2024-11-06  
+-- DESCRIPTION: TO GET APPROVAL TEMPLATE DETAILS (HDR)     
+-- EXEC SP_GET_TASK_RECURSIVE @MKEY=NULL    
+-- EXEC Sp_get_approval_template @MKEY=11    
+-- exec SP_GET_APPROVAL_TEMPLATE_NT  0, 926,1,null,null,null
+-- =============================================      
+ALTER PROCEDURE [dbo].[SP_GET_APPROVAL_TEMPLATE_NT]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE      
+	@MKEY       NUMERIC = NULL,
+	@Session_User_Id		INT,  
+	@Business_Group_Id	  INT,
+	@ATTRIBUTE1 VARCHAR = NULL,-- USER ID  
+	@ATTRIBUTE2 VARCHAR = NULL,-- FORM NAME  
+	@ATTRIBUTE3 VARCHAR = NULL -- FUCNTION/METHOD NAME  
+AS
+  BEGIN
+      -- SET NOCOUNT ON ADDED TO PREVENT EXTRA RESULT SETS FROM      
+      -- INTERFERING WITH SELECT STATEMENTS.      
+      SET nocount ON;
+
+      BEGIN try ;
+          -- TO CHECK THE @MKEY IS NULL OR EMPTY IF EMPTY THE SHOW ALL ROWS      
+          --IF ( @MKEY IS NOT NULL  
+          --     AND LEN(@MKEY) > 0 )  
+          --  BEGIN
+		  if( @MKEY = 0)
+		  BEGIN
+			SET @MKEY = NULL;
+		  END
+          SELECT HDR.mkey,
+                 building_type,
+                 Rtrim(Ltrim(BUILDCLASS.type_desc)) AS BUILDING_TYPE_NAME,
+                 building_standard,
+                 Rtrim(Ltrim(STND.type_desc))       AS BUILDING_STANDARD_NAME,
+                 statutory_authority,
+                 Rtrim(Ltrim(STAAUTH.type_desc))    AS STATUTORY_AUTHORITY_NAME,
+                 short_description,
+                 long_description,
+                 main_abbr,
+                 authority_department,
+                 resposible_emp_mkey,
+                 HDR.job_role,
+                 days_requierd,
+                 seq_order,
+                 HDR.attribute1,
+                 HDR.attribute2,
+                 HDR.attribute3,
+                 HDR.attribute4,
+                 HDR.attribute5,
+                 HDR.created_by,
+                 HDR.creation_date,
+                 HDR.last_updated_by,
+                 HDR.last_update_date,
+                 sanction_authority,
+                 sanction_department,
+                 end_result_doc,
+                 checklist_doc,
+                 HDR.delete_flag
+				 ,HDR.TAGS as tags
+				 ,HDR.RESPOSIBLE_EMP_MKEY
+				 ,MST.EMP_FULL_NAME AS RESPOSIBLE_EMP_NAME
+          FROM   approval_template_hdr HDR
+                 JOIN type_mst BUILDCLASS
+                   ON HDR.building_type = BUILDCLASS.mkey
+                      AND BUILDCLASS.type_code = 'BUILDCLASS'
+                 JOIN type_mst STND
+                   ON HDR.building_standard = STND.mkey
+                      AND STND.type_code = 'STND'
+                 JOIN type_mst STAAUTH
+                   ON HDR.statutory_authority = STAAUTH.mkey
+                      AND STAAUTH.type_code = 'STAAUTH'
+				LEFT JOIN EMPLOYEE_MST MST ON MST.MKEY = HDR.RESPOSIBLE_EMP_MKEY AND MST.DELETE_FLAG = 'N'
+          WHERE  ( HDR.mkey = @MKEY
+                    OR @MKEY IS NULL )
+                 AND HDR.delete_flag = 'N'
+          ORDER  BY HDR.mkey;
+      --        END  
+      --      ELSE  
+      --        BEGIN  
+      --            SELECT HDR.MKEY,  
+      --BUILDING_TYPE  
+      --,RTRIM(LTRIM(BUILDCLASS.TYPE_DESC)) AS BUILDING_TYPE_NAME  
+      --,BUILDING_STANDARD  
+      --, RTRIM(LTRIM(STND.TYPE_DESC)) AS BUILDING_STANDARD_NAME  
+      --,STATUTORY_AUTHORITY  
+      --,RTRIM(LTRIM(STAAUTH.TYPE_DESC)) AS STATUTORY_AUTHORITY_NAME  
+      --,SHORT_DESCRIPTION  
+      --,LONG_DESCRIPTION  
+      --,MAIN_ABBR  
+      --,AUTHORITY_DEPARTMENT  
+      --,RESPOSIBLE_EMP_MKEY  
+      --,JOB_ROLE  
+      --,DAYS_REQUIERD  
+      --,SEQ_ORDER  
+      --,HDR.ATTRIBUTE1  
+      --,HDR.ATTRIBUTE2  
+      --,HDR.ATTRIBUTE3  
+      --,HDR.ATTRIBUTE4  
+      --,HDR.ATTRIBUTE5  
+      --,HDR.CREATED_BY  
+      --,HDR.CREATION_DATE  
+      --,HDR.LAST_UPDATED_BY  
+      --,HDR.LAST_UPDATE_DATE  
+      --,SANCTION_AUTHORITY  
+      --,SANCTION_DEPARTMENT  
+      --,END_RESULT_DOC  
+      --,CHECKLIST_DOC  
+      --,HDR.DELETE_FLAG   
+      --FROM APPROVAL_TEMPLATE_HDR  HDR  
+      --join TYPE_MST BUILDCLASS on HDR.BUILDING_TYPE = BUILDCLASS.MKEY and BUILDCLASS.TYPE_CODE='BUILDCLASS'   
+      -- join TYPE_MST STND on HDR.BUILDING_STANDARD = STND.MKEY and STND.TYPE_CODE='STND'   
+      -- join TYPE_MST STAAUTH on HDR.STATUTORY_AUTHORITY = STAAUTH.MKEY and STAAUTH.TYPE_CODE='STAAUTH'   
+      --WHERE hdr.DELETE_FLAG = 'N'  
+      --ORDER BY  hdr.MKEY;  
+      --        END  
+      END try
+
+      BEGIN catch
+          ------------------------------------------------------------------------------------------------------------------------------------  
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------  
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          ------------------------------------------------------------------------------------------------------------------------------------  
+          EXEC Sp_p_tms_insert_error_des
+            @ATTRIBUTE1,
+            'TMS',
+            @ATTRIBUTE2,
+            @ERROR_MESSAGE,
+            attribute3;
+      ------------------------------------------------------------------------------------------------------------------------------------  
+      END catch
+  END 
+------------------------------------------------------------------------
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_INSERT_TASK_ACTION_CHECKLIST_ENDLIST_TRL]    Script Date: 12-08-2025 12:55:58 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[SP_INSERT_TASK_ACTION_CHECKLIST_ENDLIST_TRL]
+	-- Add the parameters for the stored procedure here
+				@Parameter1          VARCHAR(100) = NULL, --@TASK_MKEY 
+                @Parameter2          VARCHAR(100) = NULL, --ACTION_TYPE
+                @Parameter3          VARCHAR(100) = NULL, --STATUS
+                @Parameter4          VARCHAR(100) = NULL, --@DESCRIPTION_COMMENT
+                @Parameter5          VARCHAR(100) = NULL, --@Logdin user
+				@Parameter6          VARCHAR(100) = NULL --@Logdin user
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	 BEGIN TRY
+    -- Insert statements for procedure here
+	
+				DECLARE @ActionTrlSR_NO    NVARCHAR(100),
+						@TASK_PARENT_ID    NVARCHAR(100),
+						@TASK_MAIN_NODE_ID NVARCHAR(100),
+						@Status_Per NVARCHAR(100);
+
+				SELECT @ActionTrlSR_NO = CONVERT(NVARCHAR(100),Isnull(Max(t.sr_no), 0) + 1)
+				FROM   task_action_trl t
+				WHERE  mkey = @Parameter1; --SR_NO
+
+				SELECT @TASK_PARENT_ID = CONVERT(NVARCHAR(100),task_parent_id),@Status_Per = CONVERT(NVARCHAR(100),STATUS_PERC)
+				FROM   task_hdr
+				WHERE  mkey = @Parameter1
+						AND delete_flag = 'N';
+
+				SELECT @TASK_MAIN_NODE_ID =  CONVERT(NVARCHAR(100),task_main_node_id)
+				FROM   task_hdr
+				WHERE  mkey = @TASK_PARENT_ID
+						AND delete_flag = 'N';
+
+				Print '@TASK_MAIN_NODE_ID: '+ convert(nvarchar,@TASK_MAIN_NODE_ID);
+
+			--EXEC SP_TASK_ACTION_TRL_Insert_Update @Parameter1,@Parameter1,@TASK_PARENT_ID,@Parameter2,@Parameter4
+			--									  ,@Status_Per,@Parameter3,@Parameter5,@TASK_MAIN_NODE_ID,null,null;
+		END try
+
+		BEGIN catch
+		-------------------------------------------------------------------------------------------------------------------------------          
+		SELECT Error_number()    AS ERRORNUMBER,
+				Error_severity()  AS ERRORSEVERITY,
+				Error_state()     AS ERRORSTATE,
+				Error_procedure() AS ERRORPROCEDURE,
+				Error_line()      AS ERRORLINE,
+				Error_message()   AS ERRORMESSAGE;
+
+		-------------------------------------------------------------------------------------------------------------------------------
+		DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+		SET @ERROR_MESSAGE = Error_message();
+
+		-------------------------------------------------------------------------------------------------------------------------------
+		EXEC Sp_p_tms_insert_error_des
+		@Parameter5,
+		'TMS',
+		'ADD CHEKLIST TASK ACTION TRL',
+		@ERROR_MESSAGE,
+		'ADD ATION TRL';
+		-------------------------------------------------------------------------------------------------------------------------------
+		END catch
+END
 
   
 

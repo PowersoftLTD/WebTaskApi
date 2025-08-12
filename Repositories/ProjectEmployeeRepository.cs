@@ -5051,7 +5051,7 @@ namespace TaskManagement.API.Repositories
                 }
             }
         }
-        public async Task<ActionResult<IEnumerable<TaskCheckListNTOutputList>>> PostTaskCheckListTableInsertUpdateNTAsync(TASK_CHECKLIST_INPUT_NT input)
+        public async Task<ActionResult<IEnumerable<TaskCheckListNTOutputList_NT>>> PostTaskCheckListTableInsertUpdateNTAsync(TASK_CHECKLIST_INPUT_NT input)
         {
             bool transactionCompleted = false;
             using var db = _dapperDbConnection.CreateConnection();
@@ -5084,7 +5084,7 @@ namespace TaskManagement.API.Repositories
                         parameters.Add("@Session_User_Id", input.Session_User_ID);
                         parameters.Add("@Business_Group_Id", input.Business_Group_ID);
 
-                        var result = (await db.QueryAsync<TASK_CHECKLIST_TABLE_NT_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT",
+                        var result = (await db.QueryAsync<TASK_CHECKLIST_TABLE_NT_OUTPUT_NT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT",
                             parameters, commandType: CommandType.StoredProcedure, transaction: transaction)).ToList();
 
                         string status = parameters.Get<string>("@OUT_STATUS");
@@ -5093,9 +5093,9 @@ namespace TaskManagement.API.Repositories
                         if (status != "OK")
                         {
                             transaction.Rollback();
-                            return new List<TaskCheckListNTOutputList>
+                            return new List<TaskCheckListNTOutputList_NT>
                             {
-                                new TaskCheckListNTOutputList
+                                new TaskCheckListNTOutputList_NT
                                 {
                                     STATUS = "Error",
                                     MESSAGE = message,
@@ -5114,41 +5114,41 @@ namespace TaskManagement.API.Repositories
                 //parametersCheckList.Add("@Parameter5", input.Session_User_ID); // Logdin user
                 //parametersCheckList.Add("@Parameter6", input.Business_Group_ID);
 
-                parametersCheckList.Add("@Parameter1", input.TASK_MKEY); // mkey
-                parametersCheckList.Add("@Parameter2", "Progress"); //ACTION_TYPE
-                parametersCheckList.Add("@Parameter3", "Work In Progress"); //STATUS
-                parametersCheckList.Add("@Parameter4", input.COMMENT);  // DESCRIPTION_COMMENT
-                parametersCheckList.Add("@Parameter5", input.Session_User_ID); // Logdin user
-                parametersCheckList.Add("@Parameter6", input.Business_Group_ID);
+                //parametersCheckList.Add("@Parameter1", input.TASK_MKEY); // mkey
+                //parametersCheckList.Add("@Parameter2", "Progress"); //ACTION_TYPE
+                //parametersCheckList.Add("@Parameter3", "Work In Progress"); //STATUS
+                //parametersCheckList.Add("@Parameter4", input.COMMENT);  // DESCRIPTION_COMMENT
+                //parametersCheckList.Add("@Parameter5", input.Session_User_ID); // Logdin user
+                //parametersCheckList.Add("@Parameter6", input.Business_Group_ID);
 
-                var TaskFile = await db.ExecuteAsync("SP_INSERT_TASK_ACTION_CHECKLIST_ENDLIST_TRL", parametersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                //var TaskFile = await db.ExecuteAsync("SP_INSERT_TASK_ACTION_CHECKLIST_ENDLIST_TRL", parametersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                if (TaskFile == null || TaskFile == 0)
-                {
-                    // Handle other unexpected exceptions
-                    if (transaction != null && !transactionCompleted)
-                    {
-                        try
-                        {
-                            // Rollback only if the transaction is not yet completed
-                            transaction.Rollback();
-                        }
-                        catch (InvalidOperationException rollbackEx)
-                        {
+                //if (TaskFile == null || TaskFile == 0)
+                //{
+                //    // Handle other unexpected exceptions
+                //    if (transaction != null && !transactionCompleted)
+                //    {
+                //        try
+                //        {
+                //            // Rollback only if the transaction is not yet completed
+                //            transaction.Rollback();
+                //        }
+                //        catch (InvalidOperationException rollbackEx)
+                //        {
 
-                            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                            //TranError.Message = ex.Message;
-                            //return TranError;
-                        }
-                    }
-                }
+                //            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                //            //TranError.Message = ex.Message;
+                //            //return TranError;
+                //        }
+                //    }
+                //}
                 var sqlTransaction = (SqlTransaction)transaction;
                 await sqlTransaction.CommitAsync();
                 transactionCompleted = true;
 
-                return new List<TaskCheckListNTOutputList>
+                return new List<TaskCheckListNTOutputList_NT>
                 {
-                    new TaskCheckListNTOutputList
+                    new TaskCheckListNTOutputList_NT
                     {
                         STATUS = "Ok",
                         MESSAGE = "Checklist updated successfully.",
@@ -5160,9 +5160,9 @@ namespace TaskManagement.API.Repositories
             {
                 try { transaction.Rollback(); } catch { /* Logging rollback failure if needed */ }
 
-                return new List<TaskCheckListNTOutputList>
+                return new List<TaskCheckListNTOutputList_NT>
                 {
-                    new TaskCheckListNTOutputList
+                    new TaskCheckListNTOutputList_NT
                     {
                         STATUS = "Error",
                         MESSAGE = $"Exception: {ex.Message}",
@@ -5453,35 +5453,35 @@ namespace TaskManagement.API.Repositories
                     if (flagInsert == false)
                     {
 
-                        var parametersCheckList = new DynamicParameters();
-                        parametersCheckList.Add("@Parameter1", tASK_ENDLIST_TABLE_INPUT.MKEY); // mkey
-                        parametersCheckList.Add("@Parameter2", "Progress"); //ACTION_TYPE
-                        parametersCheckList.Add("@Parameter3", "Work In Progress"); //STATUS
-                        parametersCheckList.Add("@Parameter4", tASK_ENDLIST_TABLE_INPUT.COMMENT);  // DESCRIPTION_COMMENT
-                        parametersCheckList.Add("@Parameter5", tASK_ENDLIST_TABLE_INPUT.Session_User_Id); // Logdin user
-                        parametersCheckList.Add("@Parameter6", tASK_ENDLIST_TABLE_INPUT.Business_Group_Id);
+                        //var parametersCheckList = new DynamicParameters();
+                        //parametersCheckList.Add("@Parameter1", tASK_ENDLIST_TABLE_INPUT.MKEY); // mkey
+                        //parametersCheckList.Add("@Parameter2", "Progress"); //ACTION_TYPE
+                        //parametersCheckList.Add("@Parameter3", "Work In Progress"); //STATUS
+                        //parametersCheckList.Add("@Parameter4", tASK_ENDLIST_TABLE_INPUT.COMMENT);  // DESCRIPTION_COMMENT
+                        //parametersCheckList.Add("@Parameter5", tASK_ENDLIST_TABLE_INPUT.Session_User_Id); // Logdin user
+                        //parametersCheckList.Add("@Parameter6", tASK_ENDLIST_TABLE_INPUT.Business_Group_Id);
 
-                        var TaskFile = await db.ExecuteAsync("SP_INSERT_TASK_ACTION_CHECKLIST_ENDLIST_TRL", parametersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        //var TaskFile = await db.ExecuteAsync("SP_INSERT_TASK_ACTION_CHECKLIST_ENDLIST_TRL", parametersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                        if (TaskFile == null || TaskFile == 0)
-                        {
-                            // Handle other unexpected exceptions
-                            if (transaction != null && !transactionCompleted)
-                            {
-                                try
-                                {
-                                    // Rollback only if the transaction is not yet completed
-                                    transaction.Rollback();
-                                }
-                                catch (InvalidOperationException rollbackEx)
-                                {
+                        //if (TaskFile == null || TaskFile == 0)
+                        //{
+                        //    // Handle other unexpected exceptions
+                        //    if (transaction != null && !transactionCompleted)
+                        //    {
+                        //        try
+                        //        {
+                        //            // Rollback only if the transaction is not yet completed
+                        //            transaction.Rollback();
+                        //        }
+                        //        catch (InvalidOperationException rollbackEx)
+                        //        {
 
-                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                    //TranError.Message = ex.Message;
-                                    //return TranError;
-                                }
-                            }
-                        }
+                        //            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        //            //TranError.Message = ex.Message;
+                        //            //return TranError;
+                        //        }
+                        //    }
+                        //}
 
                         var parmeters = new DynamicParameters();
                         parmeters.Add("@PROPERTY_MKEY", null);
