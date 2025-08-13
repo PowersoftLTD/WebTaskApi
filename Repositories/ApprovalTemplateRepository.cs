@@ -130,6 +130,67 @@ namespace TaskManagement.API.Repositories
 
                     if (approvalTemplates.Any())
                     {
+                        // Iterate over each approval template header to populate subtasks, end result docs, and checklist docs
+                        foreach (var approvalTemplate in approvalTemplates)
+                        {
+                            strMKEY = approvalTemplate.MKEY;
+                            // Fetch the associated subtasks
+                            var subtasks = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>(
+                                "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
+                                new { HEADER_MKEY = approvalTemplate.MKEY });
+
+                            approvalTemplate.Subtask_List = subtasks.ToList(); // Populate the SUBTASK_LIST property
+
+
+                            string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY" +
+                                " AND DELETE_FLAG = 'N'; ";
+                            var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
+
+                            // Initialize the END_RESULT_DOC_LST dictionary
+                            approvalTemplate.End_Result_Doc_Lst = new Dictionary<string, object>();
+
+                            // Populate the dictionary with the key-value pairs
+                            foreach (var item in keyValuePairs)
+                            {
+                                // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                                approvalTemplate.End_Result_Doc_Lst.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                            }
+
+                            sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST" +
+                                " WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
+                            var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
+
+                            // Initialize the END_RESULT_DOC_LST dictionary
+                            approvalTemplate.Checklist_Doc_Lst = new Dictionary<string, object>();
+
+                            // Populate the dictionary with the key-value pairs
+                            foreach (var item in keyValuePairsCheckList)
+                            {
+                                // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
+                                approvalTemplate.Checklist_Doc_Lst.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
+                            }
+
+                            strMKEY = approvalTemplate.MKEY;
+                            // Fetch the associated subtasks
+                            var Sanctioning_Department = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>(
+                                "SELECT * FROM V_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';",
+                                new { MKEY = approvalTemplate.MKEY });
+
+                            approvalTemplate.Sanctioning_Department_List = Sanctioning_Department.ToList();
+                        }
+                        var successsResult = new List<OutPutApprovalTemplates_NT>
+                    {
+                        new OutPutApprovalTemplates_NT
+                        {
+                            Status = "Ok",
+                            Message = "Get data successfully!!!",
+                            Data = approvalTemplates
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
                         var ErrorResult = new List<OutPutApprovalTemplates_NT>
                         {
                             new OutPutApprovalTemplates_NT
@@ -141,65 +202,7 @@ namespace TaskManagement.API.Repositories
                         };
                         return ErrorResult;
                     }
-
-                    // Iterate over each approval template header to populate subtasks, end result docs, and checklist docs
-                    foreach (var approvalTemplate in approvalTemplates)
-                    {
-                        strMKEY = approvalTemplate.MKEY;
-                        // Fetch the associated subtasks
-                        var subtasks = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK>(
-                            "SELECT * FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE HEADER_MKEY = @HEADER_MKEY AND DELETE_FLAG = 'N';",
-                            new { HEADER_MKEY = approvalTemplate.MKEY });
-
-                        approvalTemplate.Subtask_List = subtasks.ToList(); // Populate the SUBTASK_LIST property
-
-
-                        string sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_ENDRESULT WHERE MKEY = @MKEY" +
-                            " AND DELETE_FLAG = 'N'; ";
-                        var keyValuePairs = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
-
-                        // Initialize the END_RESULT_DOC_LST dictionary
-                        approvalTemplate.End_Result_Doc_Lst = new Dictionary<string, object>();
-
-                        // Populate the dictionary with the key-value pairs
-                        foreach (var item in keyValuePairs)
-                        {
-                            // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-                            approvalTemplate.End_Result_Doc_Lst.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-                        }
-
-                        sql = "SELECT DOCUMENT_NAME, DOCUMENT_CATEGORY FROM APPROVAL_TEMPLATE_TRL_CHECKLIST" +
-                            " WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';";
-                        var keyValuePairsCheckList = await db.QueryAsync(sql, new { MKEY = approvalTemplate.MKEY });
-
-                        // Initialize the END_RESULT_DOC_LST dictionary
-                        approvalTemplate.Checklist_Doc_Lst = new Dictionary<string, object>();
-
-                        // Populate the dictionary with the key-value pairs
-                        foreach (var item in keyValuePairsCheckList)
-                        {
-                            // Assuming DOCUMENT_NAME is the key and DOCUMENT_CATEGORY is the value
-                            approvalTemplate.Checklist_Doc_Lst.Add(item.DOCUMENT_NAME.ToString(), item.DOCUMENT_CATEGORY);
-                        }
-
-                        strMKEY = approvalTemplate.MKEY;
-                        // Fetch the associated subtasks
-                        var Sanctioning_Department = await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT>(
-                            "SELECT * FROM V_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT WHERE MKEY = @MKEY AND DELETE_FLAG = 'N';",
-                            new { MKEY = approvalTemplate.MKEY });
-
-                        approvalTemplate.Sanctioning_Department_List = Sanctioning_Department.ToList();
-                    }
-                    var successsResult = new List<OutPutApprovalTemplates_NT>
-                    {
-                        new OutPutApprovalTemplates_NT
-                        {
-                            Status = "Ok",
-                            Message = "Get data successfully!!!",
-                            Data = approvalTemplates
-                        }
-                    };
-                    return successsResult;
+                  
                 }
             }
             catch (Exception ex)
