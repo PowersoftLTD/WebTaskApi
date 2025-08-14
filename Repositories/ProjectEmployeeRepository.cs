@@ -6315,6 +6315,9 @@ namespace TaskManagement.API.Repositories
                     transactionCompleted = false;
                     var parametersConfigure = new DynamicParameters();
                     parametersConfigure.Add("@Session_User_Id", null);
+
+                    var FilePathtext = await db.QueryAsync("select * from ConfigureTbl", commandType: CommandType.Text, transaction: transaction);
+
                     var FilePath = await db.QueryAsync<ConfigureTbl>("SP_GET_CONFIGURATION", parametersConfigure, commandType: CommandType.StoredProcedure, transaction: transaction);
                     foreach (var FileConfig in FilePath)
                     {

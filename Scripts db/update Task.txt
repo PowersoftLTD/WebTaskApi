@@ -53751,7 +53751,929 @@ AS
   
   
 ----------------------------------------------------  
-  
+  Date : 14-08-2025
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_Get_Overall_DB_NT]    Script Date: 14-08-2025 14:08:45 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--		exec SP_Get_Overall_DB_NT 2693,'%22%22',2693,1
+ALTER PROCEDURE [dbo].[SP_Get_Overall_DB_NT] (@CURRENT_EMP_MKEY INT,@CURR_ACTION NVARCHAR(100),@Session_User_Id   INT,@Business_Group_Id INT)
+AS
+BEGIN
+	SET @CURRENT_EMP_MKEY = @CURRENT_EMP_MKEY
+
+	SELECT 'Today' AS 'StatusVal'
+		,T_HDR.MKEY
+		,ISNULL(CATEGORY.TYPE_DESC, 'NA') CATEGORY
+		,T_HDR.TASK_NO
+		,DBO.[InitCap](ISNULL(CREATOR.EMP_FULL_NAME, 'NA')) CREATOR
+		,DBO.[InitCap](ISNULL(RESPONSIBLE.EMP_FULL_NAME, 'NA')) RESPONSIBLE
+		,DBO.[InitCap](ISNULL(ACTIONABLE.EMP_FULL_NAME, 'NA')) ACTIONABLE
+		,T_HDR.CREATION_DATE
+		,convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) COMPLETION_DATE
+		,DBO.[InitCap](T_HDR.TASK_NAME) TASK_NAME
+		,T_HDR.TASK_DESCRIPTION
+		,T_HDR.TAGS
+		,DBO.[InitCap](T_HDR.STATUS) STATUS
+		,CASE 
+			WHEN ISNULL(CREATOR.FIRST_NAME, 'NA') != ISNULL(RESPONSIBLE.FIRST_NAME, 'NA')
+				THEN DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA')) + ' > ' + DBO.[InitCap](ISNULL(RESPONSIBLE.FIRST_NAME, 'NA'))
+			ELSE DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA'))
+			END RESPONSIBLE_TAG
+		,CREATOR.EMAIL_ID_OFFICIAL
+		,CREATOR.mkey
+		,RESPONSIBLE.EMAIL_ID_OFFICIAL
+		,RESPONSIBLE.mkey
+		,ACTIONABLE.EMAIL_ID_OFFICIAL
+		,ACTIONABLE.mkey
+		--,T_HDR.Status_Flag  
+		,CASE 
+			WHEN T_HDR.Status_Flag = 'F'
+				THEN 'Future'
+			ELSE 'Active'
+			END AS 'STATUS_FLAG'
+	FROM TASK_HDR T_HDR
+	LEFT JOIN EMPLOYEE_MST CREATOR ON CREATOR.MKEY = T_HDR.Created_by AND CREATOR.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST RESPONSIBLE ON RESPONSIBLE.MKEY = T_HDR.ASSIGNED_TO AND RESPONSIBLE.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST ACTIONABLE ON ACTIONABLE.MKEY = T_HDR.RESPOSIBLE_EMP_MKEY AND ACTIONABLE.DELETE_FLAG = 'N'
+	LEFT JOIN V_CATEGORY CATEGORY ON CATEGORY.MKEY = T_HDR.CAREGORY AND CATEGORY.DELETE_FLAG = 'N'
+	WHERE (
+			--T_HDR.Created_by=@CURRENT_EMP_MKEY  
+			--OR  
+			T_HDR.ASSIGNED_TO = @CURRENT_EMP_MKEY
+			OR T_HDR.RESPOSIBLE_EMP_MKEY = @CURRENT_EMP_MKEY
+			--T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+			--OR  
+			--T_HDR.RESPOSIBLE_EMP_MKEY=@CURRENT_EMP_MKEY  
+			)
+		AND T_HDR.STATUS NOT IN (
+			'COMPLETED'
+			,'CANCELLED'
+			,'Close Initiated'
+			,'Cancel Initiated'
+			)
+		AND convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) = convert(VARCHAR, getdate(), 103)
+		AND isnull(T_HDR.delete_flag, 'N') = 'N'
+		AND Isnull(T_HDR.STATUS_Flag, 'A') IN ('A','N');
+		
+
+	SELECT 'Overdue' AS 'StatusVal'
+		,T_HDR.MKEY
+		,ISNULL(CATEGORY.TYPE_DESC, 'NA') CATEGORY
+		,T_HDR.TASK_NO
+		,DBO.[InitCap](ISNULL(CREATOR.EMP_FULL_NAME, 'NA')) CREATOR
+		,DBO.[InitCap](ISNULL(RESPONSIBLE.EMP_FULL_NAME, 'NA')) RESPONSIBLE
+		,DBO.[InitCap](ISNULL(ACTIONABLE.EMP_FULL_NAME, 'NA')) ACTIONABLE
+		,T_HDR.CREATION_DATE
+		,convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) COMPLETION_DATE
+		,DBO.[InitCap](T_HDR.TASK_NAME) TASK_NAME
+		,T_HDR.TASK_DESCRIPTION
+		,T_HDR.TAGS
+		,DBO.[InitCap](T_HDR.STATUS) STATUS
+		,CASE 
+			WHEN ISNULL(CREATOR.FIRST_NAME, 'NA') != ISNULL(RESPONSIBLE.FIRST_NAME, 'NA')
+				THEN DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA')) + ' > ' + DBO.[InitCap](ISNULL(RESPONSIBLE.FIRST_NAME, 'NA'))
+			ELSE DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA'))
+			END RESPONSIBLE_TAG
+		,CREATOR.EMAIL_ID_OFFICIAL
+		,CREATOR.mkey
+		,RESPONSIBLE.EMAIL_ID_OFFICIAL
+		,RESPONSIBLE.mkey
+		,ACTIONABLE.EMAIL_ID_OFFICIAL
+		,ACTIONABLE.mkey
+		,CASE 
+			WHEN T_HDR.Status_Flag = 'F'
+				THEN 'Future'
+			ELSE 'Active'
+			END AS 'STATUS_FLAG'
+	FROM TASK_HDR T_HDR
+	LEFT JOIN EMPLOYEE_MST CREATOR ON CREATOR.MKEY = T_HDR.Created_by AND CREATOR.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST RESPONSIBLE ON RESPONSIBLE.MKEY = T_HDR.ASSIGNED_TO AND RESPONSIBLE.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST ACTIONABLE ON ACTIONABLE.MKEY = T_HDR.RESPOSIBLE_EMP_MKEY AND ACTIONABLE.DELETE_FLAG = 'N'
+	LEFT JOIN V_CATEGORY CATEGORY ON CATEGORY.MKEY = T_HDR.CAREGORY AND CATEGORY.DELETE_FLAG = 'N'
+	WHERE (
+			--T_HDR.Created_by=@CURRENT_EMP_MKEY  
+			--OR  
+			--T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY OR   
+			T_HDR.RESPOSIBLE_EMP_MKEY = @CURRENT_EMP_MKEY
+			--T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+			--OR  
+			--T_HDR.RESPOSIBLE_EMP_MKEY=@CURRENT_EMP_MKEY  
+			)
+		AND T_HDR.STATUS NOT IN (
+			'COMPLETED'
+			,'CANCELLED'
+			--,'SUB TASK CREATED'
+			)
+		AND T_HDR.COMPLETION_DATE < convert(DATETIME, convert(VARCHAR, getdate(), 103), 103)
+		AND isnull(T_HDR.delete_flag, 'N') = 'N'
+		AND Isnull(T_HDR.STATUS_Flag, 'A') IN (
+			'A'
+			,'N'
+			)
+		
+
+	--select distinct STATUS from TASK_HDR  
+	SELECT 'Review' AS 'StatusVal'
+		,T_HDR.MKEY
+		,ISNULL(CATEGORY.TYPE_DESC, 'NA') CATEGORY
+		,T_HDR.TASK_NO
+		,DBO.[InitCap](ISNULL(CREATOR.EMP_FULL_NAME, 'NA')) CREATOR
+		,DBO.[InitCap](ISNULL(RESPONSIBLE.EMP_FULL_NAME, 'NA')) RESPONSIBLE
+		,DBO.[InitCap](ISNULL(ACTIONABLE.EMP_FULL_NAME, 'NA')) ACTIONABLE
+		,T_HDR.CREATION_DATE
+		,convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) COMPLETION_DATE
+		,DBO.[InitCap](T_HDR.TASK_NAME) TASK_NAME
+		,T_HDR.TASK_DESCRIPTION
+		,T_HDR.TAGS
+		,DBO.[InitCap](T_HDR.STATUS) STATUS
+		,CASE 
+			WHEN ISNULL(CREATOR.FIRST_NAME, 'NA') != ISNULL(RESPONSIBLE.FIRST_NAME, 'NA')
+				THEN DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA')) + ' > ' + DBO.[InitCap](ISNULL(RESPONSIBLE.FIRST_NAME, 'NA'))
+			ELSE DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA'))
+			END RESPONSIBLE_TAG
+		,CREATOR.EMAIL_ID_OFFICIAL
+		,CREATOR.mkey
+		,RESPONSIBLE.EMAIL_ID_OFFICIAL
+		,RESPONSIBLE.mkey
+		,ACTIONABLE.EMAIL_ID_OFFICIAL
+		,ACTIONABLE.mkey
+		,CASE 
+			WHEN T_HDR.Status_Flag = 'F'
+				THEN 'Future'
+			ELSE 'Active'
+			END AS 'STATUS_FLAG'
+	FROM TASK_HDR T_HDR
+	LEFT JOIN EMPLOYEE_MST CREATOR ON CREATOR.MKEY = T_HDR.Created_by AND CREATOR.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST RESPONSIBLE ON RESPONSIBLE.MKEY = T_HDR.ASSIGNED_TO AND RESPONSIBLE.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST ACTIONABLE ON ACTIONABLE.MKEY = T_HDR.RESPOSIBLE_EMP_MKEY AND ACTIONABLE.DELETE_FLAG = 'N'
+	LEFT JOIN V_CATEGORY CATEGORY ON CATEGORY.MKEY = T_HDR.CAREGORY AND CATEGORY.DELETE_FLAG = 'N'
+	WHERE (
+			--T_HDR.Created_by=@CURRENT_EMP_MKEY  
+			--OR T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY OR T_HDR.RESPOSIBLE_EMP_MKEY=@CURRENT_EMP_MKEY  
+			--T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+			--OR  
+			T_HDR.RESPOSIBLE_EMP_MKEY = @CURRENT_EMP_MKEY
+			)
+		--AND T_HDR.STATUS not in ('COMPLETED','CANCELLED','SUB TASK CREATED','Created')  
+		AND T_HDR.STATUS IN (
+			'Close Initiated'
+			,'Cancel Initiated'
+			)
+		--and convert(varchar,T_HDR.COMPLETION_DATE,103)>= convert(varchar,convert(varchar,getdate(),103),103)  
+		AND isnull(T_HDR.delete_flag, 'N') = 'N'
+
+	SELECT 'Allocated But Not Started' AS 'StatusVal'
+		,T_HDR.MKEY
+		,ISNULL(CATEGORY.TYPE_DESC, 'NA') CATEGORY
+		,T_HDR.TASK_NO
+		,DBO.[InitCap](ISNULL(CREATOR.EMP_FULL_NAME, 'NA')) CREATOR
+		,DBO.[InitCap](ISNULL(RESPONSIBLE.EMP_FULL_NAME, 'NA')) RESPONSIBLE
+		,DBO.[InitCap](ISNULL(ACTIONABLE.EMP_FULL_NAME, 'NA')) ACTIONABLE
+		,T_HDR.CREATION_DATE
+		,convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) COMPLETION_DATE
+		,DBO.[InitCap](T_HDR.TASK_NAME) TASK_NAME
+		,T_HDR.TASK_DESCRIPTION
+		,T_HDR.TAGS
+		,DBO.[InitCap](T_HDR.STATUS) STATUS
+		,CASE 
+			WHEN ISNULL(CREATOR.FIRST_NAME, 'NA') != ISNULL(RESPONSIBLE.FIRST_NAME, 'NA')
+				THEN DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA')) + ' > ' + DBO.[InitCap](ISNULL(RESPONSIBLE.FIRST_NAME, 'NA'))
+			ELSE DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA'))
+			END RESPONSIBLE_TAG
+		,CREATOR.EMAIL_ID_OFFICIAL
+		,CREATOR.mkey
+		,RESPONSIBLE.EMAIL_ID_OFFICIAL
+		,RESPONSIBLE.mkey
+		,ACTIONABLE.EMAIL_ID_OFFICIAL
+		,ACTIONABLE.mkey
+		,CASE 
+			WHEN T_HDR.Status_Flag = 'F'
+				THEN 'Future'
+			ELSE 'Active'
+			END AS 'STATUS_FLAG'
+	FROM TASK_HDR T_HDR
+	LEFT JOIN EMPLOYEE_MST CREATOR ON CREATOR.MKEY = T_HDR.Created_by AND CREATOR.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST RESPONSIBLE ON RESPONSIBLE.MKEY = T_HDR.ASSIGNED_TO AND RESPONSIBLE.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST ACTIONABLE ON ACTIONABLE.MKEY = T_HDR.RESPOSIBLE_EMP_MKEY AND ACTIONABLE.DELETE_FLAG = 'N'
+	LEFT JOIN V_CATEGORY CATEGORY ON CATEGORY.MKEY = T_HDR.CAREGORY AND CATEGORY.DELETE_FLAG = 'N'
+	WHERE (
+			--T_HDR.Created_by=@CURRENT_EMP_MKEY  
+			--OR  
+			T_HDR.ASSIGNED_TO = @CURRENT_EMP_MKEY
+			OR T_HDR.RESPOSIBLE_EMP_MKEY = @CURRENT_EMP_MKEY
+			--T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+			--OR  
+			--T_HDR.RESPOSIBLE_EMP_MKEY=@CURRENT_EMP_MKEY  
+			)
+		AND T_HDR.STATUS IN ('CREATED','SUB TASK CREATED','WORK IN PROGRESS')
+		AND isnull(T_HDR.delete_flag, 'N') = 'N'
+		AND Isnull(T_HDR.STATUS_Flag, 'A') IN (
+			'A'
+			,'N'
+			)
+
+	SELECT 'Future' AS 'StatusVal'
+		,T_HDR.MKEY
+		,ISNULL(CATEGORY.TYPE_DESC, 'NA') CATEGORY
+		,T_HDR.TASK_NO
+		,DBO.[InitCap](ISNULL(CREATOR.EMP_FULL_NAME, 'NA')) CREATOR
+		,DBO.[InitCap](ISNULL(RESPONSIBLE.EMP_FULL_NAME, 'NA')) RESPONSIBLE
+		,DBO.[InitCap](ISNULL(ACTIONABLE.EMP_FULL_NAME, 'NA')) ACTIONABLE
+		,T_HDR.CREATION_DATE
+		,convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) COMPLETION_DATE
+		,DBO.[InitCap](T_HDR.TASK_NAME) TASK_NAME
+		,T_HDR.TASK_DESCRIPTION
+		,T_HDR.TAGS
+		,DBO.[InitCap](T_HDR.STATUS) STATUS
+		,CASE 
+			WHEN ISNULL(CREATOR.FIRST_NAME, 'NA') != ISNULL(RESPONSIBLE.FIRST_NAME, 'NA')
+				THEN DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA')) + ' > ' + DBO.[InitCap](ISNULL(RESPONSIBLE.FIRST_NAME, 'NA'))
+			ELSE DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA'))
+			END RESPONSIBLE_TAG
+		,CREATOR.EMAIL_ID_OFFICIAL
+		,CREATOR.mkey
+		,RESPONSIBLE.EMAIL_ID_OFFICIAL
+		,RESPONSIBLE.mkey
+		,ACTIONABLE.EMAIL_ID_OFFICIAL
+		,ACTIONABLE.mkey
+		,CASE 
+			WHEN T_HDR.Status_Flag = 'F'
+				THEN 'Future'
+			ELSE 'Active'
+			END AS 'STATUS_FLAG'
+	FROM TASK_HDR T_HDR
+	LEFT JOIN EMPLOYEE_MST CREATOR ON CREATOR.MKEY = T_HDR.Created_by AND CREATOR.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST RESPONSIBLE ON RESPONSIBLE.MKEY = T_HDR.ASSIGNED_TO AND RESPONSIBLE.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST ACTIONABLE ON ACTIONABLE.MKEY = T_HDR.RESPOSIBLE_EMP_MKEY AND ACTIONABLE.DELETE_FLAG = 'N'
+	LEFT JOIN V_CATEGORY CATEGORY ON CATEGORY.MKEY = T_HDR.CAREGORY AND CATEGORY.DELETE_FLAG = 'N'
+	WHERE (
+			--T_HDR.Created_by=@CURRENT_EMP_MKEY  
+			--OR  
+			T_HDR.RESPOSIBLE_EMP_MKEY = @CURRENT_EMP_MKEY
+			or T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+			--OR  
+			--T_HDR.RESPOSIBLE_EMP_MKEY=@CURRENT_EMP_MKEY  
+			)
+		AND T_HDR.STATUS NOT IN (
+			'COMPLETED'
+			,'CANCELLED'
+			--,'Close Initiated'
+			--,'Cancel Initiated'
+			)
+		--AND T_HDR.STATUS  in ('Close Initiated','Cancel Initiated')  
+		and T_HDR.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103)  
+		AND isnull(T_HDR.delete_flag, 'N') = 'N'
+
+	--and Isnull(T_HDR.STATUS_Flag,'A') in ('F')  
+	/*Assigned by me and details Count*/
+	SELECT 'Assigned by me and details Count' AS 'StatusVal'
+		,RESPONSIBLE
+		,sum(future) 'Future'
+		,sum(Overdue) 'Overdue'
+		,sum(today) 'Today'
+	FROM (
+		SELECT DBO.[InitCap](ISNULL(RESPONSIBLE.EMP_FULL_NAME, 'NA')) RESPONSIBLE
+			,convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) COMPLETION_DATE
+			,CASE 
+				WHEN T_HDR.COMPLETION_DATE > getdate()
+					AND Isnull(T_HDR.STATUS_Flag, 'A') IN ('F')
+					THEN 1
+				ELSE 0
+				END AS 'Future'
+			,CASE 
+				WHEN convert(DATETIME, convert(VARCHAR, T_HDR.COMPLETION_DATE, 103), 103) < convert(DATETIME, convert(VARCHAR, getdate(), 103), 103)
+					THEN 1
+				ELSE 0
+				END AS 'Overdue'
+			,CASE 
+				WHEN convert(DATETIME, convert(VARCHAR, T_HDR.COMPLETION_DATE, 103), 103) = convert(DATETIME, convert(VARCHAR, getdate(), 103), 103)
+					THEN 1
+				ELSE 0
+				END 'Today'
+			,CASE 
+				WHEN T_HDR.Status_Flag = 'F'
+					THEN 'Future'
+				ELSE 'Active'
+				END AS 'STATUS_FLAG'
+		FROM TASK_HDR T_HDR
+		LEFT JOIN EMPLOYEE_MST CREATOR ON CREATOR.MKEY = T_HDR.Created_by AND CREATOR.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST RESPONSIBLE ON RESPONSIBLE.MKEY = T_HDR.ASSIGNED_TO AND RESPONSIBLE.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST ACTIONABLE ON ACTIONABLE.MKEY = T_HDR.RESPOSIBLE_EMP_MKEY AND ACTIONABLE.DELETE_FLAG = 'N'
+	LEFT JOIN V_CATEGORY CATEGORY ON CATEGORY.MKEY = T_HDR.CAREGORY AND CATEGORY.DELETE_FLAG = 'N'
+		WHERE ISNULL(CATEGORY.TYPE_DESC, 'NA') = 'PUBLIC'
+			AND T_HDR.Created_by = @CURRENT_EMP_MKEY
+			AND T_HDR.STATUS NOT IN (
+				'Close Initiated'
+				,'Cancel Initiated'
+				,'COMPLETED'
+				,'CANCELLED'
+				)
+			AND isnull(T_HDR.delete_flag, 'N') = 'N'
+		) AS A
+	GROUP BY A.RESPONSIBLE
+
+	/* Tasks Assigned to me but action not taken*/
+	SELECT 'Tasks Assigned to me but action not taken' AS 'StatusVal'
+		,T_HDR.MKEY
+		,ISNULL(CATEGORY.TYPE_DESC, 'NA') CATEGORY
+		,T_HDR.TASK_NO
+		,DBO.[InitCap](ISNULL(CREATOR.EMP_FULL_NAME, 'NA')) CREATOR
+		,DBO.[InitCap](ISNULL(RESPONSIBLE.EMP_FULL_NAME, 'NA')) RESPONSIBLE
+		,DBO.[InitCap](ISNULL(ACTIONABLE.EMP_FULL_NAME, 'NA')) ACTIONABLE
+		,T_HDR.CREATION_DATE
+		,convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) COMPLETION_DATE
+		,DBO.[InitCap](T_HDR.TASK_NAME) TASK_NAME
+		,T_HDR.TASK_DESCRIPTION
+		,T_HDR.TAGS
+		,DBO.[InitCap](T_HDR.STATUS) STATUS
+		,CASE 
+			WHEN ISNULL(CREATOR.FIRST_NAME, 'NA') != ISNULL(RESPONSIBLE.FIRST_NAME, 'NA')
+				THEN DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA')) + ' > ' + DBO.[InitCap](ISNULL(RESPONSIBLE.FIRST_NAME, 'NA'))
+			ELSE DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA'))
+			END RESPONSIBLE_TAG
+		,CREATOR.EMAIL_ID_OFFICIAL
+		,CREATOR.mkey
+		,RESPONSIBLE.EMAIL_ID_OFFICIAL
+		,RESPONSIBLE.mkey
+		,ACTIONABLE.EMAIL_ID_OFFICIAL
+		,ACTIONABLE.mkey
+		,CASE 
+			WHEN T_HDR.Status_Flag = 'F'
+				THEN 'Future'
+			ELSE 'Active'
+			END AS 'STATUS_FLAG'
+	FROM TASK_HDR T_HDR
+	LEFT JOIN EMPLOYEE_MST CREATOR ON CREATOR.MKEY = T_HDR.Created_by AND CREATOR.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST RESPONSIBLE ON RESPONSIBLE.MKEY = T_HDR.ASSIGNED_TO AND RESPONSIBLE.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST ACTIONABLE ON ACTIONABLE.MKEY = T_HDR.RESPOSIBLE_EMP_MKEY AND ACTIONABLE.DELETE_FLAG = 'N'
+	LEFT JOIN V_CATEGORY CATEGORY ON CATEGORY.MKEY = T_HDR.CAREGORY AND CATEGORY.DELETE_FLAG = 'N'
+	WHERE (
+			T_HDR.ASSIGNED_TO = @CURRENT_EMP_MKEY
+			OR T_HDR.RESPOSIBLE_EMP_MKEY = @CURRENT_EMP_MKEY
+			)
+		AND T_HDR.STATUS IN ('CREATED')
+		AND ISNULL(CATEGORY.TYPE_DESC, 'NA') = 'PUBLIC'
+		AND isnull(T_HDR.delete_flag, 'N') = 'N'
+		AND Isnull(T_HDR.STATUS_Flag, 'A') IN (
+			'A'
+			,'N'
+			)
+
+	SELECT 'Active' AS 'StatusVal'
+		,T_HDR.MKEY
+		,ISNULL(CATEGORY.TYPE_DESC, 'NA') CATEGORY
+		,T_HDR.TASK_NO
+		,DBO.[InitCap](ISNULL(CREATOR.EMP_FULL_NAME, 'NA')) CREATOR
+		,DBO.[InitCap](ISNULL(RESPONSIBLE.EMP_FULL_NAME, 'NA')) RESPONSIBLE
+		,DBO.[InitCap](ISNULL(ACTIONABLE.EMP_FULL_NAME, 'NA')) ACTIONABLE
+		,T_HDR.CREATION_DATE
+		,convert(VARCHAR, T_HDR.COMPLETION_DATE, 103) COMPLETION_DATE
+		,DBO.[InitCap](T_HDR.TASK_NAME) TASK_NAME
+		,T_HDR.TASK_DESCRIPTION
+		,T_HDR.TAGS
+		,DBO.[InitCap](T_HDR.STATUS) STATUS
+		,CASE 
+			WHEN ISNULL(CREATOR.FIRST_NAME, 'NA') != ISNULL(RESPONSIBLE.FIRST_NAME, 'NA')
+				THEN DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA')) + ' > ' + DBO.[InitCap](ISNULL(RESPONSIBLE.FIRST_NAME, 'NA'))
+			ELSE DBO.[InitCap](ISNULL(CREATOR.FIRST_NAME, 'NA'))
+			END RESPONSIBLE_TAG
+		,CREATOR.EMAIL_ID_OFFICIAL
+		,CREATOR.mkey
+		,RESPONSIBLE.EMAIL_ID_OFFICIAL
+		,RESPONSIBLE.mkey
+		,ACTIONABLE.EMAIL_ID_OFFICIAL
+		,ACTIONABLE.mkey
+		,CASE 
+			WHEN T_HDR.Status_Flag = 'F'
+				THEN 'Future'
+			ELSE 'Active'
+			END AS 'STATUS_FLAG'
+	FROM TASK_HDR T_HDR
+	LEFT JOIN EMPLOYEE_MST CREATOR ON CREATOR.MKEY = T_HDR.Created_by AND CREATOR.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST RESPONSIBLE ON RESPONSIBLE.MKEY = T_HDR.ASSIGNED_TO AND RESPONSIBLE.DELETE_FLAG = 'N'
+	LEFT JOIN EMPLOYEE_MST ACTIONABLE ON ACTIONABLE.MKEY = T_HDR.RESPOSIBLE_EMP_MKEY AND ACTIONABLE.DELETE_FLAG = 'N'
+	LEFT JOIN V_CATEGORY CATEGORY ON CATEGORY.MKEY = T_HDR.CAREGORY AND CATEGORY.DELETE_FLAG = 'N'
+	WHERE (
+			--T_HDR.Created_by=@CURRENT_EMP_MKEY  
+			--OR  
+			T_HDR.RESPOSIBLE_EMP_MKEY = @CURRENT_EMP_MKEY
+			--T_HDR.ASSIGNED_TO=@CURRENT_EMP_MKEY  
+			--OR  
+			--T_HDR.RESPOSIBLE_EMP_MKEY=@CURRENT_EMP_MKEY  
+			)
+		AND T_HDR.STATUS NOT IN (
+			'COMPLETED'
+			,'CANCELLED'
+			,'Close Initiated'
+			,'Cancel Initiated'
+			)
+		--AND T_HDR.STATUS  in ('Close Initiated','Cancel Initiated')  
+		--and T_HDR.COMPLETION_DATE > convert(datetime,convert(varchar,getdate(),103),103)  
+		AND isnull(T_HDR.delete_flag, 'N') = 'N'
+		AND Isnull(T_HDR.STATUS_Flag, 'A') IN (
+			'A'
+			,'N'
+			)
+
+	EXEC Sp_dashboard_count @CURRENT_EMP_MKEY
+END
+	--exec SP_Get_Overall_DB 9,''  
+	--select * from employee_mst  
+------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[Sp_insert_update_table_sanctioning_department]    Script Date: 14-08-2025 15:39:00 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- EXEC SP_INSERT_UPDATE_TABLE_SANCTIONING_DEPARTMENT 78,0,3,'',0,926,'N','INSERT TASK S', 'INSERT',NULL,NULL
+-- =============================================
+ALTER PROCEDURE [dbo].[Sp_insert_update_table_sanctioning_department]
+  -- ADD THE PARAMETERS FOR THE STORED PROCEDURE HERE
+  @TASK_MKEY                  INT,
+  @SR_NO                      INT,
+  @LEVEL                      INT,
+  @SANCTIONING_DEPARTMENT     NVARCHAR(255),
+  @SANCTIONING_AUTHORITY_MKEY INT,
+  @Status                     NVARCHAR(100) = NULL,
+  @CREATED_BY                 INT,
+  @DELETE_FLAG                NVARCHAR(2),
+  @METHOD_NAME                NVARCHAR(200),
+  @METHOD                     NVARCHAR(200),
+  @OUT_STATUS                 NVARCHAR(200) output,
+  @OUT_MESSAGE                NVARCHAR(200) output
+AS
+  BEGIN
+      -- SET NOCOUNT ON ADDED TO PREVENT EXTRA RESULT SETS FROM
+      -- INTERFERING WITH SELECT STATEMENTS.
+      SET nocount ON;
+
+      DECLARE @DCOUNT                INT,
+              @SANCTIONING_AUTHORITY NVARCHAR(255);
+
+      BEGIN try
+          IF( @CREATED_BY = 0
+               OR @CREATED_BY IS NULL )
+            BEGIN
+                SET @OUT_STATUS = 'ERROR';
+                SET @OUT_MESSAGE = 'Please enter created by';
+
+                SELECT @OUT_STATUS  AS OUT_STATUS,
+                       @OUT_MESSAGE AS OUT_MESSAGE;
+            END
+          ELSE IF( @TASK_MKEY = 0
+               OR @TASK_MKEY IS NULL )
+            BEGIN
+                SET @OUT_STATUS = 'ERROR';
+                SET @OUT_MESSAGE = 'Please enter Task No';
+
+                SELECT @OUT_STATUS  AS OUT_STATUS,
+                       @OUT_MESSAGE AS OUT_MESSAGE;
+            END
+          ELSE IF( @LEVEL = 0
+               OR @LEVEL IS NULL )
+            BEGIN
+                SET @OUT_STATUS = 'ERROR';
+                SET @OUT_MESSAGE = 'Please enter Level';
+
+                SELECT @OUT_STATUS  AS OUT_STATUS,
+                       @OUT_MESSAGE AS OUT_MESSAGE;
+            END
+          ELSE IF( @SANCTIONING_AUTHORITY_MKEY = 0
+               OR @SANCTIONING_AUTHORITY_MKEY IS NULL )
+            BEGIN
+                SET @OUT_STATUS = 'ERROR';
+                SET @OUT_MESSAGE = 'Please enter Sanctioning Authority';
+
+                SELECT @OUT_STATUS  AS OUT_STATUS,
+                       @OUT_MESSAGE AS OUT_MESSAGE;
+            END
+          ELSE IF( @SANCTIONING_DEPARTMENT = ''
+               OR @SANCTIONING_DEPARTMENT IS NULL )
+            BEGIN
+                SET @OUT_STATUS = 'ERROR';
+                SET @OUT_MESSAGE = 'Please enter Sanctioning Department';
+
+                SELECT @OUT_STATUS  AS OUT_STATUS,
+                       @OUT_MESSAGE AS OUT_MESSAGE;
+            END
+          ELSE
+            BEGIN
+                IF ( @SR_NO = 0
+                      OR @SR_NO IS NULL )
+                  BEGIN
+                      SELECT @DCOUNT = Count(*)
+                      FROM   task_sanctioning_department_trl
+                      WHERE  mkey = @TASK_MKEY
+                             AND Lower(sanctioning_department) = Lower(@SANCTIONING_DEPARTMENT)
+                             AND sanctioning_authority_mkey = @SANCTIONING_AUTHORITY_MKEY
+							 AND LEVEL = @LEVEL
+                             AND delete_flag = 'N';
+
+                      IF ( @DCOUNT > 0 )
+                        BEGIN
+                            PRINT '@SR_NO: ' + CONVERT(NVARCHAR(100), @SR_NO);
+
+                            SET @OUT_STATUS = 'ERROR';
+                            SET @OUT_MESSAGE = 'Already exists';
+
+                            PRINT '@OUT_MESSAGE: '
+                                  + CONVERT(VARCHAR(10), @OUT_MESSAGE );
+
+                            SELECT DTRL.mkey,
+                                   DTRL.sr_no,
+                                   THDR.project_id
+                                   AS
+                                   PROPERTY_MKEY,
+                                   THDR.sub_project_id
+                                   AS
+                                   BUILDING_MKEY,
+                                   DTRL.sanctioning_department
+                                   AS
+                                   TYPE_CODE,
+                                   DTRL.sanctioning_authority
+                                   AS
+                                   [TYPE_DESC],
+                                   DTRL.sanctioning_authority_mkey
+                                   AS
+                                   SANCTIONING_AUTHORITY,
+                                   Isnull(DTRL.[status], 'IN-PROGRESS')
+                                   AS
+                                   [STATUS]
+                                   ,
+                                   --CASE WHEN  DTRL.[STATUS] = NULL THEN 'IN-PROGRESS' END AS [STATUS],
+                                   DTRL.[start_date],
+                                   DTRL.end_date,
+                                   DTRL.[level],
+                                   Isnull(CONVERT(VARCHAR(50), DTRL.created_by),
+                                   '')
+                                   AS
+                                   CREATED_BY_ID,
+                                   Isnull(CONVERT(VARCHAR(50),
+                                          CREATEDBY.emp_full_name),
+                                   '')
+                                   AS
+                                   CREATED_BY_NAME,
+                                   CASE
+                                     WHEN DTRL.creation_date IS NULL THEN ''
+                                     ELSE Format(DTRL.creation_date,
+                                          'YYYY-MM-DD HH:MM:SS'
+                                          )
+                                   END
+                                   AS
+                                   CREATION_DATE,
+                                   Isnull(CONVERT(VARCHAR(50),
+                                          DTRL.last_updated_by),
+                                   '')
+                                   AS
+                                   LAST_UPDATED_BY,
+                                   Isnull(UPDATEDBY.emp_full_name, '')
+                                   UPDATED_BY_NAME
+                                   ,
+                                   CASE
+                                     WHEN DTRL.last_update_date IS NULL THEN ''
+                                     ELSE Format(DTRL.last_update_date,
+                                          'YYYY-MM-DD HH:MM:SS')
+                                   END
+                                   AS
+                                   LAST_UPDATE_DATE,
+                                   @OUT_STATUS
+                                   AS
+                                   OUT_STATUS,
+                                   @OUT_MESSAGE
+                                   AS
+                                   OUT_MESSAGE
+                            FROM   task_sanctioning_department_trl DTRL
+                                   INNER JOIN task_hdr THDR
+                                           ON DTRL.mkey = THDR.mkey
+                                   INNER JOIN employee_mst CREATEDBY
+                                           ON DTRL.created_by = CREATEDBY.mkey
+                                   LEFT JOIN employee_mst UPDATEDBY
+                                          ON DTRL.last_updated_by =
+                                             UPDATEDBY.mkey
+                            WHERE  DTRL.delete_flag = 'N'
+                                   AND CREATEDBY.delete_flag = 'N'
+                                   AND DTRL.mkey = @TASK_MKEY;
+                        END
+                      ELSE
+            BEGIN
+                DECLARE @CurrentStatus NVARCHAR(100),
+                        @FromLevel     INT,
+						@PreSrNo       INT,
+						@TaskSrNo       INT;
+
+                PRINT 'insert new';
+
+                SELECT @SR_NO = Isnull(Max(sr_no), 0) + 1
+                FROM   task_sanctioning_department_trl
+                WHERE  mkey = @TASK_MKEY;
+
+                SELECT @SANCTIONING_AUTHORITY = [type_desc]
+                FROM   type_mst
+                WHERE  type_code = 'SAUTHORITY'
+                       AND master_mkey = @SANCTIONING_AUTHORITY_MKEY
+                       AND delete_flag = 'N';
+
+                INSERT INTO task_sanctioning_department_trl
+                            (mkey,
+                             sr_no,
+                             [level],
+                             sanctioning_department,
+                             sanctioning_authority_mkey,
+                             sanctioning_authority,
+                             [status],
+                             delete_flag,
+                             created_by,
+                             creation_date)
+                VALUES      (@TASK_MKEY,
+                             @SR_NO,
+                             @LEVEL,
+                             @SANCTIONING_DEPARTMENT,
+                             @SANCTIONING_AUTHORITY_MKEY,
+                             @SANCTIONING_AUTHORITY,
+                             @Status,
+                             @DELETE_FLAG,
+                             @CREATED_BY,
+                             Getdate())
+
+                PRINT 'TASK_SANCTIONING_DEPARTMENT_TRL_MOVEMENT_HISTORY SAUTHORITY';
+
+                SELECT @SR_NO = Isnull(Max(sr_no), 0) + 1, @PreSrNo =  Max(sr_no) 
+                FROM   TASK_SANCTIONING_DEPARTMENT_TRL_MOVEMENT_HISTORY
+                WHERE  task_mkey = @TASK_MKEY
+				AND		delete_flag = @DELETE_FLAG;
+
+				if (@PreSrNo is null)
+				Begin
+					Select @PreSrNo = SR_NO from TASK_SANCTIONING_DEPARTMENT_TRL where MKEY = @TASK_MKEY and DELETE_FLAG = 'N';
+					--select @TaskSrNo = TASK_SR_NO from TASK_SANCTIONING_DEPARTMENT_TRL_MOVEMENT_HISTORY where task_mkey = @TASK_MKEY AND delete_flag = @DELETE_FLAG 
+					--and SR_NO =  @PreSrNo;
+				End
+
+                SELECT @CurrentStatus = status,
+                       @FromLevel = level,
+					   @TaskSrNo = SR_NO
+                FROM   task_sanctioning_department_trl
+                WHERE  mkey = @TASK_MKEY
+                       AND sr_no = @PreSrNo
+                       AND delete_flag = 'N';
+					   print '@TaskSrNo: '+ convert(nvarchar,@TaskSrNo)
+
+                INSERT INTO TASK_SANCTIONING_DEPARTMENT_TRL_MOVEMENT_HISTORY
+                            (sr_no,
+                             task_mkey,
+							 TASK_SR_NO,
+                             from_level,
+                             to_level,
+                             current_status,
+                             updated_status,
+                             history_date,
+                             CREATED_BY,
+                             CREATION_DATE,
+                             delete_flag)
+                VALUES      (@SR_NO,
+                             @TASK_MKEY,
+							 @TaskSrNo,
+                             @FromLevel,
+                             @LEVEL,
+                             @CurrentStatus,
+                             @CurrentStatus,
+                             Getdate(),
+                             @CREATED_BY,
+                             Getdate(),
+                             @DELETE_FLAG)
+                
+                SET @OUT_STATUS = 'OK';
+                SET @OUT_MESSAGE = 'SUCCESSFULY INSERTED';
+
+                SELECT DTRL.mkey,
+                       DTRL.sr_no,
+                       THDR.project_id AS PROPERTY_MKEY,
+                       THDR.sub_project_id AS BUILDING_MKEY,
+                       DTRL.sanctioning_department AS TYPE_CODE,
+                       DTRL.sanctioning_authority AS [TYPE_DESC],
+                       DTRL.sanctioning_authority_mkey AS SANCTIONING_AUTHORITY,
+                       Isnull(DTRL.[status], 'IN-PROGRESS') AS [STATUS],
+                       DTRL.[start_date],
+                       DTRL.end_date,
+                       DTRL.[level],
+                       Isnull(CONVERT(VARCHAR(50), DTRL.created_by), '') AS CREATED_BY_ID,
+                       Isnull(CONVERT(VARCHAR(50), CREATEDBY.emp_full_name), '') AS CREATED_BY_NAME,
+                       CASE
+                         WHEN DTRL.creation_date IS NULL THEN ''
+                         ELSE Format(DTRL.creation_date, 'YYYY-MM-DD HH:MM:SS')
+                       END AS CREATION_DATE,
+                       Isnull(CONVERT(VARCHAR(50), DTRL.last_updated_by), '')
+                       AS
+                       LAST_UPDATED_BY,
+                       Isnull(UPDATEDBY.emp_full_name, '')
+                       UPDATED_BY_NAME
+                       ,
+                       CASE
+                         WHEN DTRL.last_update_date IS NULL THEN ''
+                         ELSE Format(DTRL.last_update_date,
+                              'YYYY-MM-DD HH:MM:SS')
+                       END
+                       AS
+                       LAST_UPDATE_DATE,
+                       @OUT_STATUS
+                       AS
+                       OUT_STATUS,
+                       @OUT_MESSAGE
+                       AS
+                       OUT_MESSAGE
+                FROM   task_sanctioning_department_trl DTRL
+                       INNER JOIN task_hdr THDR
+                               ON DTRL.mkey = THDR.mkey
+                       INNER JOIN employee_mst CREATEDBY
+                               ON DTRL.created_by = CREATEDBY.mkey
+                       LEFT JOIN employee_mst UPDATEDBY
+                              ON DTRL.last_updated_by = UPDATEDBY.mkey
+                WHERE  DTRL.delete_flag = 'N'
+                       AND CREATEDBY.delete_flag = 'N'
+                       AND DTRL.mkey = @TASK_MKEY;
+            END
+                  END
+                ELSE
+                  BEGIN
+                      SELECT @SANCTIONING_AUTHORITY = [type_desc]
+                      FROM   type_mst
+                      WHERE  type_code = 'SAUTHORITY'
+                             AND master_mkey = @SANCTIONING_AUTHORITY_MKEY
+                             AND delete_flag = 'N';
+
+                      PRINT 'insert SAUTHORITY';
+
+                      INSERT INTO task_sanctioning_department_trl_h
+                                  (hist_date,
+                                   mkey,
+                                   sr_no,
+                                   level,
+                                   sanctioning_department,
+                                   sanctioning_authority_mkey,
+                                   sanctioning_authority,
+                                   status,
+                                   start_date,
+                                   end_date,
+                                   attribute1,
+                                   attribute2,
+                                   attribute3,
+                                   attribute4,
+                                   attribute5,
+                                   created_by,
+                                   creation_date,
+                                   last_updated_by,
+                                   last_update_date,
+                                   delete_flag)
+                      SELECT Getdate(),
+                             mkey,
+                             sr_no,
+                             level,
+                             sanctioning_department,
+                             sanctioning_authority_mkey,
+                             sanctioning_authority,
+                             status,
+                             start_date,
+                             end_date,
+                             attribute1,
+                             attribute2,
+                             attribute3,
+                             attribute4,
+                             attribute5,
+                             created_by,
+                             creation_date,
+                             last_updated_by,
+                             last_update_date,
+                             delete_flag
+                      FROM   task_sanctioning_department_trl
+                      WHERE  mkey = @TASK_MKEY
+                             AND sr_no = @SR_NO
+                             AND delete_flag = 'N';
+
+                      UPDATE task_sanctioning_department_trl
+                      SET    level = @LEVEL,
+                             sanctioning_department = @SANCTIONING_DEPARTMENT,
+                             sanctioning_authority_mkey =
+                             @SANCTIONING_AUTHORITY_MKEY,
+                             sanctioning_authority = @SANCTIONING_AUTHORITY,
+                             [status] = @Status,
+                             last_updated_by = @CREATED_BY,
+                             last_update_date = Getdate(),
+                             delete_flag = @DELETE_FLAG
+                      WHERE  mkey = @TASK_MKEY
+                             AND sr_no = @SR_NO
+                             AND delete_flag = 'N';
+
+                      SET @OUT_STATUS = 'OK';
+                      SET @OUT_MESSAGE = 'SUCCESSFULY INSERTED';
+
+                      SELECT DTRL.mkey,
+                             DTRL.sr_no,
+                             THDR.project_id
+                             AS
+                             PROPERTY_MKEY,
+                             THDR.sub_project_id
+                             AS
+                             BUILDING_MKEY,
+                             DTRL.sanctioning_department
+                             AS
+                             TYPE_CODE,
+                             DTRL.sanctioning_authority
+                             AS
+                             [TYPE_DESC],
+                             DTRL.sanctioning_authority_mkey
+                             AS
+                             SANCTIONING_AUTHORITY,
+                             Isnull(DTRL.[status], 'IN-PROGRESS')
+                             AS
+                             [STATUS]
+                             ,
+                             --CASE WHEN  DTRL.[STATUS] = NULL THEN 'IN-PROGRESS' END AS [STATUS],
+                             DTRL.[start_date],
+                             DTRL.end_date,
+                             DTRL.[level],
+                             Isnull(CONVERT(VARCHAR(50), DTRL.created_by), '')
+                             AS
+                             CREATED_BY_ID,
+                             Isnull(CONVERT(VARCHAR(50),
+                                    CREATEDBY.emp_full_name),
+                             '')
+                             AS
+                             CREATED_BY_NAME,
+                             CASE
+                               WHEN DTRL.creation_date IS NULL THEN ''
+                               ELSE Format(DTRL.creation_date,
+                                    'YYYY-MM-DD HH:MM:SS')
+                             END
+                             AS
+                             CREATION_DATE,
+                             Isnull(CONVERT(VARCHAR(50), DTRL.last_updated_by),
+                             ''
+                             )
+                             AS
+                             LAST_UPDATED_BY,
+                             Isnull(UPDATEDBY.emp_full_name, '')
+                             UPDATED_BY_NAME
+                             ,
+                             CASE
+                               WHEN DTRL.last_update_date IS NULL THEN ''
+                               ELSE Format(DTRL.last_update_date,
+                                    'YYYY-MM-DD HH:MM:SS')
+                             END
+                             AS
+                             LAST_UPDATE_DATE,
+                             @OUT_STATUS
+                             AS
+                             OUT_STATUS,
+                             @OUT_MESSAGE
+                             AS
+                             OUT_MESSAGE
+                      FROM   task_sanctioning_department_trl DTRL
+                             INNER JOIN task_hdr THDR
+                                     ON DTRL.mkey = THDR.mkey
+                             INNER JOIN employee_mst CREATEDBY
+                                     ON DTRL.created_by = CREATEDBY.mkey
+                             LEFT JOIN employee_mst UPDATEDBY
+                                    ON DTRL.last_updated_by = UPDATEDBY.mkey
+                      WHERE  DTRL.delete_flag = 'N'
+                             AND CREATEDBY.delete_flag = 'N'
+                             AND DTRL.mkey = @TASK_MKEY;
+                  END
+            END
+      END try
+
+      BEGIN catch
+          -------------------------------------------------------------------------------------------------------------------------------          
+          SELECT Error_number()    AS ERRORNUMBER,
+                 Error_severity()  AS ERRORSEVERITY,
+                 Error_state()     AS ERRORSTATE,
+                 Error_procedure() AS ERRORPROCEDURE,
+                 Error_line()      AS ERRORLINE,
+                 Error_message()   AS ERRORMESSAGE;
+
+          -------------------------------------------------------------------------------------------------------------------------------
+          DECLARE @ERROR_MESSAGE VARCHAR(max) = NULL;
+
+          SET @ERROR_MESSAGE = Error_message();
+
+          -------------------------------------------------------------------------------------------------------------------------------
+          EXEC Sp_p_tms_insert_error_des
+            @CREATED_BY,
+            @METHOD_NAME,
+            @METHOD,
+            @ERROR_MESSAGE,
+            'SAVE';
+      -------------------------------------------------------------------------------------------------------------------------------
+      END catch
+  END 
+
+
+
 
   
 

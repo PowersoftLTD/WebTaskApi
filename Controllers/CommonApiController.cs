@@ -2838,7 +2838,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Task-Output-Table-Insert-Update_NT")]
-        [Authorize]
+        [Authorize] 
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST_NT>>> PostTaskOutputTableInsertUpdateNT(TASK_ENDLIST_TABLE_INPUT_NT tASK_ENDLIST_TABLE_INPUT)
         {
             try
