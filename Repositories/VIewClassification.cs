@@ -148,6 +148,7 @@ namespace TaskManagement.API.Repositories
             }
         }
         public async Task<IEnumerable<V_Building_Classification_OutPut_NT>> GetViewDoc_Type_CheckList_NTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+        public async Task<IEnumerable<V_Building_Classification_OutPut_NT>> GetViewDoc_Type_CheckList_NTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
         {
             try
             {
