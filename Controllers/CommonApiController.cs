@@ -602,7 +602,6 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Task-Management/Forgot_Password")]
-        
         public async Task<ActionResult<IEnumerable<ResetPasswordOutPut_List>>> ForgotPassword([FromBody] ForgotPasswordInput forgotPasswordInput)
         {
             try

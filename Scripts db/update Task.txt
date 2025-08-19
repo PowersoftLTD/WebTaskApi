@@ -55372,6 +55372,269 @@ BEGIN
       END CATCH
 END
 
+USE [TaskManagement_UAT2]
+GO
+/****** Object:  StoredProcedure [dbo].[SP_TASK_ACTION_TRL_Insert_Update]    Script Date: 19-08-2025 18:16:30 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+ ALTER PROCEDURE [dbo].[SP_TASK_ACTION_TRL_Insert_Update]
+                                          ( @Parameter1          VARCHAR(100) = NULL,--@Mkey
+                                            @Parameter2          VARCHAR(100) = NULL,--@TASK_MKEY
+                                            @Parameter3          VARCHAR(100) = NULL,--@TASK_PARENT_ID
+                                            @Parameter4          VARCHAR(100) = NULL,--@ACTION_TYPE
+                                            @Parameter5          VARCHAR(100) = NULL,--@DESCRIPTION_COMMENT
+                                            @Parameter6          VARCHAR(100) = NULL,--@PROGRESS_PERC
+                                            @Parameter7          VARCHAR(100) = NULL,--@STATUS
+                                            @Parameter8          VARCHAR(100) = NULL,--@CREATED_BY
+                                             @Parameter9          VARCHAR(100) = NULL,--@TASK_MAIN_NODE_ID
+                                            @Parameter10          VARCHAR(100) = NULL,--@FILENAME
+                                            @Parameter11          VARCHAR(100) = NULL --@FILEPATH
+                                        )  
+AS
+BEGIN
+  declare @var1 varchar(50);
+  declare @DCount int,@CHCKLISTCOUNT INT, @ENDLISTCOUNT INT,@SANCOUNT INT;
+ 
+  declare @DELETE_FLAG			VARCHAR(100)
+		 ,@LAST_UPDATED_BY	    VARCHAR(100)
+         ,@LAST_UPDATE_DATE	    VARCHAR(100)
+         ,@ATTRIBUTE1	        VARCHAR(100)
+         ,@ATTRIBUTE2	        VARCHAR(100)
+         ,@ATTRIBUTE3	        VARCHAR(100)
+         ,@ATTRIBUTE4	        VARCHAR(100)
+         ,@ATTRIBUTE5	        VARCHAR(100)
+   set @DELETE_FLAG	        = 'N'
+   set @LAST_UPDATED_BY     = null
+   set @LAST_UPDATE_DATE    = null
+   set @ATTRIBUTE1	        = null
+   set @ATTRIBUTE2			= null
+   set @ATTRIBUTE3			= null
+   set @ATTRIBUTE4			= null
+   set @ATTRIBUTE5			= null
+
+  
+   declare @SR_NO	VARCHAR(100)
+       --SELECT @SR_NO = max(cast(isnull(t.SR_NO,'0')as int))+1 FROM TASK_ACTION_TRL t WHERE MKEY=@Parameter1   --SR_NO
+    SELECT @SR_NO = isnull(max(t.SR_NO),0)+1 FROM TASK_ACTION_TRL t WHERE MKEY = @Parameter1;   --SR_NO
+    Print 'SR_NO->'+@SR_NO
+
+   
+   SELECT @DCount = count(*) FROM TASK_ACTION_TRL WHERE mkey = @Parameter1 AND SR_NO = @SR_NO;
+      if(@DCount>0)     
+         begin    
+          print @DCount
+          set @var1='Update'    
+         end    
+       else    
+         begin    
+          print @DCount
+          set @var1='Insert'    
+         end    
+--RETURN
+BEGIN TRY
+  if (@var1 = 'Insert')     
+  Begin    
+  Print 'Start-Insert'
+   
+   --------------- INSERTION FOR TASK_ACTION_TRL TABLE ---------
+    INSERT INTO [dbo].[TASK_ACTION_TRL] 
+                  (                                      
+                    [MKEY],
+					[SR_NO],
+					[TASK_MKEY],
+					[TASK_PARENT_ID],
+					[TASK_MAIN_NODE_ID],
+					[ACTION_TYPE],
+					[DESCRIPTION_COMMENT],
+					[PROGRESS_PERC],
+					[STATUS],
+					[ATTRIBUTE1],
+					[ATTRIBUTE2],
+					[ATTRIBUTE3],
+					[ATTRIBUTE4],
+					[ATTRIBUTE5],
+					[CREATED_BY],
+					[CREATION_DATE],
+					[LAST_UPDATED_BY],
+					[LAST_UPDATE_DATE],
+					[DELETE_FLAG],
+					[FILE_NAME],
+					[FILE_PATH]
+                  )  
+          VALUES (  
+                    @Parameter1,		--@Mkey
+					@SR_NO,
+					@Parameter2,		--@TASK_MKEY
+					@Parameter3,		--@TASK_PARENT_ID
+					@Parameter9,		--@TASK_MAIN_NODE_ID
+					@Parameter4,		--@ACTION_TYPE
+					@Parameter5,		--@DESCRIPTION_COMMENT
+					@Parameter6,		--@PROGRESS_PERC
+					@Parameter7,		--@STATUS
+					@ATTRIBUTE1,
+					@ATTRIBUTE2,
+					@ATTRIBUTE3,
+					@ATTRIBUTE4,
+					@ATTRIBUTE5,
+					@Parameter8,		--@CREATED_BY
+					GETDATE(),			--@CREATION_DATE
+					@LAST_UPDATED_BY,   
+					@LAST_UPDATE_DATE,  
+					@DELETE_FLAG    ,
+					@Parameter10,
+					@Parameter11
+                  ) 
+				 print 'insert[TASK_ACTION_TRL]';
+                if(@Parameter4!='ROOTTASKCREATED' and @Parameter4!='ROOTSUBTASKCREATED')    
+                begin
+						 if(@Parameter7!='CLOSE INITIATED' or @Parameter7='CREATED')
+						 begin
+							UPDATE [task_hdr] SET  [status]='WORK IN PROGRESS' WHERE MKEY=@Parameter2
+						 end
+						 if(@Parameter4='CREATED')
+						 begin
+							UPDATE [task_hdr] SET  [status]='WORK IN PROGRESS' WHERE MKEY=@Parameter2
+						 end
+						 if(@Parameter7='CLOSE INITIATED')
+						 begin
+							 SELECT @DCount = count(*) FROM TASK_HDR WHERE mkey = @Parameter1 AND RESPOSIBLE_EMP_MKEY=CREATED_BY
+							 IF(@DCount <= 0)
+							 BEGIN
+								SELECT @CHCKLISTCOUNT = count(chdr.APP_CHECK) --hdr.RESPOSIBLE_EMP_MKEY,hdr.CREATED_BY,hdr.ASSIGNED_TO,hdr.TASK_CREATED_BY,chdr.APP_CHECK,chdr.SR_NO
+								FROM  task_hdr hdr left join TASK_CHECKLIST_TRL chdr on chdr.MKEY = hdr.MKEY and chdr.DELETE_FLAG = 'N'
+								where hdr.DELETE_FLAG = 'N'
+								and hdr.MKEY = @Parameter1
+								AND resposible_emp_mkey = @Parameter8  
+								and ISNULL(chdr.APP_CHECK,'N') = 'N'
+
+								SELECT  @ENDLISTCOUNT = COUNT(Ehdr.MKEY)
+								FROM  task_hdr hdr Inner join TASK_ENDLIST_TRL Ehdr on Ehdr.MKEY = hdr.MKEY and Ehdr.DELETE_FLAG = 'N'
+								LEFT join TASK_ENDLIST_MEDIA_TRL mhdr on mhdr.MKEY = Ehdr.MKEY and mhdr.DELETE_FLAG = 'N'
+								where hdr.DELETE_FLAG = 'N'
+								AND hdr.MKEY = @Parameter1
+								AND resposible_emp_mkey = @Parameter8  AND Ehdr.DELETE_FLAG = 'N'
+								AND ((ISNULL(DOC_NUM_APP_FLAG,'N') = 'Y' AND DOC_NUMBER IS NULL)
+								OR (ISNULL(DOC_NUM_VALID_FLAG,'N') = 'Y' AND VALIDITY_DATE is null)
+								OR (ISNULL(DOC_NUM_DATE_APP_FLAG,'N') = 'Y'  AND DOC_DATE is null )
+								OR (ISNULL(DOC_ATTACH_APP_FLAG,'N') = 'Y'  AND mhdr.[FILE_NAME] is null OR mhdr.FILE_PATH IS NULL))
+	
+								Select @SANCOUNT = count(Ehdr.MKEY)
+								FROM  task_hdr hdr Inner join TASK_SANCTIONING_DEPARTMENT_TRL Ehdr on Ehdr.MKEY = hdr.MKEY and Ehdr.DELETE_FLAG = 'N'
+								where hdr.DELETE_FLAG = 'N'
+								AND Ehdr.MKEY = @Parameter1
+								AND resposible_emp_mkey = @Parameter8  AND Ehdr.DELETE_FLAG = 'N'
+								and ISNULL(Ehdr.STATUS,'In Progress') not in ('Approved')
+								
+								PRINT '@CHCKLISTCOUNT: '+ CONVERT(NVARCHAR,@CHCKLISTCOUNT) 
+								PRINT '@ENDLISTCOUNT: '+CONVERT(NVARCHAR,@ENDLISTCOUNT )
+								PRINT '@SANCOUNT: '+ CONVERT(NVARCHAR,@SANCOUNT)
+
+								IF(@CHCKLISTCOUNT = 0 AND @ENDLISTCOUNT = 0 AND  @SANCOUNT = 0)
+								BEGIN
+									UPDATE [task_hdr] 
+									SET  [status]='CLOSE INITIATED',STATUS_PERC=100,RESPOSIBLE_EMP_MKEY=CREATED_BY 
+									WHERE MKEY=@Parameter2;
+								END
+							END
+							ELSE
+							BEGIN
+								UPDATE [task_hdr] 
+								SET  [status]='COMPLETED',STATUS_PERC=100,RESPOSIBLE_EMP_MKEY=CREATED_BY,Close_date=getdate() 
+								WHERE MKEY=@Parameter2;
+							END
+						 end
+						  if(@Parameter7 = 'CANCEL INITIATED')
+						  Begin
+							 SELECT @DCount = count(*) FROM TASK_HDR WHERE mkey=@Parameter1 AND  RESPOSIBLE_EMP_MKEY=CREATED_BY
+							 IF(@DCount<=0)
+							 BEGIN
+								UPDATE [task_hdr] SET  [status]='CANCEL INITIATED',RESPOSIBLE_EMP_MKEY=CREATED_BY WHERE MKEY=@Parameter2
+								END
+								ELSE
+								BEGIN
+								UPDATE [task_hdr] SET  [status]='CANCEL',RESPOSIBLE_EMP_MKEY=CREATED_BY WHERE MKEY=@Parameter2
+								END
+						 End
+						 if(@Parameter7 = 'RE-WORK')
+						 begin
+							UPDATE [task_hdr] SET  [status]='RE-WORK',RESPOSIBLE_EMP_MKEY=ASSIGNED_TO WHERE MKEY=@Parameter2
+						 end
+						  if(@Parameter7 = 'CLOSE')
+						 begin
+							UPDATE [task_hdr] SET  [status]='COMPLETED',RESPOSIBLE_EMP_MKEY=CREATED_BY,Close_date=getdate() WHERE MKEY=@Parameter2
+						 end
+						 if(@Parameter7 = 'CANCEL')
+						 begin
+							UPDATE [task_hdr] SET [status]='CANCELLED',RESPOSIBLE_EMP_MKEY=CREATED_BY WHERE MKEY=@Parameter2
+						 end
+						 if(@Parameter4 = 'Progress')
+						 begin
+							PRINT '@Parameter4 = Progress';
+							UPDATE [task_hdr] SET STATUS_PERC = cast(isnull(@Parameter6,'0') as numeric(18,2))  WHERE MKEY=@Parameter2;
+						 end
+          end
+     Print 'End-Insert'       
+end 
+
+  Else If(@var1 = 'Update')    
+     Begin    
+
+      print 'Start-Update' 
+              
+      --------------- UPDATION FOR TASK_ACTION_TRL TABLE ------------    
+		IF(@CHCKLISTCOUNT = 0 AND @ENDLISTCOUNT = 0 AND  @SANCOUNT = 0)
+		BEGIN
+			UPDATE [dbo].[TASK_ACTION_TRL] SET 
+                                     --Mkey					    =   @Parameter1
+									 --,SR_NO					=   @SR_NO
+									 TASK_MKEY				=	@Parameter2
+									,TASK_PARENT_ID			=	@Parameter3		
+									,ACTION_TYPE			=	@Parameter4		
+									,DESCRIPTION_COMMENT	=	@Parameter5		
+									,PROGRESS_PERC			=	@Parameter6		
+									,STATUS					=	@Parameter7		
+                                    ,ATTRIBUTE1				=	@ATTRIBUTE1
+									,ATTRIBUTE2				=	@ATTRIBUTE2
+                                    ,ATTRIBUTE3 			=	@ATTRIBUTE3
+									,ATTRIBUTE4				=	@ATTRIBUTE4
+                                    ,ATTRIBUTE5 			=	@ATTRIBUTE5
+									--,CREATED_BY			  =	  @Parameter8
+									--,CREATION_DATE		  =	  GETDATE()			
+									,LAST_UPDATED_BY		=	@Parameter8	     --@LAST_UPDATED_BY   
+									,LAST_UPDATE_DATE		=	GETDATE()	     --@LAST_UPDATE_DATE  
+									,DELETE_FLAG			=	@DELETE_FLAG   
+							  WHERE mkey = @Parameter1;
+			END
+      
+      print 'End-Update'; 
+     
+     End    
+
+  END TRY
+
+  BEGIN CATCH  
+  
+      SELECT
+        ERROR_NUMBER()    AS ErrorNumber,
+        ERROR_STATE()     AS ErrorState,
+        ERROR_SEVERITY()  AS ErrorSeverity,
+        ERROR_PROCEDURE() AS ErrorProcedure,
+        ERROR_LINE()      AS ErrorLine,
+        ERROR_MESSAGE()   AS ErrorMessage;
+  
+   -- SET @MessageText = 'Invalid TASK ACTION, Please Enter the Valid TASK ACTION';
+   -- RAISERROR (@MessageText, @ErrorNumber, 1); 
+     
+  END CATCH
+
+
+END
+    
+    
+
 
 
 
