@@ -1236,6 +1236,46 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+        public async Task<IEnumerable<PutChangePasswordOutPutNT>> PostChangePasswordAsync(ChangePasswordInputNT changePasswordInput)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@LoginName", changePasswordInput.LoginName);
+                    parmeters.Add("@Old_LOGIN_PASSWORD", changePasswordInput.Old_Password);
+                    parmeters.Add("@New_LOGIN_PASSWORD", changePasswordInput.New_Password);
+                    parmeters.Add("@Session_User_Id", changePasswordInput.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", changePasswordInput.Business_Group_ID);
+
+                    var ChangePass = await db.QueryAsync<PutChangePasswordNT>("Sp_USER_ChangeLOGIN_PASSWORD_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<PutChangePasswordOutPutNT>
+                    {
+                        new PutChangePasswordOutPutNT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= ChangePass
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<PutChangePasswordOutPutNT>
+                    {
+                        new PutChangePasswordOutPutNT
+                        {
+                           Status = "Error",
+                            Message= ex.Message,
+                            Data= null
+                        }
+                    };
+                return errorResult;
+            }
+        }
         public async Task<IEnumerable<ForgotPasswordOutPut_List>> GetForgotPasswordAsync(string LoginName)
         {
             try
@@ -6995,6 +7035,7 @@ namespace TaskManagement.API.Repositories
             }
         }
 
+     
     }
 }
 

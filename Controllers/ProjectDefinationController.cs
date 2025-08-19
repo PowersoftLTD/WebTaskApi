@@ -457,23 +457,25 @@ namespace TaskManagement.API.Controllers
 
         [HttpPost("ProjectDefination/Get-Approval-Details-NT")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<dynamic>>> GetApprovalDetailsNT(int LoggedInID, int BUILDING_TYPE,string BUILDING_STANDARD, string STATUTORY_AUTHORITY)
+        public async Task<ActionResult<IEnumerable<ProjectApprovalDetailsNT>>> GetApprovalDetailsNT(ProjectApprovalDetailsInputNT projectApprovalDetailsInputNT)
         {
             try
             {
-                var Task = await _repository.GetApprovalDetails(LoggedInID, BUILDING_TYPE, BUILDING_STANDARD, STATUTORY_AUTHORITY);
-                if (Task != null & Task.Count() > 0)
-                {
-                    return Ok(Task);
-                }
-                else
-                {
-                    return NotFound();
-                }
+                var TaskDash = await _repository.GetApprovalDetailsNT(projectApprovalDetailsInputNT);
+                return TaskDash;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new List<PROJECT_TRL_APPROVAL_ABBR_LIST>();
+                var errorResult = new List<ProjectApprovalDetailsNT>
+                {
+                    new ProjectApprovalDetailsNT
+                    {
+                        Status = "Error",
+                        Message = ex.Message,
+                        Data=null
+                    }
+                };
+                return errorResult;
             }
         }
 

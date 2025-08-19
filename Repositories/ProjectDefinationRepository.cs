@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -594,6 +595,87 @@ namespace TaskManagement.API.Repositories
             }
 
         }
+        public async Task<ActionResult<IEnumerable<ProjectApprovalDetailsNT>>> GetApprovalDetailsNT(ProjectApprovalDetailsInputNT projectApprovalDetailsInputNT)
+        {
+            //try
+            //{
+            //    using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            //    {
+            //        var parmeters = new DynamicParameters();
+            //        parmeters.Add("@BUILDING_TYPE", projectApprovalDetailsInputNT.BUILDING_TYPE);
+            //        parmeters.Add("@BUILDING_STANDARD", projectApprovalDetailsInputNT.BUILDING_STANDARD);
+            //        parmeters.Add("@STATUTORY_AUTHORITY", projectApprovalDetailsInputNT.STATUTORY_AUTHORITY);
+            //        parmeters.Add("@Session_User_Id", projectApprovalDetailsInputNT.Session_User_Id);
+            //        parmeters.Add("@Business_Group_Id", projectApprovalDetailsInputNT.Business_Group_Id);
+
+            //        var pROJECT_APPROVAL_ABBR_LIST = await db.QueryAsync<PROJECT_APPROVAL_DETAILS_OUTPUT>("SP_GET_APPROVAL_SUBTASK_TREE_VIEW_LIST", parmeters, commandType: CommandType.StoredProcedure);
+            //        //var HDRaSYNCDetails = await db.QueryAsync<APPROVAL_TEMPLATE_HDR>("select * from APPROVAL_TEMPLATE_HDR", commandType: CommandType.Text);
+            //        //var SUBTAsyncASKDetails = await db.QueryAsync<APPROVAL_TEMPLATE_TRL_SUBTASK>("select * from APPROVAL_TEMPLATE_TRL_SUBTASK", commandType: CommandType.Text);
+            //        // var SUBTAsyncASKDetails = await db.QueryAsync("select * from DOC_TEMPLATE_HDR", commandType: CommandType.Text);
+            //        return pROJECT_APPROVAL_ABBR_LIST;
+            //    }
+            //}
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@BUILDING_TYPE", projectApprovalDetailsInputNT.BUILDING_TYPE);
+                    parmeters.Add("@BUILDING_STANDARD", projectApprovalDetailsInputNT.BUILDING_STANDARD);
+                    parmeters.Add("@STATUTORY_AUTHORITY", projectApprovalDetailsInputNT.STATUTORY_AUTHORITY);
+                    parmeters.Add("@Session_User_Id", projectApprovalDetailsInputNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", projectApprovalDetailsInputNT.Business_Group_Id);
+
+                    var dtReponse = await db.QueryAsync<ProjectApprovalDetailsOutputNT>("SP_GET_APPROVAL_SUBTASK_TREE_VIEW_LIST_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    if (dtReponse.Any())
+                    {
+                        var successsResult = new List<ProjectApprovalDetailsNT>
+                    {
+                        new ProjectApprovalDetailsNT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= dtReponse
+
+                        }
+                    };
+                        return successsResult;
+                    }
+                    else
+                    {
+                        var errorResult = new List<ProjectApprovalDetailsNT>
+                            {
+                                new ProjectApprovalDetailsNT
+                                {
+                                    Status = "Error",
+                                    Message = "User name password is incorrect!!!",
+                                    Data=null
+
+                                }
+                            };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<ProjectApprovalDetailsNT>
+                    {
+                        new ProjectApprovalDetailsNT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+
+                        }
+                    };
+                return errorResult;
+            }
+
+        }
+
+
         public async Task<ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> CreateProjectDefinationAsyncNT(PROJECT_HDR_INPUT_NT pROJECT_HDR_INPUT_NT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -676,7 +758,7 @@ namespace TaskManagement.API.Repositories
                                    : (object)DateTime.Parse(approvalsList.TENTATIVE_END_DATE);
                             row["DEPARTMENT"] = approvalsList.DEPARTMENT;
                             row["JOB_ROLE"] = approvalsList.JOB_ROLE;
-                          //  row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
+                            //  row["OUTPUT_DOCUMENT"] = approvalsList.OUTPUT_DOCUMENT;
                             row["STATUS"] = "Ready to Initiate";//approvalsList.STATUS;
                             row["CREATED_BY"] = pROJECT_HDR_INPUT_NT.Session_User_Id;
                             row["CREATION_DATE"] = dateTime;

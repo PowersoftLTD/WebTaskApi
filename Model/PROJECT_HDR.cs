@@ -175,4 +175,73 @@ namespace TaskManagement.API.Model
         public string? Status { get; set; }
         public string? Message { get; set; }
     }
+
+    public class ProjectApprovalDetailsNT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+        [JsonPropertyName("Data")]
+        public IEnumerable<ProjectApprovalDetailsOutputNT> Data { get; set; }
+    }
+
+    public class ProjectApprovalDetailsOutputNT
+    {
+        [JsonPropertyName("Header_Mkey")]
+        public int HEADER_MKEY { get; set; }
+        [JsonPropertyName("Task_No")]
+        public string TASK_NO { get; set; }  // SEQ_NO IS TASK_NO
+
+        [JsonPropertyName("Seq_No")]
+        public string SEQ_NO { get; set; }  // 
+
+        [JsonPropertyName("Main_Abbr")]
+        public string MAIN_ABBR { get; set; }
+        [JsonPropertyName("Abbr_Short_Desc")]
+        public string ABBR_SHORT_DESC { get; set; }
+
+        [JsonPropertyName("Short_Description")]
+        public string? SHORT_DESCRIPTION { get; set; }
+
+        [JsonPropertyName("Days_Requierd")]
+        public string DAYS_REQUIERD { get; set; }
+        [JsonPropertyName("Authority_Department")]
+        public string AUTHORITY_DEPARTMENT { get; set; }
+        [JsonPropertyName("End_Result_Doc")]
+        public string END_RESULT_DOC { get; set; }
+
+        [JsonPropertyName("Job_Role")]
+        public int JOB_ROLE { get; set; }
+        [JsonPropertyName("Subtask_Parent_Id")]
+        public int SUBTASK_PARENT_ID { get; set; }
+        [JsonPropertyName("Resposible_Emp_Mkey")]
+        public int RESPOSIBLE_EMP_MKEY { get; set; }
+        [JsonPropertyName("Long_Description")]
+        public string LONG_DESCRIPTION { get; set; }
+
+        [JsonPropertyName("Seq_Order")]
+        public string SEQ_ORDER { get; set; }
+
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+
+    }
+
+
+    public class ProjectApprovalDetailsInputNT
+    {
+        [JsonPropertyName("Building_Type")]
+        public int? BUILDING_TYPE { get; set; }
+        [JsonPropertyName("Building_Standard")]
+        public int? BUILDING_STANDARD { get; set; }
+        [JsonPropertyName("Statutory_Authority")]
+        public int? STATUTORY_AUTHORITY { get; set; }
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
 }

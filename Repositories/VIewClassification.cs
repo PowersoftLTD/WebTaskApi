@@ -147,7 +147,7 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Type_CHECK_LIST");
             }
         }
-        public async Task<IEnumerable<V_Building_Classification_OutPut_NT>> GetViewDoc_Type_CheckList_NTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
+       // public async Task<IEnumerable<V_Building_Classification_OutPut_NT>> GetViewDoc_Type_CheckList_NTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
         public async Task<IEnumerable<V_Building_Classification_OutPut_NT>> GetViewDoc_Type_CheckList_NTAsync(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput)
         {
             try

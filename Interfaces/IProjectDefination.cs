@@ -15,5 +15,6 @@ namespace TaskManagement.API.Interfaces
         Task<PROJECT_HDR> UpdateProjectDefinationAsync(PROJECT_HDR pROJECT_HDR);
         Task<bool> DeleteProjectDefinationAsync(int id, int LastUpatedBy, string FormName, string MethodName);
         Task<IEnumerable<PROJECT_APPROVAL_DETAILS_OUTPUT>> GetApprovalDetails(int LoggedInID, int BUILDING_TYPE, string BUILDING_STANDARD, string STATUTORY_AUTHORITY);
+        Task<ActionResult<IEnumerable<ProjectApprovalDetailsNT>>> GetApprovalDetailsNT(ProjectApprovalDetailsInputNT projectApprovalDetailsInputNT);
     }
 }

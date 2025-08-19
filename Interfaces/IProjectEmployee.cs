@@ -30,6 +30,7 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<GET_TASK_TREEOutPut_List>> GetTaskTreeAsync(string TASK_MKEY);
         Task<IEnumerable<GET_TASK_TREEOutPut_List_NT>> GetTaskTreeAsync_NT(GET_TASK_TREEInput_NT gET_TASK_TREEInput);
         Task<IEnumerable<PutChangePasswordOutPut_List>> PutChangePasswordAsync(string LoginName, string Old_Password, string New_Password);
+        Task<IEnumerable<PutChangePasswordOutPutNT>> PostChangePasswordAsync(ChangePasswordInputNT changePasswordInput);
         Task<IEnumerable<ForgotPasswordOutPut_List>> GetForgotPasswordAsync(string LoginName);
         Task<IEnumerable<ResetPasswordOutPut_List>> GetResetPasswordAsync(string TEMPPASSWORD, string LoginName);
         Task<IEnumerable<ChangePasswordOutPut_List>> GetValidateEmailAsync(string Login_ID);

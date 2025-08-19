@@ -46,6 +46,10 @@ namespace TaskManagement.API.Model
         public int? MKEY { get; set; }
         [JsonPropertyName("Doc_Category")]
         public int? DOC_CATEGORY { get; set; }
+
+        [JsonPropertyName("Doc_Category_Name")]
+        public string? Doc_Category_Name { get; set; }
+
         [JsonPropertyName("Doc_Name")]
         public string? DOC_NAME { get; set; }
         [JsonPropertyName("Doc_Abbr")]

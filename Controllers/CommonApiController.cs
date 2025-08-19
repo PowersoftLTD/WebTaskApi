@@ -580,8 +580,29 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("Task-Management/Forgot_Password")]
+        [HttpPost("Task-Management/Change_Password_NT")]
         [Authorize]
+        public async Task<ActionResult<PutChangePasswordOutPutNT>> ChangePasswordNT([FromBody] ChangePasswordInputNT changePasswordInput)
+        {
+            try
+            {
+                var ChangePass = await _repository.PostChangePasswordAsync(changePasswordInput);
+                return Ok(ChangePass);
+            }
+            catch (Exception ex)
+            {
+                var response = new PutChangePasswordOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Forgot_Password")]
+        
         public async Task<ActionResult<IEnumerable<ResetPasswordOutPut_List>>> ForgotPassword([FromBody] ForgotPasswordInput forgotPasswordInput)
         {
             try

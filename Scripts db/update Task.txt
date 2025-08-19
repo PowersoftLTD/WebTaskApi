@@ -54672,6 +54672,706 @@ AS
       END catch
   END 
 
+----------------------------------------------
+Date : 19-08-2026
+
+GO
+/****** Object:  StoredProcedure [dbo].[Sp_USER_ChangeLOGIN_PASSWORD]    Script Date: 19-08-2025 11:26:12 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--Exec Sp_USER_ChangeLOGIN_PASSWORD 'ashish.tripathi@powersoft.in','Mq999lPr5ge9KTU','July@2019'    
+-- exec Sp_USER_ChangeLOGIN_PASSWORD  'nsoni','nare9011','nare@9011' 
+
+-- exec Sp_USER_ChangeLOGIN_PASSWORD  'amit.shuddhalwar@powersoft.in','a@9225','amits@9225' 
+CREATE PROCEDURE [dbo].[Sp_USER_ChangeLOGIN_PASSWORD_NT] (@LoginName NVARCHAR(255),
+                                                      @Old_LOGIN_PASSWORD VARCHAR(max),
+                                                      @New_LOGIN_PASSWORD VARCHAR(max)
+													  ,@Session_User_Id       INT  
+													  ,@Business_Group_Id	  INT)
+AS
+    DECLARE @LCount INT;
+    DECLARE @MessageText NVARCHAR(4000);
+    DECLARE @ErrorNumber INT;
+    --DECLARE @ErrorMessage NVARCHAR(4000);    
+    DECLARE @DCount INT;
+
+  BEGIN
+      SET nocount ON;
+
+      SELECT @DCount = Count(*)
+      FROM   employee_mst
+      WHERE  Cast(login_name AS VARCHAR(500)) = @LoginName
+              OR email_id_official = @LoginName
+              OR CONVERT(VARCHAR, contact_no) = @LoginName
+			AND DELETE_FLAG = 'N';
+      
+      --**SELECT @LCount = COUNT(*) FROM employee_mst where Cast(login_name As Varchar(500)) = @LoginName and convert(varchar(50),LOGIN_PASSWORD) COLLATE Latin1_General_CS_AS = @Old_LOGIN_PASSWORD    
+      SELECT @LCount = Count(*)
+      FROM   employee_mst
+      WHERE  Cast(login_name AS VARCHAR(500)) = @LoginName
+              OR email_id_official = @LoginName
+              OR CONVERT(VARCHAR, contact_no) = @LoginName
+                 AND login_password = @Old_LOGIN_PASSWORD
+				 AND DELETE_FLAG = 'N';
+
+       
+      IF( @LCount ) > 0
+        BEGIN
+           
+            UPDATE employee_mst
+            SET    [login_password] = CONVERT(VARBINARY(25), @New_LOGIN_PASSWORD),
+                   resset_flag = 'N'
+            WHERE  Cast(login_name AS VARCHAR(500)) = @LoginName
+              OR email_id_official = @LoginName
+              OR CONVERT(VARCHAR, contact_no) = @LoginName
+                   AND login_password = @Old_LOGIN_PASSWORD
+				   AND DELETE_FLAG = 'N';
+		    
+            SET @MessageText='Login Password updated Successfully';
+			
+        END
+
+	IF ( @DCount = 0 )
+        BEGIN
+            SET @MessageText =
+            'Invalid Login Name, Please Enter the Valid Login Name';
+
+            RAISERROR (@MessageText,@ErrorNumber,1);
+        END
+
+      IF ( @LCount = 0 )
+        BEGIN
+            SET @MessageText =
+            'Incorrect Old Password, Please Enter the Correct Password';
+
+            RAISERROR (@MessageText,@ErrorNumber,1);
+        /* EXEC sp_addmessage    
+             500021,    
+        10,    
+        @MessageText    
+        GO    
+        RAISERROR (500021, 10, @MessageText)    
+        */
+        END
+
+      SELECT @MessageText MessageText
+  END 
+--------------------------------------
+
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_APPROVAL_SUBTASK_TREE_VIEW_LIST]    Script Date: 19-08-2025 17:14:40 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================  
+-- Author:    Amit Shuddhalwar  
+-- Create date: 21-11-2024  
+-- Description:  To get list of Approval Subtask List  
+--  EXEC SP_GET_APPROVAL_SUBTASK_TREE_VIEW_LIST 347  ,370,  442
+-- =============================================  
+CREATE PROCEDURE [dbo].[SP_GET_APPROVAL_SUBTASK_TREE_VIEW_LIST_NT]
+  -- Add the parameters for the stored procedure here  
+  @BUILDING_TYPE       INT,
+  @BUILDING_STANDARD   INT,
+  @STATUTORY_AUTHORITY INT,
+  @Session_User_Id          INT,  
+  @Business_Group_Id	  INT
+AS
+  BEGIN
+      -- SET NOCOUNT ON added to prevent extra result sets from  
+      -- interfering with SELECT statements.  
+      SET nocount ON;
+
+	  	WITH approvallist
+           AS (SELECT mkey AS Header_Mkey
+               FROM   approval_template_hdr
+               WHERE  1 = 1-- and MKEY = 49
+                      AND delete_flag = 'N'),
+           approvalsub
+           AS (SELECT sub.subtask_mkey                    AS HEADER_MKEY,
+                      sub.header_mkey                     AS SUBTASK_PARENT_ID,
+                      sub.subtask_abbr,
+                      sub.seq_no,
+                      Isnull(seq_no, main_abbr)           AS TASK_NO,
+                      hdr.short_description               AS ABBR_SHORT_DESC,
+                      hdr.long_description,
+                      HDR.days_requierd,
+                      HDR.authority_department,
+                      HDR.job_role,
+                      HDR.resposible_emp_mkey,
+                      Isnull(HDR.seq_order, '')           AS SEQ_ORDER,
+                      Stuff((SELECT DISTINCT ', '
+                                             + Cast(ENDLIST2.document_name AS
+                                             VARCHAR(
+                                             max))
+                             FROM   approval_template_trl_endresult ENDLIST2
+                             WHERE  ENDLIST2.mkey = sub.subtask_mkey
+                             FOR xml path('')), 1, 1, '') AS END_RESULT_DOC
+               FROM   approval_template_trl_subtask sub
+                      INNER JOIN approvallist
+                              ON sub.header_mkey = approvallist.header_mkey
+                      LEFT JOIN approval_template_hdr hdr
+                             ON sub.subtask_mkey = hdr.mkey
+               WHERE  sub.delete_flag = 'N'
+                      AND hdr.delete_flag = 'N'
+                      AND building_type = @BUILDING_TYPE
+                      AND building_standard = @BUILDING_STANDARD
+                      AND statutory_authority = @STATUTORY_AUTHORITY)
+      SELECT sub.header_mkey AS HEADER_MKEY,
+             sub.subtask_parent_id AS SUBTASK_PARENT_ID,
+           task_no AS TASK_NO,
+             seq_no AS SEQ_NO,
+			   subtask_abbr as MAIN_ABBR,
+             abbr_short_desc AS ABBR_SHORT_DESC,
+             long_description AS LONG_DESCRIPTION,
+             days_requierd AS DAYS_REQUIERD,
+             authority_department AS AUTHORITY_DEPARTMENT,
+             job_role JOB_ROLE,
+             resposible_emp_mkey RESPOSIBLE_EMP_MKEY,
+             end_result_doc END_RESULT_DOC,
+		     seq_order AS SEQ_ORDER
+      FROM   approvalsub sub
+      UNION ALL
+     SELECT mkey AS HEADER_MKEY,
+             0 AS SUBTASK_PARENT_ID,
+           Isnull(seq_no, main_abbr)           AS TASK_NO,
+             seq_no AS SEQ_NO,
+             main_abbr AS MAIN_ABBR,
+		   thdr.short_description              AS ABBR_SHORT_DESC,
+             thdr.long_description AS LONG_DESCRIPTION,
+             thdr.days_requierd AS DAYS_REQUIERD,
+             thdr.authority_department AS AUTHORITY_DEPARTMENT,
+             thdr.job_role AS JOB_ROLE,
+             thdr.resposible_emp_mkey AS RESPOSIBLE_EMP_MKEY,
+             Stuff((SELECT DISTINCT ', '
+                                    + Cast(ENDLIST2.document_name AS VARCHAR(max
+                                    ))
+                    FROM   approval_template_trl_endresult ENDLIST2
+                    WHERE  ENDLIST2.mkey = thdr.mkey
+                    FOR xml path('')), 1, 1, '') AS END_RESULT_DOC
+					 ,Isnull(thdr.seq_order, '')          AS SEQ_ORDER
+      FROM   approval_template_hdr thdr
+             LEFT JOIN approval_template_trl_subtask subt
+                    ON thdr.mkey = subt.subtask_mkey and subt.DELETE_FLAG = 'N'
+      WHERE building_type = @BUILDING_TYPE
+                      AND building_standard = @BUILDING_STANDARD
+                      AND statutory_authority = @STATUTORY_AUTHORITY
+             AND thdr.delete_flag = 'N'
+             AND subt.header_mkey IS NULL
+    
+	   --UNION ALL
+    --  SELECT mkey AS HEADER_MKEY,
+    --         0 AS SUBTASK_PARENT_ID,
+    --       Isnull(seq_no, main_abbr)           AS TASK_NO,
+    --         seq_no AS SEQ_NO,
+    --         main_abbr AS MAIN_ABBR,
+		  -- thdr.short_description              AS ABBR_SHORT_DESC,
+    --         thdr.long_description AS LONG_DESCRIPTION,
+    --         thdr.days_requierd AS DAYS_REQUIERD,
+    --         thdr.authority_department AS AUTHORITY_DEPARTMENT,
+    --         thdr.job_role AS JOB_ROLE,
+    --         thdr.resposible_emp_mkey AS RESPOSIBLE_EMP_MKEY,
+    --         Stuff((SELECT DISTINCT ', '
+    --                                + Cast(ENDLIST2.document_name AS VARCHAR(max
+    --                                ))
+    --                FROM   approval_template_trl_endresult ENDLIST2
+    --                WHERE  ENDLIST2.mkey = thdr.mkey
+    --                FOR xml path('')), 1, 1, '') AS END_RESULT_DOC
+				--	 ,Isnull(thdr.seq_order, '')          AS SEQ_ORDER
+    --  FROM   approval_template_hdr thdr
+    --         left JOIN approval_template_trl_subtask subt
+    --                --ON thdr.mkey = subt.HEADER_MKEY  
+				--	ON thdr.mkey = subt.subtask_mkey
+    --  WHERE  building_type = @BUILDING_TYPE
+    --                  AND building_standard = @BUILDING_STANDARD
+    --                  AND statutory_authority = @STATUTORY_AUTHORITY
+    --         AND thdr.delete_flag = 'N'
+    --         --AND subt.header_mkey IS NULL
+			 --and subt.DELETE_FLAG = 'Y'
+      ORDER  BY SUBTASK_PARENT_ID,HEADER_MKEY
+
+
+	 -- WITH approvallist
+  --         AS (SELECT mkey AS Header_Mkey
+  --             FROM   approval_template_hdr
+  --             WHERE  1 = 1-- and MKEY = 49
+  --                    AND delete_flag = 'N'),
+  --         approvalsub
+  --         AS (SELECT sub.subtask_mkey                    AS HEADER_MKEY,
+  --                    sub.header_mkey                     AS SUBTASK_PARENT_ID,
+  --                    sub.subtask_abbr,
+  --                    sub.seq_no,
+  --                    Isnull(seq_no, main_abbr)           AS TASK_NO,
+  --                    hdr.short_description               AS ABBR_SHORT_DESC,
+  --                    hdr.long_description,
+  --                    HDR.days_requierd,
+  --                    HDR.authority_department,
+  --                    HDR.job_role,
+  --                    HDR.resposible_emp_mkey,
+  --                    Isnull(HDR.seq_order, '')           AS SEQ_ORDER,
+  --                    Stuff((SELECT DISTINCT ', '
+  --                                           + Cast(ENDLIST2.document_name AS
+  --                                           VARCHAR(
+  --                                           max))
+  --                           FROM   approval_template_trl_endresult ENDLIST2
+  --                           WHERE  ENDLIST2.mkey = sub.subtask_mkey
+  --                           FOR xml path('')), 1, 1, '') AS END_RESULT_DOC
+  --             FROM   approval_template_trl_subtask sub
+  --                    INNER JOIN approvallist
+  --                            ON sub.header_mkey = approvallist.header_mkey
+  --                    LEFT JOIN approval_template_hdr hdr
+  --                           ON sub.subtask_mkey = hdr.mkey
+  --             WHERE  1 = 1
+		--			  and sub.delete_flag = 'N'
+  --                    AND hdr.delete_flag = 'N'
+  --                    AND building_type = @BUILDING_TYPE
+  --                    AND building_standard = @BUILDING_STANDARD
+  --                    AND statutory_authority = @STATUTORY_AUTHORITY)
+  --    SELECT sub.header_mkey AS HEADER_MKEY,
+  --           sub.subtask_parent_id AS SUBTASK_PARENT_ID,
+  --         task_no AS TASK_NO,
+  --           seq_no AS SEQ_NO,
+		--	   subtask_abbr as MAIN_ABBR,
+  --           abbr_short_desc AS ABBR_SHORT_DESC,
+  --           long_description AS LONG_DESCRIPTION,
+  --           days_requierd AS DAYS_REQUIERD,
+  --           authority_department AS AUTHORITY_DEPARTMENT,
+  --           job_role JOB_ROLE,
+  --           resposible_emp_mkey RESPOSIBLE_EMP_MKEY,
+  --           end_result_doc END_RESULT_DOC,
+		--     seq_order AS SEQ_ORDER
+  --    FROM   approvalsub sub
+  --    UNION ALL
+  --    SELECT mkey AS HEADER_MKEY,
+  --           0 AS SUBTASK_PARENT_ID,
+  --         Isnull(seq_no, main_abbr)           AS TASK_NO,
+  --           seq_no AS SEQ_NO,
+  --           main_abbr AS MAIN_ABBR,
+		--   thdr.short_description              AS ABBR_SHORT_DESC,
+  --           thdr.long_description AS LONG_DESCRIPTION,
+  --           thdr.days_requierd AS DAYS_REQUIERD,
+  --           thdr.authority_department AS AUTHORITY_DEPARTMENT,
+  --           thdr.job_role AS JOB_ROLE,
+  --           thdr.resposible_emp_mkey AS RESPOSIBLE_EMP_MKEY,
+  --           Stuff((SELECT DISTINCT ', '
+  --                                  + Cast(ENDLIST2.document_name AS VARCHAR(max
+  --                                  ))
+  --                  FROM   approval_template_trl_endresult ENDLIST2
+  --                  WHERE  ENDLIST2.mkey = thdr.mkey
+  --                  FOR xml path('')), 1, 1, '') AS END_RESULT_DOC
+		--			 ,Isnull(thdr.seq_order, '')          AS SEQ_ORDER
+  --    FROM   approval_template_hdr thdr
+  --           LEFT JOIN approval_template_trl_subtask subt
+  --                  ON thdr.mkey = subt.subtask_mkey
+  --    WHERE  building_type = @BUILDING_TYPE
+  --           AND building_standard = @BUILDING_STANDARD
+  --           AND statutory_authority = @STATUTORY_AUTHORITY
+  --           AND thdr.delete_flag = 'N'
+  --           AND subt.header_mkey IS NULL
+		--union all
+		--SELECT mkey AS HEADER_MKEY,
+  --           0 AS SUBTASK_PARENT_ID,
+  --         Isnull(seq_no, main_abbr)           AS TASK_NO,
+  --           seq_no AS SEQ_NO,
+  --           main_abbr AS MAIN_ABBR,
+		--   thdr.short_description              AS ABBR_SHORT_DESC,
+  --           thdr.long_description AS LONG_DESCRIPTION,
+  --           thdr.days_requierd AS DAYS_REQUIERD,
+  --           thdr.authority_department AS AUTHORITY_DEPARTMENT,
+  --           thdr.job_role AS JOB_ROLE,
+  --           thdr.resposible_emp_mkey AS RESPOSIBLE_EMP_MKEY,
+  --           Stuff((SELECT DISTINCT ', '
+  --                                  + Cast(ENDLIST2.document_name AS VARCHAR(max
+  --                                  ))
+  --                  FROM   approval_template_trl_endresult ENDLIST2
+  --                  WHERE  ENDLIST2.mkey = thdr.mkey
+  --                  FOR xml path('')), 1, 1, '') AS END_RESULT_DOC
+		--			 ,Isnull(thdr.seq_order, '')          AS SEQ_ORDER
+  --    FROM   approval_template_hdr thdr
+  --           LEFT JOIN approval_template_trl_subtask subt
+  --                  ON thdr.mkey = subt.subtask_mkey
+  --    WHERE  building_type = @BUILDING_TYPE
+  --           AND building_standard = @BUILDING_STANDARD
+  --           AND statutory_authority = @STATUTORY_AUTHORITY
+  --           AND thdr.delete_flag = 'N'
+  --           --AND subt.header_mkey IS NULL
+		--	 AND thdr.delete_flag = 'Y'
+  --    ORDER  BY SUBTASK_PARENT_ID,HEADER_MKEY
+
+	  --WITH approvallist
+   --        AS (SELECT mkey AS Header_Mkey
+   --            FROM   approval_template_hdr
+   --            WHERE  1 = 1-- and MKEY = 49
+   --                   AND delete_flag = 'N'),
+   --        approvalsub
+   --        AS (SELECT sub.subtask_mkey                    AS HEADER_MKEY,
+   --                   sub.header_mkey                     AS SUBTASK_PARENT_ID,
+   --                   sub.subtask_abbr,
+   --                   sub.seq_no,
+   --                   Isnull(seq_no, main_abbr)           AS TASK_NO,
+   --                   hdr.short_description               AS ABBR_SHORT_DESC,
+   --                   hdr.long_description,
+   --                   HDR.days_requierd,
+   --                   HDR.authority_department,
+   --                   HDR.job_role,
+   --                   HDR.resposible_emp_mkey,
+   --                   Isnull(HDR.seq_order, '')           AS SEQ_ORDER,
+   --                   Stuff((SELECT DISTINCT ', '
+   --                                          + Cast(ENDLIST2.document_name AS
+   --                                          VARCHAR(
+   --                                          max))
+   --                          FROM   approval_template_trl_endresult ENDLIST2
+   --                          WHERE  ENDLIST2.mkey = sub.subtask_mkey
+   --                          FOR xml path('')), 1, 1, '') AS END_RESULT_DOC
+   --            FROM   approval_template_trl_subtask sub
+   --                   INNER JOIN approvallist
+   --                           ON sub.header_mkey = approvallist.header_mkey
+   --                   LEFT JOIN approval_template_hdr hdr
+   --                          ON sub.subtask_mkey = hdr.mkey
+   --            WHERE  sub.delete_flag = 'N'
+   --                   AND hdr.delete_flag = 'N'
+   --                   AND building_type = @BUILDING_TYPE
+   --                   AND building_standard = @BUILDING_STANDARD
+   --                   AND statutory_authority = @STATUTORY_AUTHORITY)
+   --   SELECT sub.header_mkey,
+   --          sub.subtask_parent_id,
+   --          subtask_abbr,
+   --          seq_no,
+   --          task_no,
+   --          abbr_short_desc,
+   --          long_description,
+   --          days_requierd,
+   --          authority_department,
+   --          job_role,
+   --          resposible_emp_mkey,
+   --          seq_order,
+   --          end_result_doc
+   --   FROM   approvalsub sub
+   --   UNION ALL
+   --   SELECT mkey,
+   --          0,
+   --          main_abbr,
+   --          seq_no,
+   --          Isnull(seq_no, main_abbr)           AS TASK_NO,
+   --          thdr.short_description              AS ABBR_SHORT_DESC,
+   --          thdr.long_description,
+   --          thdr.days_requierd,
+   --          thdr.authority_department,
+   --          thdr.job_role,
+   --          thdr.resposible_emp_mkey,
+   --          Isnull(thdr.seq_order, '')          AS SEQ_ORDER,
+   --          Stuff((SELECT DISTINCT ', '
+   --                                 + Cast(ENDLIST2.document_name AS VARCHAR(max
+   --                                 ))
+   --                 FROM   approval_template_trl_endresult ENDLIST2
+   --                 WHERE  ENDLIST2.mkey = thdr.mkey
+   --                 FOR xml path('')), 1, 1, '') AS END_RESULT_DOC
+   --   FROM   approval_template_hdr thdr
+   --          LEFT JOIN approval_template_trl_subtask subt
+   --                 ON thdr.mkey = subt.subtask_mkey
+   --   WHERE  building_type = @BUILDING_TYPE
+   --          AND building_standard = @BUILDING_STANDARD
+   --          AND statutory_authority = @STATUTORY_AUTHORITY
+   --          AND thdr.delete_flag = 'N'
+   --          AND subt.header_mkey IS NULL
+   --   ORDER  BY task_no
+
+
+      --  IF OBJECT_ID('tempdb..##TEMP_HDR_MKEY') IS NOT NULL  
+      --  BEGIN  
+      --   DROP TABLE ##TEMP_HDR_MKEY;  
+      --  END  
+      --  CREATE TABLE ##TEMP_HDR_MKEY(HEADER_MKEY INT,SUBTASK_PARENT_ID INT,TASK_NO nvarchar(10),SEQ_NO nvarchar(10), MAIN_ABBR NVARCHAR(500)  
+      --  ,ABBR_SHORT_DESC NVARCHAR(500),LONG_DESCRIPTION NVARCHAR(MAX),DAYS_REQUIERD INT,AUTHORITY_DEPARTMENT INT,JOB_ROLE INT,  
+      --  RESPOSIBLE_EMP_MKEY INT,END_RESULT_DOC NVARCHAR(MAX),SEQ_ORDER INT);  
+      --DECLARE @HEADER_MKEY INT,@MAIN_ABBR VARCHAR(100),@SEQ_NO NVARCHAR(10),@SUBTASK_MKEY INT,@SUBTASK_ABBR NVARCHAR(500), @TASK_NO INT  
+      --,@ABBR_SHORT_DESC NVARCHAR(500),@LONG_DESCRIPTION NVARCHAR(MAX),@DAYS_REQUIERD INT,@AUTHORITY_DEPARTMENT INT,@JOB_ROLE INT,  
+      --  @RESPOSIBLE_EMP_MKEY INT,@END_RESULT_DOC NVARCHAR(MAX),@SEQ_ORDER INT,@HDR_SEQ INT = 0;  
+      --DECLARE CURSOR_HDR_TASK   CURSOR FOR  
+      -- SELECT MKEY,MAIN_ABBR,SHORT_DESCRIPTION,LONG_DESCRIPTION,AUTHORITY_DEPARTMENT,RESPOSIBLE_EMP_MKEY,JOB_ROLE,DAYS_REQUIERD,END_RESULT_DOC,SEQ_ORDER   
+      -- FROM APPROVAL_TEMPLATE_HDR   
+      -- WHERE delete_flag = 'N'   
+      --                    AND BUILDING_TYPE = 221  
+      --                    AND BUILDING_STANDARD = 245  
+      --                    AND STATUTORY_AUTHORITY = 248   
+      --     order by 1;  
+      --SET @HDR_SEQ = 0;  
+      --OPEN CURSOR_HDR_TASK  
+      -- FETCH NEXT FROM CURSOR_HDR_TASK INTO @HEADER_MKEY,@MAIN_ABBR, @ABBR_SHORT_DESC,@LONG_DESCRIPTION,@AUTHORITY_DEPARTMENT,@RESPOSIBLE_EMP_MKEY,@JOB_ROLE,@DAYS_REQUIERD  
+      -- ,@END_RESULT_DOC,@SEQ_ORDER;  
+      --WHILE @@FETCH_STATUS = 0  
+      --BEGIN  
+      -- DECLARE @COUNT_TRL_MKEY INT, @SUB_MKEY INT,@SUB_TASK_PARENT INT,@SUB_TASK INT;  
+      -- PRINT 'BEFORE @HDR_SEQ :' + CONVERT(VARCHAR(10),@HDR_SEQ )  
+      -- PRINT '@MAIN_ABBR: ' + @MAIN_ABBR ;  
+      -- SET @HDR_SEQ = @HDR_SEQ + 1;  
+      -- PRINT 'AFTER @HDR_SEQ :' + CONVERT(VARCHAR(10),@HDR_SEQ )  
+      -- SET @TASK_NO = 0;  
+      -- DECLARE CURSOR_SUB_TASK   CURSOR FOR  
+      -- SELECT HEADER_MKEY,SEQ_NO,SUBTASK_ABBR,SUBTASK_MKEY FROM APPROVAL_TEMPLATE_TRL_SUBTASK WHERE DELETE_FLAG = 'N' AND SUBTASK_PARENT_ID = @HEADER_MKEY;  
+      -- OPEN CURSOR_SUB_TASK     
+      --  FETCH NEXT FROM CURSOR_SUB_TASK  INTO @HEADER_MKEY,@SEQ_NO,@SUBTASK_ABBR,@SUBTASK_MKEY;  
+      -- WHILE @@FETCH_STATUS = 0  
+      -- BEGIN  
+      --  SET @TASK_NO = @TASK_NO + 1;  
+      --  print '1:' + CONVERT(varchar(10),@HDR_SEQ) +'.'+ CONVERT(varchar(10),@TASK_NO);  
+      --   ----------------------------------------------------------------------------------------------------------------  
+      --  INSERT INTO ##TEMP_HDR_MKEY(HEADER_MKEY ,SUBTASK_PARENT_ID ,TASK_NO ,SEQ_NO , MAIN_ABBR,ABBR_SHORT_DESC ,LONG_DESCRIPTION ,DAYS_REQUIERD ,AUTHORITY_DEPARTMENT   
+      --  ,JOB_ROLE ,RESPOSIBLE_EMP_MKEY ,END_RESULT_DOC ,SEQ_ORDER)   
+      --  VALUES (@SUBTASK_MKEY, @HEADER_MKEY,@TASK_NO,@SEQ_NO,@SUBTASK_ABBR,@ABBR_SHORT_DESC,@LONG_DESCRIPTION,@DAYS_REQUIERD,@AUTHORITY_DEPARTMENT  
+      --  ,@JOB_ROLE,@RESPOSIBLE_EMP_MKEY,@END_RESULT_DOC,@SEQ_ORDER);  
+      --  PRINT  'pRINT :'+ CONVERT(NVARCHAR(100),@HEADER_MKEY) + ' '+ CONVERT(NVARCHAR(100),@SEQ_NO)+ ' '+CONVERT(NVARCHAR(100),@SUBTASK_MKEY)+ ' '+CONVERT(NVARCHAR(100),@SUBTASK_ABBR);  
+      --  FETCH NEXT FROM CURSOR_SUB_TASK  
+      --  INTO @HEADER_MKEY,@SEQ_NO,@SUBTASK_ABBR,@SUBTASK_MKEY;  
+      -- END  
+      -- CLOSE CURSOR_SUB_TASK;  
+      -- DEALLOCATE CURSOR_SUB_TASK;  
+      -- FETCH NEXT FROM CURSOR_HDR_TASK INTO @HEADER_MKEY,@MAIN_ABBR, @ABBR_SHORT_DESC,@LONG_DESCRIPTION,@AUTHORITY_DEPARTMENT,@RESPOSIBLE_EMP_MKEY,@JOB_ROLE,@DAYS_REQUIERD  
+      -- ,@END_RESULT_DOC,@SEQ_ORDER  
+      --END  
+      --CLOSE CURSOR_HDR_TASK;  
+      --DEALLOCATE CURSOR_HDR_TASK;  
+      --SELECT * FROM ##TEMP_HDR_MKEY;  
+      --   WITH APPROVALTASK  
+      --        AS (SELECT HDR.MKEY      HEADER_MKEY,  
+      --                   HDR.MKEY      SUBTASK_PARENT_ID,  
+      --                   HDR.MAIN_ABBR AS SUBTASK_ABBR,  
+      --                   DELETE_FLAG  
+      --            FROM   APPROVAL_TEMPLATE_HDR HDR  
+      --            WHERE  1 = 1  
+      --                   AND HDR.DELETE_FLAG = 'N'  
+      --                   AND BUILDING_TYPE = @BUILDING_TYPE  
+      --                   AND BUILDING_STANDARD = @BUILDING_STANDARD  
+      --                   AND STATUTORY_AUTHORITY = @STATUTORY_AUTHORITY  
+      --            UNION ALL  
+      --            SELECT SUB.HEADER_MKEY  AS HEADER_MKEY,  
+      --                   SUB.SUBTASK_MKEY SUBTASK_PARENT_ID,  
+      --                   SUB.SUBTASK_ABBR,  
+      --                   SUB.DELETE_FLAG  
+      --            FROM   APPROVAL_TEMPLATE_TRL_SUBTASK SUB  
+      --                   JOIN APPROVALTASK  
+      --                     ON SUB.HEADER_MKEY = APPROVALTASK.SUBTASK_PARENT_ID and APPROVALTASK.SUBTASK_ABBR = SUB.SUBTASK_ABBR  
+      --            WHERE  SUB.DELETE_FLAG = 'N'  
+      --                   AND APPROVALTASK.DELETE_FLAG = 'N')  
+      --   SELECT   
+      -- AP.SUBTASK_PARENT_ID as HEADER_MKEY,  
+      -- --AP.HEADER_MKEY as SUBTASK_PARENT_ID ,  
+      --          --CASE WHEN AP.HEADER_MKEY = AP.SUBTASK_PARENT_ID THEN 0 ELSE  AP.HEADER_MKEY END SUBTASK_PARENT_ID,  
+      --         CASE WHEN  AP.SUBTASK_PARENT_ID = AP.HEADER_MKEY THEN 0 ELSE AP.SUBTASK_PARENT_ID END SUBTASK_PARENT_ID,  
+      --          CONVERT(NVARCHAR(100), ISNULL(SEQ_NO, MAIN_ABBR))  
+      --          AS TASK_NO,  
+      --          ISNULL(SUB.SEQ_NO, 1)  
+      --          AS SEQ_NO,  
+      --          HDR.MAIN_ABBR,  
+      --          ISNULL(SUB.SUBTASK_ABBR + ' '  
+      --                 +  
+      --ISNULL(HDR.SHORT_DESCRIPTION, HDR.LONG_DESCRIPTION), HDR.LONG_DESCRIPTION)  
+      --  AS  
+      --ABBR_SHORT_DESC,  
+      --HDR.LONG_DESCRIPTION,  
+      --HDR.DAYS_REQUIERD,  
+      --HDR.AUTHORITY_DEPARTMENT,  
+      --HDR.JOB_ROLE,  
+      --HDR.RESPOSIBLE_EMP_MKEY,  
+      --STUFF((SELECT DISTINCT ', '  
+      --                          + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))  
+      --          FROM   APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2  
+      --          WHERE  ENDLIST2.MKEY = HDR.MKEY  
+      --          FOR XML PATH('')), 1, 1, '')  
+      --          AS  
+      --          END_RESULT_DOC,  
+      --   AP.DELETE_FLAG  
+      --   FROM   APPROVALTASK AP  
+      --          JOIN APPROVAL_TEMPLATE_HDR HDR  
+      --            ON AP.SUBTASK_PARENT_ID = HDR.MKEY  
+      --          LEFT JOIN APPROVAL_TEMPLATE_TRL_SUBTASK SUB  
+      --                 ON HDR.MKEY = SUB.SUBTASK_MKEY  
+      --                    AND AP.DELETE_FLAG = 'N'  
+      --                    AND SUB.DELETE_FLAG = 'N'  
+      --   WHERE  1 = 1  
+      --          AND AP.DELETE_FLAG = 'N'  
+      --          AND HDR.DELETE_FLAG = 'N'  
+      --   GROUP  BY AP.HEADER_MKEY,  
+      --             AP.SUBTASK_PARENT_ID,  
+      --             SUB.SEQ_NO,  
+      --             HDR.MAIN_ABBR,  
+      --             HDR.SHORT_DESCRIPTION,  
+      --             HDR.LONG_DESCRIPTION,  
+      --             HDR.AUTHORITY_DEPARTMENT,  
+      --             HDR.JOB_ROLE,  
+      --             HDR.RESPOSIBLE_EMP_MKEY,  
+      --             SUB.SUBTASK_ABBR,  
+      --             HDR.DAYS_REQUIERD,  
+      --             HDR.MKEY,  
+      --             HDR.DELETE_FLAG,  
+      --             AP.DELETE_FLAG  
+      --   ORDER  BY AP.HEADER_MKEY,  
+      --             AP.SUBTASK_PARENT_ID  
+   --   SELECT
+   --   --CASE WHEN ISNULL(trl.SUBTASK_PARENT_ID,0)=0 THEN HDR.MKEY ELSE   ISNULL(trl.SUBTASK_PARENT_ID,0)END AS HEADER_MKEY  
+   --   HDR.mkey                            AS HEADER_MKEY,
+   --   --CASE
+   --   --  WHEN Isnull(trl.subtask_mkey, 0) IN ( 20, 22,  38 ) THEN 0
+   --   --  ELSE Isnull(trl.subtask_parent_id, 0)
+   --   --END                                 AS SUBTASK_PARENT_ID,
+	  --Isnull(trl.subtask_parent_id, 0) AS SUBTASK_PARENT_ID,
+   --   Isnull(seq_no, main_abbr)           AS TASK_NO
+   --   --TASK_NO,  
+   --   ,
+   --   seq_no,
+   --   main_abbr
+   --   --,ISNULL(TRL.SUBTASK_ABBR + ' ' + ISNULL(HDR.SHORT_DESCRIPTION,HDR.LONG_DESCRIPTION),HDR.LONG_DESCRIPTION) AS ABBR_SHORT_DESC  
+   --   ,
+   --   HDR.short_description               AS ABBR_SHORT_DESC,
+   --   HDR.long_description,
+   --   HDR.days_requierd,
+   --   HDR.authority_department,
+   --   HDR.job_role,
+   --   HDR.resposible_emp_mkey,
+   --   Stuff((SELECT DISTINCT ', '
+   --                          + Cast(ENDLIST2.document_name AS VARCHAR(max))
+   --          FROM   approval_template_trl_endresult ENDLIST2
+   --          WHERE  ENDLIST2.mkey = HDR.mkey
+   --          FOR xml path('')), 1, 1, '') AS END_RESULT_DOC,
+   --   Isnull(HDR.seq_order, '')           AS SEQ_ORDER
+   --   FROM   approval_template_hdr HDR
+   --          LEFT JOIN approval_template_trl_subtask TRL
+   --                 ON HDR.mkey = TRL.subtask_mkey
+   --   WHERE  building_type = @BUILDING_TYPE
+   --          AND building_standard = @BUILDING_STANDARD
+   --          AND statutory_authority = @STATUTORY_AUTHORITY
+   --   --and  HDR.mkey!=49  
+   --   --AND HDR.DELETE_FLAG = 'N'  
+   --   --AND TRL.DELETE_FLAG = 'N'  
+   --   GROUP  BY HDR.mkey,
+   --             trl.subtask_parent_id,
+   --             seq_no,
+   --             main_abbr,
+   --             TRL.subtask_abbr,
+   --             HDR.short_description,
+   --             HDR.long_description,
+   --             HDR.days_requierd,
+   --             HDR.authority_department,
+   --             HDR.job_role,
+   --             HDR.resposible_emp_mkey,
+   --             subtask_mkey,
+   --             HDR.seq_order
+   --   ORDER  BY 5;
+  --2,1;  
+  --ORDER BY HDR.MKEY DESC,SUBTASK_MKEY ASC;  
+  --SELECT   
+  --HDR2.MKEY AS HEADER_MKEY,ISNULL(trl.SUBTASK_PARENT_ID,0) as SUBTASK_PARENT_ID--ISNULL(SEQ_NO,MAIN_ABBR) AS TASK_NO   
+  --,CONVERT(VARCHAR,HDR2.MKEY)+'.'+ SEQ_NO AS TASK_NO  
+  --,MAIN_ABBR,  
+  --TRL.SUBTASK_ABBR + ' ' + HDR2.SHORT_DESCRIPTION AS ABBR_SHORT_DESC,HDR2.LONG_DESCRIPTION  
+  --,HDR2.DAYS_REQUIERD,  
+  --HDR2.AUTHORITY_DEPARTMENT,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY,STUFF((  
+  --   SELECT DISTINCT ', ' + CAST(ENDLIST2.DOCUMENT_NAME AS VARCHAR(MAX))  
+  --FROM APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST2    WHERE ENDLIST2.MKEY =  
+  --HDR2.MKEY      FOR XML PATH('')), 1, 1, '') AS END_RESULT_DOC  
+  --FROM APPROVAL_TEMPLATE_HDR HDR2 INNER JOIN  
+  --APPROVAL_TEMPLATE_TRL_SUBTASK TRL ON HDR2.MKEY = TRL.SUBTASK_PARENT_ID  
+  --LEFT JOIN APPROVAL_TEMPLATE_TRL_ENDRESULT ENDLIST1 ON ENDLIST1.MKEY =  
+  --HDR2.MKEY  
+  --WHERE BUILDING_TYPE = @BUILDING_TYPE  
+  --AND BUILDING_STANDARD = @BUILDING_STANDARD and STATUTORY_AUTHORITY =  
+  --@STATUTORY_AUTHORITY  
+  --AND HDR2.DELETE_FLAG = 'N'  
+  --GROUP BY  HDR2.MKEY,trl.SUBTASK_PARENT_ID,SEQ_NO,MAIN_ABBR, TRL.SUBTASK_ABBR + ' ' +  
+  --HDR2.SHORT_DESCRIPTION,HDR2.LONG_DESCRIPTION,HDR2.DAYS_REQUIERD,HDR2.AUTHORITY_DEPARTMENT  
+  --,HDR2.JOB_ROLE,HDR2.RESPOSIBLE_EMP_MKEY ORDER BY HDR2.MKEY  desc;  
+  END 
+
+------------------------------------------------------------------------
+GO
+/****** Object:  StoredProcedure [dbo].[SP_GET_DOCUMENT_TEMPLATES_NT]    Script Date: 19-08-2025 17:38:43 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		AMIT SHUDDHALWAR
+-- Create date: 28-10-2024
+-- Description:	FOF THE GET DOCUMENT TEMPLATES DETAILS
+-- exec SP_GET_DOCUMENT_TEMPLATES_NT '',926,null,null,926,1
+-- =============================================
+ALTER PROCEDURE [dbo].[SP_GET_DOCUMENT_TEMPLATES_NT] 
+	-- Add the parameters for the stored procedure here
+	@MKEY NUMERIC = NULL,
+	@ATTRIBUT1 VARCHAR(100) = NULL, -- USER ID
+	@ATTRIBUT2 VARCHAR(100) = NULL, -- FORM NAME
+	@ATTRIBUT3 VARCHAR(100) = NULL, -- FUCNTION/METHOD NAME
+	@Session_User_Id      INT,  
+	@Business_Group_Id	  INT
+
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	BEGIN TRY ;
+          -- TO CHECK THE @MKEY IS NULL OR EMPTY IF EMPTY THE SHOW ALL ROWS    
+          --IF ( @MKEY IS NOT NULL
+          --     AND CONVERT(INT,@MKEY) > 0 )
+          --  BEGIN
+			PRINT 'IN IFF';
+				SELECT   DHDR.[MKEY]
+						,DHDR.DOC_CATEGORY
+						,CATMST.TYPE_DESC AS Doc_Category_Name
+						,DHDR.DOC_NAME
+						,DHDR.[DOC_ABBR]
+						,DHDR.[DOC_NUM_FIELD_NAME]
+						,DHDR.[DOC_NUM_DATE_NAME]
+						,DHDR.[DOC_NUM_APP_FLAG]
+						,DHDR.[DOC_NUM_VALID_FLAG]
+						,DHDR.[DOC_NUM_DATE_APP_FLAG]
+						,DHDR.[DOC_ATTACH_APP_FLAG]
+						,DHDR.[CREATED_BY]
+						,DHDR.[CREATION_DATE]
+						,DHDR.[LAST_UPDATED_BY]
+						,DHDR.[LAST_UPDATE_DATE]
+						,DHDR.[DELETE_FLAG]
+						,Isnull(CONVERT(VARCHAR(50), DHDR.created_by), '')  AS CREATED_BY_ID,
+						Isnull(CONVERT(VARCHAR(50), createdby.emp_full_name), '') AS CREATED_BY_NAME, CASE
+						WHEN DHDR.creation_date IS NULL THEN ''
+						ELSE Format(DHDR.creation_date, 'yyyy-MM-dd HH:mm:ss')
+						END AS CREATION_DATE,
+						Isnull(CONVERT(VARCHAR(50), DHDR.last_updated_by), '')    AS LAST_UPDATED_BY,
+						Isnull(updatedby.emp_full_name, '') UPDATED_BY_NAME,
+						CASE
+						WHEN DHDR.last_update_date IS NULL THEN ''
+						ELSE Format(DHDR.last_update_date, 'yyyy-MM-dd HH:mm:ss')
+						END AS LAST_UPDATE_DATE
+				FROM [dbo].[DOC_TEMPLATE_HDR] DHDR
+				LEFT JOIN TYPE_MST CATMST ON CATMST.MKEY = DHDR.DOC_CATEGORY AND CATMST.TYPE_CODE = 'DOC_CATEGORY' AND CATMST.DELETE_FLAG = 'N'
+				INNER JOIN employee_mst createdby ON DHDR.created_by = createdby.mkey
+				LEFT JOIN employee_mst updatedby ON DHDR.last_updated_by = updatedby.mkey AND updatedby.DELETE_FLAG = 'N'
+				WHERE  (DHDR.MKEY = @MKEY OR @MKEY IS NULL OR @MKEY = 0)
+				AND DHDR.DELETE_FLAG = 'N'
+				AND createdby.DELETE_FLAG = 'N'
+				ORDER BY MKEY;
+      END TRY
+      BEGIN CATCH
+------------------------------------------------------------------------------------------------------------------------------------
+          SELECT ERROR_NUMBER()    AS ERRORNUMBER,
+                 ERROR_SEVERITY()  AS ERRORSEVERITY,
+                 ERROR_STATE()     AS ERRORSTATE,
+                 ERROR_PROCEDURE() AS ERRORPROCEDURE,
+                 ERROR_LINE()      AS ERRORLINE,
+                 ERROR_MESSAGE()   AS ERRORMESSAGE;
+-------------------------------------------------------------------------------------------------------------------------------
+			DECLARE @ERROR_MESSAGE  VARCHAR(MAX) = NULL;
+			SET @ERROR_MESSAGE = ERROR_MESSAGE();
+------------------------------------------------------------------------------------------------------------------------------------
+		EXEC sp_P_TMS_INSERT_ERROR_DES @ATTRIBUT1,'TMS',@ATTRIBUT2,@ERROR_MESSAGE,@ATTRIBUT3;
+------------------------------------------------------------------------------------------------------------------------------------
+      END CATCH
+END
+
 
 
 
