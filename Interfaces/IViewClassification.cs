@@ -30,6 +30,9 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<V_Sanctioning_Authority_OutPut_NT>> GetViewSanctioningAuthority_NT(Doc_Type_Doc_CategoryInput doc_Type_Doc_CategoryInput);
 
         Task<IEnumerable<V_Building_Classification>> GetViewDocument_Category();
+
+        Task<ActionResult<IEnumerable<StatutoryTypeNT>>> GetViewDocumentCategoryNT(Document_CategoryOutPutNT document_CategoryOutPutNT);
+
         Task<IEnumerable<V_Building_Classification>> GetViewResponsibleDepartment();
         Task<IEnumerable<RAISED_AT_OUTPUT_LIST>> GetRaiseATAsync(RAISED_AT_INPUT rAISED_AT_INPUT);
 

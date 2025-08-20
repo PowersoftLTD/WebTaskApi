@@ -891,6 +891,58 @@ namespace TaskManagement.API.Repositories
                 return await db.QueryAsync<V_Building_Classification>("SELECT * FROM V_Doc_Category");
             }
         }
+
+        public async Task<ActionResult<IEnumerable<StatutoryTypeNT>>> GetViewDocumentCategoryNT(Document_CategoryOutPutNT document_CategoryOutPutNT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_User_Id", document_CategoryOutPutNT.Session_User_Id);
+                    parmeters.Add("@Business_Group_Id", document_CategoryOutPutNT.Business_Group_Id);
+                    var GetComplianceStatus = await db.QueryAsync<StatutoryTypeOutNT>("SP_GET_DOC_CATEGORY_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    
+                    if (!GetComplianceStatus.Any())  // If no records are returned
+                    {
+                        var ErrorResponse = new List<StatutoryTypeNT>
+                        {
+                            new StatutoryTypeNT
+                            {
+                                Status = "Error",
+                                Message = "No data found",
+                                Data = null
+                            }
+                        };
+                        return ErrorResponse;
+                    }
+                    var SuccessResponse = new List<StatutoryTypeNT>
+                    {
+                        new StatutoryTypeNT
+                        {
+                            Status = "Ok",
+                            Message = "Data Get Successfuly",
+                            Data= GetComplianceStatus
+                        }
+                    };
+                    return SuccessResponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                var ErrorResponse = new List<StatutoryTypeNT>
+                {
+                    new StatutoryTypeNT
+                    {
+                        Status = "Error",
+                        Message =ex.Message,
+                        Data= null
+                    }
+                };
+                return ErrorResponse;
+            }
+        }
+    
         public async Task<ActionResult<IEnumerable<COMPLIANCE_STATUS_OUTPUT_LIST>>> GetComplianceStatusAsync()
         {
             try

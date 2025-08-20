@@ -10,6 +10,8 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using TaskManagement.API.Interfaces;
@@ -7035,7 +7037,24 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-     
+        public async Task SendEmailAsync(EmailDto email)
+        {
+            var smtpServer = "smtp.gmail.com"; // If it's Gmail, use smtp.gmail.com
+            var port = 587;
+
+            using var smtp = new SmtpClient(smtpServer, port)
+            {
+                Credentials = new NetworkCredential(email.FromEmail, email.FromPassword),
+                EnableSsl = true
+            };
+
+            var mail = new MailMessage(email.FromEmail, email.To, email.Subject, email.Body)
+            {
+                IsBodyHtml = true
+            };
+
+            await smtp.SendMailAsync(mail);
+        }
     }
 }
 

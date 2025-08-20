@@ -371,6 +371,30 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Document-Category-NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<StatutoryTypeNT>>> GetDocument_Category_NT(Document_CategoryOutPutNT document_CategoryOutPutNT)
+        {
+            try
+            {
+                var classifications = await _repository.GetViewDocumentCategoryNT(document_CategoryOutPutNT);
+                return classifications;
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<StatutoryTypeNT>
+                    {
+                        new StatutoryTypeNT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
         [HttpGet("Responsible-Department")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<V_Building_Classification>>> GetResponsibleDepartment()

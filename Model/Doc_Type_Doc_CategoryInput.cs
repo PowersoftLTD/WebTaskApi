@@ -13,6 +13,14 @@ namespace TaskManagement.API.Model
         public string? PropertyMkey { get; set; }
     }
 
+    public class Document_CategoryOutPutNT
+    {
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
+
     public class TaskProjectsFilterNT
     {
         [JsonPropertyName("TaskType")]
@@ -136,6 +144,24 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Status")]
         public string? Status { get; set; }
 
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+    }
+
+    public class EmailDto
+    {
+        [JsonPropertyName("To")]
+        public string To { get; set; }
+        [JsonPropertyName("Subject")]
+        public string Subject { get; set; }
+        [JsonPropertyName("Body")]
+        public string Body { get; set; }
+        [JsonPropertyName("FromEmail")]
+        public string FromEmail { get; set; }
+        [JsonPropertyName("FromPassword")]
+        public string FromPassword { get; set; }
         [JsonPropertyName("Session_User_Id")]
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]

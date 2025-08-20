@@ -417,7 +417,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("Task-Management/GET-ACTIONS")] 
+        [HttpPost("Task-Management/GET-ACTIONS")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<GET_ACTIONS_TYPE_FILE>>> GET_ACTIONS([FromBody] GET_ACTIONSInput gET_ACTIONSInput)
         {
@@ -513,7 +513,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("Task-Management/Get-Task_Tree_NT")] 
+        [HttpPost("Task-Management/Get-Task_Tree_NT")]
 
         [Authorize]
         public async Task<ActionResult<IEnumerable<GET_TASK_TREEOutPut_List_NT>>> GET_TASK_TREE_NT([FromBody] GET_TASK_TREEInput_NT gET_TASK_TREEInput)
@@ -1749,11 +1749,6 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                //if (taskPostActionInput.FILE_NAME != null)
-                //{
-                //    taskPostActionInput.FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME;
-                //}
-               
                 if (taskPostActionInput.Session_User_ID == null || taskPostActionInput.Session_User_ID == 0)
                 {
                     var response = new TaskPostActionAPIOutPut_List_NT
@@ -2858,7 +2853,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Task-Output-Table-Insert-Update_NT")]
-        [Authorize] 
+        [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_END_CHECK_LIST_NT>>> PostTaskOutputTableInsertUpdateNT(TASK_ENDLIST_TABLE_INPUT_NT tASK_ENDLIST_TABLE_INPUT)
         {
             try
@@ -3237,6 +3232,23 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("send")]
+        public async Task<IActionResult> SendEmail([FromBody] EmailDto email)
+        {
+            if (string.IsNullOrWhiteSpace(email.FromEmail) || string.IsNullOrWhiteSpace(email.FromPassword))
+                return BadRequest("Sender email and password are required.");
 
+            try
+            {
+                await _repository.SendEmailAsync(email);
+                return Ok("Email sent successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Failed to send email: {ex.Message}");
+            }
+        }
     }
+
 }
+
