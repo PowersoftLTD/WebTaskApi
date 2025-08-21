@@ -634,7 +634,6 @@ namespace TaskManagement.API.Controllers
                     TempararyPass = TempPaass.Data.Select(x => x.MessageText.ToString()).First().ToString();
                 }
 
-
                 var ResetPass = await _repository.GetResetPasswordAsync(TempararyPass, forgotPasswordInput.LoginName);
 
                 //if (ResetPass == null)
@@ -3232,22 +3231,22 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("send")]
-        public async Task<IActionResult> SendEmail([FromBody] EmailDto email)
-        {
-            if (string.IsNullOrWhiteSpace(email.FromEmail) || string.IsNullOrWhiteSpace(email.FromPassword))
-                return BadRequest("Sender email and password are required.");
+        //[HttpPost("send")]
+        //public async Task<IActionResult> SendEmail([FromBody] EmailDto email)
+        //{
+        //    if (string.IsNullOrWhiteSpace(email.FromEmail) || string.IsNullOrWhiteSpace(email.FromPassword))
+        //        return BadRequest("Sender email and password are required.");
 
-            try
-            {
-                await _repository.SendEmailAsync(email);
-                return Ok("Email sent successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Failed to send email: {ex.Message}");
-            }
-        }
+        //    try
+        //    {
+        //        await _repository.SendEmailAsync(email);
+        //        return Ok("Email sent successfully.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Failed to send email: {ex.Message}");
+        //    }
+        //}
     }
 
 }

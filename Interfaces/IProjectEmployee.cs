@@ -105,8 +105,5 @@ namespace TaskManagement.API.Interfaces
 
         Task<ActionResult<string>> FileDownload(FileDownloadNT fileDownloadNT);
         Task<ActionResult<string>> FileDownload();
-
-        Task SendEmailAsync(EmailDto email);
-
     }
 }

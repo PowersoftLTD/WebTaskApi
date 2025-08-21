@@ -14,6 +14,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
+using System.Text;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -1317,12 +1318,48 @@ namespace TaskManagement.API.Repositories
         {
             try
             {
+                const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
+                StringBuilder password = new StringBuilder();
+                Random random = new Random();
+
+                for (int i = 0; i < 10; i++)
+                {
+                    password.Append(validChars[random.Next(validChars.Length)]);
+                }
+                TEMPPASSWORD = password.ToString();
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@TEMPPASSWORD", TEMPPASSWORD);
                     parmeters.Add("@LoginName", LoginName);
                     var ResetPass = await db.QueryAsync<ResetPasswordOutPut>("sp_reset_password", parmeters, commandType: CommandType.StoredProcedure);
+                    var AssiLoginName = await db.QueryAsync<string>(" Select EMP_FULL_NAME from EMPLOYEE_MST EMP_MST where " +
+                        "(EMP_MST.EMAIL_ID_OFFICIAL = '" + LoginName + "' " +
+                        " or Cast(EMP_MST.CONTACT_NO As nVarchar(20))= '" + LoginName + "')  " +
+                        " and EMP_MST.DELETE_FLAG='N' ", commandType: CommandType.Text);
+                    string AssignBy = AssiLoginName.FirstOrDefault();
+                    var parmetersMail = new DynamicParameters();
+                    parmetersMail.Add("@MAIL_TYPE", "Auto");
+                    var MailDetails = await db.QueryAsync<MailDetailsNT>("SP_GET_MAIL_TYPE", parmetersMail, commandType: CommandType.StoredProcedure);
+
+                    string MailBody = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    " +
+                        "<meta charset=\"UTF-8\">\r\n    " +
+                        "<title>Qui Password Reset</title>\r\n</head>" +
+                        "\r\n<body style=\"font-family: Arial, sans-serif; font-size: 14px; color: #333;\">\r\n    " +
+                        "<p>Dear <strong>" + AssignBy + " </strong>,</p>\r\n\r\n    " +
+                        "<p>Your password for <strong>Qui</strong> has been successfully reset.</p>\r\n\r\n    " +
+                        "<p>Your temporary password is: <strong style=\"color: #d9534f;\">" + TEMPPASSWORD.ToString() + "</strong></p>\r\n\r\n    " +
+                        "<p>Please log in to <strong><a href=\"https://qui.piplapps.com\">Qui</a></strong> using this password and update it immediately for security reasons.</p>\r\n\r\n    " +
+                        "<p>If you have any questions or need assistance, feel free to contact us at \r\n       " +
+                        " <a href=\"mailto:qui.support@powersoft.in\">qui.support@powersoft.in</a>.\r\n    " +
+                        "</p>\r\n\r\n    <p>Best regards,<br>\r\n    " +
+                        "<strong>QUI Team</strong></p>\r\n</body>\r\n</html>\r\n";
+
+                    foreach (var Mail in MailDetails)
+                    {
+                        SendEmail(LoginName, null, null, "QUI-Your Temporary Password", MailBody, Mail.MAIL_TYPE, "Qui", null, Mail);
+                    }
+
                     var successsResult = new List<ResetPasswordOutPut_List>
                     {
                         new ResetPasswordOutPut_List
@@ -1864,6 +1901,7 @@ namespace TaskManagement.API.Repositories
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
+            string TaskNo = string.Empty;
             bool transactionCompleted = false;
             try
             {
@@ -1959,6 +1997,7 @@ namespace TaskManagement.API.Repositories
                             foreach (var CheckList in InsertTaskDetails)
                             {
                                 MTask_No = CheckList.MKEY.ToString();
+                                TaskNo = CheckList.TASK_NO.ToString();
                             }
                             if (add_TaskInput_NT.tASK_CHECKLIST_TABLE_INPUT_NT != null)
                             {
@@ -2192,14 +2231,68 @@ namespace TaskManagement.API.Repositories
                             await sqlTransaction.CommitAsync();
                             transactionCompleted = true;
 
+                            var AssignEmail = await db.QueryAsync<string>("select EMAIL_ID_OFFICIAL from EMPLOYEE_MST where MKEY = " + add_TaskInput_NT.CREATED_BY + "  ", commandType: CommandType.Text);
+                            string AssignByEmail = AssignEmail.FirstOrDefault();
+                            var CreatedEmail = await db.QueryAsync<string>("select EMAIL_ID_OFFICIAL from EMPLOYEE_MST where MKEY = " + add_TaskInput_NT.ASSIGNED_TO + "  ", commandType: CommandType.Text);
+                            string CreatedByEmail = CreatedEmail.FirstOrDefault();
+                            var AssignedBy = await db.QueryAsync<string>("Select EMP_FULL_NAME from EMPLOYEE_MST where MKEY = " + add_TaskInput_NT.ASSIGNED_TO + "  ", commandType: CommandType.Text);
+                            string AssignedByName = AssignedBy.FirstOrDefault();
+
+
+                            var parmetersMail = new DynamicParameters();
+                            parmetersMail.Add("@MAIL_TYPE", "Auto");
+                            var MailDetails = await db.QueryAsync<MailDetailsNT>("SP_GET_MAIL_TYPE", parmetersMail, commandType: CommandType.StoredProcedure);
+
+                            StringBuilder htmlRows = new StringBuilder();
+                            htmlRows.Append("<tr>");
+                            htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", TaskNo);
+                            htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", add_TaskInput_NT.TASK_NAME);
+                            htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", add_TaskInput_NT.TASK_DESCRIPTION);
+                            htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0:dd-MMM-yyyy}</td>", add_TaskInput_NT.COMPLETION_DATE);
+                            htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", AssignedByName);
+                            htmlRows.Append("</tr>");
+
+                            string taskKickoffRowsHtml = htmlRows.ToString();
+
+                            string MailBody = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    " +
+                                "<meta charset=\"UTF-8\">\r\n    " +
+                                "<title>Task Assignment</title>\r\n" +
+                                "</head>\r\n<body style=\"font-family: Arial, sans-serif; font-size: 14px; color: #333;\">\r\n    " +
+                                "<p>Dear <strong>"+ AssignedByName + "</strong>,</p>\r\n\r\n    <p>The following task has been assigned to you:</p>\r\n\r\n    " +
+                                "<form style='margin:1% auto;'>\r\n                       " +
+                                "<fieldset style='border:2px solid #9ec3ff;margin:auto 1%;padding:5px;color:#003487;'>\r\n                         " +
+                                "<legend style='padding:10px;font-size: 18px!important;'><b>Your Task list</b></legend>\r\n                         " +
+                                "<table style='width:100%;padding:0px;margin:1% auto;border-radius:14px;font-size:14px;'>\r\n                           " +
+                                "<tr>\r\n                             " +
+                                "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:8%;'><b>Task No.</b></td>  \r\n                             " +
+                                "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;'><b>Task Name</b></td>\r\n                            " +
+                                " <td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:40%;'><b>Description</b></td>  \r\n                             " +
+                                "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:10%;'><b>Due Date</b></td>  \r\n                             " +
+                                "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:10%;'><b>Assigned By</b></td> \r\n                             " +
+                                "</tr>\r\n                          " + taskKickoffRowsHtml + 
+                                "</table>\r\n                      " +
+                                " </fieldset>\r\n                    " +
+                                " </form>\r\n\r\n    " +
+                                "<p style=\"margin-top: 20px;\">\r\n        If you have any questions or need assistance, feel free to contact us at \r\n        " +
+                                "<a href=\"mailto:qui.support@powersoft.in\">qui.support@powersoft.in</a>.\r\n    </p>\r\n\r\n    <p>Best regards,<br>\r\n    " +
+                                "<strong>QUI Team</strong></p>\r\n</body>\r\n</html>\r\n";
+
+                            foreach (var Mail in MailDetails)
+                            {
+                                SendEmail(AssignByEmail.ToString(), CreatedByEmail.ToString(), null, "QUI-New Task Assigned : Task No-("+ TaskNo+" )", MailBody, Mail.MAIL_TYPE, "QUI", null, Mail);
+                            }
+
+
+
+
                             var successsResult = new List<Add_TaskOutPut_List_NT>
                             {
                             new Add_TaskOutPut_List_NT
-                            {
-                                Status = "Ok",
-                                Message = "Inserted Successfully",
-                                Data= InsertTaskDetails
-                            }
+                                {
+                                    Status = "Ok",
+                                    Message = "Inserted Successfully",
+                                    Data= InsertTaskDetails
+                                }
                             };
                             return successsResult;
                         }
@@ -4588,18 +4681,6 @@ namespace TaskManagement.API.Repositories
                 Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
             }
         }
-        //private List<UpdateProjectDocDepositoryHDROutput_List> GenerateErrorResponse(string message)
-        //{
-        //    return new List<UpdateProjectDocDepositoryHDROutput_List>
-        //    {
-        //        new UpdateProjectDocDepositoryHDROutput_List
-        //        {
-        //            STATUS = "Error",
-        //            MESSAGE = message,
-        //            DATA = null
-        //        }
-        //    };
-        //}
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_CHECK_LIST>>> PostTaskCheckListInsertUpdateAsync(TASK_CHECKLIST_INPUT tASK_CHECKLIST_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
@@ -6790,7 +6871,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@Business_Group_Id", taskProjectDashboardInput.Business_Group_Id);
 
                     var taskStatusDistributonNTs = await db.QueryMultipleAsync("SP_GET_TASK_PROJECTS_BY_TASK_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure);
-                    
+
                     List<TaskProjectsDashboardNT> taskProjectsDashboardNT = new List<TaskProjectsDashboardNT>();
                     List<TaskProjectsDashboardCountNT> taskProjectsDashboardCountNT = new List<TaskProjectsDashboardCountNT>();
 
@@ -6869,7 +6950,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@PropertyMkey", taskProjectsFilterNT.Property);
                     parmeters.Add("@Session_User_Id", taskProjectsFilterNT.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", taskProjectsFilterNT.Business_Group_Id);
-                    
+
                     //var BuildName = await db.QueryAsync<TaskDashBoardUserFilterNT>("Select TYPE_DESC as  DisplayName from TYPE_MST where TYPE_CODE = 'Project' and PARENT_ID != 0 and DELETE_FLAG = 'N'",  commandType: CommandType.Text);
 
                     var taskStatusDistributonNTs = await db.QueryAsync<TaskDashBoardUserFilterNT>("SP_GET_PROJECTS_TASK_TYPE_NT", parmeters, commandType: CommandType.StoredProcedure);
@@ -6957,7 +7038,7 @@ namespace TaskManagement.API.Repositories
                         };
                         return successsResult;
                     }
-                    
+
                 }
             }
             catch (Exception ex)
@@ -7006,7 +7087,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@Session_User_Id", userProjectBuildingActivityPostNT.Session_User_Id);
                     parmeters.Add("@Business_Group_Id", userProjectBuildingActivityPostNT.Business_Group_Id);
                     parmeters.Add("@DELETE_FLAG", userProjectBuildingActivityPostNT.DELETE_FLAG);
-                    
+
                     var UserActivity = await db.QueryAsync<UserProjectBuildingActivityInputNT>("SP_INSERT_UPDATE_USER_PROJECT_BUILDING_ACTIVITY_NT", parmeters, commandType: CommandType.StoredProcedure);
 
                     var successsResult = new List<UserProjectBuildingActivityOutputNT>
@@ -7036,24 +7117,62 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-
-        public async Task SendEmailAsync(EmailDto email)
+        public string SendEmail(string sp_to, string sp_cc, string sp_bcc, string sp_subject, string sp_body, string sp_mailtype, string sp_display_name, List<string> lp_attachment, MailDetailsNT mailDetailsNT)
         {
-            var smtpServer = "smtp.gmail.com"; // If it's Gmail, use smtp.gmail.com
-            var port = 587;
-
-            using var smtp = new SmtpClient(smtpServer, port)
+            string strerror = string.Empty;
+            try
             {
-                Credentials = new NetworkCredential(email.FromEmail, email.FromPassword),
-                EnableSsl = true
-            };
+                MailMessage mail = new MailMessage();
 
-            var mail = new MailMessage(email.FromEmail, email.To, email.Subject, email.Body)
+
+                foreach (var to_address in sp_to.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    mail.To.Add(new MailAddress(to_address));
+                    //mail.To.Add("ashish.tripathi@powersoft.in");
+                    //mail.CC.Add("brijesh.tiwari@powersoft.in");
+                }
+                if (sp_cc != null)
+                    foreach (var cc_address in sp_cc.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    mail.CC.Add(new MailAddress(cc_address));
+                    // mail.CC.Add("brijesh.tiwari@powersoft.in");
+                }
+                if (sp_bcc != null)
+                    foreach (var bcc_address in sp_bcc.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        mail.Bcc.Add(new MailAddress(bcc_address));
+                    }
+
+                mail.Subject = sp_subject;
+                mail.From = new System.Net.Mail.MailAddress(mailDetailsNT.MAIL_FROM, sp_display_name);//, sp_display_name == "" ? dt.Rows[0]["MAIL_DISPLAY_NAME"].ToString() : sp_display_name
+                SmtpClient smtp = new SmtpClient();
+                smtp.Timeout = Convert.ToInt32(mailDetailsNT.SMTP_TIMEOUT);
+                smtp.Port = Convert.ToInt32(mailDetailsNT.SMTP_PORT);
+                smtp.UseDefaultCredentials = true;
+                smtp.Host = mailDetailsNT.SMTP_HOST.ToString();
+                smtp.Credentials = new NetworkCredential(mailDetailsNT.MAIL_FROM, mailDetailsNT.SMTP_PASS);
+                smtp.EnableSsl = mailDetailsNT.SMTP_ESSL.ToString() == "true" ? true : false;
+                mail.IsBodyHtml = true;
+                mail.Body = sp_body;
+                if (lp_attachment != null)
+                    foreach (var attach in lp_attachment)
+                    {
+                        mail.Attachments.Add(new Attachment(attach));
+                    }
+                smtp.Send(mail);
+
+                foreach (Attachment attachment in mail.Attachments)
+                {
+                    attachment.Dispose();
+                }
+                strerror = "Sent Email";
+                return strerror;
+            }
+            catch (Exception ex)
             {
-                IsBodyHtml = true
-            };
-
-            await smtp.SendMailAsync(mail);
+                strerror = "Error Sending Email : " + ex.Message;
+                return strerror;
+            }
         }
     }
 }
