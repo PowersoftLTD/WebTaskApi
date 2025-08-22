@@ -455,7 +455,7 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-        [HttpPost("ProjectDefination/Get-Approval-Details-NT")]
+        [HttpPost("Get-Approval-Details-NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<ProjectApprovalDetailsNT>>> GetApprovalDetailsNT(ProjectApprovalDetailsInputNT projectApprovalDetailsInputNT)
         {

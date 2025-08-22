@@ -20,6 +20,10 @@ namespace TaskManagement.API.Model
         public string? login_name { get; set; }
         [JsonPropertyName("EMAIL_ID_OFFICIAL")]
         public string? EMAIL_ID_OFFICIAL { get; set; }
+        [JsonIgnore]
+        public string? Message { get; set; }
+        [JsonIgnore]
+        public int ErrorNumber { get; set; }
     }
 
     public class MailDetailsNT

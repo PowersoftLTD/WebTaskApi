@@ -15,5 +15,7 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("MessageText")]
         public string? MessageText { get; set; }
+        [JsonIgnore]
+        public int ErrorNumber { get; set; }
     }
 }

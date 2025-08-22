@@ -628,6 +628,19 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseTaskAction);
                 }
+                foreach(var Response in ForgotPass)
+                {
+                    if(Response.Status != "Ok")
+                    {
+                        var response = new ResetPasswordOutPut_List
+                        {
+                            Status = "Error",
+                            Message = Response.Message,
+                            Data = null
+                        };
+                        return Ok(response);
+                    }
+                }
                 string TempararyPass = string.Empty;
                 foreach (var TempPaass in ForgotPass)
                 {

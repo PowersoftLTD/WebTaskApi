@@ -56733,3 +56733,95 @@ BEGIN
 	FROM XXP_EMAIL_PARA X where delete_flag='N' and X.MAIL_TYPE=@MAIL_TYPE;
 END
 
+
+GO
+/****** Object:  StoredProcedure [dbo].[sp_reset_password]    Script Date: 22-08-2025 18:39:35 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER procedure [dbo].[sp_reset_password](@TEMPPASSWORD varchar(250),@LoginName varchar(250)) as 
+
+begin  
+		
+		update 
+			employee_mst 
+		set  
+			RESSET_FLAG='Y',LOGIN_PASSWORD = cast(@TEMPPASSWORD as varbinary), TEMPPASSWORD = cast(@TEMPPASSWORD as varbinary)  
+		where 
+			Cast(login_name As Varchar(500)) = @LoginName OR EMAIL_ID_OFFICIAL = @LoginName  
+  
+		select 
+			login_name,EMAIL_ID_OFFICIAL,Cast(TEMPPASSWORD As Varchar(500))TEMPPASSWORD
+			,'Temporary password has been sent to above email address' as [Message], '0' as ErrorNumber
+		from 
+			employee_mst 
+		where 
+			Cast(login_name As Varchar(500)) = @LoginName OR EMAIL_ID_OFFICIAL = @LoginName ;
+		
+end
+
+GO
+/****** Object:  StoredProcedure [dbo].[Sp_USER_ForgotPassword]    Script Date: 22-08-2025 15:20:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+--  exec Sp_USER_ForgotPassword 'amit.shuddhalwar@powersoft.in'
+ALTER PROCEDURE [dbo].[Sp_USER_ForgotPassword]
+     (
+      @LoginName nvarchar(255)
+     )
+AS
+
+DECLARE @LCount INT;
+DECLARE @MessageText NVARCHAR(4000);
+DECLARE @ErrorNumber INT;
+--DECLARE @ErrorMessage NVARCHAR(4000);
+
+BEGIN
+   SET NOCOUNT ON;
+
+    SELECT @LCount = COUNT(*) 
+	FROM employee_mst 
+	where Cast(login_name As Varchar(500)) = @LoginName OR EMAIL_ID_OFFICIAL = @LoginName
+	and DELETE_FLAG = 'N';
+    --PRINT @LCount
+  
+     IF(@LCount)>0
+      BEGIN
+        --PRINT @LCount
+      
+        SET @MessageText = 'Temporary password has been sent to above email address';
+		set @ErrorNumber = 1;
+  --      select @MessageText=@MessageText +'~'+cast(ISFORGOTPASSWORD as varchar) 
+		--FROM employee_mst 
+		--where Cast(login_name As Varchar(500)) = @LoginName OR EMAIL_ID_OFFICIAL = @LoginName
+		--and DELETE_FLAG = 'N';
+
+        RAISERROR (@MessageText, @ErrorNumber, 1); 
+        --SELECT mkey,user_name,login_name FROM employee_mst where login_name =@LoginName and [Password]= @Old_Password
+      
+      END
+   
+     IF (@LCount = 0)
+      BEGIN
+    
+       SET @MessageText = 'Invalid Login Name, Please Enter the Valid Login Name';
+	   set @ErrorNumber = 0;
+       RAISERROR (@MessageText, @ErrorNumber, 1); 
+  
+      END   
+     
+         /* EXEC sp_addmessage
+       				  500021,
+					  10,
+					  @MessageText
+		 GO
+		 RAISERROR (500021, 10, @MessageText)
+		 */
+    select @MessageText MessageText, @ErrorNumber as ErrorNumber;
+END
+
+
