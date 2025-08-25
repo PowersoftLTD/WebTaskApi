@@ -3546,6 +3546,105 @@ namespace TaskManagement.API.Repositories
                 return 0;
             }
         }
+
+        public async Task<int> GetPostTaskActionAsyncNT(string Mkey, string TASK_MKEY, string TASK_PARENT_ID, string ACTION_TYPE, string DESCRIPTION_COMMENT, string PROGRESS_PERC, string STATUS, string CREATED_BY, string TASK_MAIN_NODE_ID, string FILE_NAME, string FILE_PATH)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Parameter1", Mkey);
+                    parameters.Add("@Parameter2", TASK_MKEY);
+                    parameters.Add("@Parameter3", TASK_PARENT_ID);
+                    parameters.Add("@Parameter4", ACTION_TYPE);
+                    parameters.Add("@Parameter5", DESCRIPTION_COMMENT);
+                    parameters.Add("@Parameter6", PROGRESS_PERC);
+                    parameters.Add("@Parameter7", STATUS);
+                    parameters.Add("@Parameter8", CREATED_BY);
+                    parameters.Add("@Parameter9", TASK_MAIN_NODE_ID);
+                    parameters.Add("@Parameter10", FILE_NAME);
+                    parameters.Add("@Parameter11", FILE_PATH);
+
+                    var TaskFile = await db.ExecuteAsync("SP_TASK_ACTION_TRL_Insert_Update", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    if (TaskFile == null || TaskFile == 0)
+                    {
+                        // Handle other unexpected exceptions
+                        if (transaction != null && !transactionCompleted)
+                        {
+                            try
+                            {
+                                // Rollback only if the transaction is not yet completed
+                                transaction.Rollback();
+                            }
+                            catch (InvalidOperationException rollbackEx)
+                            {
+
+                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                //TranError.Message = ex.Message;
+                                //return TranError;
+                            }
+                        }
+
+                        var TemplateError = new TASK_FILE_UPLOAD();
+                        TemplateError.STATUS = "Error";
+                        TemplateError.MESSAGE = "Error Occurd";
+                        return 0;
+                    }
+
+                    var sqlTransaction = (SqlTransaction)transaction;
+                    await sqlTransaction.CommitAsync();
+                    transactionCompleted = true;
+
+                    return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        //var TranError = new APPROVAL_TASK_INITIATION();
+                        //TranError.ResponseStatus = "Error";
+                        //TranError.Message = ex.Message;
+                        //return TranError;
+                    }
+                }
+
+                var ErrorFileDetails = new TASK_FILE_UPLOAD();
+                ErrorFileDetails.STATUS = "Error";
+                ErrorFileDetails.MESSAGE = ex.Message;
+                return 0;
+            }
+        }
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_list>>> GetTaskComplianceAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);

@@ -50,6 +50,8 @@ namespace TaskManagement.API.Interfaces
         Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag);
         Task<int> GetPostTaskActionAsync(string Mkey, string TASK_MKEY, string TASK_PARENT_ID, string ACTION_TYPE, string DESCRIPTION_COMMENT, string PROGRESS_PERC, string STATUS, string CREATED_BY, string TASK_MAIN_NODE_ID, string FILE_NAME, string FILE_PATH);
 
+        Task<int> GetPostTaskActionAsyncNT(string Mkey, string TASK_MKEY, string TASK_PARENT_ID, string ACTION_TYPE, string DESCRIPTION_COMMENT, string PROGRESS_PERC, string STATUS, string CREATED_BY, string TASK_MAIN_NODE_ID, string FILE_NAME, string FILE_PATH);
+
         Task<ActionResult<IEnumerable<TASK_COMPLIANCE_list>>> GetTaskComplianceAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT);
         Task<ActionResult<IEnumerable<TASK_COMPLIANCE_list_NT>>> GetTaskComplianceNTAsync(Task_Compliance_Input_NT task_Compliance_Input_NT);
         Task<ActionResult<IEnumerable<TaskSanctioningDepartmentOutputList>>> GetTaskSanctioningAuthorityAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT);

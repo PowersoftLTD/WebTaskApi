@@ -1791,7 +1791,7 @@ namespace TaskManagement.API.Controllers
                     taskPostActionInput.FILE_PATH = string.Empty;
                 }
 
-                int ResultCount = await _repository.GetPostTaskActionAsync(taskPostActionInput.Mkey.ToString(), taskPostActionInput.TASK_MKEY.ToString(),
+                int ResultCount = await _repository.GetPostTaskActionAsyncNT(taskPostActionInput.Mkey.ToString(), taskPostActionInput.TASK_MKEY.ToString(),
                     taskPostActionInput.TASK_PARENT_ID.ToString(),
                     taskPostActionInput.ACTION_TYPE, taskPostActionInput.DESCRIPTION_COMMENT, taskPostActionInput.PROGRESS_PERC, taskPostActionInput.STATUS,
                     taskPostActionInput.CREATED_BY.ToString(),

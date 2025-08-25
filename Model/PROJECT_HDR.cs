@@ -208,15 +208,27 @@ namespace TaskManagement.API.Model
         public string DAYS_REQUIERD { get; set; }
         [JsonPropertyName("Authority_Department")]
         public string AUTHORITY_DEPARTMENT { get; set; }
+
+        [JsonPropertyName("Authority_Department_Name")]
+        public string AUTHORITY_DEPARTMENT_NAME { get; set; }
+
         [JsonPropertyName("End_Result_Doc")]
         public string END_RESULT_DOC { get; set; }
 
         [JsonPropertyName("Job_Role")]
         public int JOB_ROLE { get; set; }
+
+        [JsonPropertyName("Job_Role_Name")]
+        public string JOB_ROLE_Name { get; set; }
+
         [JsonPropertyName("Subtask_Parent_Id")]
         public int SUBTASK_PARENT_ID { get; set; }
         [JsonPropertyName("Resposible_Emp_Mkey")]
         public int RESPOSIBLE_EMP_MKEY { get; set; }
+
+        [JsonPropertyName("Resposible_Emp_Name")]
+        public string RESPOSIBLE_EMP_Name { get; set; }
+
         [JsonPropertyName("Long_Description")]
         public string LONG_DESCRIPTION { get; set; }
 
