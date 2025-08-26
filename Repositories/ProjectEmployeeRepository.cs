@@ -1378,6 +1378,7 @@ namespace TaskManagement.API.Repositories
                                    " or Cast(EMP_MST.CONTACT_NO As nVarchar(20))= '" + LoginName + "')  " +
                                    " and EMP_MST.DELETE_FLAG='N' ", commandType: CommandType.Text);
                         string AssignBy = AssiLoginName.FirstOrDefault();
+                        
                         var parmetersMail = new DynamicParameters();
                         parmetersMail.Add("@MAIL_TYPE", "Auto");
                         var MailDetails = await db.QueryAsync<MailDetailsNT>("SP_GET_MAIL_TYPE", parmetersMail, commandType: CommandType.StoredProcedure);
@@ -2287,16 +2288,41 @@ namespace TaskManagement.API.Repositories
 
                             var AssignEmail = await db.QueryAsync<string>("select EMAIL_ID_OFFICIAL from EMPLOYEE_MST where MKEY = " + add_TaskInput_NT.ASSIGNED_TO + "  ", commandType: CommandType.Text);
                             string AssignByEmail = AssignEmail.FirstOrDefault();
+                            
                             var CreatedEmail = await db.QueryAsync<string>("select EMAIL_ID_OFFICIAL from EMPLOYEE_MST where MKEY = " + add_TaskInput_NT.CREATED_BY + "  ", commandType: CommandType.Text);
                             string CreatedByEmail = CreatedEmail.FirstOrDefault();
+                            
                             var AssignedBy = await db.QueryAsync<string>("Select UPPER(LEFT(FIRST_NAME,1))+LOWER(SUBSTRING(FIRST_NAME,2,LEN(FIRST_NAME))) + ' '+ " +
                                 " UPPER(LEFT(LAST_NAME,1))+LOWER(SUBSTRING(LAST_NAME,2,LEN(LAST_NAME))) as EMP_FULL_NAME " +
                                 " from EMPLOYEE_MST where MKEY = " + add_TaskInput_NT.CREATED_BY + "  ", commandType: CommandType.Text);
                             string AssignedByName = AssignedBy.FirstOrDefault();
+                            
                             var AssignName = await db.QueryAsync<string>("SELECT  UPPER(LEFT(FIRST_NAME,1))+LOWER(SUBSTRING(FIRST_NAME,2,LEN(FIRST_NAME))) + ' '+" +
                                 " UPPER(LEFT(LAST_NAME,1))+LOWER(SUBSTRING(LAST_NAME,2,LEN(LAST_NAME))) as EMP_FULL_NAME " +
                                 " From EMPLOYEE_MST  where MKEY = " + add_TaskInput_NT.ASSIGNED_TO + "  ", commandType: CommandType.Text);
                             string AssignByName = AssignName.FirstOrDefault();
+
+                            if (add_TaskInput_NT.Assign_By_Email != null || add_TaskInput_NT.Assign_By_Email != "")
+                            {
+                                AssignByEmail = add_TaskInput_NT.Assign_By_Email;
+
+                                var AssignNameEmail = await db.QueryAsync<string>("SELECT  UPPER(LEFT(FIRST_NAME,1))+LOWER(SUBSTRING(FIRST_NAME,2,LEN(FIRST_NAME))) + ' '+" +
+                              " UPPER(LEFT(LAST_NAME,1))+LOWER(SUBSTRING(LAST_NAME,2,LEN(LAST_NAME))) as EMP_FULL_NAME " +
+                              " From EMPLOYEE_MST  " +
+                              " Where DELETE_FLAG = 'N' AND (EMAIL_ID_PERSONAL = '" + add_TaskInput_NT.Assign_By_Email + "' " +
+                              " OR EMAIL_ID_OFFICIAL = '" + add_TaskInput_NT.Assign_By_Email + "')  ", commandType: CommandType.Text);
+                                AssignByName = AssignNameEmail.FirstOrDefault();
+                            }
+                            
+                            if (add_TaskInput_NT.Created_By_Email != null || add_TaskInput_NT.Created_By_Email != "")
+                            {
+                                var AssignedByEmail = await db.QueryAsync<string>("Select UPPER(LEFT(FIRST_NAME,1))+LOWER(SUBSTRING(FIRST_NAME,2,LEN(FIRST_NAME))) + ' '+ " +
+                                " UPPER(LEFT(LAST_NAME,1))+LOWER(SUBSTRING(LAST_NAME,2,LEN(LAST_NAME))) as EMP_FULL_NAME " +
+                                " from EMPLOYEE_MST " +
+                                " Where DELETE_FLAG = 'N' AND (EMAIL_ID_PERSONAL = '" + add_TaskInput_NT.Created_By_Email + "' " +
+                                " OR EMAIL_ID_OFFICIAL = '" + add_TaskInput_NT.Created_By_Email + "')  ", commandType: CommandType.Text);
+                                AssignedByName = AssignedByEmail.FirstOrDefault();
+                            }
 
 
                             var parmetersMail = new DynamicParameters();
