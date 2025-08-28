@@ -8,6 +8,7 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Formats.Tar;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
@@ -26,14 +27,16 @@ namespace TaskManagement.API.Repositories
 {
     public class ProjectEmployeeRepository : IProjectEmployee
     {
+        private readonly IHostEnvironment _env;
         private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         public IDapperDbConnection _dapperDbConnection;
         private readonly string _connectionString;
         private readonly FileSettings _fileSettings;
         private readonly ITokenRepository _tokenRepository;
         public ProjectEmployeeRepository(IDapperDbConnection dapperDbConnection, string connectionString
-            , IOptions<FileSettings> fileSettings, ITokenRepository tokenRepository)
+            , IOptions<FileSettings> fileSettings, ITokenRepository tokenRepository, IHostEnvironment env)
         {
+            _env = env;
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
             _fileSettings = fileSettings.Value;
@@ -3100,8 +3103,8 @@ namespace TaskManagement.API.Repositories
 
                         var parmetersAssign = new DynamicParameters();
                         parmetersAssign.Add("@TASK_MKEY", MTask_No);
-                        parmetersAssign.Add("@CREATEDBY", add_TaskInput_NT.CREATED_BY );
-                        parmetersAssign.Add("@ASSIGNBY", add_TaskInput_NT.ASSIGNED_TO );
+                        parmetersAssign.Add("@CREATEDBY", add_TaskInput_NT.CREATED_BY);
+                        parmetersAssign.Add("@ASSIGNBY", add_TaskInput_NT.ASSIGNED_TO);
                         var TaskAssignCreate = (await db.QueryAsync<TaskAssignCreateBy>("SP_GET_CREATEDBY_ASSIGNBY_TASK_NT",
                         parmetersAssign, commandType: CommandType.StoredProcedure, transaction: transaction));
 
@@ -3590,7 +3593,7 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        public async Task<int> GetPostTaskActionAsyncNT(string Mkey, string TASK_MKEY, string TASK_PARENT_ID, string ACTION_TYPE, string DESCRIPTION_COMMENT, string PROGRESS_PERC, string STATUS, string CREATED_BY, string TASK_MAIN_NODE_ID, string FILE_NAME, string FILE_PATH)
+        public async Task<ActionResult<TaskPostActionAPIOutPut_List_NT>> GetPostTaskActionAsyncNT(string Mkey, string TASK_MKEY, string TASK_PARENT_ID, string ACTION_TYPE, string DESCRIPTION_COMMENT, string PROGRESS_PERC, string STATUS, string CREATED_BY, string TASK_MAIN_NODE_ID, string FILE_NAME, string FILE_PATH)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -3627,38 +3630,56 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@Parameter10", FILE_NAME);
                     parameters.Add("@Parameter11", FILE_PATH);
 
-                    var TaskFile = await db.ExecuteAsync("SP_TASK_ACTION_TRL_Insert_Update", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var TaskFile = await db.QueryAsync<TaskPostActionOutput_NT>("SP_TASK_ACTION_TRL_Insert_Update_NT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                    if (TaskFile == null || TaskFile == 0)
+                    if (TaskFile.Any())
                     {
-                        // Handle other unexpected exceptions
-                        if (transaction != null && !transactionCompleted)
+                        if (TaskFile.Select(x => x.ResponseStatus).ToString() != "Ok")
                         {
-                            try
+                            if (transaction != null && !transactionCompleted)
                             {
-                                // Rollback only if the transaction is not yet completed
-                                transaction.Rollback();
+                                try
+                                {
+                                    // Rollback only if the transaction is not yet completed
+                                    transaction.Rollback();
+                                }
+                                catch (InvalidOperationException rollbackEx)
+                                {
+                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                }
                             }
-                            catch (InvalidOperationException rollbackEx)
-                            {
 
-                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                //TranError.Message = ex.Message;
-                                //return TranError;
-                            }
+                            var Erroresponse = new TaskPostActionAPIOutPut_List_NT
+                            {
+                                Status = "Error",
+                                Message = TaskFile.Select(x => x.StatusMessage).ToString(),
+                                Data = null
+                            };
+                            return Erroresponse;
                         }
-
-                        var TemplateError = new TASK_FILE_UPLOAD();
-                        TemplateError.STATUS = "Error";
-                        TemplateError.MESSAGE = "Error Occurd";
-                        return 0;
+                    }
+                    else
+                    {
+                        var Erroresponse = new TaskPostActionAPIOutPut_List_NT
+                        {
+                            Status = "Error",
+                            Message = "Error occurd",
+                            Data = null
+                        };
+                        return Erroresponse;
                     }
 
                     var sqlTransaction = (SqlTransaction)transaction;
                     await sqlTransaction.CommitAsync();
                     transactionCompleted = true;
 
-                    return 1;
+                    var SuccessResponse = new TaskPostActionAPIOutPut_List_NT
+                    {
+                        Status = "Ok",
+                        Message = TaskFile.Select(x => x.StatusMessage).ToString(),
+                        Data = null
+                    };
+                    return SuccessResponse;
                 }
             }
             catch (Exception ex)
@@ -3682,10 +3703,13 @@ namespace TaskManagement.API.Repositories
                     }
                 }
 
-                var ErrorFileDetails = new TASK_FILE_UPLOAD();
-                ErrorFileDetails.STATUS = "Error";
-                ErrorFileDetails.MESSAGE = ex.Message;
-                return 0;
+                var ErrorResponse = new TaskPostActionAPIOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return ErrorResponse;
             }
         }
         public async Task<ActionResult<IEnumerable<TASK_COMPLIANCE_list>>> GetTaskComplianceAsync(TASK_COMPLIANCE_INPUT tASK_COMPLIANCE_INPUT)
@@ -7147,12 +7171,6 @@ namespace TaskManagement.API.Repositories
                     }
                     catch { }
 
-
-
-                    //var sqlTransaction = (SqlTransaction)transaction;
-                    //await sqlTransaction.CommitAsync();
-                    //transactionCompleted = true;
-
                     var successsResult = new List<TaskProjectsDashboardOutputNT>
                     {
                         new TaskProjectsDashboardOutputNT
@@ -7382,57 +7400,60 @@ namespace TaskManagement.API.Repositories
             string strerror = string.Empty;
             try
             {
-                using (MailMessage mail1 = new MailMessage())
+                if (_env.IsProduction())
                 {
-                    mail1.From = new System.Net.Mail.MailAddress(mailDetailsNT.MAIL_FROM, sp_display_name.ToUpper());//, sp_display_name == "" ? dt.Rows[0]["MAIL_DISPLAY_NAME"].ToString() : sp_display_name
-                    //mail1.To.Add("narendrakumar.soni@powersoft.in");
-                    foreach (var to_address in sp_to.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                    using (MailMessage mail1 = new MailMessage())
                     {
-                        mail1.To.Add(new MailAddress(to_address));
-                        //mail1.To.Add(new MailAddress("narendrakumar.soni@powersoft.in"));
-                        //mail.To.Add("ashish.tripathi@powersoft.in");
-                        //mail.CC.Add("brijesh.tiwari@powersoft.in");
-                    }
-                    if (sp_cc != null)
-                        foreach (var cc_address in sp_cc.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                        mail1.From = new System.Net.Mail.MailAddress(mailDetailsNT.MAIL_FROM, sp_display_name.ToUpper());//, sp_display_name == "" ? dt.Rows[0]["MAIL_DISPLAY_NAME"].ToString() : sp_display_name
+                                                                                                                         //mail1.To.Add("narendrakumar.soni@powersoft.in");
+                        foreach (var to_address in sp_to.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
                         {
-                            mail1.CC.Add(new MailAddress(cc_address));
-                            // mail.CC.Add("brijesh.tiwari@powersoft.in");
+                            mail1.To.Add(new MailAddress(to_address));
+                            //mail1.To.Add(new MailAddress("narendrakumar.soni@powersoft.in"));
+                            //mail.To.Add("ashish.tripathi@powersoft.in");
+                            //mail.CC.Add("brijesh.tiwari@powersoft.in");
                         }
-                    if (sp_bcc != null)
-                        foreach (var bcc_address in sp_bcc.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
-                        {
-                            mail1.Bcc.Add(new MailAddress(bcc_address));
-                        }
-
-                    mail1.Subject = sp_subject;
-                    mail1.Body = sp_body;
-                    mail1.IsBodyHtml = true;
-                    //mail1.Attachments.Add(new Attachment("C:\\file.zip"));
-
-                    using (SmtpClient smtp1 = new SmtpClient(mailDetailsNT.SMTP_HOST.ToString(), Convert.ToInt32(mailDetailsNT.SMTP_PORT)))
-                    {
-                        smtp1.Credentials = new NetworkCredential(mailDetailsNT.MAIL_FROM, mailDetailsNT.SMTP_PASS.ToString());
-                        //new NetworkCredential("autosupport@powersoft.in", "yivz qklg jsbv ttso");
-                        smtp1.EnableSsl = mailDetailsNT.SMTP_ESSL.ToString() == "true" ? true : false;
-
-                        if (lp_attachment != null)
-                            foreach (var attach in lp_attachment)
+                        if (sp_cc != null)
+                            foreach (var cc_address in sp_cc.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
                             {
-                                mail1.Attachments.Add(new Attachment(attach));
+                                mail1.CC.Add(new MailAddress(cc_address));
+                                // mail.CC.Add("brijesh.tiwari@powersoft.in");
+                            }
+                        if (sp_bcc != null)
+                            foreach (var bcc_address in sp_bcc.Replace(",", ";").Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries))
+                            {
+                                mail1.Bcc.Add(new MailAddress(bcc_address));
                             }
 
-                        smtp1.Send(mail1);
-                    }
-                    foreach (Attachment attachment in mail1.Attachments)
-                    {
-                        attachment.Dispose();
-                    }
+                        mail1.Subject = sp_subject;
+                        mail1.Body = sp_body;
+                        mail1.IsBodyHtml = true;
+                        //mail1.Attachments.Add(new Attachment("C:\\file.zip"));
 
+                        using (SmtpClient smtp1 = new SmtpClient(mailDetailsNT.SMTP_HOST.ToString(), Convert.ToInt32(mailDetailsNT.SMTP_PORT)))
+                        {
+                            smtp1.Credentials = new NetworkCredential(mailDetailsNT.MAIL_FROM, mailDetailsNT.SMTP_PASS.ToString());
+                            //new NetworkCredential("autosupport@powersoft.in", "yivz qklg jsbv ttso");
+                            smtp1.EnableSsl = mailDetailsNT.SMTP_ESSL.ToString() == "true" ? true : false;
+
+                            if (lp_attachment != null)
+                                foreach (var attach in lp_attachment)
+                                {
+                                    mail1.Attachments.Add(new Attachment(attach));
+                                }
+
+                            smtp1.Send(mail1);
+                        }
+                        foreach (Attachment attachment in mail1.Attachments)
+                        {
+                            attachment.Dispose();
+                        }
+
+                    }
                 }
-
                 strerror = "Sent Email";
                 return strerror;
+
 
                 /*MailMessage mail = new MailMessage();
 
