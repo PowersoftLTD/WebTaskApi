@@ -26,7 +26,7 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("TaskType")]
         public string? TaskType { get; set; }
         [JsonPropertyName("PropertyMkey")]
-        public int? Property { get; set; }
+        public string? Property { get; set; }
         [JsonPropertyName("Session_User_Id")]
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]

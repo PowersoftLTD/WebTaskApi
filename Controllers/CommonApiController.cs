@@ -628,9 +628,9 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(responseTaskAction);
                 }
-                foreach(var Response in ForgotPass)
+                foreach (var Response in ForgotPass)
                 {
-                    if(Response.Status != "Ok")
+                    if (Response.Status != "Ok")
                     {
                         var response = new ResetPasswordOutPut_List
                         {
@@ -1782,37 +1782,40 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
+
                 if (taskPostActionInput.FILE_NAME != null)
                 {
-                    taskPostActionInput.FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME;
+                    if (taskPostActionInput.FILE_PATH == null)
+                    {
+                        taskPostActionInput.FILE_PATH = "Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME;
+                    }
                 }
                 else if (taskPostActionInput.FILE_NAME == null)
                 {
                     taskPostActionInput.FILE_PATH = string.Empty;
                 }
 
-                int ResultCount = await _repository.GetPostTaskActionAsyncNT(taskPostActionInput.Mkey.ToString(), taskPostActionInput.TASK_MKEY.ToString(),
+                var ResultCount = await _repository.GetPostTaskActionAsyncNT(taskPostActionInput.Mkey.ToString(), taskPostActionInput.TASK_MKEY.ToString(),
                     taskPostActionInput.TASK_PARENT_ID.ToString(),
                     taskPostActionInput.ACTION_TYPE, taskPostActionInput.DESCRIPTION_COMMENT, taskPostActionInput.PROGRESS_PERC, taskPostActionInput.STATUS,
                     taskPostActionInput.CREATED_BY.ToString(),
                     taskPostActionInput.TASK_MAIN_NODE_ID.ToString(), taskPostActionInput.FILE_NAME, taskPostActionInput.FILE_PATH);
 
-                if (ResultCount > 0)
+                if (ResultCount.Value.Status == "Ok")
                 {
                     var objFileDetails = new TaskPostActionOutput_NT()
                     {
-
                         FILE_PATH = taskPostActionInput.FILE_PATH,//"Attachments\\" + taskPostActionInput.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + taskPostActionInput.FILE_NAME,
                         FILE_NAME = taskPostActionInput.FILE_NAME
                     };
 
                     var response = new TaskPostActionAPIOutPut_List_NT
                     {
-                        Status = "Ok",
-                        Message = "File attach successfuly!!!",
-                        Data = objFileDetails
+                        Status = ResultCount.Value.Status,
+                        Message = ResultCount.Value.Message,
+                        Data = ResultCount.Value.Data
                     };
-                    return Ok(response);
+                    return response;
                 }
                 else
                 {
@@ -1823,7 +1826,6 @@ namespace TaskManagement.API.Controllers
                         Data = null
                     };
                     return Ok(response);
-
                 }
             }
             catch (Exception ex)

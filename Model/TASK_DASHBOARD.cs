@@ -19,6 +19,7 @@ namespace TaskManagement.API.Model
     {
         [JsonPropertyName("MKEY")]
         public string MKEY { get; set; }
+
         [JsonPropertyName("CATEGORY")]
         public string? CATEGORY { get; set; }
 

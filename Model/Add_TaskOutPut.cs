@@ -71,6 +71,24 @@ namespace TaskManagement.API.Model
         public string Message { get; set; }
     }
 
+    public class TaskAssignCreateBy
+    {
+        [JsonPropertyName("CREATEDBY_EMAIL_ID")]
+        public string CREATEDBY_EMAIL_ID { get; set; }
+
+        [JsonPropertyName("ASSIGNBY_EMAIL_ID")]
+        public string ASSIGNBY_EMAIL_ID { get; set; }
+        [JsonPropertyName("TASK_CREATED_BY")]
+        public int TASK_CREATED_BY { get; set; }
+        [JsonPropertyName("CREATEBY_EMP_FULL_NAME")]
+        public string CREATEBY_EMP_FULL_NAME { get; set; }
+
+        [JsonPropertyName("ASSIGNED_TO")]
+        public int ASSIGNED_TO { get; set; }
+        [JsonPropertyName("ASSIGNBY_EMP_FULL_NAME")]
+        public string ASSIGNBY_EMP_FULL_NAME { get; set; }
+    }
+
     public class TaskFileUploadAPI_NT
     {
         [JsonPropertyName("Files")]

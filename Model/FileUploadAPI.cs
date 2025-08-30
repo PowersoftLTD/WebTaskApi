@@ -70,6 +70,11 @@ namespace TaskManagement.API.Model
         public string FilePath { get; set; }
     }
 
+    public class HostEnvironment
+    {
+        public string env { get; set; }
+    }
+
     public class TaskPostActionFileUploadAPIOutPut_List
     {
         [JsonPropertyName("Status")]
@@ -180,8 +185,7 @@ namespace TaskManagement.API.Model
         public string? Status { get; set; }
         [JsonPropertyName("Message")]
         public string? Message { get; set; }
-        public TaskPostActionOutput_NT Data { get; set; }
-
+        public IEnumerable<TaskPostActionOutput_NT> Data { get; set; }
     }
 
 
@@ -209,6 +213,12 @@ namespace TaskManagement.API.Model
         public int CREATED_BY { get; set; }
         [JsonPropertyName("Task_Main_Node_Id")]
         public int TASK_MAIN_NODE_ID { get; set; }
+
+        [JsonIgnore]
+        public string ResponseStatus { get; set; }
+        [JsonIgnore]
+        public string StatusMessage { get; set; }
+
     }
 
     public class TaskPostActionInput

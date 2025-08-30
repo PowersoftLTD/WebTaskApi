@@ -3,7 +3,9 @@ using Dapper;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using OfficeOpenXml.Style;
 using System;
 using System.Data;
 using System.Data.SqlClient;
@@ -27,16 +29,16 @@ namespace TaskManagement.API.Repositories
 {
     public class ProjectEmployeeRepository : IProjectEmployee
     {
-        private readonly IHostEnvironment _env;
+        private readonly HostEnvironment _env;
         private static TimeZoneInfo INDIAN_ZONE = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
         public IDapperDbConnection _dapperDbConnection;
         private readonly string _connectionString;
         private readonly FileSettings _fileSettings;
         private readonly ITokenRepository _tokenRepository;
         public ProjectEmployeeRepository(IDapperDbConnection dapperDbConnection, string connectionString
-            , IOptions<FileSettings> fileSettings, ITokenRepository tokenRepository, IHostEnvironment env)
+            , IOptions<FileSettings> fileSettings, ITokenRepository tokenRepository, IOptions<HostEnvironment> env)
         {
-            _env = env;
+            _env = env.Value;
             _dapperDbConnection = dapperDbConnection;
             _connectionString = connectionString;
             _fileSettings = fileSettings.Value;
@@ -3631,10 +3633,17 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@Parameter11", FILE_PATH);
 
                     var TaskFile = await db.QueryAsync<TaskPostActionOutput_NT>("SP_TASK_ACTION_TRL_Insert_Update_NT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
+                    
+                    string RespStatus = string.Empty;
+                    string RespMessage = string.Empty;
                     if (TaskFile.Any())
                     {
-                        if (TaskFile.Select(x => x.ResponseStatus).ToString() != "Ok")
+                        foreach (var ResTask in TaskFile)
+                        {
+                            RespStatus = ResTask.ResponseStatus.ToString();
+                            RespMessage = ResTask.StatusMessage.ToString();
+                        }
+                        if (RespStatus != "Ok")
                         {
                             if (transaction != null && !transactionCompleted)
                             {
@@ -3652,10 +3661,20 @@ namespace TaskManagement.API.Repositories
                             var Erroresponse = new TaskPostActionAPIOutPut_List_NT
                             {
                                 Status = "Error",
-                                Message = TaskFile.Select(x => x.StatusMessage).ToString(),
+                                Message = RespMessage,
                                 Data = null
                             };
                             return Erroresponse;
+                        }
+                        else
+                        {
+                            var SuccResponse = new TaskPostActionAPIOutPut_List_NT
+                            {
+                                Status = RespStatus,
+                                Message = RespMessage,
+                                Data = TaskFile
+                            };
+                            return SuccResponse;
                         }
                     }
                     else
@@ -3676,7 +3695,7 @@ namespace TaskManagement.API.Repositories
                     var SuccessResponse = new TaskPostActionAPIOutPut_List_NT
                     {
                         Status = "Ok",
-                        Message = TaskFile.Select(x => x.StatusMessage).ToString(),
+                        Message = RespMessage,
                         Data = null
                     };
                     return SuccessResponse;
@@ -7400,7 +7419,7 @@ namespace TaskManagement.API.Repositories
             string strerror = string.Empty;
             try
             {
-                if (_env.IsProduction())
+                if (_env.env == "Production")
                 {
                     using (MailMessage mail1 = new MailMessage())
                     {
