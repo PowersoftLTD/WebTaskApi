@@ -2370,7 +2370,8 @@ namespace TaskManagement.API.Repositories
 
                             foreach (var Mail in MailDetails)
                             {
-                                SendEmail(AssignByEmail.ToString(), CreatedByEmail.ToString(), null, "QUI-New Task Assigned : Task No-(" + TaskNo + " )", MailBody, Mail.MAIL_TYPE, "QUI", null, Mail);
+                                // CreatedByEmail.ToString()
+                                SendEmail(AssignByEmail.ToString(), null, null, "QUI-New Task Assigned : Task No-(" + TaskNo + " )", MailBody, Mail.MAIL_TYPE, "QUI", null, Mail);
                             }
 
                             var successsResult = new List<Add_TaskOutPut_List_NT>
@@ -3668,6 +3669,10 @@ namespace TaskManagement.API.Repositories
                         }
                         else
                         {
+                            var sqlTransaction = (SqlTransaction)transaction;
+                            await sqlTransaction.CommitAsync();
+                            transactionCompleted = true;
+
                             var SuccResponse = new TaskPostActionAPIOutPut_List_NT
                             {
                                 Status = RespStatus,
@@ -3687,18 +3692,17 @@ namespace TaskManagement.API.Repositories
                         };
                         return Erroresponse;
                     }
+                    //var sqlTransaction = (SqlTransaction)transaction;
+                    //await sqlTransaction.CommitAsync();
+                    //transactionCompleted = true;
 
-                    var sqlTransaction = (SqlTransaction)transaction;
-                    await sqlTransaction.CommitAsync();
-                    transactionCompleted = true;
-
-                    var SuccessResponse = new TaskPostActionAPIOutPut_List_NT
-                    {
-                        Status = "Ok",
-                        Message = RespMessage,
-                        Data = null
-                    };
-                    return SuccessResponse;
+                    //var SuccessResponse = new TaskPostActionAPIOutPut_List_NT
+                    //{
+                    //    Status = "Ok",
+                    //    Message = RespMessage,
+                    //    Data = null
+                    //};
+                    //return SuccessResponse;
                 }
             }
             catch (Exception ex)
