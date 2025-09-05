@@ -426,6 +426,9 @@ namespace TaskManagement.API.Model
 
     public class V_Doc_Type_NT
     {
+        [JsonPropertyName("Mkey")]
+        public int? Mkey { get; set; }
+
         [JsonPropertyName("Doc_Type_Mkey")]
         public int? Doc_Type_Mkey { get; set; }
         [JsonPropertyName("Doc_Type_Name")]

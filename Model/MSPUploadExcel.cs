@@ -58,11 +58,11 @@ namespace TaskManagement.API.Model
         public string mpp_name { get; set; }
 
         [JsonPropertyName("Weightage")]
-        public string Weightage { get; set; }
+        public string? Weightage { get; set; }
         [JsonPropertyName("Resources_Dept")]
-        public string Resources_Dept { get; set; }
+        public string? Resources_Dept { get; set; }
         [JsonPropertyName("Appr_Abbr")]
-        public string Appr_Abbr { get; set; }
+        public string? Appr_Abbr { get; set; }
     }
 
 
@@ -114,11 +114,11 @@ namespace TaskManagement.API.Model
         public string? mpp_name { get; set; }
 
         [JsonPropertyName("Weightage")]
-        public string Weightage { get; set; }
+        public string? Weightage { get; set; }
         [JsonPropertyName("Resources_Dept")]
-        public string Resources_Dept { get; set; }
+        public string? Resources_Dept { get; set; }
         [JsonPropertyName("Appr_Abbr")]
-        public string Appr_Abbr { get; set; }
+        public string? Appr_Abbr { get; set; }
 
         [JsonPropertyName("Session_User_Id")]
         public int? Session_User_Id { get; set; }
