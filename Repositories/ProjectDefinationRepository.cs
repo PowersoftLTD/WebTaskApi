@@ -674,8 +674,6 @@ namespace TaskManagement.API.Repositories
             }
 
         }
-
-
         public async Task<ActionResult<IEnumerable<PROJECT_HDR_NT_OUTPUT>>> CreateProjectDefinationAsyncNT(PROJECT_HDR_INPUT_NT pROJECT_HDR_INPUT_NT)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);

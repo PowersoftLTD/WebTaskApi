@@ -431,6 +431,9 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.CREATED_BY);
                     parameters.Add("@DELETE_FLAG", pROJECT_DOC_DEPOSITORY_HDR.DELETE_FLAG);
 
+                    parameters.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.CREATED_BY);
+                    parameters.Add("@DELETE_FLAG", pROJECT_DOC_DEPOSITORY_HDR.DELETE_FLAG);
+
                     var GetProjectDocDesp = await db.QueryAsync<UpdateProjectDocDepositoryNT>("SP_INSERT_PROJECT_DOCUMENT_DEPOSITORY", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (GetProjectDocDesp == null)
