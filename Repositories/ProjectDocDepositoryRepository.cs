@@ -431,9 +431,6 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.CREATED_BY);
                     parameters.Add("@DELETE_FLAG", pROJECT_DOC_DEPOSITORY_HDR.DELETE_FLAG);
 
-                    parameters.Add("@CREATED_BY", pROJECT_DOC_DEPOSITORY_HDR.CREATED_BY);
-                    parameters.Add("@DELETE_FLAG", pROJECT_DOC_DEPOSITORY_HDR.DELETE_FLAG);
-
                     var GetProjectDocDesp = await db.QueryAsync<UpdateProjectDocDepositoryNT>("SP_INSERT_PROJECT_DOCUMENT_DEPOSITORY", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (GetProjectDocDesp == null)
@@ -485,7 +482,7 @@ namespace TaskManagement.API.Repositories
                                         filestream.Flush();
                                     }
 
-                                    filePathOpen = "\\Attachments\\" + "Document Depository\\" + pROJECT_DOC_DEPOSITORY_HDR.MKEY + "\\"
+                                    filePathOpen = "Attachments\\" + "Document Depository\\" + pROJECT_DOC_DEPOSITORY_HDR.MKEY + "\\"
                                         + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_"
                                         + ProjectDocFile.FileName;
 
