@@ -3347,7 +3347,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@DELETE_FLAG", deleteFlag);
                     parameters.Add("@TASK_MAIN_NODE_ID", taskMainNodeId);
 
-                    var TaskFile = await db.ExecuteAsync("sp_insert_attcahment", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    var TaskFile = await db.ExecuteAsync("SP_INSERT_ATTCAHMENT_NT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     if (TaskFile == null)
                     {
