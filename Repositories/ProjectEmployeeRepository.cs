@@ -3408,7 +3408,7 @@ namespace TaskManagement.API.Repositories
                 return ErrorFileDetails;
             }
         }
-        public async Task<int> UpdateTASKFileUpoadAsync(string taskMkey, string deleteFlag)
+        public async Task<int> UpdateTASKFileUpoadAsync(string LastUpdatedBy,string taskMkey, string deleteFlag)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -3433,6 +3433,7 @@ namespace TaskManagement.API.Repositories
                     transactionCompleted = false;  // Reset transaction state
 
                     var parameters = new DynamicParameters();
+                    parameters.Add("@LastUpdatedBy", LastUpdatedBy);
                     parameters.Add("@TASK_MKEY", taskMkey);
                     parameters.Add("@DELETE_FLAG", deleteFlag);
 
