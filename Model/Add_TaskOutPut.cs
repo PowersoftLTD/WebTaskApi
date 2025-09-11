@@ -103,6 +103,8 @@ namespace TaskManagement.API.Model
         public int TASK_MAIN_NODE_ID { get; set; }
         [JsonPropertyName("Mkey")]
         public int TASK_PARENT_ID { get; set; }
+        [JsonPropertyName("Sr_No")]
+        public int? Sr_No { get; set; }
         [JsonPropertyName("Delete_Flag")]
         public char? DELETE_FLAG { get; set; }
         [JsonPropertyName("Created_By")]
