@@ -22,7 +22,6 @@ namespace TaskManagement.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
     public class CommonApiController : ControllerBase
     {
         private readonly IConfiguration _configuration;
@@ -1444,19 +1443,24 @@ namespace TaskManagement.API.Controllers
                 bool flagAttachment = false;
                 if (objFile.files == null)
                 {
+                    var ResultCount = await _repository.UpdateTASKFileUpoadAsync(objFile.CREATED_BY.ToString(), objFile.TASK_MKEY.ToString(), objFile.DELETE_FLAG.ToString());
                     var response = new Add_TaskOutPut_List_NT
                     {
-                        Status = "Error",
-                        Message = "please attach the file!!!",
+                        Status = "Ok",
+                        Message = "File is deleted!!!",
                         Data1 = null
                     };
                     return Ok(response);
                 }
+                
                 foreach (var TaskFiles in objFile.files)
                 {
                     if (TaskFiles.Length > 0)
                     {
-                        srNo = srNo + 1;
+                        if (objFile.Sr_No != 0)
+                        {
+                            srNo = Convert.ToInt32(objFile.Sr_No);
+                        }
                         //objFile.FILE_PATH = "D:\\DATA\\Projects\\Task_Mangmt\\Task_Mangmt\\Task\\";
                         var RsponseStatus = await _repository.FileDownload();
                         string FilePath = RsponseStatus.Value;
@@ -1469,7 +1473,8 @@ namespace TaskManagement.API.Controllers
                             TaskFiles.CopyTo(filestream);
                             filestream.Flush();
                         }
-
+                      
+                        
                         filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + TaskFiles.FileName;
                         var ResultCount = await _repository.TASKFileUpoadNTAsync(srNo, objFile.TASK_MKEY, objFile.TASK_PARENT_ID, TaskFiles.FileName, filePathOpen, objFile.CREATED_BY, Convert.ToChar(objFile.DELETE_FLAG), objFile.TASK_MAIN_NODE_ID);
                         FilePath = filePathOpen;
@@ -1499,6 +1504,8 @@ namespace TaskManagement.API.Controllers
 
                 if (flagAttachment == true)
                 {
+                    var ResultCount = await _repository.UpdateTASKFileUpoadAsync(objFile.CREATED_BY.ToString(),objFile.TASK_MKEY.ToString(), objFile.DELETE_FLAG.ToString());
+
                     var Successresponse = new Add_TaskOutPut_List_NT
                     {
                         Status = "ok",
