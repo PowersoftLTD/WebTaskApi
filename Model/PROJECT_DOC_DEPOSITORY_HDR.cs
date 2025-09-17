@@ -267,6 +267,12 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Doc_Name")]
         public string? DOC_NAME { get; set; }
 
+        [JsonPropertyName("DOC_NUM_FIELD_NAME")]
+        public string? DOC_NUM_FIELD_NAME { get; set; }
+
+        [JsonPropertyName("DOC_NUM_DATE_NAME")] 
+        public string? DOC_NUM_DATE_NAME { get; set; }
+
         [JsonPropertyName("Validity_Date")]
         public string? VALIDITY_DATE { get; set; }
 
