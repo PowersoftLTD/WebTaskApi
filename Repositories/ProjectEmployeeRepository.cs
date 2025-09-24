@@ -2123,8 +2123,10 @@ namespace TaskManagement.API.Repositories
                                             var parametersEndList = new DynamicParameters();
                                             parametersEndList.Add("@MKEY", MTask_No.ToString());
                                             parametersEndList.Add("@SR_NO", TEndList.SR_NO);
-                                            parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
-                                            parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                                            parametersEndList.Add("@DOC_CAT_MKEY", docMkey.Key.ToString());       // New Changes by Itemad 24-09-2025
+                                            //parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));   // Old Code by Amit
+                                            parametersEndList.Add("@DOC_TYPE_MKEY", Convert.ToInt32(DocCategory));    // // New Changes by Itemad 24-09-2025
+                                            //parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());      // // Old Code by Amit
                                             parametersEndList.Add("@CREATED_BY", TEndList.CREATED_BY);
                                             parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG);
                                             parametersEndList.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
@@ -2132,7 +2134,7 @@ namespace TaskManagement.API.Repositories
                                             parametersEndList.Add("@OUT_STATUS", null);
                                             parametersEndList.Add("@OUT_MESSAGE", null);
 
-                                            var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                            var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                             if (GetTaskEndList.Any())
                                             {
@@ -2927,8 +2929,8 @@ namespace TaskManagement.API.Repositories
                                 var parmetersCheckList = new DynamicParameters();
                                 parmetersCheckList.Add("@TASK_MKEY", MTask_No.ToString());
                                 parmetersCheckList.Add("@SR_NO", TCheckList.SR_NO);
-                                parmetersCheckList.Add("@DOCUMENT_MKEY", TCheckList.DOC_MKEY);
-                                parmetersCheckList.Add("@DOCUMENT_CATEGORY", TCheckList.DOCUMENT_CATEGORY);
+                                parmetersCheckList.Add("@Doc_Type_Mkey", TCheckList.DOC_MKEY);
+                                parmetersCheckList.Add("@Doc_Cat_mkey", TCheckList.DOCUMENT_CATEGORY);
                                 parmetersCheckList.Add("@CREATED_BY", TCheckList.CREATED_BY);
                                 parmetersCheckList.Add("@DELETE_FLAG", TCheckList.DELETE_FLAG);
                                 parmetersCheckList.Add("@METHOD_NAME", "Task-CheckList-Doc-Insert-Update");
@@ -2936,7 +2938,7 @@ namespace TaskManagement.API.Repositories
                                 parmetersCheckList.Add("@OUT_STATUS", null);
                                 parmetersCheckList.Add("@OUT_MESSAGE", null);
 
-                                var GetTaskCheckList = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                var GetTaskCheckList = await db.QueryAsync<TASK_CHECKLIST_TABLE_OUTPUT>("SP_INSERT_UPDATE_TABLE_TASK_CHECKLIST_NT", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                 if (GetTaskCheckList.Any())
                                 {
