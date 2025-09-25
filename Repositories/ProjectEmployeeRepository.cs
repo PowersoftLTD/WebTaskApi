@@ -2983,19 +2983,35 @@ namespace TaskManagement.API.Repositories
                                 {
                                     foreach (var DocCategory in docMkey.Value.ToString().Split(','))
                                     {
+                                        // New Changes by Itemad Hyder 25-09-2025
                                         var parametersEndList = new DynamicParameters();
                                         parametersEndList.Add("@MKEY", MTask_No.ToString());
                                         parametersEndList.Add("@SR_NO", TEndList.SR_NO);
-                                        parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
-                                        parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                                        parametersEndList.Add("@DOC_CAT_MKEY", docMkey.Key.ToString());       // New Changes by Itemad 24-09-2025
+                                        //parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));   // Old Code by Amit
+                                        parametersEndList.Add("@DOC_TYPE_MKEY", Convert.ToInt32(DocCategory));    // // New Changes by Itemad 24-09-2025
+                                        //parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());      // // Old Code by Amit
                                         parametersEndList.Add("@CREATED_BY", TEndList.CREATED_BY);
                                         parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG);
                                         parametersEndList.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
                                         parametersEndList.Add("@API_METHOD", "Insert/Update");
                                         parametersEndList.Add("@OUT_STATUS", null);
                                         parametersEndList.Add("@OUT_MESSAGE", null);
+                                        //// Old Changes  by Amit bhai 
+                                        //var parametersEndList = new DynamicParameters();
+                                        //parametersEndList.Add("@MKEY", MTask_No.ToString());
+                                        //parametersEndList.Add("@SR_NO", TEndList.SR_NO);
+                                        //parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
+                                        //parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                                        //parametersEndList.Add("@CREATED_BY", TEndList.CREATED_BY);
+                                        //parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG);
+                                        //parametersEndList.Add("@API_NAME", "Task-Output-Doc-Insert-Update");
+                                        //parametersEndList.Add("@API_METHOD", "Insert/Update");
+                                        //parametersEndList.Add("@OUT_STATUS", null);
+                                        //parametersEndList.Add("@OUT_MESSAGE", null);
 
-                                        var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                        var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);     // New Changes in Sp name  by itemad Hyder 25-05-2025
+                                        //var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);      // Old changes by Amit 
 
                                         if (GetTaskEndList.Any())
                                         {
