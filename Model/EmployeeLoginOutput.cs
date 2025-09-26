@@ -281,6 +281,19 @@ namespace TaskManagement.API.Model
         public string? ATTRIBUTE4 { get; set; }
         [JsonPropertyName("Attribute5")]
         public string? ATTRIBUTE5 { get; set; }
+
+        [JsonPropertyName("Project_View")]
+        public string? Project_View { get; set; }
+        [JsonPropertyName("Approval_View")]
+        public string? Approval_View { get; set; }
+        [JsonPropertyName("Compliance_View")]
+        public string? Compliance_View { get; set; }
+        [JsonPropertyName("Execution_View")]
+        public string? Execution_View { get; set; }
+
+        [JsonPropertyName("Attribute10")]
+        public string? ATTRIBUTE10 { get; set; }
+
         [JsonPropertyName("Created_By")]
         public int? CREATED_BY { get; set; }
         [JsonPropertyName("Creation_Date")]
