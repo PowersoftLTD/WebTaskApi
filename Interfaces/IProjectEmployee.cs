@@ -10,7 +10,8 @@ namespace TaskManagement.API.Interfaces
         Task<IEnumerable<EmployeeLoginOutput_LIST>> Login_Validate(string Login_ID, string LOGIN_PASSWORD);
         Task<IEnumerable<EmployeeLoginOutput_LIST_NT>> Login_Validate_NT(EmployeeCompanyMSTInput_NT employeeCompanyMSTInput_NT);
         Task<IEnumerable<EmployeeMobile_NT>> Login_Mobile_Validate_NT(EmployeeMobileMSTInput_NT employeeMobileMSTInput_NT);
-        Task<IEnumerable<LoginMobileEmail_NT>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeMobileMSTInput_NT);
+        //Task<IEnumerable<LoginMobileEmail_NT>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeMobileMSTInput_NT);
+        Task<IEnumerable<ResetPasswordOutPut_List>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeMobileMSTInput_NT);
         Task<IEnumerable<V_Building_Classification_new>> GetProjectAsync(string TYPE_CODE, string MASTER_MKEY);
         Task<IEnumerable<V_Building_Classification_NT>> GetProjectNTAsync(BuildingClassInput_NT v_Building_Classification);
         Task<IEnumerable<V_Building_Classification_new>> GetSubProjectAsync(string Project_Mkey);

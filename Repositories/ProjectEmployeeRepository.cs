@@ -245,86 +245,201 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-        public async Task<IEnumerable<LoginMobileEmail_NT>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+
+        public async Task<IEnumerable<ResetPasswordOutPut_List>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
         {
+            string TEMPPASSWORD = string.Empty;
             try
             {
+                string strMessage = string.Empty;
+                int ErrorNumber = 0;
+                const string validChars = "0123456789";
+                StringBuilder password = new StringBuilder();
+                Random random = new Random();
+
+                for (int i = 0; i < 6; i++)
+                {
+                    password.Append(validChars[random.Next(validChars.Length)]);
+                }
+                TEMPPASSWORD = password.ToString();
+
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
+                    parmeters.Add("@TEMPPASSWORD", TEMPPASSWORD);
                     parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
+                    var ResetPass = await db.QueryAsync<ResetPasswordOutPut>("sp_reset_password", parmeters, commandType: CommandType.StoredProcedure);
 
-                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
-                    if (dtReponse.Any())
+                    foreach (var ResetResponse in ResetPass)
                     {
-                        var successsResult = new List<LoginMobileEmail_NT>
-                            {
-                                new LoginMobileEmail_NT
-                                {
-                                    Status = "Ok",
-                                    Message = "Message",
-                                    Data = dtReponse
-                                }
-                            };
+                        ErrorNumber = ResetResponse.ErrorNumber;
+                        strMessage = "Temporary OTP password has been sent to above email address";
+                        //strMessage = ResetR;
+                    }
+
+                    if (ErrorNumber == 0)
+                    {
+                        var AssiLoginName = await db.QueryAsync<string>(" Select UPPER(LEFT(FIRST_NAME,1))+LOWER(SUBSTRING(FIRST_NAME,2,LEN(FIRST_NAME))) + ' '+ " +
+                                   " UPPER(LEFT(LAST_NAME,1))+LOWER(SUBSTRING(LAST_NAME,2,LEN(LAST_NAME))) as EMP_FULL_NAME " +
+                                   " from EMPLOYEE_MST EMP_MST where " +
+                                   " (EMP_MST.EMAIL_ID_OFFICIAL = '" + employeeCompanyMSTInput_NT.Login_ID + "' " +
+                                   " or Cast(EMP_MST.CONTACT_NO As nVarchar(20))= '" + employeeCompanyMSTInput_NT.Login_ID + "')  " +
+                                   " and EMP_MST.DELETE_FLAG='N' ", commandType: CommandType.Text);
+                        string AssignBy = AssiLoginName.FirstOrDefault();
+
+                        var parmetersMail = new DynamicParameters();
+                        parmetersMail.Add("@MAIL_TYPE", "Auto");
+                        var MailDetails = await db.QueryAsync<MailDetailsNT>("SP_GET_MAIL_TYPE", parmetersMail, commandType: CommandType.StoredProcedure);
+
+                        string MailBody = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    " +
+                            "<meta charset=\"UTF-8\">\r\n    " +
+                            "<title>QUI Password Reset</title>\r\n</head>" +
+                            "\r\n<body style=\"font-family: Arial, sans-serif; font-size: 14px; color: #333;\">\r\n    " +
+                            "<p>Dear <strong>" + AssignBy + " </strong>,</p>\r\n\r\n    " +
+                            //"<p>Your password for <strong>QUI</strong> has been successfully reset.</p>\r\n\r\n    " +
+                            "<p>Your temporary OTP password is: <strong style=\"color: #d9534f;\">" + TEMPPASSWORD.ToString() + "</strong></p>\r\n\r\n    " +
+                            "<p>Please log in to <strong><a href=\"https://qui.piplapps.com\">QUI</a></strong> using this password and update it immediately for security reasons.</p>\r\n\r\n    " +
+                            "<p>If you have any questions or need assistance, feel free to contact us at \r\n       " +
+                            " <a href=\"mailto:qui.support@powersoft.in\">qui.support@powersoft.in</a>.\r\n    " +
+                            "</p>\r\n\r\n    <p>Best regards,<br>\r\n    " +
+                            "<strong>QUI Team</strong></p>\r\n</body>\r\n</html>\r\n";
+
+                        foreach (var Mail in MailDetails)
+                        {
+                            SendEmail(employeeCompanyMSTInput_NT.Login_ID, null, null, "QUI-Your Temporary OTP Password", MailBody, Mail.MAIL_TYPE, "Qui", null, Mail);
+                        }
+
+                        var successsResult = new List<ResetPasswordOutPut_List>
+                    {
+                        new ResetPasswordOutPut_List
+                        {
+                            Status = "Ok",
+                            Message = strMessage,
+                            Data= ResetPass
+                        }
+                    };
                         return successsResult;
 
-                        //var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
-                        //if (IsValid(jwtToken))
-                        //{
-                        //    var successsResult = new List<LoginMobileEmail_NT>
-                        //    {
-                        //        new LoginMobileEmail_NT
-                        //        {
-                        //            Status = "Ok",
-                        //            Message = "Message",
-                        //            Data = dtReponse
-                        //        }
-                        //    };
-                        //    return successsResult;
-                        //}
-                        //else
-                        //{
-                        //    var errorResult = new List<LoginMobileEmail_NT>
-                        //    {
-                        //        new LoginMobileEmail_NT
-                        //        {
-                        //            Status = "Error",
-                        //            Message = "Session expired!!!",
-                        //            Data = null
-                        //        }
-                        //    };
-                        //    return errorResult;
-                        //}
+
                     }
                     else
                     {
-                        var errorResult = new List<LoginMobileEmail_NT>
-                            {
-                                new LoginMobileEmail_NT
-                                {
-                                    Status = "Error",
-                                    Message = "User is incorrect.",
-                                    Data = null
-                                }
-                            };
-                        return errorResult;
+                        var successsResult = new List<ResetPasswordOutPut_List>
+                    {
+                        new ResetPasswordOutPut_List
+                        {
+                            Status = "Error",
+                            Message = strMessage,
+                            Data= null
+                        }
+                    };
+                        return successsResult;
                     }
                 }
             }
             catch (Exception ex)
             {
-                var errorResult = new List<LoginMobileEmail_NT>
-                    {
-                        new LoginMobileEmail_NT
-                        {
-                            Status = "Error",
-                            Message = ex.Message,
-                            Data = null
-                        }
-                    };
+                var errorResult = new List<ResetPasswordOutPut_List>
+            {
+                new ResetPasswordOutPut_List
+                {
+                   Status = "Error",
+                    Message= ex.Message,
+                    Data= null
+                }
+            };
                 return errorResult;
             }
         }
+
+        #region
+        /// <summary>
+        /// Old Changes by Amit 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        //public async Task<IEnumerable<LoginMobileEmail_NT>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        //{
+        //    try
+        //    {
+        //        using (IDbConnection db = _dapperDbConnection.CreateConnection())
+        //        {
+        //            var parmeters = new DynamicParameters();
+        //            parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
+
+        //            var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
+        //            if (dtReponse.Any())
+        //            {
+        //                var successsResult = new List<LoginMobileEmail_NT>
+        //                    {
+        //                        new LoginMobileEmail_NT
+        //                        {
+        //                            Status = "Ok",
+        //                            Message = "Message",
+        //                            Data = dtReponse
+        //                        }
+        //                    };
+        //                return successsResult;
+
+        //                //var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
+        //                //if (IsValid(jwtToken))
+        //                //{
+        //                //    var successsResult = new List<LoginMobileEmail_NT>
+        //                //    {
+        //                //        new LoginMobileEmail_NT
+        //                //        {
+        //                //            Status = "Ok",
+        //                //            Message = "Message",
+        //                //            Data = dtReponse
+        //                //        }
+        //                //    };
+        //                //    return successsResult;
+        //                //}
+        //                //else
+        //                //{
+        //                //    var errorResult = new List<LoginMobileEmail_NT>
+        //                //    {
+        //                //        new LoginMobileEmail_NT
+        //                //        {
+        //                //            Status = "Error",
+        //                //            Message = "Session expired!!!",
+        //                //            Data = null
+        //                //        }
+        //                //    };
+        //                //    return errorResult;
+        //                //}
+        //            }
+        //            else
+        //            {
+        //                var errorResult = new List<LoginMobileEmail_NT>
+        //                    {
+        //                        new LoginMobileEmail_NT
+        //                        {
+        //                            Status = "Error",
+        //                            Message = "User is incorrect.",
+        //                            Data = null
+        //                        }
+        //                    };
+        //                return errorResult;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var errorResult = new List<LoginMobileEmail_NT>
+        //            {
+        //                new LoginMobileEmail_NT
+        //                {
+        //                    Status = "Error",
+        //                    Message = ex.Message,
+        //                    Data = null
+        //                }
+        //            };
+        //        return errorResult;
+        //    }
+        //}
+
+        #endregion
         private bool IsValid(string token)
         {
             JwtSecurityToken jwtSecurityToken;
