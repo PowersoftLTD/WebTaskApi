@@ -123,6 +123,27 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+
+        [HttpPost]
+        [Route("LoginEmail_ResetOtp_NT")]
+        public async Task<ActionResult<LoginMobileEmail_NT>> LoginEmail_ResetOtp_NT([FromBody] EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        {
+            try
+            {
+                var LoginValidate = await _repository.LoginEmailOtpResetNTAsync(employeeCompanyMSTInput_NT);
+                return Ok(LoginValidate);
+            }
+            catch (Exception ex)
+            {
+                var response = new LoginMobileEmail_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message
+                };
+                return Ok(response);
+            }
+        }
+
         private bool IsValid(string token)
         {
             JwtSecurityToken jwtSecurityToken;

@@ -246,7 +246,7 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        public async Task<IEnumerable<ResetPasswordOutPut_List>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        public async Task<IEnumerable<ResetPasswordOutPut_List>> LoginEmailOtpResetNTAsync(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
         {
             string TEMPPASSWORD = string.Empty;
             try
@@ -352,94 +352,87 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        #region
-        /// <summary>
-        /// Old Changes by Amit 
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        //public async Task<IEnumerable<LoginMobileEmail_NT>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
-        //{
-        //    try
-        //    {
-        //        using (IDbConnection db = _dapperDbConnection.CreateConnection())
-        //        {
-        //            var parmeters = new DynamicParameters();
-        //            parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
+        public async Task<IEnumerable<LoginMobileEmail_NT>> LoginMobileEmailNTAsync(EmployeeMobileMSTInput_NT employeeCompanyMSTInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@LoginName", employeeCompanyMSTInput_NT.Login_ID);
 
-        //            var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
-        //            if (dtReponse.Any())
-        //            {
-        //                var successsResult = new List<LoginMobileEmail_NT>
-        //                    {
-        //                        new LoginMobileEmail_NT
-        //                        {
-        //                            Status = "Ok",
-        //                            Message = "Message",
-        //                            Data = dtReponse
-        //                        }
-        //                    };
-        //                return successsResult;
+                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_GetLoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    if (dtReponse.Any())
+                    {
+                        var successsResult = new List<LoginMobileEmail_NT>
+                            {
+                                new LoginMobileEmail_NT
+                                {
+                                    Status = "Ok",
+                                    Message = "Message",
+                                    Data = dtReponse
+                                }
+                            };
+                        return successsResult;
 
-        //                //var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
-        //                //if (IsValid(jwtToken))
-        //                //{
-        //                //    var successsResult = new List<LoginMobileEmail_NT>
-        //                //    {
-        //                //        new LoginMobileEmail_NT
-        //                //        {
-        //                //            Status = "Ok",
-        //                //            Message = "Message",
-        //                //            Data = dtReponse
-        //                //        }
-        //                //    };
-        //                //    return successsResult;
-        //                //}
-        //                //else
-        //                //{
-        //                //    var errorResult = new List<LoginMobileEmail_NT>
-        //                //    {
-        //                //        new LoginMobileEmail_NT
-        //                //        {
-        //                //            Status = "Error",
-        //                //            Message = "Session expired!!!",
-        //                //            Data = null
-        //                //        }
-        //                //    };
-        //                //    return errorResult;
-        //                //}
-        //            }
-        //            else
-        //            {
-        //                var errorResult = new List<LoginMobileEmail_NT>
-        //                    {
-        //                        new LoginMobileEmail_NT
-        //                        {
-        //                            Status = "Error",
-        //                            Message = "User is incorrect.",
-        //                            Data = null
-        //                        }
-        //                    };
-        //                return errorResult;
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var errorResult = new List<LoginMobileEmail_NT>
-        //            {
-        //                new LoginMobileEmail_NT
-        //                {
-        //                    Status = "Error",
-        //                    Message = ex.Message,
-        //                    Data = null
-        //                }
-        //            };
-        //        return errorResult;
-        //    }
-        //}
+                        //var jwtToken = await _tokenRepository.CreateJWTToken_NT(employeeCompanyMSTInput_NT.Login_ID);
+                        //if (IsValid(jwtToken))
+                        //{
+                        //    var successsResult = new List<LoginMobileEmail_NT>
+                        //    {
+                        //        new LoginMobileEmail_NT
+                        //        {
+                        //            Status = "Ok",
+                        //            Message = "Message",
+                        //            Data = dtReponse
+                        //        }
+                        //    };
+                        //    return successsResult;
+                        //}
+                        //else
+                        //{
+                        //    var errorResult = new List<LoginMobileEmail_NT>
+                        //    {
+                        //        new LoginMobileEmail_NT
+                        //        {
+                        //            Status = "Error",
+                        //            Message = "Session expired!!!",
+                        //            Data = null
+                        //        }
+                        //    };
+                        //    return errorResult;
+                        //}
+                    }
+                    else
+                    {
+                        var errorResult = new List<LoginMobileEmail_NT>
+                            {
+                                new LoginMobileEmail_NT
+                                {
+                                    Status = "Error",
+                                    Message = "User is incorrect.",
+                                    Data = null
+                                }
+                            };
+                        return errorResult;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<LoginMobileEmail_NT>
+                    {
+                        new LoginMobileEmail_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
 
-        #endregion
         private bool IsValid(string token)
         {
             JwtSecurityToken jwtSecurityToken;
