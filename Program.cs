@@ -40,6 +40,7 @@ builder.Services.AddScoped<IProjectDefination, ProjectDefinationRepository>();
 builder.Services.AddScoped<IApprovalTaskInitiation, ApprovalTaskInitiationRepository>();
 builder.Services.AddScoped<ICompliance,ComplianceRepository>();
 builder.Services.AddScoped<IProjectEmployee, ProjectEmployeeRepository>();
+builder.Services.AddScoped<ITaskManagement_Reports, TaskManagement_Reports>();
 // Register IConfiguration to access connection strings
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
