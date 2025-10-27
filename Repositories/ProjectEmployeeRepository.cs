@@ -7686,6 +7686,70 @@ namespace TaskManagement.API.Repositories
                 return strerror;
             }
         }
+
+        #region
+        /// <summary>
+        /// Added By Itemad Hyder 27-10-2025
+        /// </summary>
+        /// <param name="userLocation"></param>
+        /// <returns></returns>
+        public async Task<string> InsertUserLocationAsync(UserLocationInfo userLocation)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync(); // ✅ Open DB connection manually
+
+                using (var transaction = connection.BeginTransaction()) // ✅ Start a SQL transaction
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@Ip", userLocation.Ip);
+                        parameters.Add("@Hostname", userLocation.Hostname);
+                        parameters.Add("@City", userLocation.City);
+                        parameters.Add("@Region", userLocation.Region);
+                        parameters.Add("@Country", userLocation.Country);
+                        parameters.Add("@Loc", userLocation.Loc);
+                        parameters.Add("@Org", userLocation.Org);
+                        parameters.Add("@Postal", userLocation.Postal);
+                        parameters.Add("@Timezone", userLocation.Timezone);
+                        parameters.Add("@Readme", userLocation.Readme);
+                        // ✅ Output parameter name as requested
+                        parameters.Add("@responseMessage", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+                        // Execute SP inside the transaction
+                        await connection.ExecuteAsync("sp_InsertUserLocationInfo", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        // Retrieve output message from SP
+                        string responseMessage = parameters.Get<string>("@responseMessage");
+                        // ✅ Commit or Rollback based on message
+                        if (!string.IsNullOrEmpty(responseMessage) &&
+                            responseMessage.Contains("success", StringComparison.OrdinalIgnoreCase))
+                        {
+                            await transaction.CommitAsync();
+                        }
+                        else
+                        {
+                            await transaction.RollbackAsync();
+                        }
+
+                        return responseMessage;
+                    }
+                    catch (Exception ex)
+                    {
+                        // ❌ Rollback if any runtime error occurs
+                        await transaction.RollbackAsync();
+                        return $" Transaction failed: {ex.Message}";
+                    }
+                    finally
+                    {
+                        // ✅ Always close the connection
+                        if (connection.State == ConnectionState.Open)
+                            await connection.CloseAsync();
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }
 

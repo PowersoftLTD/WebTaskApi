@@ -90,5 +90,53 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("UserDepartmentReport-DepartmentList")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Task_UserDepartmentOutPutNT_List>>> GetDepartmentList_NT()
+        {
+            try
+            {
+                var TaskDash = await _repository.GetDepertmentListNTAsyn();
+                return Ok(TaskDash);
+            }
+            catch (Exception ex)
+            {
+                var response = new Task_UserDepartmentOutPutNT_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null,
+                    //Data1 = null
+                };
+                return Ok(response);
+            }
+        }
+        [HttpPost("EmployeeList-ByDepartmentId")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Task_UserDepartmentOutPutNT_List>>> GetEmployeeList_ByDepartmentId_NT(string departmentId)
+        {
+            try
+            {
+                var TaskDash = await _repository.GetEmployeeDetails_ByDepartmentId(departmentId);
+                return Ok(TaskDash);
+            }
+            catch (Exception ex)
+            {
+                var response = new Task_UserDepartmentOutPutNT_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null,
+                    //Data1 = null
+                };
+                return Ok(response);
+            }
+        }
+
+
+
+
+
+
     }
 }

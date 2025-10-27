@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Dapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
-using TaskManagement.API.Model;
-using Dapper;
-using TaskManagement.API.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Newtonsoft.Json;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
+using TaskManagement.API.Interfaces;
+using TaskManagement.API.Model;
 using TaskManagement.API.Repositories;
 
 namespace TaskManagement.API.Controllers
@@ -18,11 +20,13 @@ namespace TaskManagement.API.Controllers
         private readonly IEmployeeMst userManager;
         private readonly ITokenRepository tokenRepository;
         private readonly IProjectEmployee _repository;
-        public AuthenticationController(IProjectEmployee repository, IEmployeeMst userManager, ITokenRepository tokenRepository)
+        private readonly IHttpClientFactory _httpClientFactory;    // Added By Itemad Hyder 27-10-2025
+        public AuthenticationController(IProjectEmployee repository, IEmployeeMst userManager, ITokenRepository tokenRepository, IHttpClientFactory httpClientFactory)
         {
             this.userManager = userManager;
             this.tokenRepository = tokenRepository;
             _repository = repository;
+            _httpClientFactory = httpClientFactory;
         }
 
         [HttpPost]
@@ -69,6 +73,35 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
+                //// To get The IpAddress Added By Itemad Hyder 27-10-2025
+                var ipAddress = HttpContext.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress?.ToString();
+
+                if (ipAddress == "::1")
+                    ipAddress = "127.0.0.1";
+
+                var client = _httpClientFactory.CreateClient();
+                var publicIpResponse = await client.GetStringAsync("https://api.ipify.org");
+                var publicIp = publicIpResponse.Trim();
+                var response = await client.GetAsync($"https://ipinfo.io/{publicIp}/json");
+                if (!response.IsSuccessStatusCode)
+                {
+                    var responses = new EmployeeLoginOutput_LIST
+                    {
+                        Status = "Error",
+                        Message = "Unable to get location.",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+                //return BadRequest("Unable to get location.");
+
+                var json = await response.Content.ReadAsStringAsync();
+                var locationData = JsonConvert.DeserializeObject<UserLocationInfo>(json);
+                if (locationData != null)
+                {
+                    var userLocationStr = await _repository.InsertUserLocationAsync(locationData);
+                }
+                //// END IP Address by Itemad Hyder 27-10-2025
                 var LoginValidate = await _repository.Login_Validate_NT(employeeCompanyMSTInput_NT);
                 return Ok(LoginValidate);
             }
@@ -89,6 +122,35 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
+                //// To get The IpAddress Added By Itemad Hyder 27-10-2025
+                var ipAddress = HttpContext.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress?.ToString();
+
+                if (ipAddress == "::1")
+                    ipAddress = "127.0.0.1";
+
+                var client = _httpClientFactory.CreateClient();
+                var publicIpResponse = await client.GetStringAsync("https://api.ipify.org");
+                var publicIp = publicIpResponse.Trim();
+                var response = await client.GetAsync($"https://ipinfo.io/{publicIp}/json");
+                if (!response.IsSuccessStatusCode)
+                {
+                    var responses = new EmployeeLoginOutput_LIST
+                    {
+                        Status = "Error",
+                        Message = "Unable to get location.",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+                //return BadRequest("Unable to get location.");
+
+                var json = await response.Content.ReadAsStringAsync();
+                var locationData = JsonConvert.DeserializeObject<UserLocationInfo>(json);
+                if (locationData != null)
+                {
+                    var userLocationStr = await _repository.InsertUserLocationAsync(locationData);
+                }
+                //// END IP Address by Itemad Hyder 27-10-2025
                 var LoginValidate = await _repository.Login_Mobile_Validate_NT(employeeCompanyMSTInput_NT);
                 return Ok(LoginValidate);
             }
@@ -109,6 +171,36 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
+                //// To get The IpAddress Added By Itemad Hyder 27-10-2025
+                var ipAddress = HttpContext.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress?.ToString();
+
+                if (ipAddress == "::1")
+                    ipAddress = "127.0.0.1";
+
+                var client = _httpClientFactory.CreateClient();
+                var publicIpResponse = await client.GetStringAsync("https://api.ipify.org");
+                var publicIp = publicIpResponse.Trim();
+                var response = await client.GetAsync($"https://ipinfo.io/{publicIp}/json");
+                if (!response.IsSuccessStatusCode)
+                {
+                    var responses = new EmployeeLoginOutput_LIST
+                    {
+                        Status = "Error",
+                        Message = "Unable to get location.",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+                //return BadRequest("Unable to get location.");
+
+                var json = await response.Content.ReadAsStringAsync();
+                var locationData = JsonConvert.DeserializeObject<UserLocationInfo>(json);
+                if (locationData != null)
+                {
+                    var userLocationStr = await _repository.InsertUserLocationAsync(locationData);
+                }
+                //// END IP Address by Itemad Hyder 27-10-2025
+
                 var LoginValidate = await _repository.LoginMobileEmailNTAsync(employeeCompanyMSTInput_NT);
                 return Ok(LoginValidate);
             }

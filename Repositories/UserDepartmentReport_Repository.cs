@@ -192,5 +192,85 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        public async Task<IEnumerable<Task_UserDepartmentOutPutNT_List>> GetDepertmentListNTAsyn()
+        {
+            try
+            {
+                DataSet dsTaskDash = new DataSet();
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    var result = await db.QueryAsync<Department_V>("SELECT * FROM Dept_V", commandType: CommandType.Text);
+                    var successsResult = new List<Task_UserDepartmentOutPutNT_List>
+                    {
+                        new Task_UserDepartmentOutPutNT_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= result,
+                           // Data1 = data1
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<Task_UserDepartmentOutPutNT_List>
+                    {
+                        new Task_UserDepartmentOutPutNT_List
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null,
+                           // Data1 = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<IEnumerable<Task_userDepartMentResponseOutPUt_NT>> GetEmployeeDetails_ByDepartmentId(string departmentd)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@departmentd", departmentd);
+                    var result = await db.QueryAsync<EmployeeDetails_ByDepartmentId>("SP_GET_EmployeeListDetails_ByDepartmentid", parmeters, commandType: CommandType.StoredProcedure);
+                    var successsResult = new List<Task_userDepartMentResponseOutPUt_NT>
+                    {
+                        new Task_userDepartMentResponseOutPUt_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= result.ToList(),
+                           // Data1 = data1
+                        }
+                    };
+                    return successsResult;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<Task_userDepartMentResponseOutPUt_NT>
+                    {
+                        new Task_userDepartMentResponseOutPUt_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null,
+                           // Data1 = null
+                        }
+                    };
+                return errorResult;
+
+            }
+        }
+
+
     }
 }

@@ -85,6 +85,9 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
+// Configure Ip Address  from Network Itemad hyder  ;
+builder.Services.AddHttpContextAccessor();   // Ip Configure by Itemad Hyder 27-10-2025 
+builder.Services.AddHttpClient(); // ip Configure by Itemad HYder 27-10-2025
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "TM API", Version = "v1" });

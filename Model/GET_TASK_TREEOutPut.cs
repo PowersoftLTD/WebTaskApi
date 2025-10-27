@@ -224,6 +224,11 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Project_Name")]
         public string PROJECT_NAME { get; set; }
 
+        [JsonPropertyName("Progress_Percentage")]
+        public string? Progress_Percentage { get; set; }
+        [JsonPropertyName("Subtask_Count")]
+        public string? Subtask_Count { get; set; }
+
     }
 
 
