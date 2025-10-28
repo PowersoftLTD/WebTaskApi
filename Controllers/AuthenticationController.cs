@@ -99,7 +99,31 @@ namespace TaskManagement.API.Controllers
                 var locationData = JsonConvert.DeserializeObject<UserLocationInfo>(json);
                 if (locationData != null)
                 {
+                    locationData.CREATED_BY = employeeCompanyMSTInput_NT.Login_ID;
                     var userLocationStr = await _repository.InsertUserLocationAsync(locationData);
+                    var userAuditModel = new User_Audit
+                    {
+                        User_Id = locationData.CREATED_BY,
+                        User_IP = locationData.Ip,
+                        User_Location = locationData.Loc,
+                        Activity = "Login Activity",
+                        ATTRIBUTE1 = locationData.Hostname,
+                        ATTRIBUTE2 = locationData.City,
+                        ATTRIBUTE3 = locationData.Region,
+                        ATTRIBUTE4 = locationData.Country,
+                        ATTRIBUTE5 = locationData.Org,
+                        ATTRIBUTE6 = locationData.Postal,
+                        ATTRIBUTE7 = locationData.Timezone,
+                        ATTRIBUTE8 = locationData.Readme,
+                        CREATED_BY = locationData.CREATED_BY,
+                        CREATION_DATE = locationData.CREATION_DATE,
+                        LAST_UPDATED_BY = locationData.LAST_UPDATED_BY,
+                        LAST_UPDATE_DATE = locationData.LAST_UPDATE_DATE,
+                        DELETE_FLAG = locationData.DELETE_FLAG
+
+
+                    };
+                    var userAudit = await _repository.InsertUserAuditAsync(userAuditModel);
                 }
                 //// END IP Address by Itemad Hyder 27-10-2025
                 var LoginValidate = await _repository.Login_Validate_NT(employeeCompanyMSTInput_NT);
@@ -148,7 +172,31 @@ namespace TaskManagement.API.Controllers
                 var locationData = JsonConvert.DeserializeObject<UserLocationInfo>(json);
                 if (locationData != null)
                 {
+                    locationData.CREATED_BY = employeeCompanyMSTInput_NT.Login_ID;
                     var userLocationStr = await _repository.InsertUserLocationAsync(locationData);
+                    var userAuditModel = new User_Audit
+                    {
+                        User_Id = locationData.CREATED_BY,
+                        User_IP = locationData.Ip,
+                        User_Location = locationData.Loc,
+                        Activity = "Login Activity",
+                        ATTRIBUTE1 = locationData.Hostname,
+                        ATTRIBUTE2 = locationData.City,
+                        ATTRIBUTE3 = locationData.Region,
+                        ATTRIBUTE4 = locationData.Country,
+                        ATTRIBUTE5 = locationData.Org,
+                        ATTRIBUTE6 = locationData.Postal,
+                        ATTRIBUTE7 = locationData.Timezone,
+                        ATTRIBUTE8 = locationData.Readme,
+                        CREATED_BY = locationData.CREATED_BY,
+                        CREATION_DATE = locationData.CREATION_DATE,
+                        LAST_UPDATED_BY = locationData.LAST_UPDATED_BY,
+                        LAST_UPDATE_DATE = locationData.LAST_UPDATE_DATE,
+                        DELETE_FLAG = locationData.DELETE_FLAG
+
+
+                    };
+                    var userAudit = await _repository.InsertUserAuditAsync(userAuditModel);
                 }
                 //// END IP Address by Itemad Hyder 27-10-2025
                 var LoginValidate = await _repository.Login_Mobile_Validate_NT(employeeCompanyMSTInput_NT);
@@ -197,7 +245,31 @@ namespace TaskManagement.API.Controllers
                 var locationData = JsonConvert.DeserializeObject<UserLocationInfo>(json);
                 if (locationData != null)
                 {
+                    locationData.CREATED_BY = employeeCompanyMSTInput_NT.Login_ID;
                     var userLocationStr = await _repository.InsertUserLocationAsync(locationData);
+                    var userAuditModel = new User_Audit
+                    {
+                        User_Id = locationData.CREATED_BY,
+                        User_IP = locationData.Ip,
+                        User_Location = locationData.Loc,
+                        Activity = "Login Activity",
+                        ATTRIBUTE1 = locationData.Hostname,
+                        ATTRIBUTE2 = locationData.City,
+                        ATTRIBUTE3 = locationData.Region,
+                        ATTRIBUTE4 = locationData.Country,
+                        ATTRIBUTE5 = locationData.Org,
+                        ATTRIBUTE6 = locationData.Postal,
+                        ATTRIBUTE7 = locationData.Timezone,
+                        ATTRIBUTE8 = locationData.Readme,
+                        CREATED_BY = locationData.CREATED_BY,
+                        CREATION_DATE = locationData.CREATION_DATE,
+                        LAST_UPDATED_BY = locationData.LAST_UPDATED_BY,
+                        LAST_UPDATE_DATE = locationData.LAST_UPDATE_DATE,
+                        DELETE_FLAG = locationData.DELETE_FLAG
+
+
+                    };
+                    var userAudit = await _repository.InsertUserAuditAsync(userAuditModel);
                 }
                 //// END IP Address by Itemad Hyder 27-10-2025
 

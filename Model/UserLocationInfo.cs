@@ -12,5 +12,32 @@
         public string? Postal { get; set; }
         public string? Timezone { get; set; }
         public string? Readme { get; set; }
+        public string? CREATED_BY { get; set; }
+        public string? CREATION_DATE { get; set; }
+        public string? LAST_UPDATED_BY { get; set; }
+        public string? LAST_UPDATE_DATE { get; set; }
+        public string? DELETE_FLAG { get; set; }
     }
+    public class User_Audit
+    {
+        public int MKEY { get; set; }
+        public string User_Id { get; set; }
+        public string User_IP { get; set; }
+        public string User_Location { get; set; }
+        public string Activity { get; set; }
+        public string ATTRIBUTE1 { get; set; }
+        public string ATTRIBUTE2 { get; set; }
+        public string ATTRIBUTE3 { get; set; }
+        public string ATTRIBUTE4 { get; set; }
+        public string ATTRIBUTE5 { get; set; }
+        public string ATTRIBUTE6 { get; set; }
+        public string ATTRIBUTE7 { get; set; }
+        public string ATTRIBUTE8 { get; set; }
+        public string? CREATED_BY { get; set; }
+        public string CREATION_DATE { get; set; }
+        public string? LAST_UPDATED_BY { get; set; }
+        public string? LAST_UPDATE_DATE { get; set; }
+        public string DELETE_FLAG { get; set; }
+    }
+
 }

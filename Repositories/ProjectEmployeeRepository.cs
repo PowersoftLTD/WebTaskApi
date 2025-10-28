@@ -7714,6 +7714,11 @@ namespace TaskManagement.API.Repositories
                         parameters.Add("@Postal", userLocation.Postal);
                         parameters.Add("@Timezone", userLocation.Timezone);
                         parameters.Add("@Readme", userLocation.Readme);
+                        parameters.Add("@CREATED_BY", userLocation.CREATED_BY);
+                        parameters.Add("@CREATION_DATE", userLocation.CREATION_DATE);
+                        parameters.Add("@LAST_UPDATED_BY", userLocation.LAST_UPDATED_BY);
+                        parameters.Add("@LAST_UPDATE_DATE", userLocation.LAST_UPDATE_DATE);
+                        parameters.Add("@DELETE_FLAG", "N");
                         // ✅ Output parameter name as requested
                         parameters.Add("@responseMessage", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
 
@@ -7749,6 +7754,98 @@ namespace TaskManagement.API.Repositories
                 }
             }
         }
+        public async Task<int> GetUserIdbyUserNameAsync(string userName)
+        {
+
+            using (IDbConnection db = _dapperDbConnection.CreateConnection())
+            {
+                var sqlConnection = db as SqlConnection;
+                if (sqlConnection == null)
+                    throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+
+                if (sqlConnection.State != ConnectionState.Open)
+                    await sqlConnection.OpenAsync(); // ✅ Open connection safely
+
+                // Set up parameters
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserName", userName);
+
+                // ✅ Query user ID using Dapper
+                var userId = await db.QueryFirstOrDefaultAsync<int?>(
+                    "SELECT MKEY FROM [EMPLOYEE_MST] WHERE [LOGIN_NAME] = @UserName OR [EMAIL_ID_OFFICIAL] = @UserName",
+                    parameters,
+                    commandType: CommandType.Text
+                );
+                if (userId == null) throw new Exception("User not found");
+                return userId.Value;
+            }
+        }
+
+        public async Task<string> InsertUserAuditAsync(User_Audit audit)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync(); // ✅ Open DB connection manually
+
+                using (var transaction = connection.BeginTransaction()) // ✅ Start a SQL transaction
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@User_Id", audit.User_Id);
+                        parameters.Add("@User_IP", audit.User_IP);
+                        parameters.Add("@User_Location", audit.User_Location);
+                        parameters.Add("@Activity", audit.Activity);
+                        parameters.Add("@ATTRIBUTE1", audit.ATTRIBUTE1);
+                        parameters.Add("@ATTRIBUTE2", audit.ATTRIBUTE2);
+                        parameters.Add("@ATTRIBUTE3", audit.ATTRIBUTE3);
+                        parameters.Add("@ATTRIBUTE4", audit.ATTRIBUTE4);
+                        parameters.Add("@ATTRIBUTE5", audit.ATTRIBUTE5);
+                        parameters.Add("@ATTRIBUTE6", audit.ATTRIBUTE6);
+                        parameters.Add("@ATTRIBUTE7", audit.ATTRIBUTE7);
+                        parameters.Add("@ATTRIBUTE8", audit.ATTRIBUTE8);
+                        parameters.Add("@CREATED_BY", audit.CREATED_BY);
+                        parameters.Add("@CREATION_DATE", audit.CREATION_DATE);
+                        parameters.Add("@LAST_UPDATED_BY", audit.LAST_UPDATED_BY);
+                        parameters.Add("@LAST_UPDATE_DATE", audit.LAST_UPDATE_DATE);
+                        parameters.Add("@DELETE_FLAG", "N");
+                        // ✅ Output parameter name as requested
+                        parameters.Add("@responseMessage", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+                        // Execute SP inside the transaction
+                        await connection.ExecuteAsync("sp_InsertUser_AuditDetails", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                        // Retrieve output message from SP
+                        string responseMessage = parameters.Get<string>("@responseMessage");
+                        // ✅ Commit or Rollback based on message
+                        if (!string.IsNullOrEmpty(responseMessage) &&
+                            responseMessage.Contains("success", StringComparison.OrdinalIgnoreCase))
+                        {
+                            await transaction.CommitAsync();
+                        }
+                        else
+                        {
+                            await transaction.RollbackAsync();
+                        }
+
+                        return responseMessage;
+                    }
+                    catch (Exception ex)
+                    {
+                        // ❌ Rollback if any runtime error occurs
+                        await transaction.RollbackAsync();
+                        return $" Transaction failed: {ex.Message}";
+                    }
+                    finally
+                    {
+                        // ✅ Always close the connection
+                        if (connection.State == ConnectionState.Open)
+                            await connection.CloseAsync();
+                    }
+                }
+            }
+        }
+
+
         #endregion
     }
 }
