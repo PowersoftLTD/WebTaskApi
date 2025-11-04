@@ -207,13 +207,16 @@ namespace TaskManagement.API.Controllers
                 if (objFile.files == null)
                 {
                     var ResultCount = await _repository.UpdateTASKFileUpoadAsync(objFile.CREATED_BY.ToString(), objFile.TASK_MKEY.ToString(), objFile.DELETE_FLAG.ToString());
-                    var response = new Add_TaskOutPut_List_NT
+                    if (ResultCount.Status.Contains("Success"))
                     {
-                        Status = "Ok",
-                        Message = "File is deleted!!!",
-                        Data1 = null
-                    };
-                    return Ok(response);
+                        var response = new Add_TaskOutPut_List_NT
+                        {
+                            Status = "Ok",
+                            Message = "File is deleted!!!",
+                            Data1 = null
+                        };
+                        return Ok(response);
+                    }
                 }
 
                 foreach (var TaskFiles in objFile.files)
@@ -269,10 +272,8 @@ namespace TaskManagement.API.Controllers
                 if (flagAttachment == true)
                 {
                     var ResultCount = await _repository.UpdateTASKFileUpoadAsync(objFile.CREATED_BY.ToString(), objFile.TASK_MKEY.ToString(), objFile.DELETE_FLAG.ToString());
-
                     var Successresponse = new Add_RecursiveTaskOutPut_List_NT
                     {
-
                         Status = "ok",
                         Message = "File Uploaded",
                         Data2 = objFile

@@ -1285,7 +1285,105 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        public async Task<int> UpdateTASKFileUpoadAsync(string LastUpdatedBy, string taskMkey, string deleteFlag)
+        /// <summary>
+        /// Old UpdatetaskFileUploadAsync
+        /// </summary>
+        /// <param name="LastUpdatedBy"></param>
+        /// <param name="taskMkey"></param>
+        /// <param name="deleteFlag"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+
+        //public async Task<int> UpdateTASKFileUpoadAsync(string LastUpdatedBy, string taskMkey, string deleteFlag)
+        //{
+        //    DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+        //    IDbTransaction transaction = null;
+        //    bool transactionCompleted = false;
+        //    try
+        //    {
+        //        using (IDbConnection db = _dapperDbConnection.CreateConnection())
+        //        {
+        //            var sqlConnection = db as SqlConnection;
+        //            if (sqlConnection == null)
+        //            {
+        //                throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+        //            }
+
+        //            if (sqlConnection.State != ConnectionState.Open)
+        //            {
+        //                await sqlConnection.OpenAsync();  // Ensure the connection is open
+        //            }
+
+        //            transaction = db.BeginTransaction();
+        //            transactionCompleted = false;  // Reset transaction state
+
+        //            var parameters = new DynamicParameters();
+        //            parameters.Add("@LastUpdatedBy", LastUpdatedBy);
+        //            parameters.Add("@TASK_MKEY", taskMkey);
+        //            parameters.Add("@DELETE_FLAG", deleteFlag);
+
+        //            var TaskFile = await db.ExecuteAsync("SP_RECURSIVE_DEL_ATTCAHMENT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+        //            if (TaskFile == null)
+        //            {
+        //                // Handle other unexpected exceptions
+        //                if (transaction != null && !transactionCompleted)
+        //                {
+        //                    try
+        //                    {
+        //                        // Rollback only if the transaction is not yet completed
+        //                        transaction.Rollback();
+        //                    }
+        //                    catch (InvalidOperationException rollbackEx)
+        //                    {
+
+        //                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+        //                        //TranError.Message = ex.Message;
+        //                        //return TranError;
+        //                    }
+        //                }
+
+        //                var TemplateError = new TASK_FILE_UPLOAD();
+        //                TemplateError.STATUS = "Error";
+        //                TemplateError.MESSAGE = "Error Occurd";
+        //                return 0;
+        //            }
+
+        //            var sqlTransaction = (SqlTransaction)transaction;
+        //            await sqlTransaction.CommitAsync();
+        //            transactionCompleted = true;
+
+        //            return 1;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && !transactionCompleted)
+        //        {
+        //            try
+        //            {
+        //                // Rollback only if the transaction is not yet completed
+        //                transaction.Rollback();
+        //            }
+        //            catch (InvalidOperationException rollbackEx)
+        //            {
+        //                // Handle rollback exception (may occur if transaction is already completed)
+        //                // Log or handle the rollback failure if needed
+        //                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+        //                //var TranError = new APPROVAL_TASK_INITIATION();
+        //                //TranError.ResponseStatus = "Error";
+        //                //TranError.Message = ex.Message;
+        //                //return TranError;
+        //            }
+        //        }
+
+        //        var ErrorFileDetails = new TASK_FILE_UPLOAD();
+        //        ErrorFileDetails.STATUS = "Error";
+        //        ErrorFileDetails.MESSAGE = ex.Message;
+        //        return 1;
+        //    }
+        //}
+        public async Task<Add_TaskOutPut_List_NT> UpdateTASKFileUpoadAsync(string LastUpdatedBy, string taskMkey, string deleteFlag)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -1313,38 +1411,55 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@TASK_MKEY", taskMkey);
                     parameters.Add("@DELETE_FLAG", deleteFlag);
 
-                    var TaskFile = await db.ExecuteAsync("SP_RECURSIVE_DEL_ATTCAHMENT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    // ✅ Output parameter to get SP message
+                    parameters.Add("@RESULT_MESSAGE", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+                    await db.ExecuteAsync("SP_RECURSIVE_DEL_ATTCAHMENT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    string resultMessage = parameters.Get<string>("@RESULT_MESSAGE");
 
-                    if (TaskFile == null)
-                    {
-                        // Handle other unexpected exceptions
-                        if (transaction != null && !transactionCompleted)
-                        {
-                            try
-                            {
-                                // Rollback only if the transaction is not yet completed
-                                transaction.Rollback();
-                            }
-                            catch (InvalidOperationException rollbackEx)
-                            {
-
-                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                //TranError.Message = ex.Message;
-                                //return TranError;
-                            }
-                        }
-
-                        var TemplateError = new TASK_FILE_UPLOAD();
-                        TemplateError.STATUS = "Error";
-                        TemplateError.MESSAGE = "Error Occurd";
-                        return 0;
-                    }
-
-                    var sqlTransaction = (SqlTransaction)transaction;
-                    await sqlTransaction.CommitAsync();
+                    await ((SqlTransaction)transaction).CommitAsync();
                     transactionCompleted = true;
 
-                    return 1;
+                    return new Add_TaskOutPut_List_NT
+                    {
+                        Status = "Success",
+                        Message = string.IsNullOrEmpty(resultMessage) ? "Operation completed successfully." : resultMessage
+                    };
+
+
+
+
+                    // var TaskFile = await db.ExecuteAsync("SP_RECURSIVE_DEL_ATTCAHMENT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    //if (TaskFile == null)
+                    //{
+                    //    // Handle other unexpected exceptions
+                    //    if (transaction != null && !transactionCompleted)
+                    //    {
+                    //        try
+                    //        {
+                    //            // Rollback only if the transaction is not yet completed
+                    //            transaction.Rollback();
+                    //        }
+                    //        catch (InvalidOperationException rollbackEx)
+                    //        {
+
+                    //            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    //            //TranError.Message = ex.Message;
+                    //            //return TranError;
+                    //        }
+                    //    }
+
+                    //    var TemplateError = new TASK_FILE_UPLOAD();
+                    //    TemplateError.STATUS = "Error";
+                    //    TemplateError.MESSAGE = "Error Occurd";
+                    //    return 0;
+                    //}
+
+                    //var sqlTransaction = (SqlTransaction)transaction;
+                    //await sqlTransaction.CommitAsync();
+                    //transactionCompleted = true;
+
+                    //return 1;
                 }
             }
             catch (Exception ex)
@@ -1368,10 +1483,11 @@ namespace TaskManagement.API.Repositories
                     }
                 }
 
-                var ErrorFileDetails = new TASK_FILE_UPLOAD();
-                ErrorFileDetails.STATUS = "Error";
-                ErrorFileDetails.MESSAGE = ex.Message;
-                return 1;
+                return new Add_TaskOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message
+                };
             }
         }
         public async Task<ActionResult<string>> FileDownload()
@@ -1469,38 +1585,51 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@LAST_UPDATE_DATE", null);
                     parameters.Add("@DELETE_FLAG", deleteFlag);
                     parameters.Add("@TASK_MAIN_NODE_ID", taskMainNodeId);
-
-                    var TaskFile = await db.ExecuteAsync("Sp_RECURSIVE_Insert_Attcahment", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                    if (TaskFile == null)
-                    {
-                        // Handle other unexpected exceptions
-                        if (transaction != null && !transactionCompleted)
-                        {
-                            try
-                            {
-                                // Rollback only if the transaction is not yet completed
-                                transaction.Rollback();
-                            }
-                            catch (InvalidOperationException rollbackEx)
-                            {
-
-                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                                //TranError.Message = ex.Message;
-                                //return TranError;
-                            }
-                        }
-
-                        var TemplateError = new Add_TaskOutPut_List_NT();
-                        TemplateError.Status = "Error";
-                        TemplateError.Message = "Error Occurd";
-                        return TemplateError;
-                    }
-                    var TemplateSuccess = new Add_TaskOutPut_List_NT();
-                    var sqlTransaction = (SqlTransaction)transaction;
-                    await sqlTransaction.CommitAsync();
+                    parameters.Add("@RESULT_MESSAGE", dbType: DbType.String, size: 500, direction: ParameterDirection.Output); // Adding New Line 
+                    //var TaskFile = await db.ExecuteAsync("Sp_RECURSIVE_Insert_Attcahment", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                   // Added New lIne From This 
+                    int rowsAffected  = await db.ExecuteAsync("Sp_RECURSIVE_Insert_Attcahment", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    string resultMessage = parameters.Get<string>("@RESULT_MESSAGE");
+                    await ((SqlTransaction)transaction).CommitAsync();
                     transactionCompleted = true;
-                    return TemplateSuccess;
+                    var response = new Add_TaskOutPut_List_NT
+                    {
+                        Status = "Success",
+                        Message = string.IsNullOrEmpty(resultMessage) ? "Operation completed successfully." : resultMessage
+                    };
+
+                    return response;
+
+                    //// End by This 
+                    //if (TaskFile == null)
+                    //{
+                    //    // Handle other unexpected exceptions
+                    //    if (transaction != null && !transactionCompleted)
+                    //    {
+                    //        try
+                    //        {
+                    //            // Rollback only if the transaction is not yet completed
+                    //            transaction.Rollback();
+                    //        }
+                    //        catch (InvalidOperationException rollbackEx)
+                    //        {
+
+                    //            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    //            //TranError.Message = ex.Message;
+                    //            //return TranError;
+                    //        }
+                    //    }
+
+                    //    var TemplateError = new Add_TaskOutPut_List_NT();
+                    //    TemplateError.Status = "Error";
+                    //    TemplateError.Message = "Error Occurd";
+                    //    return TemplateError;
+                    //}
+                    //var TemplateSuccess = new Add_TaskOutPut_List_NT();
+                    //var sqlTransaction = (SqlTransaction)transaction;
+                    //await sqlTransaction.CommitAsync();
+                    //transactionCompleted = true;
+                    //return TemplateSuccess;
                 }
 
             }
@@ -1510,27 +1639,127 @@ namespace TaskManagement.API.Repositories
                 {
                     try
                     {
-                        // Rollback only if the transaction is not yet completed
                         transaction.Rollback();
                     }
                     catch (InvalidOperationException rollbackEx)
                     {
-                        // Handle rollback exception (may occur if transaction is already completed)
-                        // Log or handle the rollback failure if needed
                         Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
-                        //var TranError = new APPROVAL_TASK_INITIATION();
-                        //TranError.ResponseStatus = "Error";
-                        //TranError.Message = ex.Message;
-                        //return TranError;
                     }
                 }
 
-                var ErrorFileDetails = new Add_TaskOutPut_List_NT();
-                ErrorFileDetails.Status = "Error";
-                ErrorFileDetails.Message = ex.Message;
-                return ErrorFileDetails;
+                // Error response
+                var errorResponse = new Add_TaskOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message
+                };
+
+                return errorResponse;
             }
         }
+
+        //public async Task<ActionResult<Add_TaskOutPut_List_NT>> TASKFileUpoadNTAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId)    //  
+        //{
+        //    DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+        //    IDbTransaction transaction = null;
+        //    bool transactionCompleted = false;
+        //    int SR_NO = 0;
+        //    try
+        //    {
+        //        using (IDbConnection db = _dapperDbConnection.CreateConnection())
+        //        {
+        //            var sqlConnection = db as SqlConnection;
+        //            if (sqlConnection == null)
+        //            {
+        //                throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+        //            }
+
+        //            if (sqlConnection.State != ConnectionState.Open)
+        //            {
+        //                await sqlConnection.OpenAsync();  // Ensure the connection is open
+        //            }
+
+        //            transaction = db.BeginTransaction();
+        //            transactionCompleted = false;  // Reset transaction state
+
+        //            var parameters = new DynamicParameters();
+        //            parameters.Add("@SR_NO", srNo);
+        //            parameters.Add("@TASK_MKEY", taskMkey);
+        //            parameters.Add("@TASK_PARENT_ID", taskParentId);
+        //            parameters.Add("@FILE_NAME", fileName);
+        //            parameters.Add("@FILE_PATH", filePath);
+        //            parameters.Add("@CREATED_BY", createdBy);
+        //            parameters.Add("@ATTRIBUTE1", null);
+        //            parameters.Add("@ATTRIBUTE2", null);
+        //            parameters.Add("@ATTRIBUTE3", null);
+        //            parameters.Add("@ATTRIBUTE4", null);
+        //            parameters.Add("@ATTRIBUTE5", null);
+        //            parameters.Add("@LAST_UPDATED_BY", createdBy);
+        //            parameters.Add("@LAST_UPDATE_DATE", null);
+        //            parameters.Add("@DELETE_FLAG", deleteFlag);
+        //            parameters.Add("@TASK_MAIN_NODE_ID", taskMainNodeId);
+        //            parameters.Add("@RESULT_MESSAGE", dbType: DbType.String, size: 500, direction: ParameterDirection.Output); // Add this Line 04-11-2025 👈 Output param
+        //            var TaskFile = await db.ExecuteAsync("Sp_RECURSIVE_Insert_Attcahment_TEST", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+        //            string resultMessage = parameters.Get<string>("@RESULT_MESSAGE"); // Add this Line 04-11-2025 👈 Capture output value
+        //            if (string.IsNullOrEmpty(resultMessage))
+        //            {
+        //                // Handle other unexpected exceptions
+        //                if (transaction != null && !transactionCompleted)
+        //                {
+        //                    try
+        //                    {
+        //                        // Rollback only if the transaction is not yet completed
+        //                        transaction.Rollback();
+        //                    }
+        //                    catch (InvalidOperationException rollbackEx)
+        //                    {
+
+        //                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+        //                        //TranError.Message = ex.Message;
+        //                        //return TranError;
+        //                    }
+        //                }
+
+        //                var TemplateError = new Add_TaskOutPut_List_NT();
+        //                TemplateError.Status = "Error";
+        //                TemplateError.Message = "Error Occurd";
+        //                return TemplateError;
+        //            }
+        //            var TemplateSuccess = new Add_TaskOutPut_List_NT();
+        //            var sqlTransaction = (SqlTransaction)transaction;
+        //            await sqlTransaction.CommitAsync();
+        //            transactionCompleted = true;
+        //            return TemplateSuccess;
+        //        }
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (transaction != null && !transactionCompleted)
+        //        {
+        //            try
+        //            {
+        //                // Rollback only if the transaction is not yet completed
+        //                transaction.Rollback();
+        //            }
+        //            catch (InvalidOperationException rollbackEx)
+        //            {
+        //                // Handle rollback exception (may occur if transaction is already completed)
+        //                // Log or handle the rollback failure if needed
+        //                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+        //                //var TranError = new APPROVAL_TASK_INITIATION();
+        //                //TranError.ResponseStatus = "Error";
+        //                //TranError.Message = ex.Message;
+        //                //return TranError;
+        //            }
+        //        }
+
+        //        var ErrorFileDetails = new Add_TaskOutPut_List_NT();
+        //        ErrorFileDetails.Status = "Error";
+        //        ErrorFileDetails.Message = ex.Message;
+        //        return ErrorFileDetails;
+        //    }
+        //}
 
         public string SendEmail(string sp_to, string sp_cc, string sp_bcc, string sp_subject, string sp_body, string sp_mailtype, string sp_display_name, List<string> lp_attachment, MailDetailsNT mailDetailsNT)
         {

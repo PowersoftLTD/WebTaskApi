@@ -1,4 +1,6 @@
-﻿namespace TaskManagement.API.Model
+﻿using System.Text.Json.Serialization;
+
+namespace TaskManagement.API.Model
 {
     public class UserLocationInfo
     {
@@ -39,5 +41,20 @@
         public string? LAST_UPDATE_DATE { get; set; }
         public string DELETE_FLAG { get; set; }
     }
+    public class SessionLogOut
+    {
+        public string Session_UserId { get; set; }
+        public string? BusinessGroupId { get; set; }
+    }
 
+    public class LogOutoutPut_NT
+    {
+        [JsonPropertyName("Status")]
+        public string? Status { get; set; }
+        [JsonPropertyName("Message")]
+        public string? Message { get; set; }
+
+        [JsonPropertyName("Data")]
+        public User_Audit Data { get; set; }
+    }
 }

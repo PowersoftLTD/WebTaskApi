@@ -7730,7 +7730,32 @@ namespace TaskManagement.API.Repositories
                         if (!string.IsNullOrEmpty(responseMessage) &&
                             responseMessage.Contains("success", StringComparison.OrdinalIgnoreCase))
                         {
-                            await transaction.CommitAsync();
+                            var auditdata = new User_Audit
+                            {
+                                User_Id = userLocation.CREATED_BY,
+                                User_IP = userLocation.Ip,
+                                User_Location = userLocation.Loc,
+                                Activity = "Login Activity",
+                                ATTRIBUTE1 = userLocation.Hostname,
+                                ATTRIBUTE2 = userLocation.City,
+                                ATTRIBUTE3 = userLocation.Region,
+                                ATTRIBUTE4 = userLocation.Country,
+                                ATTRIBUTE5 = userLocation.Org,
+                                ATTRIBUTE6 = userLocation.Postal,
+                                ATTRIBUTE7 = userLocation.Timezone,
+                                ATTRIBUTE8 = userLocation.Readme,
+                                CREATED_BY = userLocation.CREATED_BY,
+                                CREATION_DATE = DateTime.UtcNow.ToShortDateString(),
+                                LAST_UPDATED_BY = userLocation.LAST_UPDATED_BY,
+                                LAST_UPDATE_DATE = userLocation.LAST_UPDATE_DATE,
+                                DELETE_FLAG = "N"
+                            };
+                            var UserAudit = InsertUserAuditAsync(auditdata);
+                            if (!string.IsNullOrEmpty(responseMessage) &&
+                            responseMessage.Contains("success", StringComparison.OrdinalIgnoreCase))
+                            {
+                                await transaction.CommitAsync();
+                            }
                         }
                         else
                         {
