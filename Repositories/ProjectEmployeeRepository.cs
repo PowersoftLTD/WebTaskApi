@@ -2516,10 +2516,30 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@TASK_MKEY", add_TaskInput_NT.TASK_NO);
                         parmeters.Add("@TASK_NAME", add_TaskInput_NT.TASK_NAME);
                         parmeters.Add("@TASK_DESCRIPTION", add_TaskInput_NT.TASK_DESCRIPTION);
+                        parmeters.Add("@CATEGORY", add_TaskInput_NT.CATEGORY);   //// Added By Itemad hyder 06-11-2025
                         parmeters.Add("@PROJECT_ID", add_TaskInput_NT.PROJECT_ID);
                         parmeters.Add("@SUBPROJECT_ID", add_TaskInput_NT.SUBPROJECT_ID);
                         parmeters.Add("@COMPLETION_DATE", add_TaskInput_NT.COMPLETION_DATE);
                         parmeters.Add("@ASSIGNED_TO", add_TaskInput_NT.ASSIGNED_TO);
+                        //// Added by Itemad Hyder 06-11-2025
+                        parmeters.Add("@ISNODE", add_TaskInput_NT.ISNODE);
+                        parmeters.Add("@CLOSE_DATE", add_TaskInput_NT.CLOSE_DATE);
+                        parmeters.Add("@DUE_DATE", add_TaskInput_NT.DUE_DATE);
+                        parmeters.Add("@TASK_PARENT_ID", add_TaskInput_NT.TASK_PARENT_ID);
+                        parmeters.Add("@STATUS", add_TaskInput_NT.STATUS);
+                        parmeters.Add("@STATUS_PERC", add_TaskInput_NT.STATUS_PERC);
+                        parmeters.Add("@TASK_CREATED_BY", add_TaskInput_NT.TASK_CREATED_BY);
+                        parmeters.Add("@TASK_TYPE", add_TaskInput_NT.TASK_TYPE);
+                        parmeters.Add("@APPROVER_ID", add_TaskInput_NT.APPROVER_ID);
+                        parmeters.Add("@IS_ARCHIVE", add_TaskInput_NT.IS_ARCHIVE);
+                        parmeters.Add("@ATTRIBUTE1", add_TaskInput_NT.ATTRIBUTE1);
+                        parmeters.Add("@ATTRIBUTE2", add_TaskInput_NT.ATTRIBUTE2);
+                        parmeters.Add("@ATTRIBUTE3", add_TaskInput_NT.ATTRIBUTE3);
+                        parmeters.Add("@ATTRIBUTE4", add_TaskInput_NT.ATTRIBUTE4);
+                        parmeters.Add("@ATTRIBUTE5", add_TaskInput_NT.ATTRIBUTE5);
+                        parmeters.Add("@CREATED_BY", add_TaskInput_NT.CREATED_BY);
+                        parmeters.Add("@CREATION_DATE", add_TaskInput_NT.CREATION_DATE);
+                        // changes Ended by Itemad Hyder 
                         parmeters.Add("@Priority", add_TaskInput_NT.Priority);
                         parmeters.Add("@Tentative_Start_Date", add_TaskInput_NT.Tentative_Start_Date);
                         parmeters.Add("@Tentative_End_Date", add_TaskInput_NT.Tentative_End_Date);
