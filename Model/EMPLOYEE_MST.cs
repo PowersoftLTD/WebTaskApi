@@ -29,4 +29,9 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Business_Group_Id")]
         public int Business_Group_ID { get; set; }
     }
+    public class userDepartment
+    {
+        [JsonPropertyName("departmentId")]
+        public string? departmentId { get; set; }
+    }
 }

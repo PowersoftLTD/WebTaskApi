@@ -21,6 +21,8 @@ namespace TaskManagement.API.Interfaces
         Task<Add_TaskOutPut_List_NT> UpdateTASKFileUpoadAsync(string LastUpdatedBy, string taskMkey, string deleteFlag);
         Task<ActionResult<string>> FileDownload();
         Task<ActionResult<Add_TaskOutPut_List_NT>> TASKFileUpoadNTAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId);   //, int taskParentId ,int taskMainNodeId
+        Task<Add_TaskOutPut_List_NT> UpdateDELETETASKFileUpoadAsync(string LastUpdatedBy, string taskMkey, string deleteFlag, string srNo);
+
         #endregion
 
     }

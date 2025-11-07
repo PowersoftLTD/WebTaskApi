@@ -113,11 +113,11 @@ namespace TaskManagement.API.Controllers
         }
         [HttpPost("EmployeeList-ByDepartmentId")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<Task_UserDepartmentOutPutNT_List>>> GetEmployeeList_ByDepartmentId_NT(string departmentId)
+        public async Task<ActionResult<IEnumerable<Task_UserDepartmentOutPutNT_List>>> GetEmployeeList_ByDepartmentId_NT([FromBody] userDepartment department)
         {
             try
             {
-                var TaskDash = await _repository.GetEmployeeDetails_ByDepartmentId(departmentId);
+                var TaskDash = await _repository.GetEmployeeDetails_ByDepartmentId(department);
                 return Ok(TaskDash);
             }
             catch (Exception ex)

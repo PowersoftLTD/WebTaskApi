@@ -1658,6 +1658,115 @@ namespace TaskManagement.API.Repositories
             }
         }
 
+        public async Task<Add_TaskOutPut_List_NT> UpdateDELETETASKFileUpoadAsync(string LastUpdatedBy, string taskMkey, string deleteFlag, string srNo)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            IDbTransaction transaction = null;
+            bool transactionCompleted = false;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@LastUpdatedBy", LastUpdatedBy);
+                    parameters.Add("@TASK_MKEY", taskMkey);
+                    parameters.Add("@SR_NO", srNo);
+                    parameters.Add("@DELETE_FLAG", deleteFlag);
+
+                    // ✅ Output parameter to get SP message
+                    parameters.Add("@RESULT_MESSAGE", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+                    await db.ExecuteAsync("SP_RECURSIVE_DELELET_ATTCAHMENT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                    string resultMessage = parameters.Get<string>("@RESULT_MESSAGE");
+
+                    await ((SqlTransaction)transaction).CommitAsync();
+                    transactionCompleted = true;
+
+                    return new Add_TaskOutPut_List_NT
+                    {
+                        Status = "Success",
+                        Message = string.IsNullOrEmpty(resultMessage) ? "Operation completed successfully." : resultMessage
+                    };
+
+                    // var TaskFile = await db.ExecuteAsync("SP_RECURSIVE_DEL_ATTCAHMENT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    //if (TaskFile == null)
+                    //{
+                    //    // Handle other unexpected exceptions
+                    //    if (transaction != null && !transactionCompleted)
+                    //    {
+                    //        try
+                    //        {
+                    //            // Rollback only if the transaction is not yet completed
+                    //            transaction.Rollback();
+                    //        }
+                    //        catch (InvalidOperationException rollbackEx)
+                    //        {
+
+                    //            Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    //            //TranError.Message = ex.Message;
+                    //            //return TranError;
+                    //        }
+                    //    }
+
+                    //    var TemplateError = new TASK_FILE_UPLOAD();
+                    //    TemplateError.STATUS = "Error";
+                    //    TemplateError.MESSAGE = "Error Occurd";
+                    //    return 0;
+                    //}
+
+                    //var sqlTransaction = (SqlTransaction)transaction;
+                    //await sqlTransaction.CommitAsync();
+                    //transactionCompleted = true;
+
+                    //return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        // Handle rollback exception (may occur if transaction is already completed)
+                        // Log or handle the rollback failure if needed
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                        //var TranError = new APPROVAL_TASK_INITIATION();
+                        //TranError.ResponseStatus = "Error";
+                        //TranError.Message = ex.Message;
+                        //return TranError;
+                    }
+                }
+
+                return new Add_TaskOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message
+                };
+            }
+        }
+
+
+
+
         //public async Task<ActionResult<Add_TaskOutPut_List_NT>> TASKFileUpoadNTAsync(int srNo, int taskMkey, int taskParentId, string fileName, string filePath, int createdBy, char deleteFlag, int taskMainNodeId)    //  
         //{
         //    DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);

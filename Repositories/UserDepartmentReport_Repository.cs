@@ -231,14 +231,28 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-        public async Task<IEnumerable<Task_userDepartMentResponseOutPUt_NT>> GetEmployeeDetails_ByDepartmentId(string departmentd)
+        public async Task<IEnumerable<Task_userDepartMentResponseOutPUt_NT>> GetEmployeeDetails_ByDepartmentId(userDepartment department)
         {
             try
             {
+                //if (string.IsNullOrEmpty(department.departmentId))
+                //{
+                //    var successsResult = new List<Task_userDepartMentResponseOutPUt_NT>
+                //    {
+                //        new Task_userDepartMentResponseOutPUt_NT
+                //        {
+                //            Status = "Ok",
+                //            Message = "No Employee Available!",
+                //            Data= null,
+                //           // Data1 = data1
+                //        }
+                //    };
+                //    return successsResult;
+                //}
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
-                    parmeters.Add("@departmentd", departmentd);
+                    parmeters.Add("@departmentd", department.departmentId);
                     var result = await db.QueryAsync<EmployeeDetails_ByDepartmentId>("SP_GET_EmployeeListDetails_ByDepartmentid", parmeters, commandType: CommandType.StoredProcedure);
                     var successsResult = new List<Task_userDepartMentResponseOutPUt_NT>
                     {
@@ -271,6 +285,48 @@ namespace TaskManagement.API.Repositories
             }
         }
 
+        #region
 
+        //public async Task<IEnumerable<Task_userDepartMentResponseOutPUt_NT>> GetEmployeeDetails_ByDepartmentId(string departmentd)
+        //{
+        //    try
+        //    {
+        //        using (IDbConnection db = _dapperDbConnection.CreateConnection())
+        //        {
+        //            var parmeters = new DynamicParameters();
+        //            parmeters.Add("@departmentd", departmentd);
+        //            var result = await db.QueryAsync<EmployeeDetails_ByDepartmentId>("SP_GET_EmployeeListDetails_ByDepartmentid", parmeters, commandType: CommandType.StoredProcedure);
+        //            var successsResult = new List<Task_userDepartMentResponseOutPUt_NT>
+        //            {
+        //                new Task_userDepartMentResponseOutPUt_NT
+        //                {
+        //                    Status = "Ok",
+        //                    Message = "Message",
+        //                    Data= result.ToList(),
+        //                   // Data1 = data1
+        //                }
+        //            };
+        //            return successsResult;
+
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var errorResult = new List<Task_userDepartMentResponseOutPUt_NT>
+        //            {
+        //                new Task_userDepartMentResponseOutPUt_NT
+        //                {
+        //                    Status = "Error",
+        //                    Message = ex.Message,
+        //                    Data = null,
+        //                   // Data1 = null
+        //                }
+        //            };
+        //        return errorResult;
+
+        //    }
+        //}
+
+        #endregion
     }
 }
