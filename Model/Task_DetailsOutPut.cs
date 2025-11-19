@@ -54,6 +54,8 @@ namespace TaskManagement.API.Model
         public IEnumerable<Task_DetailsOutPutNT> Data { get; set; }
         [JsonPropertyName("Data1")]
         public IEnumerable<TaskDashboardCount_NT> Data1 { get; set; }
+        [JsonPropertyName("Data2")]
+        public IEnumerable<int> Data2 { get; set; }
     }
 
     public class Task_DetailsOutPutNT

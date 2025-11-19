@@ -141,7 +141,8 @@ namespace TaskManagement.API.Repositories
                 }
             }
         }
-        public async Task<IEnumerable<Task_DetailsOutPutNT_List>> GetTaskDetailsNTAsync(Task_UserDepartmentDetailsInputNT task_DetailsInputNT)
+        
+        public async Task<IEnumerable<Task_DetailsOutPutNT_List>> GetTaskDetailsNTAsync(Task_UserDepartmentDownloadDetailsInputNT task_DetailsDownloadInputNT)
         {
             try
             {
@@ -149,16 +150,17 @@ namespace TaskManagement.API.Repositories
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
-                    parmeters.Add("@CURRENT_EMP_MKEY", task_DetailsInputNT.CURRENT_EMP_MKEY);
-                    parmeters.Add("@USER_FILTER", task_DetailsInputNT.FILTER);
-                    //parmeters.Add("@DURATION_FILTER", task_DetailsInputNT.DURATION_FILTER);
+                    parmeters.Add("@CURRENT_EMP_MKEY", task_DetailsDownloadInputNT.CURRENT_EMP_MKEY);
+                    parmeters.Add("@USER_FILTER", task_DetailsDownloadInputNT.FILTER);
+                    //parmeters.Add("@DURATION_FILTER", task_DetailsInputNT.DURATION_FILTER);0
                     //parmeters.Add("@STATUS_FILTER", task_DetailsInputNT.Status_Filter);
                     //parmeters.Add("@PriorityFilter", task_DetailsInputNT.PriorityFilter);
                     //parmeters.Add("@TypeFilter", task_DetailsInputNT.TypeFilter);
-                    parmeters.Add("@Session_User_Id", task_DetailsInputNT.Session_User_ID);
-                    parmeters.Add("@Business_Group_Id", task_DetailsInputNT.Business_Group_ID);
-                    parmeters.Add("@Department", task_DetailsInputNT.Department);
-                    parmeters.Add("@Type", task_DetailsInputNT.Type);
+                    parmeters.Add("@Session_User_Id", task_DetailsDownloadInputNT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", task_DetailsDownloadInputNT.Business_Group_ID);
+                    parmeters.Add("@Departmentfilter", task_DetailsDownloadInputNT.Departmentfilter);
+                    parmeters.Add("@Employeefilter", task_DetailsDownloadInputNT.EmployeeFiletr);
+                    parmeters.Add("@Type", task_DetailsDownloadInputNT.Type);
                     var result = await db.QueryMultipleAsync("SP_USERdEPARTMENT_REPORT_NT", parmeters, commandType: CommandType.StoredProcedure);
 
                     var data = result.Read<Task_DetailsOutPutNT>().ToList();
@@ -285,6 +287,71 @@ namespace TaskManagement.API.Repositories
             }
         }
 
+        public async Task<IEnumerable<Task_DetailsOutPutNT_List>> GetTaskDetailsNTAsync_NT(Task_UserDepartmentDetailsInputNT task_DetailsInputNT)
+        {
+            try
+            {
+                DataSet dsTaskDash = new DataSet();
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@CURRENT_EMP_MKEY", task_DetailsInputNT.CURRENT_EMP_MKEY);
+                    parmeters.Add("@USER_FILTER", task_DetailsInputNT.FILTER);
+                    //parmeters.Add("@DURATION_FILTER", task_DetailsInputNT.DURATION_FILTER);0
+                    //parmeters.Add("@STATUS_FILTER", task_DetailsInputNT.Status_Filter);
+                    //parmeters.Add("@PriorityFilter", task_DetailsInputNT.PriorityFilter);
+                    //parmeters.Add("@TypeFilter", task_DetailsInputNT.TypeFilter);
+                    parmeters.Add("@Session_User_Id", task_DetailsInputNT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", task_DetailsInputNT.Business_Group_ID);
+                    parmeters.Add("@Departmentfilter", task_DetailsInputNT.Departmentfilter);
+                    parmeters.Add("@Employeefilter", task_DetailsInputNT.EmployeeFiletr);
+                    parmeters.Add("@Type", task_DetailsInputNT.Type);
+                    // Pagination params only - no count
+                    int? pageNumber = task_DetailsInputNT.PageNumber <= 0 ? 1 : task_DetailsInputNT.PageNumber;
+                    int? pageSize = task_DetailsInputNT.PageSize <= 0 ? 50 : task_DetailsInputNT.PageSize;
+
+                    // Set maximum page size to prevent excessive data retrieval
+                    if (pageSize > 1000)
+                        pageSize = 1000;
+
+                    parmeters.Add("@PageNumber", pageNumber);
+                    parmeters.Add("@PageSize", pageSize);
+                    //var result = await db.QueryMultipleAsync("SP_USERdEPARTMENT_REPORT_NT", parmeters, commandType: CommandType.StoredProcedure);
+                    var result = await db.QueryMultipleAsync("SP_DEPARTMENTVIEW_REPORT_NT", parmeters, commandType: CommandType.StoredProcedure);
+
+                    var data = result.Read<Task_DetailsOutPutNT>().ToList();
+                    var data1 = result.Read<TaskDashboardCount_NT>().ToList();
+                    var totalCount = result.Read<int>();
+
+                    var successsResult = new List<Task_DetailsOutPutNT_List>
+                    {
+                        new Task_DetailsOutPutNT_List
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= data,
+                            Data1 = data1,
+                            Data2=totalCount
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<Task_DetailsOutPutNT_List>
+                    {
+                        new Task_DetailsOutPutNT_List
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data = null,
+                            Data1 = null
+                        }
+                    };
+                return errorResult;
+            }
+        }
         #region
 
         //public async Task<IEnumerable<Task_userDepartMentResponseOutPUt_NT>> GetEmployeeDetails_ByDepartmentId(string departmentd)

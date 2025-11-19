@@ -67,10 +67,31 @@ namespace TaskManagement.API.Controllers
             }
         }
 
-
         [HttpPost("Task-Dashboard_NT")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<Task_DetailsOutPutNT_List>>> Task_Details_NT([FromBody] Task_UserDepartmentDetailsInputNT task_UserDepartmentDetailsInputNT)
+        {
+            try
+            {
+                var TaskDash = await _repository.GetTaskDetailsNTAsync_NT(task_UserDepartmentDetailsInputNT);
+                return Ok(TaskDash);
+            }
+            catch (Exception ex)
+            {
+                var response = new Task_DetailsOutPut_List
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null,
+                    Data1 = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-ViewDashboardDownload_NT")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Task_DetailsOutPutNT_List>>> Task_ViewDashboardDownloadDetails_NT([FromBody] Task_UserDepartmentDownloadDetailsInputNT task_UserDepartmentDetailsInputNT)
         {
             try
             {
@@ -89,6 +110,29 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+
+        //[HttpPost("Task-Dashboard_NT")]
+        //[Authorize]
+        //public async Task<ActionResult<IEnumerable<Task_DetailsOutPutNT_List>>> Task_Details_NT([FromBody] Task_UserDepartmentDetailsInputNT task_UserDepartmentDetailsInputNT)
+        //{
+        //    try
+        //    {
+        //        var TaskDash = await _repository.GetTaskDetailsNTAsync(task_UserDepartmentDetailsInputNT);
+        //        return Ok(TaskDash);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var response = new Task_DetailsOutPut_List
+        //        {
+        //            Status = "Error",
+        //            Message = ex.Message,
+        //            Data = null,
+        //            Data1 = null
+        //        };
+        //        return Ok(response);
+        //    }
+        //}
 
         [HttpPost("UserDepartmentReport-DepartmentList")]
         [Authorize]
