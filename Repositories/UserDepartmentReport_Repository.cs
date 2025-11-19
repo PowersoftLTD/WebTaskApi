@@ -165,7 +165,7 @@ namespace TaskManagement.API.Repositories
 
                     var data = result.Read<Task_DetailsOutPutNT>().ToList();
                     var data1 = result.Read<TaskDashboardCount_NT>().ToList();
-
+                    //var totalCount = result.Read<int>();
                     var successsResult = new List<Task_DetailsOutPutNT_List>
                     {
                         new Task_DetailsOutPutNT_List
@@ -173,7 +173,8 @@ namespace TaskManagement.API.Repositories
                             Status = "Ok",
                             Message = "Message",
                             Data= data,
-                            Data1 = data1
+                            Data1 = data1,
+                            Data2= new List<int>()
                         }
                     };
                     return successsResult;
