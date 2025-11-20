@@ -2125,8 +2125,8 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.LAST_UPDATED_BY);
                         parmeters.Add("@APPROVE_ACTION_DATE", add_TaskInput_NT.APPROVE_ACTION_DATE);
                         parmeters.Add("@Priority", add_TaskInput_NT.Priority);
-                        parmeters.Add("@Tentative_Start_Date", add_TaskInput_NT.Tentative_Start_Date);
-                        parmeters.Add("@Tentative_End_Date", add_TaskInput_NT.Tentative_End_Date);
+                        parmeters.Add("@Tentative_Start_Date", DateTime.UtcNow); //add_TaskInput_NT.Tentative_Start_Date   // New Changes by Itemad 24-09-2025
+                        parmeters.Add("@Tentative_End_Date", add_TaskInput_NT.COMPLETION_DATE);      // add_TaskInput_NT.Tentative_End_Date New Changes by Itemad 20-11-2025
                         parmeters.Add("@Actual_Start_Date", add_TaskInput_NT.Actual_Start_Date);
                         parmeters.Add("@Actual_End_Date", add_TaskInput_NT.Actual_End_Date);
                         var InsertTaskDetails = (await db.QueryAsync<Add_TaskOutPut_NT>("SP_INSERT_TASK_DETAILS_NT",
@@ -2542,7 +2542,7 @@ namespace TaskManagement.API.Repositories
                         // changes Ended by Itemad Hyder 
                         parmeters.Add("@Priority", add_TaskInput_NT.Priority);
                         parmeters.Add("@Tentative_Start_Date", add_TaskInput_NT.Tentative_Start_Date);
-                        parmeters.Add("@Tentative_End_Date", add_TaskInput_NT.Tentative_End_Date);
+                        parmeters.Add("@Tentative_End_Date", add_TaskInput_NT.COMPLETION_DATE);   //add_TaskInput_NT.Tentative_End_Date Changed by Itemad Hyder 20-11-2025
                         parmeters.Add("@Actual_Start_Date", add_TaskInput_NT.Actual_Start_Date);
                         parmeters.Add("@Actual_End_Date", add_TaskInput_NT.Actual_End_Date);
                         parmeters.Add("@TAGS", add_TaskInput_NT.TAGS);
