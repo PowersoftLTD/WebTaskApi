@@ -291,6 +291,12 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Execution_View")]
         public string? Execution_View { get; set; }
 
+        [JsonPropertyName("Milestone_View")]
+        public string? Milestone_View { get; set; }
+
+        [JsonPropertyName("Department_View")]
+        public string? Department_View { get; set; }
+
         [JsonPropertyName("Attribute10")]
         public string? ATTRIBUTE10 { get; set; }
 

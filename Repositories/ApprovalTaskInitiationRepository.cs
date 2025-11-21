@@ -435,7 +435,8 @@ namespace TaskManagement.API.Repositories
 
                     var parmeters = new DynamicParameters();
                     parmeters.Add("@TASK_NO", aPPROVAL_TASK_INITIATION.TASK_NO);
-                    parmeters.Add("@TASK_NAME", aPPROVAL_TASK_INITIATION.MAIN_ABBR);
+                    //parmeters.Add("@TASK_NAME", aPPROVAL_TASK_INITIATION.MAIN_ABBR);   // Changes Commented by Itemad 21-11-202
+                    parmeters.Add("@TASK_NAME", aPPROVAL_TASK_INITIATION.LONG_DESCRIPTION);
                     parmeters.Add("@TASK_DESCRIPTION", aPPROVAL_TASK_INITIATION.LONG_DESCRIPTION);
                     parmeters.Add("@CATEGORY", aPPROVAL_TASK_INITIATION.CAREGORY);
                     parmeters.Add("@PROJECT_ID", aPPROVAL_TASK_INITIATION.PROPERTY);
@@ -461,6 +462,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@CREATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
                     parmeters.Add("@CREATION_DATE", dateTime);
                     parmeters.Add("@LAST_UPDATED_BY", aPPROVAL_TASK_INITIATION.CREATED_BY);
+                    parmeters.Add("@Appr_Abbr", aPPROVAL_TASK_INITIATION.MAIN_ABBR);  /// Changes Added by Itemad Hyder 21-11-2025
 
                     var approvalTemplate = await db.QueryFirstOrDefaultAsync<APPROVAL_TASK_INITIATION>("SP_INSERT_TASK_DETAILS", parmeters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
@@ -547,7 +549,8 @@ namespace TaskManagement.API.Repositories
 
                         var parmetersSubtask = new DynamicParameters();
                         parmetersSubtask.Add("@TASK_NO", SubParentMkey.MKEY);
-                        parmetersSubtask.Add("@TASK_NAME", SubTask.APPROVAL_ABBRIVATION);
+                        //parmetersSubtask.Add("@TASK_NAME", SubTask.APPROVAL_ABBRIVATION);    //Commented by Itemad Hyder 21-11-2025
+                        parmetersSubtask.Add("@TASK_NAME", SubTask.LONG_DESCRIPTION);           //Added By Itemad Hyder 21-11-2025 
                         parmetersSubtask.Add("@TASK_DESCRIPTION", SubTask.LONG_DESCRIPTION);
                         parmetersSubtask.Add("@CATEGORY", aPPROVAL_TASK_INITIATION.CAREGORY);
                         parmetersSubtask.Add("@PROJECT_ID", aPPROVAL_TASK_INITIATION.PROPERTY);
@@ -576,7 +579,7 @@ namespace TaskManagement.API.Repositories
                         parmetersSubtask.Add("@APPROVE_ACTION_DATE", null);
                         parmetersSubtask.Add("@ATTRIBUTE5", aPPROVAL_TASK_INITIATION.HEADER_MKEY); // PROJECT ID 
                         parmetersSubtask.Add("@Current_Task_Mkey", SubParentMkey.MKEY);
-
+                        parmetersSubtask.Add("@Appr_Abbr", SubTask.APPROVAL_ABBRIVATION);   //Added By Itemad Hyder 21-11-2025
                         if (SubParentMkey != null)  // to check parent node
                         {
                             parmetersSubtask.Add("@TASK_PARENT_ID", SubParentMkey.MKEY);
