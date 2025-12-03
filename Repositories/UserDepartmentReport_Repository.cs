@@ -204,7 +204,7 @@ namespace TaskManagement.API.Repositories
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
                 {
                     var parmeters = new DynamicParameters();
-                    var result = await db.QueryAsync<Department_V>("SELECT * FROM Dept_V", commandType: CommandType.Text);
+                    var result = await db.QueryAsync<Department_V>("SELECT * FROM Dept_V Order by Department_Name ASC", commandType: CommandType.Text);
                     var successsResult = new List<Task_UserDepartmentOutPutNT_List>
                     {
                         new Task_UserDepartmentOutPutNT_List
