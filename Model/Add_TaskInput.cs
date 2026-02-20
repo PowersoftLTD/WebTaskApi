@@ -166,6 +166,10 @@ namespace TaskManagement.API.Model
         public int? TASK_MKEY { get; set; }
         [JsonPropertyName("Doc_Mkey")]
         public int DOC_MKEY { get; set; }
+
+        [JsonPropertyName("Doc_Cat_Mkey")]
+        public int Doc_Cat_Mkey { get; set; }
+
         [JsonPropertyName("Document_Category")]
         public int DOCUMENT_CATEGORY { get; set; }
 
@@ -174,7 +178,11 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Delete_Flag")]
         public string DELETE_FLAG { get; set; }
         [JsonPropertyName("Created_By")]
-        public string? CREATED_BY { get; set; }
+        public int? CREATED_BY { get; set; }
+        [JsonPropertyName("DOCUMENT_NAME")]
+        public string? DOCUMENT_NAME { get; set; }
+        //[JsonPropertyName("DOCUMENT_CATEGORY")]
+        //public string DOCUMENT_CATEGORY { get; set; }
 
     }
 
@@ -191,7 +199,7 @@ namespace TaskManagement.API.Model
         public string? COMMENT { get; set; }
 
         [JsonPropertyName("Created_By")]
-        public string? CREATED_BY { get; set; }
+        public int? CREATED_BY { get; set; }
 
         [JsonPropertyName("Delete_Flag")]
         public string? DELETE_FLAG { get; set; }
@@ -200,6 +208,7 @@ namespace TaskManagement.API.Model
         public int Session_User_Id { get; set; }
         [JsonPropertyName("Business_Group_Id")]
         public int Business_Group_Id { get; set; }
+        //public string Category_Name { get; set; }
 
     }
 
@@ -267,5 +276,57 @@ namespace TaskManagement.API.Model
         public string? OUT_STATUS { get; set; }
         [JsonIgnore]
         public string? OUT_MESSAGE { get; set; }
+    }
+
+    public class TASK_ENDLIST_TABLE_INPUT_PS
+    {
+        [JsonPropertyName("Mkey")]
+        public int MKEY { get; set; }
+
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Output_Doc_List")]
+        public Dictionary<string, object>? OUTPUT_DOC_LST { get; set; }
+        [JsonPropertyName("Comment")]
+        public string? COMMENT { get; set; }
+
+        [JsonPropertyName("Created_By")]
+        public int? CREATED_BY { get; set; }
+
+        [JsonPropertyName("Delete_Flag")]
+        public string? DELETE_FLAG { get; set; }
+
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+        public string? Category_Name { get; set; }
+
+    }
+
+    public class TASK_CHECKLIST_TABLE_INPUT_PS
+    {
+        [JsonPropertyName("Task_Mkey")]
+        public int? TASK_MKEY { get; set; }
+        [JsonPropertyName("Doc_Mkey")]
+        public int DOC_MKEY { get; set; }
+
+        [JsonPropertyName("Doc_Cat_Mkey")]
+        public int Doc_Cat_Mkey { get; set; }
+
+        [JsonPropertyName("Document_Category")]
+        public string? DOCUMENT_CATEGORY { get; set; }
+
+        [JsonPropertyName("Sr_No")]
+        public int SR_NO { get; set; }
+        [JsonPropertyName("Delete_Flag")]
+        public string DELETE_FLAG { get; set; }
+        [JsonPropertyName("Created_By")]
+        public string? CREATED_BY { get; set; }
+        [JsonPropertyName("DOCUMENT_NAME")]
+        public string? DOCUMENT_NAME { get; set; }
+        //[JsonPropertyName("DOCUMENT_CATEGORY")]
+        //public string DOCUMENT_CATEGORY { get; set; }
+
     }
 }

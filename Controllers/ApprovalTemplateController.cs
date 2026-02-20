@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
+using Newtonsoft.Json;
+using System.Dynamic;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
 using TaskManagement.API.Repositories;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Azure;
-using Newtonsoft.Json;
-using System.Dynamic;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TaskManagement.API.Controllers
 {
@@ -466,6 +467,58 @@ namespace TaskManagement.API.Controllers
                 return Ok(responseStatus);
             }
         }
+
+
+        [HttpPost("Approval-Template-Insert-Update_PS")]
+        [Authorize]
+        public async Task<ActionResult<CommonResponseAddApprovalTemplatePS>> CreateApprovalTemplateTASKAsync_PS([FromBody] AddApprovalTemplate_PS_Model insertApprovalTemplatesNT)
+        {
+            var responseObj = new CommonResponseAddApprovalTemplatePS();
+            try
+            {
+                bool flagSeq_no = false;
+                double IndexSeq_NO = 0.0;
+                var model = await _repository.CreateApprovalTemplateTASKAsync_PS(insertApprovalTemplatesNT);
+                if (model.Status.Contains("Error"))
+                {
+                    responseObj.Status = "Error";
+                    responseObj.Message = $"Data inserted Failed";
+                    responseObj.Data = null;
+
+                }
+                else
+                {
+                    responseObj.Status = "Ok";
+                    responseObj.Message = "Data inserted successfully";
+                    responseObj.Data = model;
+                }
+                return (responseObj);
+            }
+            catch (Exception ex)
+            {
+                responseObj.Status = "Error";
+                responseObj.Message = $"Data inserted Failed + {ex.Message}";
+                responseObj.Data = null;
+                return responseObj;
+            }
+        }
+
+        [HttpPost("Approval-Template-Get-PS")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<OutPutApprovalTemplates_NT>>> GetApprovalTemplate_NT_PS(APPROVAL_TEMPLATE_HDR_INPUT_NT aPPROVAL_TEMPLATE_HDR_NT)
+        {
+            try
+            {
+                var Task = await _repository.GetAllApprovalTemplatePSAsync(aPPROVAL_TEMPLATE_HDR_NT);
+                return Ok(Task);
+            }
+            catch (Exception ex)
+            {
+                return Ok(ex.Message);
+            }
+        }
+
+
 
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Owin.Security.Provider;
+//using Microsoft.Owin.Security.Provider;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Transactions;
 using System.Xml.Linq;
 using TaskManagement.API.DapperDbConnections;
@@ -856,6 +857,7 @@ namespace TaskManagement.API.Repositories
                                 dataTable.Columns.Add("CREATED_BY", typeof(int));
                                 dataTable.Columns.Add("CREATION_DATE", typeof(DateTime));
                                 dataTable.Columns.Add("DELETE_FLAG", typeof(char));
+                                dataTable.Columns.Add("Doc_Cat_Mkey", typeof(int));
 
                                 if (OBJ_APPROVAL_TEMPLATE_HDR.END_RESULT_DOC_LST != null)
                                 {
@@ -884,6 +886,7 @@ namespace TaskManagement.API.Repositories
                                     bulkCopy.ColumnMappings.Add("CREATED_BY", "CREATED_BY");
                                     bulkCopy.ColumnMappings.Add("CREATION_DATE", "CREATION_DATE");
                                     bulkCopy.ColumnMappings.Add("DELETE_FLAG", "DELETE_FLAG");
+                                    bulkCopy.ColumnMappings.Add("Doc_Cat_Mkey", "Doc_Cat_Mkey");
 
                                     // Execute the bulk copy
                                     await bulkCopy.WriteToServerAsync(dataTable);
@@ -2881,5 +2884,1099 @@ namespace TaskManagement.API.Repositories
         ////        return aPPROVAL_TEMPLATE_HDR;
         ////    }
         ////}
+
+        #region
+
+        public async Task<Add_ApprovalTemplate_TaskOutPut_List_NT> CreateApprovalTemplateTASKAsync_PS(AddApprovalTemplate_PS_Model approvaltemplate)
+        {
+            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
+            var approvalTemplateHDR = new AddApprovalTemplate_PS_Model();
+            var addApprovalTemplate_PS_Model = new AddApprovalTemplate_PS_Return_Models();
+            approvalTemplateHDR = approvaltemplate;
+            IDbTransaction transaction = null;
+            string TaskNo = string.Empty;
+            bool transactionCompleted = false;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                    {
+                        throw new InvalidOperationException("The connection must be a SqlConnection to use OpenAsync.");
+                    }
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                    {
+                        await sqlConnection.OpenAsync();  // Ensure the connection is open
+                    }
+
+                    transaction = db.BeginTransaction();
+                    transactionCompleted = false;  // Reset transaction state
+
+                    if (approvaltemplate.Mkey == 0)
+                    {
+                        var approvalTemplateMap = await MapApproval_Template_HDR(approvaltemplate, approvaltemplate.Mkey);
+                        var parameters = new DynamicParameters();
+                        // If MKEY is null or 0, it will insert; otherwise, it will update
+                        parameters.Add("@MKEY", approvalTemplateMap.MKEY == 0 ? null : approvalTemplateMap.MKEY, DbType.Int32);
+                        parameters.Add("@BUILDING_TYPE", approvalTemplateMap.BUILDING_TYPE, DbType.Int32);
+                        parameters.Add("@BUILDING_STANDARD", approvalTemplateMap.BUILDING_STANDARD, DbType.Int32);
+                        parameters.Add("@STATUTORY_AUTHORITY", approvalTemplateMap.STATUTORY_AUTHORITY, DbType.Int32);
+                        parameters.Add("@MAIN_ABBR", approvalTemplateMap.MAIN_ABBR, DbType.String);
+                        parameters.Add("@SHORT_DESCRIPTION", approvalTemplateMap.SHORT_DESCRIPTION, DbType.String);
+                        parameters.Add("@LONG_DESCRIPTION", approvalTemplateMap.LONG_DESCRIPTION, DbType.String);
+                        parameters.Add("@AUTHORITY_DEPARTMENT", approvalTemplateMap.AUTHORITY_DEPARTMENT, DbType.Int32);
+                        parameters.Add("@RESPOSIBLE_EMP_MKEY", approvalTemplateMap.RESPOSIBLE_EMP_MKEY, DbType.Int32);
+                        parameters.Add("@JOB_ROLE", approvalTemplateMap.JOB_ROLE, DbType.Int32);
+                        parameters.Add("@DAYS_REQUIERD", approvalTemplateMap.DAYS_REQUIERD, DbType.String);
+                        parameters.Add("@SEQ_ORDER", approvalTemplateMap.SEQ_ORDER, DbType.String);
+                        parameters.Add("@SANCTIONING_DEPARTMENT_MKEY", approvalTemplateMap.SANCTIONING_DEPARTMENT_MKEY, DbType.Int32);
+                        parameters.Add("@SANCTION_AUTHORITY", approvalTemplateMap.SANCTION_AUTHORITY, DbType.Int32);
+                        parameters.Add("@SANCTION_DEPARTMENT", approvalTemplateMap.SANCTION_DEPARTMENT, DbType.String);
+                        parameters.Add("@ATTRIBUTE1", approvalTemplateMap.ATTRIBUTE1, DbType.String);
+                        parameters.Add("@ATTRIBUTE2", approvalTemplateMap.ATTRIBUTE2, DbType.String);
+                        parameters.Add("@ATTRIBUTE3", approvalTemplateMap.ATTRIBUTE3, DbType.String);
+                        parameters.Add("@ATTRIBUTE4", approvalTemplateMap.ATTRIBUTE4, DbType.String);
+                        parameters.Add("@ATTRIBUTE5", approvalTemplateMap.ATTRIBUTE5, DbType.String);
+                        parameters.Add("@END_RESULT_DOC", approvalTemplateMap.END_RESULT_DOC, DbType.String);
+                        parameters.Add("@CHECKLIST_DOC", approvalTemplateMap.CHECKLIST_DOC, DbType.String);
+                        parameters.Add("@TAGS", approvalTemplateMap.TAGS, DbType.String);
+                        parameters.Add("@IS_NODE", approvalTemplateMap.IS_NODE, DbType.String);
+                        parameters.Add("@CREATED_BY", approvalTemplateMap.CREATED_BY, DbType.Int32);
+                        parameters.Add("@LAST_UPDATED_BY", approvalTemplateMap.LAST_UPDATED_BY, DbType.Int32);
+                        parameters.Add("@Session_User_Id", approvaltemplate.Session_User_Id, DbType.Int32);
+                        parameters.Add("@Business_Group_Id", approvaltemplate.Business_Group_Id, DbType.Int32);
+                        parameters.Add("@DELETE_FLAG", approvaltemplate.DELETE_FLAG, DbType.String);
+
+                        // Output parameters
+                        parameters.Add("@OUT_STATUS", dbType: DbType.String, direction: ParameterDirection.Output, size: 50);
+                        parameters.Add("@OUT_MESSAGE", dbType: DbType.String, direction: ParameterDirection.Output, size: 200);
+                        parameters.Add("@MkeyResponse", dbType: DbType.String, direction: ParameterDirection.Output, size: 200);
+
+                        // Execute SP
+                        await db.ExecuteAsync(
+                            "SP_INS_UPD_APPROVAL_TEMPLATE_HDR_PS",
+                            parameters,
+                            transaction: transaction,
+                            commandType: CommandType.StoredProcedure
+                        );
+
+                        // Retrieve output values
+                        var outStatus = parameters.Get<string>("@OUT_STATUS");
+                        var Mkey = parameters.Get<string>("@MkeyResponse");
+                        var outMessage = parameters.Get<string>("@OUT_MESSAGE");
+
+                        // Map result
+                        var response = new AddApprovalTemplate_PS_Return_Models
+                        {
+                            Status = outStatus,
+                            Message = outMessage,
+                            MKEY = Convert.ToDecimal(Mkey)  // Optionally, you can fetch inserted MKEY if needed
+                        };
+
+                        addApprovalTemplate_PS_Model = new AddApprovalTemplate_PS_Return_Models
+                        {
+                            MKEY = response.MKEY,
+                            Status = response.Status,
+                            Message = response.Message
+                        };
+                        approvaltemplate.Mkey = Convert.ToInt32(addApprovalTemplate_PS_Model.MKEY);
+
+
+                        if (approvaltemplate.Mkey > 0)
+                        {
+                            if (approvaltemplate.tASK_CHECKLIST_TABLE_INPUT_NT.Any())
+                            {
+                                foreach (var TCheckList in approvaltemplate.tASK_CHECKLIST_TABLE_INPUT_NT)
+                                {
+                                    var parmetersCheckList = new DynamicParameters();
+                                    parmetersCheckList.Add("@TASK_MKEY", approvaltemplate.Mkey, DbType.Int32);
+                                    parmetersCheckList.Add("@SR_NO", TCheckList.SR_NO, DbType.Int32);
+                                    parmetersCheckList.Add("@Doc_Type_Mkey", TCheckList.DOC_MKEY, DbType.Int32);
+                                    parmetersCheckList.Add("@Doc_Cat_mkey", TCheckList.Doc_Cat_Mkey, DbType.Int32);
+                                    parmetersCheckList.Add("@DOCUMENT_CATEGORY", TCheckList.DOCUMENT_CATEGORY, DbType.String, size: 200);
+                                    parmetersCheckList.Add("@CREATED_BY", TCheckList.CREATED_BY, DbType.Int32);
+                                    parmetersCheckList.Add("@DELETE_FLAG", TCheckList.DELETE_FLAG, DbType.String, size: 2);
+                                    parmetersCheckList.Add("@COMMENT", null, DbType.String);
+                                    parmetersCheckList.Add("@METHOD_NAME", "Task-CheckList-ApprovalTemplate-Doc-Insert-Update", DbType.String);
+                                    parmetersCheckList.Add("@METHOD", "Insert", DbType.String);
+
+                                    // Output parameters
+                                    parmetersCheckList.Add("@OUT_STATUS", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+                                    parmetersCheckList.Add("@OUT_MESSAGE", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+                                    await db.ExecuteAsync("[dbo].[SP_INSERT_Checklist_In_ApprovalChecklist]", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    // Read output
+                                    string status = parmetersCheckList.Get<string>("@OUT_STATUS");
+                                    string message = parmetersCheckList.Get<string>("@OUT_MESSAGE");
+                                    if (!status.Contains("OK"))
+                                    {
+                                        if (transaction != null && !transactionCompleted)
+                                        {
+                                            try
+                                            {
+                                                // Rollback only if the transaction is not yet completed
+                                                transaction.Rollback();
+                                            }
+                                            catch (InvalidOperationException rollbackEx)
+                                            {
+                                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                            }
+                                        }
+
+                                        var errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                        {
+
+                                            Status = "Error",
+                                            Message = message,
+                                            Data = null
+
+                                        };
+                                        return errorResult;
+                                    }
+                                }
+                            }
+
+                            if (approvaltemplate.tASK_ENDLIST_TABLE_INPUT_NTs.Any())
+                            {
+                                // To Insert EndList
+                                foreach (var TEndList in approvaltemplate.tASK_ENDLIST_TABLE_INPUT_NTs)
+                                {
+                                    foreach (var docMkey in TEndList.OUTPUT_DOC_LST)
+                                    {
+                                        foreach (var DocCategory in docMkey.Value.ToString().Split(','))
+                                        {
+                                            var parametersEndList = new DynamicParameters();
+                                            parametersEndList.Add("@MKEY", approvaltemplate.Mkey, DbType.Int32);
+                                            parametersEndList.Add("@SR_NO", TEndList.SR_NO, DbType.Int32);
+                                            parametersEndList.Add("@Category_Name", TEndList.Category_Name, DbType.String);
+                                            parametersEndList.Add("@DOC_TYPE_MKEY", Convert.ToInt32(docMkey.Key), DbType.Int32);
+                                            parametersEndList.Add("@DOC_CAT_MKEY", Convert.ToInt32(DocCategory), DbType.Int32);
+                                            // parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
+                                            // parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                                            parametersEndList.Add("@CREATED_BY", TEndList.CREATED_BY, DbType.Int32);
+                                            parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG, DbType.String, size: 2);
+                                            parametersEndList.Add("@API_NAME", "Task-ApprovalTemplate-Output-Doc-Insert-Update", DbType.String);
+                                            parametersEndList.Add("@API_METHOD", "Insert/Update", DbType.String);
+
+                                            parametersEndList.Add("@OUT_STATUS", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+                                            parametersEndList.Add("@OUT_MESSAGE", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+
+                                            await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("[dbo].[SP_INSERT_UPDATE_ApprovalTemplate_ENDLIST_TABLE_NT]", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                            string status = parametersEndList.Get<string>("@OUT_STATUS");
+                                            string message = parametersEndList.Get<string>("@OUT_MESSAGE");
+                                            //var taskEndlist = new List<TASK_CHECKLIST_TABLE_INPUT_NT>()
+                                            //{
+                                            //     new TASK_CHECKLIST_TABLE_INPUT_NT
+                                            //     {
+                                            //         TASK_MKEY= GetTaskEndList.Where(x=>x.)
+                                            //     }
+                                            //};
+
+                                            if (!status.Contains("Ok"))
+                                            {
+                                                if (transaction != null && !transactionCompleted)
+                                                {
+                                                    try
+                                                    {
+                                                        // Rollback only if the transaction is not yet completed
+                                                        transaction.Rollback();
+                                                    }
+                                                    catch (InvalidOperationException rollbackEx)
+                                                    {
+                                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                                    }
+                                                }
+
+                                                var errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                                {
+
+                                                    Status = "Error",
+                                                    Message = message,
+                                                    Data = null
+
+                                                };
+                                                return errorResult;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (approvaltemplate.SUBTASK_LIST?.Any() == true)
+                            {
+                                foreach (var subtask in approvaltemplate.SUBTASK_LIST)
+                                {
+                                    var subtask_Nt = await MapApproval_Tempplate_TRL_SUBTASK_NT(
+                                        subtask,
+                                        approvaltemplate.Mkey,
+                                        approvaltemplate.Session_User_Id
+                                    );
+
+                                    var Subparameters = new DynamicParameters();
+
+                                    Subparameters.Add("@HEADER_MKEY", subtask_Nt.HEADER_MKEY, DbType.Int32);
+                                    Subparameters.Add("@SEQ_NO", subtask_Nt.SEQ_NO, DbType.String);
+                                    Subparameters.Add("@SUBTASK_ABBR", subtask_Nt.SUBTASK_ABBR, DbType.String);
+                                    Subparameters.Add("@SUBTASK_MKEY", subtask_Nt.SUBTASK_MKEY, DbType.Int32);
+                                    Subparameters.Add("@SUBTASK_PARENT_ID", subtask_Nt.SUBTASK_PARENT_ID, DbType.Int32);
+                                    Subparameters.Add("@ATTRIBUTE1", subtask_Nt.ATTRIBUTE1, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE2", subtask_Nt.ATTRIBUTE2, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE3", subtask_Nt.ATTRIBUTE3, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE4", subtask_Nt.ATTRIBUTE4, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE5", subtask_Nt.ATTRIBUTE5, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE6", subtask_Nt.ATTRIBUTE6, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE7", subtask_Nt.ATTRIBUTE7, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE8", subtask_Nt.ATTRIBUTE8, DbType.String, size: 200);
+                                    Subparameters.Add("@CREATED_BY", subtask_Nt.CREATED_BY, DbType.Int32);
+                                    Subparameters.Add("@METHOD_NAME", "Task-ApprovalTemplate-Output-Doc-Insert-Update", DbType.String);
+                                    Subparameters.Add("@METHOD", "Insert/Update", DbType.String);
+                                    Subparameters.Add("@DELETE_FLAG", subtask_Nt.DELETE_FLAG, DbType.String);
+                                    // OUTPUT parameters
+                                    Subparameters.Add("@OUT_STATUS", dbType: DbType.String, size: 50, direction: ParameterDirection.Output);
+                                    Subparameters.Add("@OUT_MESSAGE", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+                                    await db.ExecuteAsync(
+                                        "[dbo].[SP_Insert_Update_APPROVAL_TEMPLATE_TRL_SUBTASK]",
+                                        Subparameters,
+                                        commandType: CommandType.StoredProcedure,
+                                        transaction: transaction
+                                    );
+
+                                    string status = Subparameters.Get<string>("@OUT_STATUS");
+                                    string message = Subparameters.Get<string>("@OUT_MESSAGE");
+
+                                    if (!string.Equals(status, "OK", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        transaction?.Rollback();
+
+                                        return new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                        {
+                                            Status = "Error",
+                                            Message = message,
+                                            Data = null
+                                        };
+                                    }
+                                }
+                            }
+
+                            if (approvaltemplate.SANCTIONING_DEPARTMENT_LIST.Any())
+                            {
+                                foreach (var TSanctioning in approvaltemplate.SANCTIONING_DEPARTMENT_LIST)
+                                {
+                                    var Tsanctionint_Nt = await MapApproval_Tempplate_TRL_Sactioning_NT(
+                                        TSanctioning,
+                                        approvaltemplate.Mkey,
+                                        approvaltemplate.Session_User_Id
+                                    );
+
+                                    var parmetersSanctioning = new DynamicParameters();
+                                    parmetersSanctioning.Add("@MKEY", approvaltemplate.Mkey, DbType.Int32);
+                                    parmetersSanctioning.Add("@SR_NO", Tsanctionint_Nt.SR_NO, DbType.Int32);
+                                    parmetersSanctioning.Add("@LEVEL", Tsanctionint_Nt.LEVEL, DbType.Int32);
+                                    parmetersSanctioning.Add("@SANCTIONING_DEPARTMENT", Tsanctionint_Nt.SANCTIONING_DEPARTMENT, DbType.String);
+                                    parmetersSanctioning.Add("@SANCTIONING_AUTHORITY", Tsanctionint_Nt.SANCTIONING_AUTHORITY, DbType.String);
+                                    parmetersSanctioning.Add("@SANCTIONING_AUTHORITY_MKEY", Tsanctionint_Nt.SANCTIONING_AUTHORITY_MKEY, DbType.Int32);
+                                    parmetersSanctioning.Add("@START_DATE", Tsanctionint_Nt.START_DATE, DbType.DateTime);
+                                    parmetersSanctioning.Add("@END_DATE", Tsanctionint_Nt.END_DATE, DbType.DateTime);
+                                    //parmetersSanctioning.Add("@ATTRIBUTE1", TSanctioning.A, DbType.DateTime);
+                                    parmetersSanctioning.Add("@ATTRIBUTE1", Tsanctionint_Nt.ATTRIBUTE1, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@ATTRIBUTE2", Tsanctionint_Nt.ATTRIBUTE2, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@ATTRIBUTE3", Tsanctionint_Nt.ATTRIBUTE3, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@ATTRIBUTE4", Tsanctionint_Nt.ATTRIBUTE4, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@ATTRIBUTE5", Tsanctionint_Nt.ATTRIBUTE5, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@DELETE_FLAG", TSanctioning.DELETE_FLAG, DbType.String);
+                                    parmetersSanctioning.Add("@CREATED_BY", Tsanctionint_Nt.CREATED_BY, DbType.Int32);
+                                    parmetersSanctioning.Add("@METHOD_NAME", "Task-Sanctioning-Table-Insert-Update", DbType.String);
+                                    parmetersSanctioning.Add("@METHOD", "Insert/Update", DbType.String);
+
+                                    parmetersSanctioning.Add("@OUT_STATUS",
+                                        dbType: DbType.String,
+                                        size: 200,
+                                        direction: ParameterDirection.Output);
+
+                                    parmetersSanctioning.Add("@OUT_MESSAGE",
+                                        dbType: DbType.String,
+                                        size: 500,
+                                        direction: ParameterDirection.Output);
+
+                                    await db.ExecuteAsync(
+                                        "SP_INS_UPD_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT",
+                                        parmetersSanctioning,
+                                        commandType: CommandType.StoredProcedure,
+                                        transaction: transaction
+                                    );
+
+                                    string status = parmetersSanctioning.Get<string>("@OUT_STATUS");
+                                    string message = parmetersSanctioning.Get<string>("@OUT_MESSAGE");
+
+                                    if (!string.Equals(status, "OK", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        if (transaction != null && !transactionCompleted)
+                                        {
+                                            transaction.Rollback();
+                                        }
+
+                                        return new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                        {
+                                            Status = "Error",
+                                            Message = message,
+                                            Data = null
+                                        };
+                                    }
+                                }
+                            }
+
+                            var sqlTransaction = (SqlTransaction)transaction;
+                            await sqlTransaction.CommitAsync();
+                            transactionCompleted = true;
+
+                            //var AssignEmail = await db.QueryAsync<string>("select EMAIL_ID_OFFICIAL from EMPLOYEE_MST where MKEY = " + tASK_RECURSIVE_HDR.CREATED_BY + "  ", commandType: CommandType.Text);
+                            //string AssignByEmail = AssignEmail.FirstOrDefault();
+                            //var CreatedEmail = await db.QueryAsync<string>("select EMAIL_ID_OFFICIAL from EMPLOYEE_MST where MKEY = " + tASK_RECURSIVE_HDR.ASSIGNED_TO + "  ", commandType: CommandType.Text);
+                            //string CreatedByEmail = CreatedEmail.FirstOrDefault();
+                            //var AssignedBy = await db.QueryAsync<string>("Select EMP_FULL_NAME from EMPLOYEE_MST where MKEY = " + tASK_RECURSIVE_HDR.ASSIGNED_TO + "  ", commandType: CommandType.Text);
+                            //string AssignedByName = AssignedBy.FirstOrDefault();
+
+
+                            //var parmetersMail = new DynamicParameters();
+                            //parmetersMail.Add("@MAIL_TYPE", "Auto");
+                            //var MailDetails = await db.QueryAsync<MailDetailsNT>("SP_GET_MAIL_TYPE", parmetersMail, commandType: CommandType.StoredProcedure);
+                            //string completionDate = DateTime.Now.AddDays(Convert.ToDouble(tASK_RECURSIVE_HDR.NO_DAYS)).ToString("dd-MM-yyyy");
+                            //StringBuilder htmlRows = new StringBuilder();
+                            //htmlRows.Append("<tr>");
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", tASK_RECURSIVE_HDR.MKEY);
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", tASK_RECURSIVE_HDR.TASK_NAME);
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", tASK_RECURSIVE_HDR.TASK_DESCRIPTION);
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0:dd-MMM-yyyy}</td>", completionDate);  // tASK_RECURSIVE_HDR.COMPLETION_DATE
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", AssignedByName);
+                            //htmlRows.Append("</tr>");
+
+                            //string taskKickoffRowsHtml = htmlRows.ToString();
+
+                            //string MailBody = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    " +
+                            //    "<meta charset=\"UTF-8\">\r\n    " +
+                            //    "<title>Task Assignment</title>\r\n" +
+                            //    "</head>\r\n<body style=\"font-family: Arial, sans-serif; font-size: 14px; color: #333;\">\r\n    " +
+                            //    "<p>Dear <strong>" + AssignedByName + "</strong>,</p>\r\n\r\n    <p>The following task has been assigned to you:</p>\r\n\r\n    " +
+                            //    "<form style='margin:1% auto;'>\r\n                       " +
+                            //    "<fieldset style='border:2px solid #9ec3ff;margin:auto 1%;padding:5px;color:#003487;'>\r\n                         " +
+                            //    "<legend style='padding:10px;font-size: 18px!important;'><b>Your Task list</b></legend>\r\n                         " +
+                            //    "<table style='width:100%;padding:0px;margin:1% auto;border-radius:14px;font-size:14px;'>\r\n                           " +
+                            //    "<tr>\r\n                             " +
+                            //    "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:8%;'><b>Task No.</b></td>  \r\n                             " +
+                            //    "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;'><b>Task Name</b></td>\r\n                            " +
+                            //    " <td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:40%;'><b>Description</b></td>  \r\n                             " +
+                            //    "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:10%;'><b>Due Date</b></td>  \r\n                             " +
+                            //    "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:10%;'><b>Assigned By</b></td> \r\n                             " +
+                            //    "</tr>\r\n                          " + taskKickoffRowsHtml +
+                            //    "</table>\r\n                      " +
+                            //    " </fieldset>\r\n                    " +
+                            //    " </form>\r\n\r\n    " +
+                            //    "<p style=\"margin-top: 20px;\">\r\n        If you have any questions or need assistance, feel free to contact us at \r\n        " +
+                            //    "<a href=\"mailto:qui.support@powersoft.in\">qui.support@powersoft.in</a>.\r\n    </p>\r\n\r\n    <p>Best regards,<br>\r\n    " +
+                            //    "<strong>QUI Team</strong></p>\r\n</body>\r\n</html>\r\n";
+
+                            //foreach (var Mail in MailDetails)
+                            //{
+                            //    SendEmail(AssignByEmail.ToString(), null, null, "QUI-New Task Assigned : Task No-(" + TaskNo + " )", MailBody, Mail.MAIL_TYPE, "QUI", null, Mail);  // CreatedByEmail.ToString()
+                            //}
+
+                            var successsResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                            {
+                                Status = "Ok",
+                                Message = "Inserted Successfully",
+                                Data = approvaltemplate
+                            };
+                            return successsResult;
+                        }
+                        else
+                        {
+                            var errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT();
+                            if (transaction != null && !transactionCompleted)
+                            {
+                                try
+                                {
+                                    // Rollback only if the transaction is not yet completed
+                                    transaction.Rollback();
+                                }
+                                catch (InvalidOperationException rollbackEx)
+                                {
+                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                     errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                    {
+                                        Status = "Error",
+                                        Message = "Approval Template Insert Failled DUE TO" + addApprovalTemplate_PS_Model.Message
+                                    };
+                                }
+                            }
+                             errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                            {
+                                Status = "Error",
+                                Message = "Approval Template Insert Failled DUE TO " + addApprovalTemplate_PS_Model.Message
+                            };
+                            return errorResult;
+                        }
+                    }
+                    else
+                    {
+                        var approvalTemplateMap = await MapApproval_Template_HDR(approvaltemplate, approvaltemplate.Mkey);
+                        var parameters = new DynamicParameters();
+                        // If MKEY is null or 0, it will insert; otherwise, it will update
+                        parameters.Add("@MKEY", approvalTemplateMap.MKEY == 0 ? null : approvalTemplateMap.MKEY, DbType.Int32);
+                        parameters.Add("@BUILDING_TYPE", approvalTemplateMap.BUILDING_TYPE, DbType.Int32);
+                        parameters.Add("@BUILDING_STANDARD", approvalTemplateMap.BUILDING_STANDARD, DbType.Int32);
+                        parameters.Add("@STATUTORY_AUTHORITY", approvalTemplateMap.STATUTORY_AUTHORITY, DbType.Int32);
+                        parameters.Add("@MAIN_ABBR", approvalTemplateMap.MAIN_ABBR, DbType.String);
+                        parameters.Add("@SHORT_DESCRIPTION", approvalTemplateMap.SHORT_DESCRIPTION, DbType.String);
+                        parameters.Add("@LONG_DESCRIPTION", approvalTemplateMap.LONG_DESCRIPTION, DbType.String);
+                        parameters.Add("@AUTHORITY_DEPARTMENT", approvalTemplateMap.AUTHORITY_DEPARTMENT, DbType.Int32);
+                        parameters.Add("@RESPOSIBLE_EMP_MKEY", approvalTemplateMap.RESPOSIBLE_EMP_MKEY, DbType.Int32);
+                        parameters.Add("@JOB_ROLE", approvalTemplateMap.JOB_ROLE, DbType.Int32);
+                        parameters.Add("@DAYS_REQUIERD", approvalTemplateMap.DAYS_REQUIERD, DbType.String);
+                        parameters.Add("@SEQ_ORDER", approvalTemplateMap.SEQ_ORDER, DbType.String);
+                        parameters.Add("@SANCTIONING_DEPARTMENT_MKEY", approvalTemplateMap.SANCTIONING_DEPARTMENT_MKEY, DbType.Int32);
+                        parameters.Add("@SANCTION_AUTHORITY", approvalTemplateMap.SANCTION_AUTHORITY, DbType.Int32);
+                        parameters.Add("@SANCTION_DEPARTMENT", approvalTemplateMap.SANCTION_DEPARTMENT, DbType.String);
+                        parameters.Add("@ATTRIBUTE1", approvalTemplateMap.ATTRIBUTE1, DbType.String);
+                        parameters.Add("@ATTRIBUTE2", approvalTemplateMap.ATTRIBUTE2, DbType.String);
+                        parameters.Add("@ATTRIBUTE3", approvalTemplateMap.ATTRIBUTE3, DbType.String);
+                        parameters.Add("@ATTRIBUTE4", approvalTemplateMap.ATTRIBUTE4, DbType.String);
+                        parameters.Add("@ATTRIBUTE5", approvalTemplateMap.ATTRIBUTE5, DbType.String);
+                        parameters.Add("@END_RESULT_DOC", approvalTemplateMap.END_RESULT_DOC, DbType.String);
+                        parameters.Add("@CHECKLIST_DOC", approvalTemplateMap.CHECKLIST_DOC, DbType.String);
+                        parameters.Add("@TAGS", approvalTemplateMap.TAGS, DbType.String);
+                        parameters.Add("@IS_NODE", approvalTemplateMap.IS_NODE, DbType.String);
+                        parameters.Add("@CREATED_BY", approvalTemplateMap.CREATED_BY, DbType.Int32);
+                        parameters.Add("@LAST_UPDATED_BY", approvalTemplateMap.LAST_UPDATED_BY, DbType.Int32);
+                        parameters.Add("@Session_User_Id", approvaltemplate.Session_User_Id, DbType.Int32);
+                        parameters.Add("@Business_Group_Id", approvaltemplate.Business_Group_Id, DbType.Int32);
+                        parameters.Add("@DELETE_FLAG", approvaltemplate.DELETE_FLAG, DbType.String);
+
+                        // Output parameters
+                        parameters.Add("@OUT_STATUS", dbType: DbType.String, direction: ParameterDirection.Output, size: 50);
+                        parameters.Add("@OUT_MESSAGE", dbType: DbType.String, direction: ParameterDirection.Output, size: 200);
+                        parameters.Add("@MkeyResponse", dbType: DbType.String, direction: ParameterDirection.Output, size: 200);
+                        // Execute SP
+                        await db.ExecuteAsync(
+                            "SP_INS_UPD_APPROVAL_TEMPLATE_HDR_PS",
+                            parameters,
+                            transaction: transaction,
+                            commandType: CommandType.StoredProcedure
+                        );
+
+                        // Retrieve output values
+                        var outStatus = parameters.Get<string>("@OUT_STATUS");
+                        var outMessage = parameters.Get<string>("@OUT_MESSAGE");
+                        var Mkey = parameters.Get<string>("@MkeyResponse");
+                        // Map result
+                        var response = new AddApprovalTemplate_PS_Return_Models
+                        {
+                            Status = outStatus,
+                            Message = outMessage,
+                            MKEY = approvaltemplate.Mkey // Optionally, you can fetch inserted MKEY if needed
+                        };
+
+                        addApprovalTemplate_PS_Model = new AddApprovalTemplate_PS_Return_Models
+                        {
+                            MKEY = response.MKEY,
+                            Status = response.Status,
+                            Message = response.Message
+                        };
+                        approvaltemplate.Mkey = Convert.ToInt32(addApprovalTemplate_PS_Model.MKEY);
+
+
+                        if (approvaltemplate.Mkey > 0)
+                        {
+                            if (approvaltemplate.tASK_CHECKLIST_TABLE_INPUT_NT.Any())
+                            {
+                                foreach (var TCheckList in approvaltemplate.tASK_CHECKLIST_TABLE_INPUT_NT)
+                                {
+                                    var parmetersCheckList = new DynamicParameters();
+                                    parmetersCheckList.Add("@TASK_MKEY", approvaltemplate.Mkey, DbType.Int32);
+                                    parmetersCheckList.Add("@SR_NO", TCheckList.SR_NO, DbType.Int32);
+                                    parmetersCheckList.Add("@Doc_Type_Mkey", TCheckList.DOC_MKEY, DbType.Int32);
+                                    parmetersCheckList.Add("@Doc_Cat_mkey", TCheckList.Doc_Cat_Mkey, DbType.Int32);
+                                    parmetersCheckList.Add("@DOCUMENT_CATEGORY", TCheckList.DOCUMENT_CATEGORY, DbType.String, size: 200);
+                                    parmetersCheckList.Add("@CREATED_BY", TCheckList.CREATED_BY, DbType.Int32);
+                                    parmetersCheckList.Add("@DELETE_FLAG", TCheckList.DELETE_FLAG, DbType.String, size: 2);
+                                    parmetersCheckList.Add("@COMMENT", null, DbType.String);
+                                    parmetersCheckList.Add("@METHOD_NAME", "Task-CheckList-ApprovalTemplate-Doc-Insert-Update", DbType.String);
+                                    parmetersCheckList.Add("@METHOD", "Insert", DbType.String);
+
+                                    // Output parameters
+                                    parmetersCheckList.Add("@OUT_STATUS", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+                                    parmetersCheckList.Add("@OUT_MESSAGE", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+                                    await db.ExecuteAsync("[dbo].[SP_INSERT_Checklist_In_ApprovalChecklist]", parmetersCheckList, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    // Read output
+                                    string status = parmetersCheckList.Get<string>("@OUT_STATUS");
+                                    string message = parmetersCheckList.Get<string>("@OUT_MESSAGE");
+                                    if (!status.Contains("OK"))
+                                    {
+                                        if (transaction != null && !transactionCompleted)
+                                        {
+                                            try
+                                            {
+                                                // Rollback only if the transaction is not yet completed
+                                                transaction.Rollback();
+                                            }
+                                            catch (InvalidOperationException rollbackEx)
+                                            {
+                                                Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                            }
+                                        }
+
+                                        var errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                        {
+
+                                            Status = "Error",
+                                            Message = message,
+                                            Data = null
+
+                                        };
+                                        return errorResult;
+                                    }
+                                }
+                            }
+
+                            if (approvaltemplate.tASK_ENDLIST_TABLE_INPUT_NTs.Any())
+                            {
+                                // To Insert EndList
+                                foreach (var TEndList in approvaltemplate.tASK_ENDLIST_TABLE_INPUT_NTs)
+                                {
+                                    foreach (var docMkey in TEndList.OUTPUT_DOC_LST)
+                                    {
+                                        foreach (var DocCategory in docMkey.Value.ToString().Split(','))
+                                        {
+                                            var parametersEndList = new DynamicParameters();
+                                            parametersEndList.Add("@MKEY", approvaltemplate.Mkey, DbType.Int32);
+                                            parametersEndList.Add("@SR_NO", TEndList.SR_NO, DbType.Int32);
+                                            parametersEndList.Add("@Category_Name", TEndList.Category_Name, DbType.String);
+                                            parametersEndList.Add("@DOC_TYPE_MKEY", Convert.ToInt32(docMkey.Key), DbType.Int32);
+                                            parametersEndList.Add("@DOC_CAT_MKEY", Convert.ToInt32(DocCategory), DbType.Int32);
+                                            // parametersEndList.Add("@DOCUMENT_CATEGORY_MKEY", Convert.ToInt32(DocCategory));
+                                            // parametersEndList.Add("@DOCUMENT_NAME", docMkey.Key.ToString());
+                                            parametersEndList.Add("@CREATED_BY", TEndList.CREATED_BY, DbType.Int32);
+                                            parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG, DbType.String, size: 2);
+                                            parametersEndList.Add("@API_NAME", "Task-ApprovalTemplate-Output-Doc-Insert-Update", DbType.String);
+                                            parametersEndList.Add("@API_METHOD", "Insert/Update", DbType.String);
+
+                                            parametersEndList.Add("@OUT_STATUS", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+                                            parametersEndList.Add("@OUT_MESSAGE", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+
+                                            await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("[dbo].[SP_INSERT_UPDATE_ApprovalTemplate_ENDLIST_TABLE_NT]", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                            string status = parametersEndList.Get<string>("@OUT_STATUS");
+                                            string message = parametersEndList.Get<string>("@OUT_MESSAGE");
+                                            //var taskEndlist = new List<TASK_CHECKLIST_TABLE_INPUT_NT>()
+                                            //{
+                                            //     new TASK_CHECKLIST_TABLE_INPUT_NT
+                                            //     {
+                                            //         TASK_MKEY= GetTaskEndList.Where(x=>x.)
+                                            //     }
+                                            //};
+
+                                            if (!status.Contains("Ok"))
+                                            {
+                                                if (transaction != null && !transactionCompleted)
+                                                {
+                                                    try
+                                                    {
+                                                        // Rollback only if the transaction is not yet completed
+                                                        transaction.Rollback();
+                                                    }
+                                                    catch (InvalidOperationException rollbackEx)
+                                                    {
+                                                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                                    }
+                                                }
+
+                                                var errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                                {
+
+                                                    Status = "Error",
+                                                    Message = message,
+                                                    Data = null
+
+                                                };
+                                                return errorResult;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (approvaltemplate.SUBTASK_LIST?.Any() == true)
+                            {
+                                foreach (var subtask in approvaltemplate.SUBTASK_LIST)
+                                {
+                                    var subtask_Nt = await MapApproval_Tempplate_TRL_SUBTASK_NT(
+                                        subtask,
+                                        approvaltemplate.Mkey,
+                                        approvaltemplate.Session_User_Id
+                                    );
+
+                                    var Subparameters = new DynamicParameters();
+
+                                    Subparameters.Add("@HEADER_MKEY", subtask_Nt.HEADER_MKEY, DbType.Int32);
+                                    Subparameters.Add("@SEQ_NO", subtask_Nt.SEQ_NO, DbType.String);
+                                    Subparameters.Add("@SUBTASK_ABBR", subtask_Nt.SUBTASK_ABBR, DbType.String);
+                                    Subparameters.Add("@SUBTASK_MKEY", subtask_Nt.SUBTASK_MKEY, DbType.Int32);
+                                    Subparameters.Add("@SUBTASK_PARENT_ID", subtask_Nt.SUBTASK_PARENT_ID, DbType.Int32);
+                                    Subparameters.Add("@ATTRIBUTE1", subtask_Nt.ATTRIBUTE1, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE2", subtask_Nt.ATTRIBUTE2, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE3", subtask_Nt.ATTRIBUTE3, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE4", subtask_Nt.ATTRIBUTE4, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE5", subtask_Nt.ATTRIBUTE5, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE6", subtask_Nt.ATTRIBUTE6, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE7", subtask_Nt.ATTRIBUTE7, DbType.String, size: 200);
+                                    Subparameters.Add("@ATTRIBUTE8", subtask_Nt.ATTRIBUTE8, DbType.String, size: 200);
+                                    Subparameters.Add("@CREATED_BY", subtask_Nt.CREATED_BY, DbType.Int32);
+                                    //parametersEndList.Add("@DELETE_FLAG", TEndList.DELETE_FLAG, DbType.String, size: 2);
+                                    Subparameters.Add("@METHOD_NAME", "Task-ApprovalTemplate-Output-Doc-Insert-Update", DbType.String);
+                                    Subparameters.Add("@METHOD", "Insert/Update", DbType.String);
+                                    Subparameters.Add("@DELETE_FLAG", subtask_Nt.DELETE_FLAG, DbType.String);
+                                    // OUTPUT parameters
+                                    Subparameters.Add("@OUT_STATUS", dbType: DbType.String, size: 50, direction: ParameterDirection.Output);
+                                    Subparameters.Add("@OUT_MESSAGE", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+
+                                    await db.ExecuteAsync("[dbo].[SP_Insert_Update_APPROVAL_TEMPLATE_TRL_SUBTASK]", // exact SP name
+                                                              Subparameters,
+                                                              commandType: CommandType.StoredProcedure,
+                                                              transaction: transaction
+                                                          );
+
+
+                                    string status = Subparameters.Get<string>("@OUT_STATUS");
+                                    string message = Subparameters.Get<string>("@OUT_MESSAGE");
+
+                                    if (!string.Equals(status, "OK", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        transaction?.Rollback();
+
+                                        return new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                        {
+                                            Status = "Error",
+                                            Message = message,
+                                            Data = null
+                                        };
+                                    }
+                                }
+                            }
+
+                            if (approvaltemplate.SANCTIONING_DEPARTMENT_LIST.Any())
+                            {
+                                foreach (var TSanctioning in approvaltemplate.SANCTIONING_DEPARTMENT_LIST)
+                                {
+                                    var Tsanctionint_Nt = await MapApproval_Tempplate_TRL_Sactioning_NT(
+                                        TSanctioning,
+                                        approvaltemplate.Mkey,
+                                        approvaltemplate.Session_User_Id
+                                    );
+
+                                    var parmetersSanctioning = new DynamicParameters();
+                                    parmetersSanctioning.Add("@MKEY", approvaltemplate.Mkey, DbType.Int32);
+                                    parmetersSanctioning.Add("@SR_NO", Tsanctionint_Nt.SR_NO, DbType.Int32);
+                                    parmetersSanctioning.Add("@LEVEL", Tsanctionint_Nt.LEVEL, DbType.Int32);
+                                    parmetersSanctioning.Add("@SANCTIONING_DEPARTMENT", Tsanctionint_Nt.SANCTIONING_DEPARTMENT, DbType.String);
+                                    parmetersSanctioning.Add("@SANCTIONING_AUTHORITY", Tsanctionint_Nt.SANCTIONING_AUTHORITY, DbType.String);
+                                    parmetersSanctioning.Add("@SANCTIONING_AUTHORITY_MKEY", Tsanctionint_Nt.SANCTIONING_AUTHORITY_MKEY, DbType.String);
+                                    parmetersSanctioning.Add("@START_DATE", Tsanctionint_Nt.START_DATE, DbType.DateTime);
+                                    parmetersSanctioning.Add("@END_DATE", Tsanctionint_Nt.END_DATE, DbType.DateTime);
+                                    //parmetersSanctioning.Add("@ATTRIBUTE1", TSanctioning.A, DbType.DateTime);
+                                    parmetersSanctioning.Add("@ATTRIBUTE1", Tsanctionint_Nt.ATTRIBUTE1, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@ATTRIBUTE2", Tsanctionint_Nt.ATTRIBUTE2, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@ATTRIBUTE3", Tsanctionint_Nt.ATTRIBUTE3, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@ATTRIBUTE4", Tsanctionint_Nt.ATTRIBUTE4, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@ATTRIBUTE5", Tsanctionint_Nt.ATTRIBUTE5, DbType.String, size: 200);
+                                    parmetersSanctioning.Add("@DELETE_FLAG", TSanctioning.DELETE_FLAG, DbType.String);
+                                    parmetersSanctioning.Add("@CREATED_BY", Tsanctionint_Nt.CREATED_BY, DbType.Int32);
+                                    parmetersSanctioning.Add("@METHOD_NAME", "Task-Sanctioning-Table-Insert-Update", DbType.String);
+                                    parmetersSanctioning.Add("@METHOD", "Insert/Update", DbType.String);
+
+                                    parmetersSanctioning.Add("@OUT_STATUS",
+                                        dbType: DbType.String,
+                                        size: 200,
+                                        direction: ParameterDirection.Output);
+
+                                    parmetersSanctioning.Add("@OUT_MESSAGE",
+                                        dbType: DbType.String,
+                                        size: 500,
+                                        direction: ParameterDirection.Output);
+
+                                    await db.ExecuteAsync(
+                                        "SP_INS_UPD_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT",
+                                        parmetersSanctioning,
+                                        commandType: CommandType.StoredProcedure,
+                                        transaction: transaction
+                                    );
+
+                                    string status = parmetersSanctioning.Get<string>("@OUT_STATUS");
+                                    string message = parmetersSanctioning.Get<string>("@OUT_MESSAGE");
+
+                                    if (!string.Equals(status, "OK", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        if (transaction != null && !transactionCompleted)
+                                        {
+                                            transaction.Rollback();
+                                        }
+
+                                        return new Add_ApprovalTemplate_TaskOutPut_List_NT
+                                        {
+                                            Status = "Error",
+                                            Message = message,
+                                            Data = null
+                                        };
+                                    }
+                                }
+                            }
+
+                            var sqlTransaction = (SqlTransaction)transaction;
+                            await sqlTransaction.CommitAsync();
+                            transactionCompleted = true;
+
+                            //var AssignEmail = await db.QueryAsync<string>("select EMAIL_ID_OFFICIAL from EMPLOYEE_MST where MKEY = " + tASK_RECURSIVE_HDR.CREATED_BY + "  ", commandType: CommandType.Text);
+                            //string AssignByEmail = AssignEmail.FirstOrDefault();
+                            //var CreatedEmail = await db.QueryAsync<string>("select EMAIL_ID_OFFICIAL from EMPLOYEE_MST where MKEY = " + tASK_RECURSIVE_HDR.ASSIGNED_TO + "  ", commandType: CommandType.Text);
+                            //string CreatedByEmail = CreatedEmail.FirstOrDefault();
+                            //var AssignedBy = await db.QueryAsync<string>("Select EMP_FULL_NAME from EMPLOYEE_MST where MKEY = " + tASK_RECURSIVE_HDR.ASSIGNED_TO + "  ", commandType: CommandType.Text);
+                            //string AssignedByName = AssignedBy.FirstOrDefault();
+
+
+                            //var parmetersMail = new DynamicParameters();
+                            //parmetersMail.Add("@MAIL_TYPE", "Auto");
+                            //var MailDetails = await db.QueryAsync<MailDetailsNT>("SP_GET_MAIL_TYPE", parmetersMail, commandType: CommandType.StoredProcedure);
+                            //string completionDate = DateTime.Now.AddDays(Convert.ToDouble(tASK_RECURSIVE_HDR.NO_DAYS)).ToString("dd-MM-yyyy");
+                            //StringBuilder htmlRows = new StringBuilder();
+                            //htmlRows.Append("<tr>");
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", tASK_RECURSIVE_HDR.MKEY);
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", tASK_RECURSIVE_HDR.TASK_NAME);
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", tASK_RECURSIVE_HDR.TASK_DESCRIPTION);
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0:dd-MMM-yyyy}</td>", completionDate);  // tASK_RECURSIVE_HDR.COMPLETION_DATE
+                            //htmlRows.AppendFormat("<td style='border:1px solid #9ec3ff; text-align:center; padding:5px;'>{0}</td>", AssignedByName);
+                            //htmlRows.Append("</tr>");
+
+                            //string taskKickoffRowsHtml = htmlRows.ToString();
+
+                            //string MailBody = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    " +
+                            //    "<meta charset=\"UTF-8\">\r\n    " +
+                            //    "<title>Task Assignment</title>\r\n" +
+                            //    "</head>\r\n<body style=\"font-family: Arial, sans-serif; font-size: 14px; color: #333;\">\r\n    " +
+                            //    "<p>Dear <strong>" + AssignedByName + "</strong>,</p>\r\n\r\n    <p>The following task has been assigned to you:</p>\r\n\r\n    " +
+                            //    "<form style='margin:1% auto;'>\r\n                       " +
+                            //    "<fieldset style='border:2px solid #9ec3ff;margin:auto 1%;padding:5px;color:#003487;'>\r\n                         " +
+                            //    "<legend style='padding:10px;font-size: 18px!important;'><b>Your Task list</b></legend>\r\n                         " +
+                            //    "<table style='width:100%;padding:0px;margin:1% auto;border-radius:14px;font-size:14px;'>\r\n                           " +
+                            //    "<tr>\r\n                             " +
+                            //    "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:8%;'><b>Task No.</b></td>  \r\n                             " +
+                            //    "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;'><b>Task Name</b></td>\r\n                            " +
+                            //    " <td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:40%;'><b>Description</b></td>  \r\n                             " +
+                            //    "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:10%;'><b>Due Date</b></td>  \r\n                             " +
+                            //    "<td style='color:black; border-color:#9ec3ff;text-align:center; border-style:solid;border-radius:5px; padding: 5px; font-size: 14px;background-color:#9ec3ff;width:10%;'><b>Assigned By</b></td> \r\n                             " +
+                            //    "</tr>\r\n                          " + taskKickoffRowsHtml +
+                            //    "</table>\r\n                      " +
+                            //    " </fieldset>\r\n                    " +
+                            //    " </form>\r\n\r\n    " +
+                            //    "<p style=\"margin-top: 20px;\">\r\n        If you have any questions or need assistance, feel free to contact us at \r\n        " +
+                            //    "<a href=\"mailto:qui.support@powersoft.in\">qui.support@powersoft.in</a>.\r\n    </p>\r\n\r\n    <p>Best regards,<br>\r\n    " +
+                            //    "<strong>QUI Team</strong></p>\r\n</body>\r\n</html>\r\n";
+
+                            //foreach (var Mail in MailDetails)
+                            //{
+                            //    SendEmail(AssignByEmail.ToString(), null, null, "QUI-New Task Assigned : Task No-(" + TaskNo + " )", MailBody, Mail.MAIL_TYPE, "QUI", null, Mail);  // CreatedByEmail.ToString()
+                            //}
+
+                            var successsResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                            {
+                                Status = "Ok",
+                                Message = "Inserted Successfully",
+                                Data = approvaltemplate
+                            };
+                            return successsResult;
+                        }
+                        else
+                        {
+                            if (transaction != null && !transactionCompleted)
+                            {
+                                try
+                                {
+                                    // Rollback only if the transaction is not yet completed
+                                    transaction.Rollback();
+                                }
+                                catch (InvalidOperationException rollbackEx)
+                                {
+                                    Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                                }
+                            }
+                            var errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                            {
+                                Status = "Error",
+                                Message = "Approval Template Insert Failled"
+                            };
+                            return errorResult;
+                        }
+                    }
+
+                    
+                }
+
+            }
+            catch (SqlException ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+                var errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                {
+
+                    Status = "Error",
+                    Message = ex.Message
+
+                };
+                return errorResult;
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null && !transactionCompleted)
+                {
+                    try
+                    {
+                        // Rollback only if the transaction is not yet completed
+                        transaction.Rollback();
+                    }
+                    catch (InvalidOperationException rollbackEx)
+                    {
+                        Console.WriteLine($"Rollback failed: {rollbackEx.Message}");
+                    }
+                }
+                var errorResult = new Add_ApprovalTemplate_TaskOutPut_List_NT
+                {
+
+                    Status = "Error",
+                    Message = ex.Message
+
+                };
+                return errorResult;
+            }
+        }
+
+
+
+        public Task<AddApprovalTemplate_HDR_PS_Model> MapApproval_Template_HDR(AddApprovalTemplate_PS_Model template_PS_Model , int userId)
+        {
+            var subtask_NT_PS = new AddApprovalTemplate_HDR_PS_Model
+            {
+                MKEY = template_PS_Model.Mkey,
+                BUILDING_TYPE = template_PS_Model.BUILDING_TYPE,
+                BUILDING_STANDARD = template_PS_Model.BUILDING_STANDARD,
+                STATUTORY_AUTHORITY = template_PS_Model.STATUTORY_AUTHORITY,
+                MAIN_ABBR = template_PS_Model.MAIN_ABBR,
+                SHORT_DESCRIPTION = template_PS_Model.SHORT_DESCRIPTION,
+                LONG_DESCRIPTION = template_PS_Model.LONG_DESCRIPTION,
+                AUTHORITY_DEPARTMENT = template_PS_Model.AUTHORITY_DEPARTMENT,
+                RESPOSIBLE_EMP_MKEY = template_PS_Model.RESPOSIBLE_EMP_MKEY,
+                TAGS = template_PS_Model.TAGS,
+                JOB_ROLE = template_PS_Model.JOB_ROLE,
+                DAYS_REQUIERD = Convert.ToString(template_PS_Model.DAYS_REQUIERD),
+                SEQ_ORDER = template_PS_Model.SEQ_ORDER,
+                CREATED_BY = userId,
+                //CHECKLIST_DOC = template_PS_Model.tASK_CHECKLIST_TABLE_INPUT_NT,
+                CREATION_DATE = DateTime.UtcNow,
+                DELETE_FLAG = template_PS_Model.DELETE_FLAG,
+                ATTRIBUTE1 = null,
+                ATTRIBUTE2 = null,
+                ATTRIBUTE3 = null,
+                ATTRIBUTE4 = null,
+                ATTRIBUTE5 = null,
+                LAST_UPDATED_BY = null,
+                LAST_UPDATE_DATE = null
+
+
+            };
+            return Task.FromResult(subtask_NT_PS);
+        }
+
+
+        public Task<INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK_NT_PS> MapApproval_Tempplate_TRL_SUBTASK_NT(INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK__PS subtask , int header_Mkey ,int userId)
+        {
+            
+              var subtask_NT_PS = new INSERT_APPROVAL_TEMPLATE_TRL_SUBTASK_NT_PS
+                {
+                    HEADER_MKEY = header_Mkey,
+                    SEQ_NO = subtask.SEQ_NO,
+                    SUBTASK_ABBR = subtask.SUBTASK_ABBR,
+                    SUBTASK_MKEY = subtask.SUBTASK_MKEY,
+                    SUBTASK_PARENT_ID = header_Mkey,
+                    CREATED_BY = userId,
+                    CREATION_DATE = DateTime.UtcNow,
+                    DELETE_FLAG = subtask.DELETE_FLAG,
+                    ATTRIBUTE1 = null,
+                    ATTRIBUTE2 = null,
+                    ATTRIBUTE3 = null,
+                    ATTRIBUTE4 = null,
+                    ATTRIBUTE5 = null,
+                    LAST_UPDATED_BY = null,
+                    LAST_UPDATE_DATE = null
+                };
+                return Task.FromResult(subtask_NT_PS);
+
+            
+        }
+
+
+        public Task<INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT_NT_Model_PS> MapApproval_Tempplate_TRL_Sactioning_NT(INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT_NT_Model Tsanction, int header_Mkey, int userId)
+        {
+
+            var subtask_NT_PS = new INSERT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT_NT_Model_PS
+            {
+                HEADER_MKEY = header_Mkey,
+                LEVEL = Tsanction.LEVEL,
+                SR_NO = Tsanction.SR_NO,
+                SANCTIONING_DEPARTMENT = Tsanction.SANCTIONING_DEPARTMENT,
+                SANCTIONING_AUTHORITY = Tsanction.SANCTIONING_AUTHORITY,
+                SANCTIONING_AUTHORITY_MKEY = Tsanction.SANCTIONING_AUTHORITY_MKEY,
+                START_DATE = Tsanction.START_DATE,
+                END_DATE = Tsanction.END_DATE,
+                CREATED_BY = userId,
+                CREATION_DATE = DateTime.UtcNow,
+                DELETE_FLAG = Tsanction.DELETE_FLAG,
+                ATTRIBUTE1 = null,
+                ATTRIBUTE2 = null,
+                ATTRIBUTE3 = null,
+                ATTRIBUTE4 = null,
+                ATTRIBUTE5 = null,
+                LAST_UPDATED_BY = null,
+                LAST_UPDATE_DATE = null
+
+
+            };
+            return Task.FromResult(subtask_NT_PS);
+
+
+        }
+
+
+        public async Task<IEnumerable<Commonresponse>> GetAllApprovalTemplatePSAsync(APPROVAL_TEMPLATE_HDR_INPUT_NT aPPROVAL_TEMPLATE_HDR_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@MKEY", aPPROVAL_TEMPLATE_HDR_NT.Mkey, DbType.Int32);
+                    parameters.Add("@Session_User_Id", aPPROVAL_TEMPLATE_HDR_NT.Session_User_Id, DbType.Int32);
+                    parameters.Add("@Business_Group_Id", aPPROVAL_TEMPLATE_HDR_NT.Business_Group_Id, DbType.Int32);
+
+                    var approvalTemplates =
+                        (await db.QueryAsync<ApprovalTemplatesNT_OUtPutResponse>(
+                            "SP_GET_APPROVAL_TEMPLATE_NT",
+                            parameters,
+                            commandType: CommandType.StoredProcedure
+                        )).ToList();
+
+                    if (!approvalTemplates.Any())
+                    {
+                        return new List<Commonresponse>
+                         {
+                             new Commonresponse
+                             {
+                                 Status = "Ok",
+                                 Message = "No data found",
+                                 Data = approvalTemplates
+                             }
+                         };
+                     }
+
+                    foreach (var approvalTemplate in approvalTemplates)
+                    {
+                        /* =======================
+                           SUBTASK LIST
+                           ======================= */
+                        approvalTemplate.Subtask_List =
+                            (await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SUBTASK_Ps>(
+                                @"SELECT *
+                          FROM APPROVAL_TEMPLATE_TRL_SUBTASK
+                          WHERE HEADER_MKEY = @HEADER_MKEY
+                            AND DELETE_FLAG = 'N'",
+                                new { HEADER_MKEY = approvalTemplate.MKEY }
+                            )).ToList();
+
+                        /* =======================
+                           END RESULT DOCUMENTS
+                           ======================= */
+                        approvalTemplate.End_Result_Doc_Lst =
+                                            (await db.QueryAsync<APPROVAL_TEMPLATE_TRL_ENDRESULT_PS_Model>(
+                                                @"SELECT * FROM APPROVAL_TEMPLATE_TRL_ENDRESULT
+                                                  WHERE MKEY = @MKEY
+                                                    AND DELETE_FLAG = 'N'",
+                                                new { MKEY = approvalTemplate.MKEY }
+                                            )).ToList();
+
+
+                        /* =======================
+                           CHECKLIST DOCUMENTS
+                           ======================= */
+                        approvalTemplate.Checklist_Doc_Lst =
+                                    (await db.QueryAsync<APPROVAL_TEMPLATE_TRL_CHECKLIST_PS_Model>(
+                                        @"SELECT * FROM APPROVAL_TEMPLATE_TRL_CHECKLIST
+                                          WHERE MKEY = @MKEY
+                                            AND DELETE_FLAG = 'N'",
+                                        new { MKEY = approvalTemplate.MKEY }
+                                    )).ToList();
+                                   
+
+                        /* =======================
+                           SANCTIONING DEPARTMENT
+                           ======================= */
+                        approvalTemplate.Sanctioning_Department_List =
+                            (await db.QueryAsync<OUTPUT_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT_Ps>(
+                                @"SELECT *
+                          FROM V_APPROVAL_TEMPLATE_TRL_SANCTIONING_DEPARTMENT
+                          WHERE MKEY = @MKEY
+                            AND DELETE_FLAG = 'N'",
+                                new { MKEY = approvalTemplate.MKEY }
+                            )).ToList();
+                    }
+
+                    return new List<Commonresponse>
+                           {
+                               new Commonresponse
+                               {
+                                   Status = "Ok",
+                                   Message = "Get data successfully",
+                                   Data = approvalTemplates
+                               }
+                           };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<Commonresponse>
+                 {
+                     new Commonresponse
+                     {
+                         Status = "Error",
+                         Message = ex.Message,
+                         Data = null
+                     }
+                 };
+            }
+        }
+        #endregion
     }
 }

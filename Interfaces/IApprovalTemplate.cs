@@ -16,5 +16,13 @@ namespace TaskManagement.API.Interfaces
         Task<ActionResult<IEnumerable<APPROVAL_TEMPLATE_HDR_NT_OUTPUT>>> AbbrAndShortDescAsyncNT(GetAbbrAndShortAbbrOutPutNT getAbbrAndShortAbbrOutPutNT);
         Task<ActionResult<OutPutApprovalTemplates>> UpdateApprovalTemplateAsync(UpdateApprovalTemplates updateApprovalTemplates);
         Task<bool> DeleteApprovalTemplateAsync(int MKEY, int LAST_UPDATED_BY);
+
+
+        // Added By Itemad Hyder 05-02-2026
+
+        Task<Add_ApprovalTemplate_TaskOutPut_List_NT> CreateApprovalTemplateTASKAsync_PS(AddApprovalTemplate_PS_Model approvaltemplate);
+        Task<IEnumerable<Commonresponse>> GetAllApprovalTemplatePSAsync(APPROVAL_TEMPLATE_HDR_INPUT_NT aPPROVAL_TEMPLATE_HDR_NT);
+
+
     }
 }

@@ -66,6 +66,7 @@ namespace TaskManagement.API.Model
         public int? Recursive_Created_For { get; set; }
         public string? Status { get; set; }
         public string? Message { get; set; }
+        public string? ResponseStatus { get; set; }
 
     }
 

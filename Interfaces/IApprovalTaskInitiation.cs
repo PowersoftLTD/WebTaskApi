@@ -16,5 +16,11 @@ namespace TaskManagement.API.Interfaces
         Task<APPROVAL_TASK_INITIATION_TRL_SUBTASK> UpdateApprovalSubtask(APPROVAL_TASK_INITIATION_TRL_SUBTASK aPPROVAL_TASK_INITIATION_TRL_SUBTASK);
 
         Task<ActionResult<IEnumerable<APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT_OUTPUT>>> UpdateApprovalSubtaskNT(APPROVAL_TASK_INITIATION_TRL_SUBTASK_NT aPPROVAL_TASK_INITIATION_TRL_SUBTASK);
+
+        // New Method Added by Itemad hyder 90-02-2025
+        Task<Approval_Task_Initiation_OutPutResponse> GetApprovalTemplateByIdAsync_PS(int MKEY, int APPROVAL_MKEY);
+        Task<Add_ApprovalTemplateInitiation_OutPut_PS> UpdateApprovalSubtask_PS(APPROVAL_TASK_INITIATION_TRL_SUBTASK_PS aPPROVAL_TASK_INITIATION_TRL_SUBTASK);
+        Task<APPROVAL_TASK_INITIATION_PS> CreateTaskApprovalTemplateAsync_PS(APPROVAL_TASK_INITIATION_PS aPPROVAL_TASK_INITIATION);
+
     }
 }
