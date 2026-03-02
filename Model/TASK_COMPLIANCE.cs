@@ -1375,6 +1375,10 @@ namespace TaskManagement.API.Model
 
         [JsonPropertyName("Created_By")]
         public string? CREATED_BY { get; set; }
+
+
+        [JsonPropertyName("ProjectMkey")]
+        public string? ProjectMkey { get; set;}
     }
 
     public class TaskProjectsDashboardCountNT

@@ -2917,7 +2917,7 @@ namespace TaskManagement.API.Repositories
 
                     if (approvaltemplate.Mkey == 0)
                     {
-                        var approvalTemplateMap = await MapApproval_Template_HDR(approvaltemplate, approvaltemplate.Mkey);
+                        var approvalTemplateMap = await MapApproval_Template_HDR(approvaltemplate, approvaltemplate.CREATED_BY);
                         var parameters = new DynamicParameters();
                         // If MKEY is null or 0, it will insert; otherwise, it will update
                         parameters.Add("@MKEY", approvalTemplateMap.MKEY == 0 ? null : approvalTemplateMap.MKEY, DbType.Int32);
@@ -3324,7 +3324,7 @@ namespace TaskManagement.API.Repositories
                     }
                     else
                     {
-                        var approvalTemplateMap = await MapApproval_Template_HDR(approvaltemplate, approvaltemplate.Mkey);
+                        var approvalTemplateMap = await MapApproval_Template_HDR(approvaltemplate, approvaltemplate.CREATED_BY);
                         var parameters = new DynamicParameters();
                         // If MKEY is null or 0, it will insert; otherwise, it will update
                         parameters.Add("@MKEY", approvalTemplateMap.MKEY == 0 ? null : approvalTemplateMap.MKEY, DbType.Int32);
