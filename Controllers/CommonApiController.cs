@@ -3269,6 +3269,62 @@ namespace TaskManagement.API.Controllers
         //        return StatusCode(500, $"Failed to send email: {ex.Message}");
         //    }
         //}
+
+
+
+        [HttpPost("Task-Management/Get-AllActions_PS")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_ACTION_TRL_PS_LIST>>> GET_AllActions_UPDateDetails_PS([FromBody] GET_ACTIONSINput_PS gET_ACTIONSInput)
+        {
+            try
+            {
+                var TaskAction = await _repository.GetActionsAsync_PSNT(gET_ACTIONSInput);
+                return Ok(TaskAction);
+            }
+            catch (Exception ex)
+            {
+                var response = new GET_ACTIONS_TYPE_FILE_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+        [HttpPost("Task-Management/Update_TASK_Action_TRL")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_ACTION_TRL_PS_LIST>>> Update_TASK_Action_TRL_PS([FromBody] TASK_ACTION_TRL_PS action_TRL)
+        {
+            try
+            {
+                if (action_TRL == null || action_TRL.MKEY == 0)
+                {
+                    var response = new TASK_ACTION_TRL_PS_LIST
+                    {
+                        Status = "Error",
+                        Message = "Please Enter the details",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                var TaskAction = await _repository.Update_ActionDetails_Ps(action_TRL);
+                return Ok(TaskAction);
+            }
+            catch (Exception ex)
+            {
+                var response = new GET_ACTIONS_TYPE_FILE_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
     }
 
 }

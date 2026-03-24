@@ -108,11 +108,14 @@ namespace TaskManagement.API.Interfaces
 
         Task<ActionResult<string>> FileDownload(FileDownloadNT fileDownloadNT);
         Task<ActionResult<string>> FileDownload();
+
         // Added By Itemad Hyder 27-10-2025
         Task<string> InsertUserLocationAsync(UserLocationInfo userLocation);
         Task<int> GetUserIdbyUserNameAsync(string userName);
         Task<string> InsertUserAuditAsync(User_Audit audit);
 
+        Task<IEnumerable<TASK_ACTION_TRL_PS_LIST>> GetActionsAsync_PSNT(GET_ACTIONSINput_PS getActionsAsync_NT);
+        Task<Task_CommonAction_TRL> Update_ActionDetails_Ps(TASK_ACTION_TRL_PS ActionInput);
         // End By Itemad Hyder 27-10-2025
     }
 }

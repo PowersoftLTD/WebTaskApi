@@ -26,4 +26,17 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("Business_Group_ID")]
         public int Business_Group_ID { get; set; }
     }
+
+    public class GET_ACTIONSINput_PS
+    {
+        [JsonPropertyName("Session_User_ID")]
+        public int? Session_User_ID { get; set; }
+        [JsonPropertyName("Business_Group_ID")]
+        public int? Business_Group_ID { get; set; }
+
+        [JsonPropertyName("Current_Emp_Mkey")]
+        public int? CURRENT_EMP_MKEY { get; set; }
+    }
+
+
 }
