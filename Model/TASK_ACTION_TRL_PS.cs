@@ -36,6 +36,8 @@
         public string? RedFlag { get; set; }
         public int? Session_User_ID { get; set; }
         public int? Business_Group_ID { get; set; }
+        public string? NotificationMessage { get; set; }
+        public string? TO { get; set; }
     }
     public class TASK_ACTION_TRL_PS_LIST
     {
