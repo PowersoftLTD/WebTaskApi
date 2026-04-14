@@ -1452,7 +1452,7 @@ namespace TaskManagement.API.Controllers
                     };
                     return Ok(response);
                 }
-                
+
                 foreach (var TaskFiles in objFile.files)
                 {
                     if (TaskFiles.Length > 0)
@@ -1473,8 +1473,8 @@ namespace TaskManagement.API.Controllers
                             TaskFiles.CopyTo(filestream);
                             filestream.Flush();
                         }
-                      
-                        
+
+
                         filePathOpen = "Attachments\\" + objFile.TASK_MAIN_NODE_ID + "\\" + DateTime.Now.Day + "_" + DateTime.Now.ToShortTimeString().Replace(":", "_") + "_" + TaskFiles.FileName;
                         var ResultCount = await _repository.TASKFileUpoadNTAsync(srNo, objFile.TASK_MKEY, objFile.TASK_PARENT_ID, TaskFiles.FileName, filePathOpen, objFile.CREATED_BY, Convert.ToChar(objFile.DELETE_FLAG), objFile.TASK_MAIN_NODE_ID);
                         FilePath = filePathOpen;
@@ -1504,7 +1504,7 @@ namespace TaskManagement.API.Controllers
 
                 if (flagAttachment == true)
                 {
-                    var ResultCount = await _repository.UpdateTASKFileUpoadAsync(objFile.CREATED_BY.ToString(),objFile.TASK_MKEY.ToString(), objFile.DELETE_FLAG.ToString());
+                    var ResultCount = await _repository.UpdateTASKFileUpoadAsync(objFile.CREATED_BY.ToString(), objFile.TASK_MKEY.ToString(), objFile.DELETE_FLAG.ToString());
 
                     var Successresponse = new Add_TaskOutPut_List_NT
                     {
@@ -3325,7 +3325,184 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPost("Task-Management/GlobalSearch")]
+        [Authorize]
+
+        public async Task<ActionResult> GlobalSearch([FromBody]GlobalSearchInput globalSearchInput)
+        {
+            try
+            {
+                //if (globalSearchInput == null || string.IsNullOrEmpty(globalSearchInput.SearchText))
+                //{
+                //    var response = new LoginMobileEmail_NT
+                //    {
+                //        Status = "Error",
+                //        Message = "Please Enter the search text",
+                //        Data = null
+                //    };
+                //    return Ok(response);
+                //}
+                var SearchResult = await _repository.GetGlobalSearchList_BySearchKey_NT(globalSearchInput.SearchText ,globalSearchInput.session_User_ID,globalSearchInput.BusinessGroupId);
+                return Ok(SearchResult);
+            }
+            catch (Exception ex)
+            {
+                var response = new LoginMobileEmail_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+
+
+        }
+
+
+        [HttpPost("Task-Management/Business_Group_GlobalSearch")]
+        [Authorize]
+
+        public async Task<ActionResult> Business_GroupGlobalSearch([FromBody] GlobalSearchInput globalSearchInput)
+        {
+            try
+            {
+                //if (globalSearchInput == null || string.IsNullOrEmpty(globalSearchInput.SearchText))
+                //{
+                //    var response = new LoginMobileEmail_NT
+                //    {
+                //        Status = "Error",
+                //        Message = "Please Enter the search text",
+                //        Data = null
+                //    };
+                //    return Ok(response);
+                //}
+                var SearchResult = await _repository.GetBusinessGroupList(globalSearchInput.SearchText, globalSearchInput.session_User_ID, globalSearchInput.BusinessGroupId);
+                return Ok(SearchResult);
+            }
+            catch (Exception ex)
+            {
+                var response = new LoginMobileEmail_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+
+
+        }
+
+        [HttpPost("Create_UserManagement")]
+        public async Task<IActionResult> CreateUser_ManagementRole([FromBody] UserManagement_Model userManagement)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                if (string.IsNullOrEmpty(userManagement.personalInformation.FullName))
+                {
+                    response.Status = "Error";
+                    response.Message = "Invalide UserRole Information Details";
+                    response.Data = null;
+                }
+                else
+                {
+                    var employee_mst = new Employee_MST_Details_Model
+                    {
+                        EmpFullName = userManagement.personalInformation.FullName,
+                        EmailIdPersonal = userManagement.personalInformation.Email!,
+                        ContactNo = Convert.ToDecimal(userManagement.personalInformation.Mobile_No),
+                        EmpCode = userManagement.personalInformation.EmployeeId!,
+                        LoginName = userManagement.personalInformation.UserName!,
+                        RoleId = userManagement.roleManagement.Role.ToString()!,
+                        DepartmentId = userManagement.roleManagement.DepartmentId,
+                        DesignationId = Convert.ToDecimal(userManagement.roleManagement.DesignationId.ToString()),
+                        Ra1Mkey = Convert.ToDecimal(userManagement.roleManagement.ReportingManager),
+                        CompanyId = userManagement.businessGroup.Select(x => Convert.ToDecimal(x.BusinessGroup_Name)).FirstOrDefault(),
+                        FirstName = userManagement.personalInformation.FullName,
+                        LastName = userManagement.personalInformation.FullName,
+                        EmailIdOfficial = userManagement.personalInformation.Email ,
+                        EffectiveStartDate= DateTime.UtcNow
+                    };
+
+                    var resultResponse = await _repository.InsertEmployee_MST_BYRoleManagement(employee_mst);
+                    if (resultResponse.Status.Contains("SUCCESS"))
+                    {
+                        var ForgotPass = await _repository.GetForgotPasswordAsync(userManagement.personalInformation.Email);
+                        if (ForgotPass == null)
+                        {
+                            var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                            {
+                                Status = "Error",
+                                Message = "Error Occurd",
+                                Data = null
+                            };
+                            return Ok(responseTaskAction);
+                        }
+                        if (userManagement.personalInformation.Email == null)
+                        {
+                            var responseTaskAction = new ForgotPasswordOutPut_List
+                            {
+                                Status = "Error",
+                                Message = "Error Occurd LoginName",
+                                Data = null
+                            };
+                            return Ok(responseTaskAction);
+                        }
+                        foreach (var Response in ForgotPass)
+                        {
+                            if (Response.Status != "Ok")
+                            {
+                                var responses = new ResetPasswordOutPut_List
+                                {
+                                    Status = "Error",
+                                    Message = Response.Message,
+                                    Data = null
+                                };
+                                return Ok(response);
+                            }
+                        }
+                        string TempararyPass = string.Empty;
+                        foreach (var TempPaass in ForgotPass)
+                        {
+                            TempararyPass = TempPaass.Data.Select(x => x.MessageText.ToString()).First().ToString();
+                        }
+
+                        var ResetPass = await _repository.GetResetPasswordAsync(TempararyPass, userManagement.personalInformation.Email);
+
+                        //if (ResetPass == null)
+                        //{
+                        //    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                        //    {
+                        //        Status = "Error",
+                        //        Message = "Error Occurd",
+                        //        Data = null
+                        //    };
+                        //    return Ok(responseTaskAction);
+                        //}
+
+                        return Ok(ResetPass);
+                    }
+
+                }
+
+                return Ok(response);
+
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+
+                return Ok(response);
+            }
+        }
+
+
     }
+
 
 }
 

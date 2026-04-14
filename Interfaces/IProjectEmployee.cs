@@ -116,6 +116,12 @@ namespace TaskManagement.API.Interfaces
 
         Task<IEnumerable<TASK_ACTION_TRL_PS_LIST>> GetActionsAsync_PSNT(GET_ACTIONSINput_PS getActionsAsync_NT);
         Task<Task_CommonAction_TRL> Update_ActionDetails_Ps(TASK_ACTION_TRL_PS ActionInput);
+
+        Task<LoginMobileEmail_NT> GetGlobalSearchList_BySearchKey_NT(string searchtext, int? session_User_ID, int? business_Group_ID);
+
+        Task<BusinessGroup_OutPutResponse> GetBusinessGroupList(string? searchtext, int? session_User_ID, int? business_Group_ID);
+
+        Task<ResponseObject<string>> InsertEmployee_MST_BYRoleManagement(Employee_MST_Details_Model model);
         // End By Itemad Hyder 27-10-2025
     }
 }

@@ -33,7 +33,7 @@
         public string? CREATED_BYName { get; set; }
         public string? ASSIGNED_TO { get; set; }
         public string? ASSIGNED_ToName { get; set; }
-        public string? RedFlag { get; set; }
+        public string? ReadFlag { get; set; }
         public int? Session_User_ID { get; set; }
         public int? Business_Group_ID { get; set; }
         public string? NotificationMessage { get; set; }

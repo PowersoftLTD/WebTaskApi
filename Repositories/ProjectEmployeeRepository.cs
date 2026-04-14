@@ -10,6 +10,7 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Drawing;
 using System.Formats.Tar;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -7998,7 +7999,7 @@ namespace TaskManagement.API.Repositories
                             new TASK_ACTION_TRL_PS_LIST
                             {
                                Status = "Ok",
-                                Message= "Not found"
+                                Message= "Not Data found"
                             }
                         };
                         return errorResult;
@@ -8019,7 +8020,7 @@ namespace TaskManagement.API.Repositories
             }
         }
           public async Task<Task_CommonAction_TRL> Update_ActionDetails_Ps(TASK_ACTION_TRL_PS ActionInput)
-        {
+          {
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -8049,7 +8050,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@Session_User_Id", ActionInput.Session_User_ID);
                     parameters.Add("@Business_Group_Id", ActionInput.Business_Group_ID);
                     parameters.Add("@DELETE_FLAG", ActionInput.DELETE_FLAG);
-                    parameters.Add("@RedFlag", ActionInput.RedFlag);
+                    parameters.Add("@ReadFlag", ActionInput.ReadFlag);
                     parameters.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
                     var result = await db.QueryFirstOrDefaultAsync<TASK_ACTION_TRL_PS>(
                         "SP_UPDATE_TASK_ACTIONS_PS",
@@ -8085,10 +8086,185 @@ namespace TaskManagement.API.Repositories
                     Data = null
                 };
             }
-        }
-         
-          #endregion
+          }
         #endregion
+        #endregion
+
+        #region
+
+        public async Task<LoginMobileEmail_NT> GetGlobalSearchList_BySearchKey_NT(string? searchtext , int? session_User_ID, int? business_Group_ID)
+        {
+            var empresponse = new LoginMobileEmail_NT();
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@SearchText", searchtext);
+                    parmeters.Add("@Session_User_Id", session_User_ID);
+                    parmeters.Add("@Business_Group_Id", business_Group_ID);
+
+                    var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_SearchEmployee_LoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    var result = dtReponse.ToList();
+                    if (dtReponse.Any())
+                    {
+                        empresponse.Status= "Success";
+                        empresponse.Message= "Data fetched successfully!!!";
+                        empresponse.Data = result;
+                    }
+                    else
+                    {
+                        empresponse.Status = "Success";
+                        empresponse.Message = "No data found!!!";
+                        empresponse.Data = null;
+                    }
+
+                    return empresponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                empresponse.Status = "Error";
+                empresponse.Message = ex.Message;
+                empresponse.Data = null;
+                return empresponse;
+            }
+        }
+
+        public async Task<BusinessGroup_OutPutResponse> GetBusinessGroupList(string? searchtext , int? session_User_ID , int? business_Group_ID)
+        {
+            var empresponse = new BusinessGroup_OutPutResponse();
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@SearchText", searchtext);
+                    parmeters.Add("@Session_User_Id", session_User_ID);
+                    parmeters.Add("@Business_Group_Id", business_Group_ID);
+
+                    //var dtReponse = await db.QueryAsync<BusinessGroupFlat>("SP_SearchEmployee_LoginUser", parmeters, commandType: CommandType.StoredProcedure);
+                    var data = await db.QueryAsync<BusinessGroupFlat>("SP_SearchBusinessCompany", parmeters, commandType: CommandType.StoredProcedure);
+                    var result = data.GroupBy(x => new { x.BUSINESS_GROUP_ID, x.Business_Group_Name }).Select(g => new BusinessGroup
+                                             {
+                                                 BusinessGroupId = g.Key.BUSINESS_GROUP_ID,
+                                                 BusinessGroupName = g.Key.Business_Group_Name,
+                                                 Companies = g.Select(x => new BusinessGroupName
+                                                 {
+                                                     CompanyId = x.COMPANY_ID,
+                                                     Company_Name = x.Company_Name
+                                                 }).ToList()
+                                             }).ToList();      
+                    if (result.Any())
+                    {
+
+                        empresponse.Status = "Success";
+                        empresponse.Message = "Data fetched successfully!!!";
+                        empresponse.Data = result;
+                    }
+                    else
+                    {
+                        empresponse.Status = "Success";
+                        empresponse.Message = "No data found!!!";
+                        empresponse.Data = null;
+                    }
+
+                    return empresponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                empresponse.Status = "Error";
+                empresponse.Message = ex.Message;
+                empresponse.Data = null;
+                return empresponse;
+            }
+        }
+
+        public async Task<ResponseObject<string>> InsertEmployee_MST_BYRoleManagement(Employee_MST_Details_Model model)
+        {
+            var response = new ResponseObject<string>();
+
+            try
+            {
+                using (var con = new SqlConnection(_connectionString))
+                {
+                    var param = new DynamicParameters();
+                    param.Add("@COMPANY_ID", model.CompanyId);
+                    param.Add("@EMP_CODE", model.EmpCode);
+                    param.Add("@EMP_FULL_NAME", model.EmpFullName);
+                    param.Add("@FIRST_NAME", model.FirstName);
+                    param.Add("@LAST_NAME", model.LastName);
+                    param.Add("@ROLE_ID", model.RoleId);
+                    param.Add("@PROJECT_ID", model.ProjectId);
+                    param.Add("@DESIGNATION_ID", model.DesignationId);
+                    param.Add("@DEPARTMENT_ID", model.DepartmentId);
+                    param.Add("@CONTACT_NO", model.ContactNo);
+                    param.Add("@EMAIL_ID_OFFICIAL", model.EmailIdOfficial);
+                    param.Add("@EMAIL_ID_PERSONAL", model.EmailIdPersonal);
+                    param.Add("@LOGIN_NAME", model.LoginName);
+                    //param.Add("@LOGIN_PASSWORD", model.LoginPassword);
+                    param.Add("@LOGIN_PASSWORD",string.IsNullOrWhiteSpace(model.LoginPassword)? null: Encoding.UTF8.GetBytes(model.LoginPassword),DbType.Binary);
+                    param.Add("@RA1_MKEY", model.Ra1Mkey);
+                    param.Add("@RA2_MKEY", model.Ra2Mkey);
+                    param.Add("@EFFECTIVE_START_DATE", model.EffectiveStartDate ==DateTime.MinValue ? (DateTime?)null : model.EffectiveStartDate );
+                    param.Add("@EFFECTIVE_END_DATE", model.EffectiveEndDate == DateTime.MinValue ? (DateTime?)null :  model.EffectiveEndDate);
+                    param.Add("@EMAIL_FREQUENCY", model.EmailFrequency);
+                    param.Add("@BROWSER_NOTIFICATION", model.BrowserNotification);
+                    param.Add("@WEB_TOKEN", model.WebToken);
+                    param.Add("@MOBILE_TOKEN", model.MobileToken);
+                    param.Add("@ATTRIBUTE1", model.Attribute1);
+                    param.Add("@ATTRIBUTE2", model.Attribute2);
+                    param.Add("@ATTRIBUTE3", model.Attribute3);
+                    param.Add("@ATTRIBUTE4", model.Attribute4);
+                    param.Add("@ATTRIBUTE5", model.Attribute5);
+                    param.Add("@ATTRIBUTE6", model.Attribute6);
+                    param.Add("@ATTRIBUTE7", model.Attribute7);
+                    param.Add("@ATTRIBUTE8", model.Attribute8);
+                    param.Add("@ATTRIBUTE9", model.Attribute9);
+                    param.Add("@ATTRIBUTE10", model.Attribute10);
+                    param.Add("@CREATED_BY", 13);
+                    param.Add("@LAST_UPDATED_BY", model.LastUpdatedBy);
+                    param.Add("@ISFORGOTPASSWORD", model.IsForgotPassword);
+                    //param.Add("@TEMPPASSWORD", model.TempPassword);
+                    param.Add("@TEMPPASSWORD",string.IsNullOrWhiteSpace(model.TempPassword)? null: Encoding.UTF8.GetBytes(model.TempPassword),DbType.Binary);
+                    param.Add("@RESSET_FLAG", model.ResetFlag);
+                    param.Add("@Date_of_birth", model.DateOfBirth == DateTime.MinValue ? (DateTime?)null : model.DateOfBirth);
+                    param.Add("@ERP_EMP_MKEY", model.ErpEmpMkey);
+                    param.Add("@ORACLE_ID", model.OracleId);
+                    param.Add("@JOB_ROLE", model.JobRole);
+                    // 🔥 Output Parameter
+                    param.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+                    await con.ExecuteAsync("SP_Insert_Employee _MST_Role", param,commandType: CommandType.StoredProcedure);
+                    var resultMessage = param.Get<string>("@ResponseMessage");
+                    if (resultMessage.Contains("SUCCESS"))
+                    {
+                        response.Status = "SUCCESS";
+                        response.Message = "";
+                        response.Data = null;
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = "";
+                        response.Data = null;
+                    }
+                   
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+            }
+
+            return response;
+        }
+
+        #endregion
+
+
+
     }
 }
 
