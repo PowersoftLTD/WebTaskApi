@@ -1,4 +1,6 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Data.SqlClient;
 using TaskManagement.API.DapperDbConnections;
@@ -127,7 +129,7 @@ namespace TaskManagement.API.Repositories
                             {
                                 Status = "Ok",
                                 Message = "Success",
-                                Data =  mSPUploadExcel
+                                Data = mSPUploadExcel
                             }
                         };
                     }
@@ -420,5 +422,150 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
+
+        #region
+        // Gantt Chart Methods
+
+        public async Task<CommonResponseObject<ImpactAttachHdrModel>> GetLatestImpactAttachHdr(int projectMkey, int buildingMkey, int sessionUserId, int businessGroupId)
+        {
+            var response = new CommonResponseObject<ImpactAttachHdrModel>();
+
+            try
+            {
+                using (var connection = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+
+                    parameters.Add("@PROJECT_MKEY", projectMkey);
+                    parameters.Add("@BUILDING_MKEY", buildingMkey);
+                    parameters.Add("@Session_userId", sessionUserId);
+                    parameters.Add("@Business_groupId", businessGroupId);
+
+                    parameters.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+                    var result = await connection.QueryFirstOrDefaultAsync<ImpactAttachHdrModel>(
+                        "SP_GetLatest_Impact_Attach_Hdr",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    var message = parameters.Get<string>("@ResponseMessage");
+                    if (message.Contains("Success"))
+                    {
+                        response.Status = "Success";
+                        response.Message = "Impact Attach HDR File Fetch Successfully";
+                        response.Data = result;
+                    }else if(message.Contains("No Data Found"))
+                    {
+                        response.Status = "Success";
+                        response.Message = "No Data Found in Impact Attach HDR";
+                        response.Data = result;
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = "Impact Attach HDR Failed For Loading Data";
+                        response.Data = null;
+                    }
+
+                    //    response.Status = message == "Success" ? "Success" : "Error";
+                    //response.Message = message;
+                    //response.Data = result;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+                response.Data = null;
+            }
+
+            return response;
+        }
+
+
+        public async Task<ActionResult<GhantChart_TaskOutPut_List_NT>> GhantChartTASKFileUpoadNTAsync(Ghantchart_UploadAPI_NT uploadAPI_NT)
+        {
+            IDbTransaction transaction = null;
+            int? createdBy = 13;
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var sqlConnection = db as SqlConnection;
+                    if (sqlConnection == null)
+                        throw new InvalidOperationException("Connection must be SqlConnection");
+
+                    if (sqlConnection.State != ConnectionState.Open)
+                        await sqlConnection.OpenAsync();
+
+                    transaction = db.BeginTransaction();
+
+                    var parameters = new DynamicParameters();
+
+                    parameters.Add("@PROJECT_MKEY", uploadAPI_NT.PROJECT_MKEY);
+                    parameters.Add("@BUILDING_MKEY", uploadAPI_NT.BUILDING_MKEY); // FIXED NAME
+                    parameters.Add("@FILE_NAME", uploadAPI_NT.FILE_NAME);
+                    parameters.Add("@FILE_PATH", uploadAPI_NT.FILE_PATH);
+                    parameters.Add("@ATTRIBUTE1", null);
+                    parameters.Add("@ATTRIBUTE2", null);  //uploadAPI_NT.ATTRIBUTE2
+                    parameters.Add("@ATTRIBUTE3", null);  //uploadAPI_NT.ATTRIBUTE3
+                    parameters.Add("@ATTRIBUTE4", null);  //uploadAPI_NT.ATTRIBUTE4
+                    parameters.Add("@ATTRIBUTE5", null);  //uploadAPI_NT.ATTRIBUTE5
+
+                    parameters.Add("@CREATED_BY", createdBy);
+                    // Extra params
+                    parameters.Add("@Session_userId", createdBy);
+                    parameters.Add("@Business_groupId", 1);
+
+                    // OUTPUT PARAMS
+                    parameters.Add("@Out_MKEY", dbType: DbType.Int32, direction: ParameterDirection.Output);
+                    parameters.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+                    await db.ExecuteAsync(
+                        "SP_Insert_Impact_Attach_Hdr",   // Use correct SP
+                        parameters,
+                        commandType: CommandType.StoredProcedure,
+                        transaction: transaction
+                    );
+
+                    var message = parameters.Get<string>("@ResponseMessage");
+                    var mkey = parameters.Get<int>("@Out_MKEY");
+
+                    await ((SqlTransaction)transaction).CommitAsync();
+
+                    return new GhantChart_TaskOutPut_List_NT
+                    {
+                        Status = message == "Inserted Successfully" ? "Success" : "Error",
+                        Message = message,
+                        Mkey = mkey,   // ✅ return inserted id
+                        FILE_PATH= uploadAPI_NT.FILE_PATH
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null)
+                {
+                    try { transaction.Rollback(); } catch { }
+                }
+
+                return new GhantChart_TaskOutPut_List_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message
+                };
+            }
+        }
+
+
+
+
+
+
+        #endregion
+
+
+
     }
 }

@@ -1,22 +1,24 @@
-﻿using System.Data;
-using Dapper;
-using System.Reflection;
+﻿using Dapper;
+using FastMember;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using OfficeOpenXml;
+using System;
+using System.Collections;
+using System.ComponentModel.Design;
+using System.Data;
+using System.Reflection;
+using System.Transactions;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using Microsoft.AspNetCore.Authorization;
-using System;
-using OfficeOpenXml;
 using TaskManagement.API.Repositories;
-using Newtonsoft.Json;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using FastMember;
-using Microsoft.Extensions.Options;
-using System.Collections;
-using System.Transactions;
 
 namespace TaskManagement.API.Controllers
 {
@@ -3272,13 +3274,46 @@ namespace TaskManagement.API.Controllers
 
 
 
-        [HttpPost("Task-Management/Get-AllActions_PS")]
+        [HttpPost("Task-Management/Get-AllNotification-Actions_PS")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<TASK_ACTION_TRL_PS_LIST>>> GET_AllActions_UPDateDetails_PS([FromBody] GET_ACTIONSINput_PS gET_ACTIONSInput)
         {
             try
             {
                 var TaskAction = await _repository.GetActionsAsync_PSNT(gET_ACTIONSInput);
+                return Ok(TaskAction);
+            }
+            catch (Exception ex)
+            {
+                var response = new GET_ACTIONS_TYPE_FILE_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+
+        [HttpPost("Task-Management/ReadFlag-Update")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TASK_ACTION_TRL_PS_LIST>>> Update_ReadFlag_TASK_Action_TRL_PS([FromBody] ReadFlag_UpdateModel updateflag)
+        {
+            try
+            {
+                if (updateflag == null || updateflag.Mkey == 0)
+                {
+                    var response = new TASK_ACTION_TRL_PS_LIST
+                    {
+                        Status = "Error",
+                        Message = "Please Enter the details",
+                        Data = null
+                    };
+                    return Ok(response);
+                }
+
+                var TaskAction = await _repository.ReadFlag_Update_ActionDetails_Ps(updateflag);
                 return Ok(TaskAction);
             }
             catch (Exception ex)
@@ -3328,7 +3363,7 @@ namespace TaskManagement.API.Controllers
         [HttpPost("Task-Management/GlobalSearch")]
         [Authorize]
 
-        public async Task<ActionResult> GlobalSearch([FromBody]GlobalSearchInput globalSearchInput)
+        public async Task<ActionResult> GlobalSearch([FromBody] GlobalSearchInput globalSearchInput)
         {
             try
             {
@@ -3342,7 +3377,7 @@ namespace TaskManagement.API.Controllers
                 //    };
                 //    return Ok(response);
                 //}
-                var SearchResult = await _repository.GetGlobalSearchList_BySearchKey_NT(globalSearchInput.SearchText ,globalSearchInput.session_User_ID,globalSearchInput.BusinessGroupId);
+                var SearchResult = await _repository.GetGlobalSearchList_BySearchKey_NT(globalSearchInput.SearchText, globalSearchInput.session_User_ID, globalSearchInput.BusinessGroupId);
                 return Ok(SearchResult);
             }
             catch (Exception ex)
@@ -3359,10 +3394,8 @@ namespace TaskManagement.API.Controllers
 
         }
 
-
         [HttpPost("Task-Management/Business_Group_GlobalSearch")]
         [Authorize]
-
         public async Task<ActionResult> Business_GroupGlobalSearch([FromBody] GlobalSearchInput globalSearchInput)
         {
             try
@@ -3394,10 +3427,11 @@ namespace TaskManagement.API.Controllers
 
         }
 
-        [HttpPost("Create_UserManagement")]
+        [HttpPost("Create-Update_UserManagement")]
         public async Task<IActionResult> CreateUser_ManagementRole([FromBody] UserManagement_Model userManagement)
         {
             var response = new Commonresponse();
+            string statusReponse = Empty.ToString();
             try
             {
                 if (string.IsNullOrEmpty(userManagement.personalInformation.FullName))
@@ -3408,28 +3442,94 @@ namespace TaskManagement.API.Controllers
                 }
                 else
                 {
+                    string status = userManagement.personalInformation.Status.Contains("Active") ? "N" : "Y";
+
                     var employee_mst = new Employee_MST_Details_Model
                     {
+                        Mkey = userManagement.personalInformation.Mkey,
                         EmpFullName = userManagement.personalInformation.FullName,
-                        EmailIdPersonal = userManagement.personalInformation.Email!,
+                        EmailIdOfficial = userManagement.personalInformation.EMAIL_ID_OFFICIAL!,
+                        EmailIdPersonal = userManagement.personalInformation.EMAIL_ID_PERSONAL!,
                         ContactNo = Convert.ToDecimal(userManagement.personalInformation.Mobile_No),
-                        EmpCode = userManagement.personalInformation.EmployeeId!,
+                        EmpCode = string.IsNullOrEmpty(userManagement.personalInformation.EmployeeId!) ? null : userManagement.personalInformation.EmployeeId,
                         LoginName = userManagement.personalInformation.UserName!,
-                        RoleId = userManagement.roleManagement.Role.ToString()!,
-                        DepartmentId = userManagement.roleManagement.DepartmentId,
-                        DesignationId = Convert.ToDecimal(userManagement.roleManagement.DesignationId.ToString()),
-                        Ra1Mkey = Convert.ToDecimal(userManagement.roleManagement.ReportingManager),
-                        CompanyId = userManagement.businessGroup.Select(x => Convert.ToDecimal(x.BusinessGroup_Name)).FirstOrDefault(),
-                        FirstName = userManagement.personalInformation.FullName,
-                        LastName = userManagement.personalInformation.FullName,
-                        EmailIdOfficial = userManagement.personalInformation.Email ,
-                        EffectiveStartDate= DateTime.UtcNow
+                        Ra1Mkey = userManagement.roleManagement.Select(x => x.ReportingManager).FirstOrDefault().Value,
+                        //RoleId = userManagement.roleManagement.FirstOrDefault()!.Role.ToString()!,
+                        //DepartmentId = userManagement.roleManagement.FirstOrDefault()!.DepartmentId,
+                        // DesignationId = Convert.ToDecimal(userManagement.roleManagement.FirstOrDefault()!.DesignationId.ToString()),
+                        //Ra1Mkey = Convert.ToDecimal(userManagement.roleManagement.FirstOrDefault()!.ReportingManager),
+                        CompanyId = userManagement.businessGroup.SelectMany(x => x.BusinessGroup_Name.Split(",")).Select(id => Convert.ToDecimal(id.Trim())).FirstOrDefault(),
+                        FirstName = userManagement.personalInformation.First_Name!,
+                        LastName = userManagement.personalInformation.Last_Name!,
+                        EffectiveStartDate = Convert.ToDateTime(DateTime.UtcNow.ToString("dd/MM/yyyy")),  // Do Not Mention Why And What is the use of this column, Because it is mandatory to pass some value to this column, So I am passing current date time in UTC format
+                        CreatedBy = Convert.ToDecimal(userManagement.session_User_ID),
+                        CreationDate = DateTime.UtcNow,
+                        businessGroupId = userManagement.BusinessGroupId,
+                        DeleteFlag= Convert.ToChar(status)
                     };
-
                     var resultResponse = await _repository.InsertEmployee_MST_BYRoleManagement(employee_mst);
-                    if (resultResponse.Status.Contains("SUCCESS"))
+                    int empMkey = Convert.ToInt32(resultResponse.Data);
+                    foreach (var roleid in userManagement.roleManagement)
                     {
-                        var ForgotPass = await _repository.GetForgotPasswordAsync(userManagement.personalInformation.Email);
+                        try
+                        {
+                            var roleDetails = await _repository.GetRoleManagementList(roleid.Role, Convert.ToDecimal(userManagement.session_User_ID), userManagement.BusinessGroupId);
+                            List<int> company_id = roleDetails.Data.Where(x => !string.IsNullOrEmpty(x.Company_Id)).SelectMany(x => x.Company_Id.Split(",").Select(id => Convert.ToInt32(id.Trim()))).ToList()!;
+                            foreach (var item in company_id)
+                            {
+                                var empcodeDetails = new Emp_Role_Comp_Matrix_Model
+                                {
+                                    Mkey = Convert.ToInt32(empMkey),
+                                    //Sr_No=
+                                    Role_Mkey = Convert.ToInt32(roleid.Role),
+                                    Comp_Mkey = item,
+                                    Business_Group_id = userManagement.BusinessGroupId,
+                                    ATTRIBUTE1 = null,
+                                    ATTRIBUTE2 = null,
+                                    ATTRIBUTE3 = null,
+                                    ATTRIBUTE4 = null,
+                                    ATTRIBUTE5 = null,
+                                    CREATED_BY = Convert.ToInt32(userManagement.session_User_ID),
+                                    CREATION_DATE = DateTime.UtcNow.ToString("dd/mm/yyyy"),
+                                    LAST_UPDATED_BY = Convert.ToInt32(userManagement.session_User_ID),
+                                    LAST_UPDATE_DATE = DateTime.UtcNow.ToString("dd/mm/yyyy"),
+                                    DELETE_FLAG = roleid.Delete_flag
+
+                                };
+                                var empRoleCompMatrix = await _repository.InsertUpdateRoleCompanyMap(empcodeDetails);
+                                if (empRoleCompMatrix.Status != "Success")
+                                {
+                                    response.Status = "Error";
+                                    response.Message = $"Failed to insert role-company mapping for Company ID: {item}. Message: {empRoleCompMatrix.Message}";
+                                    return Ok(response);
+                                }
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            response.Status = "Error";
+                            response.Message = $" Insert Failed in Emp_Role_Comp_Matrix Table Due to {ex.Message}";
+                            response.Data = null;
+
+                            return Ok(response);
+                        }
+
+
+
+                    }
+
+                    //foreach (var item in userManagement.businessGroup)
+                    //{
+                    //    employee_mst.CompanyId = Convert.ToDecimal(item.BusinessGroup_Name);
+                    //    //var  resultResponse = await _repository.InsertEmployee_MST_BYRoleManagement(employee_mst);
+                    //    //statusReponse = resultResponse.Status;
+                    //}
+
+                    //statusReponse!.Contains("SUCCESS")
+                    if (resultResponse.Status!.Contains("SUCCESS"))
+                    {
+                        var ForgotPass = await _repository.GetForgotPasswordAsync(userManagement.personalInformation.EMAIL_ID_OFFICIAL!);
                         if (ForgotPass == null)
                         {
                             var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
@@ -3440,7 +3540,7 @@ namespace TaskManagement.API.Controllers
                             };
                             return Ok(responseTaskAction);
                         }
-                        if (userManagement.personalInformation.Email == null)
+                        if (userManagement.personalInformation.EMAIL_ID_OFFICIAL == null)
                         {
                             var responseTaskAction = new ForgotPasswordOutPut_List
                             {
@@ -3469,7 +3569,7 @@ namespace TaskManagement.API.Controllers
                             TempararyPass = TempPaass.Data.Select(x => x.MessageText.ToString()).First().ToString();
                         }
 
-                        var ResetPass = await _repository.GetResetPasswordAsync(TempararyPass, userManagement.personalInformation.Email);
+                        var ResetPass = await _repository.GetResetPasswordAsync(TempararyPass, userManagement.personalInformation.EMAIL_ID_OFFICIAL);
 
                         //if (ResetPass == null)
                         //{
@@ -3501,8 +3601,301 @@ namespace TaskManagement.API.Controllers
         }
 
 
+        [HttpPost("Create-Update_RoleManagement")]
+        public async Task<IActionResult> CreateRoleManagement(Role_UserManagement_Model roleManagement)
+        {
+            var response = new Commonresponse();
+            string statusReponse = Empty.ToString();
+            try
+            {
+                if (string.IsNullOrEmpty(roleManagement.Role_Name))
+                {
+                    response.Status = "Error";
+                    response.Message = "Invalide Role Information Details";
+                    response.Data = null;
+                }
+                else
+                {
+
+
+                    //foreach (var item in roleManagement.businessGroupId)
+                    //        {
+                    //             roleManagement_MST.Company_Id = item.BusinessGroup_Id;
+                    //             var  resultResponse = await _repository.Insert_RoleManagement(roleManagement_MST);
+                    //             statusReponse = resultResponse.Status;
+                    //            if (!statusReponse.Contains("SUCCESS"))
+                    //            {
+
+                    //                 return Ok (roleManagement_MST);
+                    //            }
+                    //        }
+                    //   return Ok (roleManagement_MST);
+                    var resultResponse = await _repository.Insert_RoleManagement(roleManagement);
+
+                    //resultResponse.Status
+                    if (resultResponse.Status!.Contains("SUCCESS"))
+                    {
+                        response.Status = "Success";
+                        response.Message = $"Role Management Created Successfully {roleManagement.Role_Name}";
+                        response.Data = roleManagement;
+                        //return Ok(response);
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = $"Role Management failed {roleManagement.Role_Name}";
+                        response.Data = null;
+                    }
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                return Ok(response);
+            }
+
+        }
+
+        [HttpPost("Get-UserManagement-List")]
+        public async Task<IActionResult> GetuserManagement([FromBody] CommonInput_UserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetUserManagementListAsync(rolemodel);
+
+                if (result.IsSuccess)
+                {
+                    //return Ok(new
+                    //{
+                    //    success = true,
+                    //    message = result.Message,
+                    //    data = result.Data,
+                    //    count = result.TotalCount
+                    //});
+                    response.Status = "Success";
+                    response.Message = "All Role Fetch Successfully";
+                    response.Data = result.Data;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("Get-AllRolesManagement-List")]
+        public async Task<IActionResult> GetAllRoles([FromBody] CommonInput_UserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetRoleManagementListAsync(rolemodel);
+
+                if (result.IsSuccess)
+                {
+                    //return Ok(new
+                    //{
+                    //    success = true,
+                    //    message = result.Message,
+                    //    data = result.Data,
+                    //    count = result.TotalCount
+                    //});
+                    response.Status = "Success";
+                    response.Message = "All Role Fetch Successfully";
+                    response.Data = result.Data;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("Designation-List")]
+
+        public async Task<IActionResult> GetDesignationList([FromBody] CommonInput_UserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetDesignationList(rolemodel.Business_Group_ID, rolemodel.Session_User_ID);
+                if (result.Any())
+                {
+                    //return Ok(new
+                    //{
+                    //    success = true,
+                    //    message = result.Message,
+                    //    data = result.Data,
+                    //    count = result.TotalCount
+                    //});
+                    response.Status = "Success";
+                    response.Message = "All Designation Fetch Successfully";
+                    response.Data = result;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("Reporting_ManagerList")]
+        public async Task<IActionResult> GetReporting_ManagerList([FromBody] CommonInput_UserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetReportingEmployeeList(rolemodel.Business_Group_ID, rolemodel.Session_User_ID);
+                if (result.Any())
+                {
+                    //return Ok(new
+                    //{
+                    //    success = true,
+                    //    message = result.Message,
+                    //    data = result.Data,
+                    //    count = result.TotalCount
+                    //});
+                    response.Status = "Success";
+                    response.Message = "All Designation Fetch Successfully";
+                    response.Data = result;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("View-Permission_ByMkey")]
+        public async Task<IActionResult> GetView_PermissionMkey([FromBody] CommonInput_ViewUserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetRoleModule_Assignment_TRL_List(rolemodel.Business_Group_ID, rolemodel.Session_User_ID, rolemodel.Mkey);
+                if (result.Status!.Contains("SUCCESS"))
+                {
+                    response.Status = "Success";
+                    response.Message = "View-Permission Fetch Successfully";
+                    response.Data = result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("User_Management_ByMkey")]
+        public async Task<IActionResult> GetUser_Management_ByMkey([FromBody] CommonInput_ViewUserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetUserManagement_BYMkey(rolemodel.Business_Group_ID, rolemodel.Session_User_ID, rolemodel.Mkey);
+                if (result.Status!.Contains("SUCCESS"))
+                {
+                    response.Status = "Success";
+                    response.Message = "View-Permission Fetch Successfully";
+                    response.Data = result;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("Role_Management_ByMkey")]
+        public async Task<IActionResult> GetRole_Management_ByMkey([FromBody] CommonInput_ViewUserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetRoleManagement_BYMkey(rolemodel.Business_Group_ID, rolemodel.Session_User_ID, rolemodel.Mkey);
+                if (result.Status!.Contains("SUCCESS"))
+                {
+                    response.Status = "Success";
+                    response.Message = "View-Permission Fetch Successfully";
+                    response.Data = result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+        }
+
+        //[HttpPost("Role-Management/Module_HDR")]
+        //public async Task<IActionResult> GetModule_HDR([FromBody] ) 
+        //{        
+        //}
+
+        [HttpPost("Task-Company-List")]
+        public async Task<IActionResult> GetCompanyList([FromBody] CommonInput_UserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetCompanyList(rolemodel.Business_Group_ID, rolemodel.Session_User_ID);
+                if (result.Data.Any())
+                {
+                    //return Ok(new
+                    //{
+                    //    success = true,
+                    //    message = result.Message,
+                    //    data = result.Data,
+                    //    count = result.TotalCount
+                    //});
+                    response.Status = "Success";
+                    response.Message = "All Company Fetch Successfully";
+                    response.Data = result;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+
+        }
     }
-
-
 }
 

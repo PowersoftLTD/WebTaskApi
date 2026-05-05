@@ -122,6 +122,22 @@ namespace TaskManagement.API.Interfaces
         Task<BusinessGroup_OutPutResponse> GetBusinessGroupList(string? searchtext, int? session_User_ID, int? business_Group_ID);
 
         Task<ResponseObject<string>> InsertEmployee_MST_BYRoleManagement(Employee_MST_Details_Model model);
+
+        Task<ResponseObject<string>> Insert_RoleManagement(Role_UserManagement_Model model);
+        Task<ResponseResult> GetRoleManagementListAsync(CommonInput_UserManagement_Model commonInput);
+        Task<Response_UserManagementResult> GetUserManagementListAsync(CommonInput_UserManagement_Model commonInput);
+        Task<Task_CommonAction_TRL> ReadFlag_Update_ActionDetails_Ps(ReadFlag_UpdateModel ActionInput);
+
+        Task<List<DesignationModel>> GetDesignationList(int? businessGroupId, int? sessionUserId);
+
+        Task<List<Reported_managerList>> GetReportingEmployeeList(int? businessGroupId, int? sessionUserId);
+        Task<Commonresponse> GetRoleModule_Assignment_TRL_List(int? businessGroupId, int? sessionUserId, int? mkey);
+        Task<Common_UserManagement_OutResponse> GetUserManagement_BYMkey(int? businessGroupId, int? sessionUserId, int? mkey);
+        Task<Commonresponse> GetRoleManagement_BYMkey(int? businessGroupId, int? sessionUserId, int? mkey);
+
+        Task<ResponseObject<List<RoleManagementModel>>> GetRoleManagementList(int? roleId, decimal? sessionUserId, int? businessGroupId);
+        Task<Commonresponse> InsertUpdateRoleCompanyMap(Emp_Role_Comp_Matrix_Model model);
+        Task<ResponseObject<List<CompanyModel>>> GetCompanyList(decimal? sessionUserId, decimal? businessGroupId);
         // End By Itemad Hyder 27-10-2025
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using OfficeOpenXml.Style;
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
@@ -21,8 +22,10 @@ using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Http.Validation;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -2204,7 +2207,7 @@ namespace TaskManagement.API.Repositories
                         parmeters.Add("@LAST_UPDATED_BY", add_TaskInput_NT.LAST_UPDATED_BY);
                         parmeters.Add("@APPROVE_ACTION_DATE", add_TaskInput_NT.APPROVE_ACTION_DATE);
                         parmeters.Add("@Priority", add_TaskInput_NT.Priority);
-                        parmeters.Add("@Tentative_Start_Date",DateTime.UtcNow ); //add_TaskInput_NT.Tentative_Start_Date   // New Changes by Itemad 24-09-2025
+                        parmeters.Add("@Tentative_Start_Date", DateTime.UtcNow); //add_TaskInput_NT.Tentative_Start_Date   // New Changes by Itemad 24-09-2025
                         parmeters.Add("@Tentative_End_Date", add_TaskInput_NT.COMPLETION_DATE);      // add_TaskInput_NT.Tentative_End_Date New Changes by Itemad 20-11-2025
                         parmeters.Add("@Actual_Start_Date", add_TaskInput_NT.Actual_Start_Date);
                         parmeters.Add("@Actual_End_Date", add_TaskInput_NT.Actual_End_Date);
@@ -2322,7 +2325,7 @@ namespace TaskManagement.API.Repositories
                                             parametersEndList.Add("@OUT_MESSAGE", null);
 
                                             var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE_NT", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
-                                           // var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                            // var GetTaskEndList = await db.QueryAsync<TASK_ENDLIST_DETAILS_OUTPUT>("SP_INSERT_UPDATE_TASK_ENDLIST_TABLE", parametersEndList, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                             if (GetTaskEndList.Any())
                                             {
@@ -3622,7 +3625,7 @@ namespace TaskManagement.API.Repositories
                 return ErrorFileDetails;
             }
         }
-        public async Task<int> UpdateTASKFileUpoadAsync(string LastUpdatedBy,string taskMkey, string deleteFlag)
+        public async Task<int> UpdateTASKFileUpoadAsync(string LastUpdatedBy, string taskMkey, string deleteFlag)
         {
             DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, INDIAN_ZONE);
             IDbTransaction transaction = null;
@@ -3848,7 +3851,7 @@ namespace TaskManagement.API.Repositories
                     parameters.Add("@Parameter11", FILE_PATH);
 
                     var TaskFile = await db.QueryAsync<TaskPostActionOutput_NT>("SP_TASK_ACTION_TRL_Insert_Update_NT", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                    
+
                     string RespStatus = string.Empty;
                     string RespMessage = string.Empty;
                     if (TaskFile.Any())
@@ -7818,7 +7821,7 @@ namespace TaskManagement.API.Repositories
                         if (!string.IsNullOrEmpty(responseMessage) &&
                             responseMessage.Contains("success", StringComparison.OrdinalIgnoreCase))
                         {
-                            
+
                             var auditdata = new User_Audit
                             {
                                 User_Id = userLocation.CREATED_BY,
@@ -7960,9 +7963,9 @@ namespace TaskManagement.API.Repositories
         }
 
 
-          #region
-          // This Method by Itemad Hyder on 27-10-2025 for User Location Tracking and Audit Trail in Task Management System. It includes two main functionalities:
-          public async Task<IEnumerable<TASK_ACTION_TRL_PS_LIST>> GetActionsAsync_PSNT(GET_ACTIONSINput_PS getActionsAsync_NT)
+        #region
+        // This Method by Itemad Hyder on 27-10-2025 for User Location Tracking and Audit Trail in Task Management System. It includes two main functionalities:
+        public async Task<IEnumerable<TASK_ACTION_TRL_PS_LIST>> GetActionsAsync_PSNT(GET_ACTIONSINput_PS getActionsAsync_NT)
         {
             try
             {
@@ -7976,7 +7979,7 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@Business_Group_Id", getActionsAsync_NT.Business_Group_ID);
                     var TaskTreeDetails = await db.QueryMultipleAsync("SP_GET_TODAY_TASK_LOGS", parmeters, commandType: CommandType.StoredProcedure);
                     var data = TaskTreeDetails.Read<TASK_ACTION_TRL_PS>().ToList();
-                   // var data1 = TaskTreeDetails.Read<GetActionsListFile_NT>().ToList();
+                    // var data1 = TaskTreeDetails.Read<GetActionsListFile_NT>().ToList();
                     if (data.Count > 0)
                     {
                         var successsResult = new List<TASK_ACTION_TRL_PS_LIST>
@@ -8019,8 +8022,8 @@ namespace TaskManagement.API.Repositories
                 return errorResult;
             }
         }
-          public async Task<Task_CommonAction_TRL> Update_ActionDetails_Ps(TASK_ACTION_TRL_PS ActionInput)
-          {
+        public async Task<Task_CommonAction_TRL> Update_ActionDetails_Ps(TASK_ACTION_TRL_PS ActionInput)
+        {
             try
             {
                 using (IDbConnection db = _dapperDbConnection.CreateConnection())
@@ -8086,13 +8089,70 @@ namespace TaskManagement.API.Repositories
                     Data = null
                 };
             }
-          }
+        }
+
+        public async Task<Task_CommonAction_TRL> ReadFlag_Update_ActionDetails_Ps(ReadFlag_UpdateModel ActionInput)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@MKEY", ActionInput.Mkey);
+                    parameters.Add("@SR_NO", ActionInput.SrNo);
+                    parameters.Add("@TASK_MKEY", ActionInput.TaskMkey);
+                    parameters.Add("@LAST_UPDATED_BY", ActionInput.SessionUserId);
+                    parameters.Add("@LAST_UPDATE_DATE", DateTime.UtcNow);
+                    parameters.Add("@Session_User_Id", ActionInput.SessionUserId);
+                    parameters.Add("@Business_Group_Id", ActionInput.BusinessGroupId);
+                    //parameters.Add("@DELETE_FLAG", ActionInput.DELETE_FLAG);
+                    parameters.Add("@ReadFlag", ActionInput.ReadFlag);
+                    parameters.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+                    var result = await db.QueryFirstOrDefaultAsync<TASK_ACTION_TRL_PS>(
+                        "SP_UPDATE_Readflag_TASK_ACTIONS_PS",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+                    var responseMessage = parameters.Get<string>("@ResponseMessage");
+                    if (result != null)
+                    {
+                        return new Task_CommonAction_TRL
+                        {
+                            Status = "Ok",
+                            Message = responseMessage,
+                            Data = result
+                        };
+                    }
+                    else
+                    {
+                        return new Task_CommonAction_TRL
+                        {
+                            Status = "Error",
+                            Message = responseMessage
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return new Task_CommonAction_TRL
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
+
+
+
+
+
         #endregion
         #endregion
 
         #region
-
-        public async Task<LoginMobileEmail_NT> GetGlobalSearchList_BySearchKey_NT(string? searchtext , int? session_User_ID, int? business_Group_ID)
+        public async Task<LoginMobileEmail_NT> GetGlobalSearchList_BySearchKey_NT(string? searchtext, int? session_User_ID, int? business_Group_ID)
         {
             var empresponse = new LoginMobileEmail_NT();
             try
@@ -8103,13 +8163,12 @@ namespace TaskManagement.API.Repositories
                     parmeters.Add("@SearchText", searchtext);
                     parmeters.Add("@Session_User_Id", session_User_ID);
                     parmeters.Add("@Business_Group_Id", business_Group_ID);
-
                     var dtReponse = await db.QueryAsync<EmployeeLoginOutput_Session_NT>("SP_SearchEmployee_LoginUser", parmeters, commandType: CommandType.StoredProcedure);
                     var result = dtReponse.ToList();
                     if (dtReponse.Any())
                     {
-                        empresponse.Status= "Success";
-                        empresponse.Message= "Data fetched successfully!!!";
+                        empresponse.Status = "Success";
+                        empresponse.Message = "Data fetched successfully!!!";
                         empresponse.Data = result;
                     }
                     else
@@ -8118,7 +8177,6 @@ namespace TaskManagement.API.Repositories
                         empresponse.Message = "No data found!!!";
                         empresponse.Data = null;
                     }
-
                     return empresponse;
                 }
             }
@@ -8130,8 +8188,7 @@ namespace TaskManagement.API.Repositories
                 return empresponse;
             }
         }
-
-        public async Task<BusinessGroup_OutPutResponse> GetBusinessGroupList(string? searchtext , int? session_User_ID , int? business_Group_ID)
+        public async Task<BusinessGroup_OutPutResponse> GetBusinessGroupList(string? searchtext, int? session_User_ID, int? business_Group_ID)
         {
             var empresponse = new BusinessGroup_OutPutResponse();
             try
@@ -8146,15 +8203,15 @@ namespace TaskManagement.API.Repositories
                     //var dtReponse = await db.QueryAsync<BusinessGroupFlat>("SP_SearchEmployee_LoginUser", parmeters, commandType: CommandType.StoredProcedure);
                     var data = await db.QueryAsync<BusinessGroupFlat>("SP_SearchBusinessCompany", parmeters, commandType: CommandType.StoredProcedure);
                     var result = data.GroupBy(x => new { x.BUSINESS_GROUP_ID, x.Business_Group_Name }).Select(g => new BusinessGroup
-                                             {
-                                                 BusinessGroupId = g.Key.BUSINESS_GROUP_ID,
-                                                 BusinessGroupName = g.Key.Business_Group_Name,
-                                                 Companies = g.Select(x => new BusinessGroupName
-                                                 {
-                                                     CompanyId = x.COMPANY_ID,
-                                                     Company_Name = x.Company_Name
-                                                 }).ToList()
-                                             }).ToList();      
+                    {
+                        BusinessGroupId = g.Key.BUSINESS_GROUP_ID,
+                        BusinessGroupName = g.Key.Business_Group_Name,
+                        Companies = g.Select(x => new BusinessGroupName
+                        {
+                            CompanyId = x.COMPANY_ID,
+                            Company_Name = x.Company_Name
+                        }).ToList()
+                    }).ToList();
                     if (result.Any())
                     {
 
@@ -8168,7 +8225,6 @@ namespace TaskManagement.API.Repositories
                         empresponse.Message = "No data found!!!";
                         empresponse.Data = null;
                     }
-
                     return empresponse;
                 }
             }
@@ -8180,16 +8236,15 @@ namespace TaskManagement.API.Repositories
                 return empresponse;
             }
         }
-
         public async Task<ResponseObject<string>> InsertEmployee_MST_BYRoleManagement(Employee_MST_Details_Model model)
         {
             var response = new ResponseObject<string>();
-
             try
             {
                 using (var con = new SqlConnection(_connectionString))
                 {
                     var param = new DynamicParameters();
+                    param.Add("@Mkey", model.Mkey);
                     param.Add("@COMPANY_ID", model.CompanyId);
                     param.Add("@EMP_CODE", model.EmpCode);
                     param.Add("@EMP_FULL_NAME", model.EmpFullName);
@@ -8204,11 +8259,11 @@ namespace TaskManagement.API.Repositories
                     param.Add("@EMAIL_ID_PERSONAL", model.EmailIdPersonal);
                     param.Add("@LOGIN_NAME", model.LoginName);
                     //param.Add("@LOGIN_PASSWORD", model.LoginPassword);
-                    param.Add("@LOGIN_PASSWORD",string.IsNullOrWhiteSpace(model.LoginPassword)? null: Encoding.UTF8.GetBytes(model.LoginPassword),DbType.Binary);
+                    param.Add("@LOGIN_PASSWORD", string.IsNullOrWhiteSpace(model.LoginPassword) ? null : Encoding.UTF8.GetBytes(model.LoginPassword), DbType.Binary);
                     param.Add("@RA1_MKEY", model.Ra1Mkey);
                     param.Add("@RA2_MKEY", model.Ra2Mkey);
-                    param.Add("@EFFECTIVE_START_DATE", model.EffectiveStartDate ==DateTime.MinValue ? (DateTime?)null : model.EffectiveStartDate );
-                    param.Add("@EFFECTIVE_END_DATE", model.EffectiveEndDate == DateTime.MinValue ? (DateTime?)null :  model.EffectiveEndDate);
+                    param.Add("@EFFECTIVE_START_DATE", model.EffectiveStartDate == DateTime.MinValue ? (DateTime?)null : model.EffectiveStartDate);
+                    param.Add("@EFFECTIVE_END_DATE", model.EffectiveEndDate == DateTime.MinValue ? (DateTime?)null : model.EffectiveEndDate);
                     param.Add("@EMAIL_FREQUENCY", model.EmailFrequency);
                     param.Add("@BROWSER_NOTIFICATION", model.BrowserNotification);
                     param.Add("@WEB_TOKEN", model.WebToken);
@@ -8223,33 +8278,220 @@ namespace TaskManagement.API.Repositories
                     param.Add("@ATTRIBUTE8", model.Attribute8);
                     param.Add("@ATTRIBUTE9", model.Attribute9);
                     param.Add("@ATTRIBUTE10", model.Attribute10);
-                    param.Add("@CREATED_BY", 13);
+                    param.Add("@CREATED_BY", model.CreatedBy);
                     param.Add("@LAST_UPDATED_BY", model.LastUpdatedBy);
                     param.Add("@ISFORGOTPASSWORD", model.IsForgotPassword);
                     //param.Add("@TEMPPASSWORD", model.TempPassword);
-                    param.Add("@TEMPPASSWORD",string.IsNullOrWhiteSpace(model.TempPassword)? null: Encoding.UTF8.GetBytes(model.TempPassword),DbType.Binary);
+                    param.Add("@TEMPPASSWORD", string.IsNullOrWhiteSpace(model.TempPassword) ? null : Encoding.UTF8.GetBytes(model.TempPassword), DbType.Binary);
                     param.Add("@RESSET_FLAG", model.ResetFlag);
                     param.Add("@Date_of_birth", model.DateOfBirth == DateTime.MinValue ? (DateTime?)null : model.DateOfBirth);
                     param.Add("@ERP_EMP_MKEY", model.ErpEmpMkey);
                     param.Add("@ORACLE_ID", model.OracleId);
                     param.Add("@JOB_ROLE", model.JobRole);
+                    param.Add("@DeleteFlag", model.DeleteFlag);
                     // 🔥 Output Parameter
                     param.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
-                    await con.ExecuteAsync("SP_Insert_Employee _MST_Role", param,commandType: CommandType.StoredProcedure);
+                    param.Add("@Out_Mkey", model.Mkey, DbType.Decimal, ParameterDirection.Output);
+                    await con.ExecuteAsync("SP_Insert_Employee_MST_Role", param, commandType: CommandType.StoredProcedure);
                     var resultMessage = param.Get<string>("@ResponseMessage");
+                    var mkey = param.Get<decimal>("@Out_Mkey");
+                    //if (resultMessage.Contains(""))
+                    //{
+                    //    try
+                    //    {
+                    //        var roleDetails = await GetRoleManagementList(model.RoleId, model.CreatedBy, model.businessGroupId);
+                    //        List<int> company_id = roleDetails.Data.Where(x => !string.IsNullOrEmpty(x.Company_Id)).SelectMany(x => x.Company_Id.Split(",").Select(id => Convert.ToInt32(id.Trim()))).ToList()!;
+                    //        foreach (var item in company_id)
+                    //        {
+                    //            var empcodeDetails = new Emp_Role_Comp_Matrix_Model
+                    //            {
+                    //                Mkey = Convert.ToInt32(mkey),
+                    //                //Sr_No=
+                    //                Role_Mkey = Convert.ToInt32(model.RoleId),
+                    //                Comp_Mkey = item,
+                    //                Business_Group_id = model.businessGroupId,
+                    //                ATTRIBUTE1 = null,
+                    //                ATTRIBUTE2 = null,
+                    //                ATTRIBUTE3 = null,
+                    //                ATTRIBUTE4 = null,
+                    //                ATTRIBUTE5 = null,
+                    //                CREATED_BY = Convert.ToInt32(model.CreatedBy),
+                    //                CREATION_DATE = DateTime.UtcNow.ToString("dd/mm/yyyy"),
+                    //                LAST_UPDATED_BY = Convert.ToInt32(model.LastUpdatedBy),
+                    //                LAST_UPDATE_DATE = DateTime.UtcNow.ToString("dd/mm/yyyy"),
+                    //                DELETE_FLAG = "N"
+
+                    //            };
+                    //            var empRoleCompMatrix = await InsertUpdateRoleCompanyMap(empcodeDetails);
+                    //            if (empRoleCompMatrix.Status != "SUCCESS")
+                    //            {
+                    //                response.Status = "Error";
+                    //                response.Message = $"Failed to insert role-company mapping for Company ID: {item}. Message: {empRoleCompMatrix.Message}";
+                    //                return response;
+                    //            }
+                    //        }
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        response.Status = "Error";
+                    //        response.Message = ex.Message;
+                    //        return response;
+
+                    //    }
+                        
+
+                    //}
                     if (resultMessage.Contains("SUCCESS"))
                     {
                         response.Status = "SUCCESS";
-                        response.Message = "";
-                        response.Data = null;
+                        response.Message = resultMessage;
+                        response.Data = mkey.ToString();
                     }
                     else
                     {
                         response.Status = "Error";
-                        response.Message = "";
+                        response.Message = resultMessage;
                         response.Data = null;
                     }
-                   
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        // Role Management Service by Itemad Hyder on 28-10-2025 
+
+        public async Task<ResponseObject<string>> Insert_RoleManagement(Role_UserManagement_Model model)
+        {
+            var response = new ResponseObject<string>();
+
+            try
+            {
+                using (var con = new SqlConnection(_connectionString))
+                {
+                    await con.OpenAsync();
+
+                    using (var tran = con.BeginTransaction()) // 🔥 TRANSACTION
+                    {
+                        try
+                        {
+                            // =============================
+                            // 🔹 STEP 1: INSERT ROLE HEADER
+                            // =============================
+                            var param = new DynamicParameters();
+
+                            param.Add("@MKEY", model.Mkey);
+                            param.Add("@Role_Name", model.Role_Name);
+                            param.Add("@Role_Description", model.Role_Description);
+                            param.Add("@Company_Id", model.Company_Id);
+                            param.Add("@Remarks", model.Remarks);
+
+                            param.Add("@ATTRIBUTE1", null);
+                            param.Add("@ATTRIBUTE2", null);
+                            param.Add("@ATTRIBUTE3", null);
+                            param.Add("@ATTRIBUTE4", null);
+                            param.Add("@ATTRIBUTE5", null);
+
+                            param.Add("@CREATED_BY", model.Session_User_Id);
+                            param.Add("@LAST_UPDATED_BY", null);
+                            param.Add("@LAST_UPDATE_DATE", null);
+                            param.Add("@DELETE_FLAG", "N");
+
+                            param.Add("@Session_userId", model.Session_User_Id);
+                            param.Add("@Business_groupId", model.Business_Group_Id);
+
+                            // OUTPUT
+                            param.Add("@Out_MKEY", dbType: DbType.Decimal, direction: ParameterDirection.Output);
+                            param.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+                            await con.ExecuteAsync(
+                                "SP_Insert_UserRoleManagement",
+                                param,
+                                transaction: tran,
+                                commandType: CommandType.StoredProcedure
+                            );
+
+                            var outMkey = param.Get<decimal>("@Out_MKEY");
+                            var resultMessage = param.Get<string>("@ResponseMessage");
+
+                            if (!resultMessage.ToUpper().Contains("SUCCESS"))
+                            {
+                                tran.Rollback();
+                                response.Status = "Error";
+                                response.Message = resultMessage;
+                                return response;
+                            }
+
+                            // =============================
+                            // 🔹 STEP 2: INSERT MODULES
+                            // =============================
+                            foreach (var module in model.role_Module_Assignment_TRL)
+                            {
+                                var Rparam = new DynamicParameters();
+
+                                Rparam.Add("@MKEY", outMkey); // 🔥 USE RETURNED MKEY
+                                Rparam.Add("@Sr_No", module.Sr_No);
+                                Rparam.Add("@Module_Id", module.Module_Id);
+
+                                Rparam.Add("@Can_View", module.Can_View);
+                                Rparam.Add("@Can_Add", module.Can_Add);
+                                Rparam.Add("@Can_Modify", module.Can_Modify);
+                                Rparam.Add("@Can_Delete", module.Can_Delete);
+
+                                Rparam.Add("@ATTRIBUTE1", module.ATTRIBUTE1);
+                                Rparam.Add("@ATTRIBUTE2", module.ATTRIBUTE2);
+                                Rparam.Add("@ATTRIBUTE3", module.ATTRIBUTE3);
+                                Rparam.Add("@ATTRIBUTE4", module.ATTRIBUTE4);
+                                Rparam.Add("@ATTRIBUTE5", module.ATTRIBUTE5);
+
+                                Rparam.Add("@CREATED_BY", model.Session_User_Id);
+                                Rparam.Add("@LAST_UPDATED_BY", null);
+                                Rparam.Add("@LAST_UPDATE_DATE", null);
+                                Rparam.Add("@DELETE_FLAG", "N");
+
+                                Rparam.Add("@Session_userId", model.Session_User_Id);
+                                Rparam.Add("@Business_groupId", model.Business_Group_Id);
+
+                                Rparam.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+                                await con.ExecuteAsync(
+                                    "SP_Insert_RoleManagement_Module_Trl",
+                                    Rparam,
+                                    transaction: tran,
+                                    commandType: CommandType.StoredProcedure
+                                );
+
+                                var moduleMsg = Rparam.Get<string>("@ResponseMessage");
+
+                                if (!moduleMsg.ToUpper().Contains("SUCCESS"))
+                                {
+                                    tran.Rollback();
+                                    response.Status = "Error";
+                                    response.Message = moduleMsg;
+                                    return response;
+                                }
+                            }
+
+                            // =============================
+                            // ✅ COMMIT
+                            // =============================
+                            tran.Commit();
+
+                            response.Status = "SUCCESS";
+                            response.Message = "Role and Modules saved successfully";
+                            //response.Data = model;
+                        }
+                        catch (Exception ex)
+                        {
+                            tran.Rollback();
+                            response.Status = "Error";
+                            response.Message = ex.Message;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -8261,10 +8503,443 @@ namespace TaskManagement.API.Repositories
             return response;
         }
 
+
+        public async Task<ResponseResult> GetRoleManagementListAsync(CommonInput_UserManagement_Model commonInput)
+        {
+            var response = new ResponseResult
+            {
+                IsSuccess = false,
+                Data = new List<RoleManagementModel>()
+            };
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_userId", commonInput.Session_User_ID);
+                    parmeters.Add("@Business_groupId", commonInput.Business_Group_ID);
+                    parmeters.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+                    var result = await db.QueryAsync<RoleManagementModel>("SP_Get_UserRoleManagement_List",parmeters,commandType: CommandType.StoredProcedure);
+
+                    response.Data = result.AsList();
+                    response.Message = parmeters.Get<string>("@ResponseMessage");
+                    response.IsSuccess = response.Message == "SUCCESS";
+                    response.TotalCount = response.Data.Count;
+                    // var data1 = TaskTreeDetails.Read<GetActionsListFile_NT>().ToList();
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                
+            }
+            return response;
+        }
+
+        public async Task<Response_UserManagementResult> GetUserManagementListAsync(CommonInput_UserManagement_Model commonInput)
+        {
+            var response = new Response_UserManagementResult
+            {
+                IsSuccess = false,
+                Data = new List<UserManagment_EmployeeModel>()
+            };
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@Session_userId", commonInput.Session_User_ID);
+                    parmeters.Add("@Business_groupId", commonInput.Business_Group_ID);
+                    parmeters.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+                    var result = await db.QueryAsync<UserManagment_EmployeeModel>("SP_Get_UserManagement_List", parmeters, commandType: CommandType.StoredProcedure);
+
+                    response.Data = result.AsList();
+                    response.Message = parmeters.Get<string>("@ResponseMessage");
+                    response.IsSuccess = response.Message == "SUCCESS";
+                    response.TotalCount = response.Data.Count;
+                    // var data1 = TaskTreeDetails.Read<GetActionsListFile_NT>().ToList();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+
+            }
+            return response;
+        }
+
+        public async Task<List<DesignationModel>> GetDesignationList(int? businessGroupId, int? sessionUserId)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Business_GroupId", businessGroupId);
+                    parameters.Add("@Session_userid", sessionUserId);
+                    var result = await db.QueryAsync<DesignationModel>(
+                        "[dbo].[GetDesignation_List]",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+                    return result.ToList();
+                }   
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
+        public async Task<List<Reported_managerList>> GetReportingEmployeeList(int? businessGroupId, int? sessionUserId)
+        {
+            try
+            {
+                using(IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Business_GroupId", businessGroupId);
+                    parameters.Add("@Session_userid", sessionUserId);
+                    var result = await db.QueryAsync<Reported_managerList>(
+                        "[dbo].[GetEmployee_List]",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+                    return result.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Commonresponse> GetRoleModule_Assignment_TRL_List(int? businessGroupId , int? sessionUserId , int? mkey)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Business_GroupId", businessGroupId);
+                    parameters.Add("@Session_userid", sessionUserId);
+                    parameters.Add("@Mkey", mkey);
+                    var result = await db.QueryAsync<Role_Module_Assignment_TRL>(
+                        "[dbo].[SP_Get_UserViewRoleManagement_List]",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    response.Data = result.AsList();
+                    response.Message = "View-Permission Details Fetch Successfully";
+                    response.Status = "SUCCESS";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                response.Status = "Error";
+                //throw;
+            }
+            return response;
+        }
+
+        public async Task<Common_UserManagement_OutResponse> GetUserManagement_BYMkey(int? businessGroupId, int? sessionUserId, int? mkey)
+        {
+            var response = new Common_UserManagement_OutResponse();
+            try
+            {
+
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Business_GroupId", businessGroupId);
+                    parameters.Add("@Session_userid", sessionUserId);
+                    parameters.Add("@Mkey", mkey);
+                    var result = await db.QueryAsync<Employee_MST_OUtPutResponse>(
+                        "[dbo].[SP_Get_UserManagement_ByMKey]",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+
+                    var role_result = await GetEmployeeRoleCompanyList(mkey, sessionUserId, businessGroupId);
+                    if(role_result.Status != "SUCCESS")
+                    {
+                        response.Message =role_result.Message;
+                        response.Status = "Error";
+                        return response;
+                    }
+                        //await db.QueryAsync<EmployeeRoleCompanyModel>("[dbo].[SP_Get_EmployeeRoleCompany_List]", parameters, commandType: CommandType.StoredProcedure);
+
+                        response.employee_Mst = result.FirstOrDefault();
+                    response.employee_Mst!.RoleCompanyList = role_result.Data;
+                    response.Message = "User Management Details Fetch Successfully";
+                    response.Status = "SUCCESS";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                response.Status = "Error";
+                //throw;
+            }
+            return response;
+        }
+
+
+        public async Task<Commonresponse> GetRoleManagement_BYMkey(int? businessGroupId, int? sessionUserId, int? mkey)
+        {
+            var response = new Commonresponse();
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Business_GroupId", businessGroupId);
+                    parameters.Add("@Session_userid", sessionUserId);
+                    parameters.Add("@Mkey", mkey);
+
+                    //var roleDictionary = new Dictionary<int, RoleManagementDetailModel>();
+
+                    var result = await db.QueryAsync<RoleManagementDetailModel>(
+                        "[dbo].[SP_Get_RoleManagement_ByMKey]",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    //var finalResult = roleDictionary.Values.FirstOrDefault();
+
+                    response.Data = result.ToList();
+                    response.Message = "Role details fetched successfully";
+                    response.Status = "SUCCESS";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                response.Status = "Error";
+            }
+
+            return response;
+        }
+
+
+
+        public async Task<ResponseObject<List<RoleManagementModel>>> GetRoleManagementList(int? roleId, decimal? sessionUserId, int? businessGroupId)
+        {
+            var response = new ResponseObject<List<RoleManagementModel>>();
+
+            try
+            {
+                using (var connection = _dapperDbConnection.CreateConnection())
+                {
+                    var param = new DynamicParameters();
+                    param.Add("@Role_Id", roleId);
+                    param.Add("@Session_UserId", sessionUserId);
+                    param.Add("@BusinessGroup_Id", businessGroupId);
+
+                    var result = await connection.QueryAsync<RoleManagementModel>(
+                        "SP_Get_RoleManagement",
+                        param,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    if (result!= null &&   result.Any())
+                    {
+                        response.Status = "Success";
+                        response.Message = "Data fetched successfully";
+                        response.Data = result.ToList();
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = "Data Loading Failed";
+                        response.Data = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+                response.Data = null;
+            }
+
+            return response;
+        }
+
+        public async Task<Commonresponse> InsertUpdateRoleCompanyMap(Emp_Role_Comp_Matrix_Model model)
+        {
+            Commonresponse response = new Commonresponse();
+
+            try
+            {
+                using (var connection = _dapperDbConnection.CreateConnection())
+                {
+                    var param = new DynamicParameters();
+
+                    // 🔹 Input Parameters
+                    param.Add("@Mkey", model.Mkey, DbType.Int32);
+                    param.Add("@Role_Mkey", model.Role_Mkey, DbType.Int32);
+                    param.Add("@Comp_Mkey", model.Comp_Mkey, DbType.Int32);
+                    param.Add("@Business_Group_id", model.Business_Group_id, DbType.Int32);
+
+                    param.Add("@ATTRIBUTE1", model.ATTRIBUTE1);
+                    param.Add("@ATTRIBUTE2", model.ATTRIBUTE2);
+                    param.Add("@ATTRIBUTE3", model.ATTRIBUTE3);
+                    param.Add("@ATTRIBUTE4", model.ATTRIBUTE4);
+                    param.Add("@ATTRIBUTE5", model.ATTRIBUTE5);
+                    param.Add("@DELETE_FLAG", model.DELETE_FLAG);
+
+                    param.Add("@CREATED_BY", model.CREATED_BY, DbType.Int32);
+                    param.Add("@LAST_UPDATED_BY", model.LAST_UPDATED_BY, DbType.Int32);
+
+                    // 🔥 OUTPUT PARAM
+                    param.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+                    // 🔹 Execute SP
+                    await connection.ExecuteAsync(
+                        "SP_InsertUpdate_Role_Company_Map",
+                        param,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    // 🔹 Get Output
+                    
+                    var msgresponse = param.Get<string>("@ResponseMessage");
+                    if(msgresponse.Contains("NEW RECORD INSERTED SUCCESSFULLY (Checked)") || msgresponse.Contains("RECORD UPDATED SUCCESSFULLY (Checked)"))
+                    {
+                        response.Status = "Success";
+                        response.Message = msgresponse;
+                        response.Data = null;
+                    }else if(msgresponse.Contains("RECORD SOFT DELETED SUCCESSFULLY (Unchecked") || msgresponse.Contains("SOFT-DELETED RECORD REACTIVATED SUCCESSFULLY"))
+                    {
+                        response.Status = "Success";
+                        response.Message = msgresponse;
+                        response.Data = null;
+                    }
+                    else if(msgresponse.Contains("RECORD NOT FOUND - NO ACTION TAKEN") || msgresponse.Contains("RECORD ALREADY SOFT DELETED"))
+                    {
+                        response.Status = "Success";
+                        response.Message = msgresponse;
+                        response.Data = null;
+                    } else
+                    {
+                        response.Status = "Error";
+                        response.Message = "Data Insert Failed";
+                        response.Data = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+            }
+
+            return response;
+        }
+
+
+        public async Task<ResponseObject<List<CompanyModel>>> GetCompanyList(decimal? sessionUserId,decimal? businessGroupId)
+        {
+            var response = new ResponseObject<List<CompanyModel>>();
+
+            try
+            {
+                using (var connection = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+
+                    parameters.Add("@Session_userId", sessionUserId, DbType.Decimal);
+                    parameters.Add("@Business_groupId", businessGroupId, DbType.Decimal);
+                    parameters.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+                    var result = (await connection.QueryAsync<CompanyModel>(
+                        "SP_Get_Company_List",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    )).ToList();
+
+                    var message = parameters.Get<string>("@ResponseMessage");
+
+                    response.Status = message == "SUCCESS" ? "Success" : "Error";
+                    response.Message = message;
+                    response.Data = result;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+                response.Data = null;
+            }
+
+            return response;
+        }
+
+
+        public async Task<ResponseObject<List<EmployeeRoleCompanyModel>>> GetEmployeeRoleCompanyList(int? mkey,  int? sessionUserId,int? businessGroupId)
+        {
+            var response = new ResponseObject<List<EmployeeRoleCompanyModel>>();
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+
+                    parameters.Add("@Mkey", mkey);
+                    parameters.Add("@Session_userId", sessionUserId);
+                    parameters.Add("@BusinessGroupId", businessGroupId);
+
+                    // ✅ IMPORTANT: OUTPUT PARAM
+                    parameters.Add("@ResponseMessage",
+                        dbType: DbType.String,
+                        size: 500,
+                        direction: ParameterDirection.Output);
+
+                    var result = (await db.QueryAsync<EmployeeRoleCompanyModel>("SP_Get_EmployeeRoleCompany_List",parameters,commandType: CommandType.StoredProcedure)).ToList();
+
+                    // ✅ GET OUTPUT VALUE
+                    var message = parameters.Get<string>("@ResponseMessage");
+
+                    if (message == "SUCCESS")
+                    {
+                        response.Status = "SUCCESS";
+                        response.Message = message;
+                        response.Data = result;
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = message;
+                        response.Data = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+                response.Data = null;
+            }
+
+            return response;
+        }
+
         #endregion
-
-
-
     }
 }
 
