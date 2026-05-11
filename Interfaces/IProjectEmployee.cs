@@ -146,6 +146,7 @@ namespace TaskManagement.API.Interfaces
 
         // Created At 08-05-2026
         Task<IEnumerable<V_Building_Classification_New_NT>> GetBuildingDetail_ByProjectMkeyNTAsync(GetSubProjectInput_NT getSubProjectInput_NT);
+        Task<Commonresponse> GetModuleMasterList(int? sessionuserId, int? businessgroupId);
         // End By Itemad Hyder 27-10-2025
     }
 }

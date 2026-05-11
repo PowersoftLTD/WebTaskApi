@@ -9226,7 +9226,67 @@ namespace TaskManagement.API.Repositories
             return response;
         }
 
+        public async Task<Commonresponse> GetModuleMasterList(int? sessionuserId ,int? businessgroupId)
+        {
 
+
+            var response = new Commonresponse();
+            try
+            {
+                //if (projectid == null || projectid <= 0)
+                //{
+                //    response.Status = "Error";
+                //    response.Message = "ProjectId Should Not be Null our Zero";
+                //    response.Data = null;
+                //}
+                using (var connection = _dapperDbConnection.CreateConnection())
+                {
+                    connection.Open();
+                    string query = @"SELECT 
+                                Mkey,
+                                Module_Name,
+                                Description,
+                                Parent_Id,
+                                ATTRIBUTE1,
+                                ATTRIBUTE2,
+                                ATTRIBUTE3,
+                                ATTRIBUTE4,
+                                ATTRIBUTE5,
+                                CREATED_BY,
+                                CREATION_DATE,
+                                LAST_UPDATED_BY,
+                                LAST_UPDATE_DATE,
+                                DELETE_FLAG
+                             FROM Module_Hdr
+                             WHERE DELETE_FLAG = 'N' Order by Mkey ASC";
+                    var result = await connection.QueryAsync<ModuleMaster>(query);
+                    if (result != null)
+                    {
+                        response.Status = "Success";
+                        response.Message = "Record Found";
+                        response.Data = result;
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = "No Record Found";
+                        response.Data = null;
+                    }
+                }
+                return response;
+
+            }
+            catch (Exception ex)
+            {
+                var errorresponse = new Commonresponse
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return errorresponse;
+            }
+        }
 
 
         #endregion

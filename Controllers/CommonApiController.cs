@@ -4088,6 +4088,47 @@ namespace TaskManagement.API.Controllers
                 return Ok(response);
             }
         }
+
+        [HttpPost("Task-ModuleHDR-List")]
+        [Authorize]
+        public async Task<IActionResult> GetModuleHDrList([FromBody] CommonInput_UserManagement_Model rolemodel)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                var result = await _repository.GetModuleMasterList(rolemodel.Business_Group_ID, rolemodel.Session_User_ID);
+                if (result.Status.Contains("Success"))
+                {
+                    //return Ok(new
+                    //{
+                    //    success = true,
+                    //    message = result.Message,
+                    //    data = result.Data,
+                    //    count = result.TotalCount
+                    //});
+                    response.Status = "Success";
+                    response.Message = "All ModuleHDR List Fetch Successfully";
+                    response.Data = result.Data;
+                }
+                else
+                {
+                    response.Status = result.Status;
+                    response.Message = "Module HDR Failed to Load ";
+                    response.Data = result;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+
+        }
+
+
     }
 }
 
