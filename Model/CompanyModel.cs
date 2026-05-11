@@ -208,6 +208,8 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("roleCompanyList")]
         public List<EmployeeRoleCompanyModel>? RoleCompanyList { get; set; }
 
+        public List<EMP_Project_Building_Matrix_Model>? ProjectBuildingMatrix { get; set; }
+
     }
     public class EmployeeRoleCompanyModel
     {
@@ -225,5 +227,34 @@ namespace TaskManagement.API.Model
         public int? Company_Id { get; set; }
         [JsonPropertyName("companyName")]
         public string? Company_Name { get; set; }
+    }
+
+    public class EmailVerified_InputResponse
+    {
+        [JsonPropertyName("Session_User_ID")]
+        public int? Session_User_ID { get; set; }
+        [JsonPropertyName("Business_Group_ID")]
+        public int? Business_Group_ID { get; set; }
+
+        [JsonPropertyName("emailId")]
+        public string? UserEmailID { get; set; }
+        //public bool IsEmailVerified { get; set; }
+    }
+
+    public class ProjectClass_PS_Input_NT
+    {
+        [JsonPropertyName("Type_Code")]
+        public string Type_Code { get; set; }
+        [JsonPropertyName("Master_Mkey")]
+        public string Master_mkey { get; set; }
+
+        [JsonPropertyName("Session_User_Id")]
+        public int Session_User_Id { get; set; }
+        [JsonPropertyName("Business_Group_Id")]
+        public int Business_Group_Id { get; set; }
+
+        [JsonPropertyName("companyId")]
+        public int COMPANY_ID { get; set; }
+
     }
 }

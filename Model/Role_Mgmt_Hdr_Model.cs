@@ -264,5 +264,25 @@ namespace TaskManagement.API.Model
     }
 
 
+    public class EMP_Project_Building_Matrix_Model
+    {
+        public int Mkey { get; set; }
+        public int? Sr_No { get; set; }
+        public int? Project_Mkey { get; set; }
+        public int? Building_Mkey { get; set; }
+        public int? Comp_Mkey { get; set; }
+        public int? Business_Group_id { get; set; }
+        public string? ATTRIBUTE1 { get; set; }
+        public string? ATTRIBUTE2 { get; set; }
+        public string? ATTRIBUTE3 { get; set; }
+        public string? ATTRIBUTE4 { get; set; }
+        public string? ATTRIBUTE5 { get; set; }
+        public int? CREATED_BY { get; set; }
+        public string? CREATION_DATE { get; set; }
+        public int? LAST_UPDATED_BY { get; set; }
+        public string? LAST_UPDATE_DATE { get; set; }
+        public string? DELETE_FLAG { get; set; }
+    }
+
 
 }

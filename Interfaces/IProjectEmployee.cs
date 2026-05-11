@@ -138,6 +138,14 @@ namespace TaskManagement.API.Interfaces
         Task<ResponseObject<List<RoleManagementModel>>> GetRoleManagementList(int? roleId, decimal? sessionUserId, int? businessGroupId);
         Task<Commonresponse> InsertUpdateRoleCompanyMap(Emp_Role_Comp_Matrix_Model model);
         Task<ResponseObject<List<CompanyModel>>> GetCompanyList(decimal? sessionUserId, decimal? businessGroupId);
+        Task<Commonresponse> GetEmailValidate_ExistOrNOt(EmailVerified_InputResponse inputResponse);
+
+        Task<IEnumerable<V_Building_Classification_NT>> GetProjectNTAsyncBYCompanyId(ProjectClass_PS_Input_NT projectClass_PS);
+        Task<Commonresponse> InsertUpdateProject_BuildingMatrixMap(EMP_Project_Building_Matrix_Model model);
+        Task<Commonresponse> GetCompanyid_ByProjectid(int? projectid);
+
+        // Created At 08-05-2026
+        Task<IEnumerable<V_Building_Classification_New_NT>> GetBuildingDetail_ByProjectMkeyNTAsync(GetSubProjectInput_NT getSubProjectInput_NT);
         // End By Itemad Hyder 27-10-2025
     }
 }

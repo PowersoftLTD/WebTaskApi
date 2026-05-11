@@ -3428,6 +3428,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Create-Update_UserManagement")]
+        [Authorize]
         public async Task<IActionResult> CreateUser_ManagementRole([FromBody] UserManagement_Model userManagement)
         {
             var response = new Commonresponse();
@@ -3454,9 +3455,9 @@ namespace TaskManagement.API.Controllers
                         EmpCode = string.IsNullOrEmpty(userManagement.personalInformation.EmployeeId!) ? null : userManagement.personalInformation.EmployeeId,
                         LoginName = userManagement.personalInformation.UserName!,
                         Ra1Mkey = userManagement.roleManagement.Select(x => x.ReportingManager).FirstOrDefault().Value,
-                        //RoleId = userManagement.roleManagement.FirstOrDefault()!.Role.ToString()!,
-                        //DepartmentId = userManagement.roleManagement.FirstOrDefault()!.DepartmentId,
-                        // DesignationId = Convert.ToDecimal(userManagement.roleManagement.FirstOrDefault()!.DesignationId.ToString()),
+                        //RoleId = userManagement.personalInformation.ROLE_ID!,
+                        DepartmentId = userManagement.personalInformation.DepartmentId,
+                        DesignationId = userManagement.personalInformation.DESIGNATION_ID,
                         //Ra1Mkey = Convert.ToDecimal(userManagement.roleManagement.FirstOrDefault()!.ReportingManager),
                         CompanyId = userManagement.businessGroup.SelectMany(x => x.BusinessGroup_Name.Split(",")).Select(id => Convert.ToDecimal(id.Trim())).FirstOrDefault(),
                         FirstName = userManagement.personalInformation.First_Name!,
@@ -3465,24 +3466,89 @@ namespace TaskManagement.API.Controllers
                         CreatedBy = Convert.ToDecimal(userManagement.session_User_ID),
                         CreationDate = DateTime.UtcNow,
                         businessGroupId = userManagement.BusinessGroupId,
-                        DeleteFlag= Convert.ToChar(status)
+                        DeleteFlag= Convert.ToChar(status) ,
+                        //Primary_RoleId= userManagement.personalInformation.ROLE_ID!
                     };
-                    var resultResponse = await _repository.InsertEmployee_MST_BYRoleManagement(employee_mst);
-                    int empMkey = Convert.ToInt32(resultResponse.Data);
-                    foreach (var roleid in userManagement.roleManagement)
+
+                    try
                     {
-                        try
+                        var resultResponse = await _repository.InsertEmployee_MST_BYRoleManagement(employee_mst);
+                        int empMkey = Convert.ToInt32(resultResponse.Data);
+                        if (empMkey > 0)
                         {
-                            var roleDetails = await _repository.GetRoleManagementList(roleid.Role, Convert.ToDecimal(userManagement.session_User_ID), userManagement.BusinessGroupId);
-                            List<int> company_id = roleDetails.Data.Where(x => !string.IsNullOrEmpty(x.Company_Id)).SelectMany(x => x.Company_Id.Split(",").Select(id => Convert.ToInt32(id.Trim()))).ToList()!;
-                            foreach (var item in company_id)
+                            foreach (var roleid in userManagement.roleManagement)
                             {
-                                var empcodeDetails = new Emp_Role_Comp_Matrix_Model
+                                try
+                                {
+                                    var roleDetails = await _repository.GetRoleManagementList(roleid.Role, Convert.ToDecimal(userManagement.session_User_ID), userManagement.BusinessGroupId);
+                                    List<int> company_id = roleDetails.Data.Where(x => !string.IsNullOrEmpty(x.Company_Id)).SelectMany(x => x.Company_Id.Split(",").Select(id => Convert.ToInt32(id.Trim()))).ToList()!;
+                                    foreach (var item in company_id)
+                                    {
+                                        var empcodeDetails = new Emp_Role_Comp_Matrix_Model
+                                        {
+                                            Mkey = Convert.ToInt32(empMkey),
+                                            //Sr_No=
+                                            Role_Mkey = Convert.ToInt32(roleid.Role),
+                                            Comp_Mkey = item,
+                                            Business_Group_id = userManagement.BusinessGroupId,
+                                            ATTRIBUTE1 = null,
+                                            ATTRIBUTE2 = null,
+                                            ATTRIBUTE3 = null,
+                                            ATTRIBUTE4 = null,
+                                            ATTRIBUTE5 = null,
+                                            CREATED_BY = Convert.ToInt32(userManagement.session_User_ID),
+                                            CREATION_DATE = DateTime.UtcNow.ToString("dd/mm/yyyy"),
+                                            LAST_UPDATED_BY = Convert.ToInt32(userManagement.session_User_ID),
+                                            LAST_UPDATE_DATE = DateTime.UtcNow.ToString("dd/mm/yyyy"),
+                                            DELETE_FLAG = roleid.Delete_flag
+
+                                        };
+
+                                       
+
+                                        var empRoleCompMatrix = await _repository.InsertUpdateRoleCompanyMap(empcodeDetails);
+                                        if (empRoleCompMatrix.Status != "Success")
+                                        {
+                                            response.Status = "Error";
+                                            response.Message = $"Failed to insert role-company mapping for Company ID: {item}. Message: {empRoleCompMatrix.Message}";
+                                            return Ok(response);
+                                        }
+                                        
+                                    }
+
+                                }
+                                catch (Exception ex)
+                                {
+                                    response.Status = "Error";
+                                    response.Message = $" Insert Failed in Emp_Role_Comp_Matrix Table Due to {ex.Message}";
+                                    response.Data = null;
+
+                                    return Ok(response);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            response.Status = "Error";
+                            response.Message = $"Failed to insert employee details. Message: {resultResponse.Message}";
+                            response.Data = null;
+                            return Ok(response);
+                        }
+
+                        foreach(var proid in userManagement.projectItem)
+                        {
+                            var companyid = await _repository.GetCompanyid_ByProjectid(proid.ProjectId);
+                            string deleteflag = proid.Delete_Flag == "Y" ? "Y" : "N";
+                            foreach (var buildid in proid.Buildings)
+                            {
+                                string builddeleteflag = buildid.Delete_Flag == "Y" ? "Y" : "N";
+                                var empprojectDetails = new EMP_Project_Building_Matrix_Model
                                 {
                                     Mkey = Convert.ToInt32(empMkey),
                                     //Sr_No=
-                                    Role_Mkey = Convert.ToInt32(roleid.Role),
-                                    Comp_Mkey = item,
+                                    Comp_Mkey = Convert.ToInt32(companyid.Data),
+                                    Project_Mkey = Convert.ToInt32(proid.ProjectId),
+                                    Building_Mkey = Convert.ToInt32(buildid.BuildingId),
                                     Business_Group_id = userManagement.BusinessGroupId,
                                     ATTRIBUTE1 = null,
                                     ATTRIBUTE2 = null,
@@ -3493,32 +3559,100 @@ namespace TaskManagement.API.Controllers
                                     CREATION_DATE = DateTime.UtcNow.ToString("dd/mm/yyyy"),
                                     LAST_UPDATED_BY = Convert.ToInt32(userManagement.session_User_ID),
                                     LAST_UPDATE_DATE = DateTime.UtcNow.ToString("dd/mm/yyyy"),
-                                    DELETE_FLAG = roleid.Delete_flag
-
+                                    //DELETE_FLAG = userManagement.
                                 };
-                                var empRoleCompMatrix = await _repository.InsertUpdateRoleCompanyMap(empcodeDetails);
-                                if (empRoleCompMatrix.Status != "Success")
+                                if (deleteflag.Contains("Y"))
+                                {
+                                    empprojectDetails.DELETE_FLAG= deleteflag;
+                                }
+                                else if(builddeleteflag.Contains("Y"))
+                                {
+                                    empprojectDetails.DELETE_FLAG= builddeleteflag;
+                                }
+                                else
+                                {
+                                    empprojectDetails.DELETE_FLAG= "N";
+                                }
+                                    //empprojectDetails.Building_Mkey = buildid.BuildingId;
+
+                                    var empProjectBuildingMatrix = await _repository.InsertUpdateProject_BuildingMatrixMap(empprojectDetails);
+                                if (empProjectBuildingMatrix.Status.Contains("Error"))
                                 {
                                     response.Status = "Error";
-                                    response.Message = $"Failed to insert role-company mapping for Company ID: {item}. Message: {empRoleCompMatrix.Message}";
+                                    response.Message = $"Failed to insert project-building mapping for Company ID: {Convert.ToInt32(companyid)}. Message: {empProjectBuildingMatrix.Message}";
                                     return Ok(response);
                                 }
                             }
-
                         }
-                        catch (Exception ex)
+
+                        
+
+                        if (resultResponse.Status!.Contains("SUCCESS"))
                         {
-                            response.Status = "Error";
-                            response.Message = $" Insert Failed in Emp_Role_Comp_Matrix Table Due to {ex.Message}";
-                            response.Data = null;
+                            var ForgotPass = await _repository.GetForgotPasswordAsync(userManagement.personalInformation.EMAIL_ID_OFFICIAL!);
+                            if (ForgotPass == null)
+                            {
+                                var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                                {
+                                    Status = "Error",
+                                    Message = "Error Occurd",
+                                    Data = null
+                                };
+                                return Ok(responseTaskAction);
+                            }
+                            if (userManagement.personalInformation.EMAIL_ID_OFFICIAL == null)
+                            {
+                                var responseTaskAction = new ForgotPasswordOutPut_List
+                                {
+                                    Status = "Error",
+                                    Message = "Error Occurd LoginName",
+                                    Data = null
+                                };
+                                return Ok(responseTaskAction);
+                            }
+                            foreach (var Response in ForgotPass)
+                            {
+                                if (Response.Status != "Ok")
+                                {
+                                    var responses = new ResetPasswordOutPut_List
+                                    {
+                                        Status = "Error",
+                                        Message = Response.Message,
+                                        Data = null
+                                    };
+                                    return Ok(response);
+                                }
+                            }
+                            string TempararyPass = string.Empty;
+                            foreach (var TempPaass in ForgotPass)
+                            {
+                                TempararyPass = TempPaass.Data.Select(x => x.MessageText.ToString()).First().ToString();
+                            }
 
-                            return Ok(response);
+                            var ResetPass = await _repository.GetResetPasswordAsync(TempararyPass, userManagement.personalInformation.EMAIL_ID_OFFICIAL);
+
+                            //if (ResetPass == null)
+                            //{
+                            //    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
+                            //    {
+                            //        Status = "Error",
+                            //        Message = "Error Occurd",
+                            //        Data = null
+                            //    };
+                            //    return Ok(responseTaskAction);
+                            //}
+
+                            return Ok(ResetPass);
                         }
-
-
 
                     }
-
+                    catch(Exception ex) 
+                    {
+                        response.Status = "Error";
+                        response.Message = $" Insert Failed in Employee_MST Table Due to {ex.Message}";
+                        response.Data = null;
+                        return Ok(response);
+                    }
                     //foreach (var item in userManagement.businessGroup)
                     //{
                     //    employee_mst.CompanyId = Convert.ToDecimal(item.BusinessGroup_Name);
@@ -3527,63 +3661,7 @@ namespace TaskManagement.API.Controllers
                     //}
 
                     //statusReponse!.Contains("SUCCESS")
-                    if (resultResponse.Status!.Contains("SUCCESS"))
-                    {
-                        var ForgotPass = await _repository.GetForgotPasswordAsync(userManagement.personalInformation.EMAIL_ID_OFFICIAL!);
-                        if (ForgotPass == null)
-                        {
-                            var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
-                            {
-                                Status = "Error",
-                                Message = "Error Occurd",
-                                Data = null
-                            };
-                            return Ok(responseTaskAction);
-                        }
-                        if (userManagement.personalInformation.EMAIL_ID_OFFICIAL == null)
-                        {
-                            var responseTaskAction = new ForgotPasswordOutPut_List
-                            {
-                                Status = "Error",
-                                Message = "Error Occurd LoginName",
-                                Data = null
-                            };
-                            return Ok(responseTaskAction);
-                        }
-                        foreach (var Response in ForgotPass)
-                        {
-                            if (Response.Status != "Ok")
-                            {
-                                var responses = new ResetPasswordOutPut_List
-                                {
-                                    Status = "Error",
-                                    Message = Response.Message,
-                                    Data = null
-                                };
-                                return Ok(response);
-                            }
-                        }
-                        string TempararyPass = string.Empty;
-                        foreach (var TempPaass in ForgotPass)
-                        {
-                            TempararyPass = TempPaass.Data.Select(x => x.MessageText.ToString()).First().ToString();
-                        }
-
-                        var ResetPass = await _repository.GetResetPasswordAsync(TempararyPass, userManagement.personalInformation.EMAIL_ID_OFFICIAL);
-
-                        //if (ResetPass == null)
-                        //{
-                        //    var responseTaskAction = new ApiResponse<EmployeeCompanyMST>
-                        //    {
-                        //        Status = "Error",
-                        //        Message = "Error Occurd",
-                        //        Data = null
-                        //    };
-                        //    return Ok(responseTaskAction);
-                        //}
-
-                        return Ok(ResetPass);
-                    }
+                   
 
                 }
 
@@ -3602,6 +3680,7 @@ namespace TaskManagement.API.Controllers
 
 
         [HttpPost("Create-Update_RoleManagement")]
+        [Authorize]
         public async Task<IActionResult> CreateRoleManagement(Role_UserManagement_Model roleManagement)
         {
             var response = new Commonresponse();
@@ -3660,6 +3739,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Get-UserManagement-List")]
+        [Authorize]
         public async Task<IActionResult> GetuserManagement([FromBody] CommonInput_UserManagement_Model rolemodel)
         {
             var response = new Commonresponse();
@@ -3677,7 +3757,7 @@ namespace TaskManagement.API.Controllers
                     //    count = result.TotalCount
                     //});
                     response.Status = "Success";
-                    response.Message = "All Role Fetch Successfully";
+                    response.Message = "All User Management Details Fetch Successfully";
                     response.Data = result.Data;
 
                 }
@@ -3693,6 +3773,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Get-AllRolesManagement-List")]
+        [Authorize]
         public async Task<IActionResult> GetAllRoles([FromBody] CommonInput_UserManagement_Model rolemodel)
         {
             var response = new Commonresponse();
@@ -3725,7 +3806,9 @@ namespace TaskManagement.API.Controllers
             return Ok(response);
         }
 
+
         [HttpPost("Designation-List")]
+        [Authorize]
 
         public async Task<IActionResult> GetDesignationList([FromBody] CommonInput_UserManagement_Model rolemodel)
         {
@@ -3758,6 +3841,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Reporting_ManagerList")]
+        [Authorize]
         public async Task<IActionResult> GetReporting_ManagerList([FromBody] CommonInput_UserManagement_Model rolemodel)
         {
             var response = new Commonresponse();
@@ -3774,7 +3858,7 @@ namespace TaskManagement.API.Controllers
                     //    count = result.TotalCount
                     //});
                     response.Status = "Success";
-                    response.Message = "All Designation Fetch Successfully";
+                    response.Message = "All Reporting ManagerList Fetch Successfully";
                     response.Data = result;
                 }
             }
@@ -3789,6 +3873,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("View-Permission_ByMkey")]
+        [Authorize]
         public async Task<IActionResult> GetView_PermissionMkey([FromBody] CommonInput_ViewUserManagement_Model rolemodel)
         {
             var response = new Commonresponse();
@@ -3813,6 +3898,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("User_Management_ByMkey")]
+        [Authorize]
         public async Task<IActionResult> GetUser_Management_ByMkey([FromBody] CommonInput_ViewUserManagement_Model rolemodel)
         {
             var response = new Commonresponse();
@@ -3822,7 +3908,7 @@ namespace TaskManagement.API.Controllers
                 if (result.Status!.Contains("SUCCESS"))
                 {
                     response.Status = "Success";
-                    response.Message = "View-Permission Fetch Successfully";
+                    response.Message = "User-ManagementBy Mkey Fetch Successfully";
                     response.Data = result;
                 }
             }
@@ -3837,6 +3923,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost("Role_Management_ByMkey")]
+        [Authorize]
         public async Task<IActionResult> GetRole_Management_ByMkey([FromBody] CommonInput_ViewUserManagement_Model rolemodel)
         {
             var response = new Commonresponse();
@@ -3846,7 +3933,7 @@ namespace TaskManagement.API.Controllers
                 if (result.Status!.Contains("SUCCESS"))
                 {
                     response.Status = "Success";
-                    response.Message = "View-Permission Fetch Successfully";
+                    response.Message = "Role-ManagementByMkey Fetch Successfully";
                     response.Data = result.Data;
                 }
             }
@@ -3866,6 +3953,7 @@ namespace TaskManagement.API.Controllers
         //}
 
         [HttpPost("Task-Company-List")]
+        [Authorize]
         public async Task<IActionResult> GetCompanyList([FromBody] CommonInput_UserManagement_Model rolemodel)
         {
             var response = new Commonresponse();
@@ -3895,6 +3983,110 @@ namespace TaskManagement.API.Controllers
             }
             return Ok(response);
 
+        }
+
+        [HttpPost("Validate_Email")]
+        [Authorize]
+        public async Task<IActionResult> GetValidateEmail_ExistorNOT([FromBody] EmailVerified_InputResponse inputResponse)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                if(inputResponse.UserEmailID == null || string.IsNullOrEmpty(inputResponse.UserEmailID))
+                {
+                    response.Status = "Error";
+                    response.Message = "Please Enter the Email ID";
+                    response.Data = null;
+                    return Ok(response);
+                }
+                var result = await _repository.GetEmailValidate_ExistOrNOt(inputResponse);
+                if (result.Status.Contains("Success"))
+                {
+                    response.Status = "Success";
+                    response.Message = result.Message;
+                    //response.Data = result;
+                }
+                else
+                {
+                    response.Status = result.Status;
+                    response.Message = result.Message;
+                    response.Data = result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = $"Error Due to {ex.Message}";
+                response.Data = null;
+                //return Ok(response);
+            }
+            return Ok(response);
+
+        }
+
+
+        [HttpPost("Task-Management/ProjectDetails-ByCompany")]
+        [Authorize]
+        public async Task<ActionResult<V_Building_Classification_NT>> Get_ProjectDetails_ByCompanyID_PS([FromBody] ProjectClass_PS_Input_NT projectClass_PS)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(projectClass_PS.Type_Code) || string.IsNullOrEmpty(projectClass_PS.Master_mkey) || projectClass_PS.COMPANY_ID <= 0)
+                {
+                    var response = new V_Building_Classification_NT
+                    {
+                        Status = "Error",
+                        Message = "Please Check Type_Code & Master_Mkey ,CompanyID is InValide"
+                    };
+                }
+                // Get the project classifications (a collection)
+                var classifications = await _repository.GetProjectNTAsyncBYCompanyId(projectClass_PS);
+
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new V_Building_Classification_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
+        }
+
+
+        [HttpPost("Task-Management/Get-BuildingDetailsList_ByProjectMkey_NT")]
+        [Authorize]
+        public async Task<ActionResult<V_Building_Classification_New_NT>> GetBuildingDetailsList_ByProjectMkey_NT([FromBody] GetSubProjectInput_NT getSubProjectInput_NT)
+        {
+            try
+            {
+                var classifications = await _repository.GetBuildingDetail_ByProjectMkeyNTAsync(getSubProjectInput_NT);
+                if (classifications == null)
+                {
+                    var ErrorResponse = new ApiResponse<V_Building_Classification_New_NT>
+                    {
+                        Status = "Error",
+                        Message = "Error Occurd",
+                        Data = null
+                    };
+                    return Ok(ErrorResponse);
+                }
+
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                var response = new V_Building_Classification_New_NT
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return Ok(response);
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using System.Web.Http.Validation;
 using TaskManagement.API.Interfaces;
 using TaskManagement.API.Model;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -8144,10 +8145,6 @@ namespace TaskManagement.API.Repositories
             }
         }
 
-
-
-
-
         #endregion
         #endregion
 
@@ -8289,6 +8286,7 @@ namespace TaskManagement.API.Repositories
                     param.Add("@ORACLE_ID", model.OracleId);
                     param.Add("@JOB_ROLE", model.JobRole);
                     param.Add("@DeleteFlag", model.DeleteFlag);
+                   // param.Add("@Primary_RoleId", model.Primary_RoleId);
                     // 🔥 Output Parameter
                     param.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
                     param.Add("@Out_Mkey", model.Mkey, DbType.Decimal, ParameterDirection.Output);
@@ -8371,6 +8369,7 @@ namespace TaskManagement.API.Repositories
 
             try
             {
+                string status = model.Status.Contains("Active") ? "N" : "Y";
                 using (var con = new SqlConnection(_connectionString))
                 {
                     await con.OpenAsync();
@@ -8399,7 +8398,7 @@ namespace TaskManagement.API.Repositories
                             param.Add("@CREATED_BY", model.Session_User_Id);
                             param.Add("@LAST_UPDATED_BY", null);
                             param.Add("@LAST_UPDATE_DATE", null);
-                            param.Add("@DELETE_FLAG", "N");
+                            param.Add("@DELETE_FLAG", status);
 
                             param.Add("@Session_userId", model.Session_User_Id);
                             param.Add("@Business_groupId", model.Business_Group_Id);
@@ -8679,10 +8678,15 @@ namespace TaskManagement.API.Repositories
                         response.Status = "Error";
                         return response;
                     }
+
+                    var projectDetails = await GetProjectBuildingDetails_BYMkey(mkey, sessionUserId, businessGroupId);
+
+
                         //await db.QueryAsync<EmployeeRoleCompanyModel>("[dbo].[SP_Get_EmployeeRoleCompany_List]", parameters, commandType: CommandType.StoredProcedure);
 
                         response.employee_Mst = result.FirstOrDefault();
                     response.employee_Mst!.RoleCompanyList = role_result.Data;
+                    response.employee_Mst.ProjectBuildingMatrix = projectDetails.Data;
                     response.Message = "User Management Details Fetch Successfully";
                     response.Status = "SUCCESS";
                 }
@@ -8938,6 +8942,292 @@ namespace TaskManagement.API.Repositories
 
             return response;
         }
+
+
+        public async Task<Commonresponse> GetEmailValidate_ExistOrNOt(EmailVerified_InputResponse inputResponse)
+        {
+            var response = new Commonresponse();
+            try
+            {
+                using (var connection = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Session_userId", inputResponse.Session_User_ID, DbType.Decimal);
+                    parameters.Add("@Business_groupId", inputResponse.Business_Group_ID , DbType.Decimal);
+                    parameters.Add("@UserEmailID", inputResponse.UserEmailID , DbType.String);
+                    parameters.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+                    await connection.ExecuteAsync("SP_CheckEmailAvailability", parameters, commandType: CommandType.StoredProcedure);
+
+                    var message = parameters.Get<string>("@ResponseMessage");
+                    response.Status = message == "Email Available For Registration" ? "Success" : "Error";
+                    response.Message = message;
+                    response.Data = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+                response.Data = null;
+            }
+            return response;
+        }
+
+        public async Task<IEnumerable<V_Building_Classification_NT>> GetProjectNTAsyncBYCompanyId(ProjectClass_PS_Input_NT projectClass_PS)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@TYPE_CODE", projectClass_PS.Type_Code);
+                    parameters.Add("@MASTER_MKEY", projectClass_PS.Master_mkey);
+                    parameters.Add("@Session_User_Id", projectClass_PS.Session_User_Id);
+                    parameters.Add("@Business_Group_Id", projectClass_PS.Business_Group_Id);
+                    parameters.Add("@CompanyId", projectClass_PS.COMPANY_ID);
+                    var result = await db.QueryAsync<V_Building_Classification_TMS_NT>("SP_GET_PROJECT_NT_BYCompanyId", parameters, commandType: CommandType.StoredProcedure);
+
+                    var successsResult = new List<V_Building_Classification_NT>
+                    {
+                        new V_Building_Classification_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data= result
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<V_Building_Classification_NT>
+                    {
+                        new V_Building_Classification_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<Commonresponse> InsertUpdateProject_BuildingMatrixMap(EMP_Project_Building_Matrix_Model model)
+        {
+            Commonresponse response = new Commonresponse();
+
+            try
+            {
+                using (var connection = _dapperDbConnection.CreateConnection())
+                {
+                    var param = new DynamicParameters();
+
+                    // 🔹 Input Parameters
+                    param.Add("@Mkey", model.Mkey, DbType.Int32);
+                    param.Add("@Project_Mkey", model.Project_Mkey, DbType.Int32);
+                    param.Add("@Building_Mkey", model.Building_Mkey, DbType.Int32);
+                    param.Add("@Comp_Mkey", model.Comp_Mkey, DbType.Int32);
+                    param.Add("@Business_Group_id", model.Business_Group_id, DbType.Int32);
+
+                    param.Add("@ATTRIBUTE1", model.ATTRIBUTE1);
+                    param.Add("@ATTRIBUTE2", model.ATTRIBUTE2);
+                    param.Add("@ATTRIBUTE3", model.ATTRIBUTE3);
+                    param.Add("@ATTRIBUTE4", model.ATTRIBUTE4);
+                    param.Add("@ATTRIBUTE5", model.ATTRIBUTE5);
+                    param.Add("@DELETE_FLAG", model.DELETE_FLAG);
+
+                    param.Add("@CREATED_BY", model.CREATED_BY, DbType.Int32);
+                    param.Add("@LAST_UPDATED_BY", model.LAST_UPDATED_BY, DbType.Int32);
+
+                    // 🔥 OUTPUT PARAM
+                    param.Add("@ResponseMessage", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+                    // 🔹 Execute SP
+                    await connection.ExecuteAsync(
+                        "SP_InsertUpdate_EMP_Project_Building_Matrix_Map",
+                        param,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    // 🔹 Get Output
+
+                    var msgresponse = param.Get<string>("@ResponseMessage");
+                    if (msgresponse.Contains("NEW RECORD INSERTED SUCCESSFULLY") || msgresponse.Contains("RECORD UPDATED SUCCESSFULLY"))
+                    {
+                        response.Status = "Success";
+                        response.Message = msgresponse;
+                        response.Data = null;
+                    }
+                    else if (msgresponse.Contains("RECORD SOFT DELETED SUCCESSFULLY") || msgresponse.Contains("SOFT DELETED RECORD REACTIVATED"))
+                    {
+                        response.Status = "Success";
+                        response.Message = msgresponse;
+                        response.Data = null;
+                    }
+                    else if (msgresponse.Contains("RECORD NOT FOUND") || msgresponse.Contains("RECORD ALREADY SOFT DELETED"))
+                    {
+                        response.Status = "Success";
+                        response.Message = msgresponse;
+                        response.Data = null;
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = "Data Insert Failed";
+                        response.Data = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+            }
+
+            return response;
+        }
+
+
+        public async Task<Commonresponse> GetCompanyid_ByProjectid(int? projectid)
+        {
+            var response = new Commonresponse();
+            try
+            {
+               if(projectid== null || projectid <= 0)
+                {
+                    response.Status = "Error";
+                    response.Message = "ProjectId Should Not be Null our Zero";
+                    response.Data = null;
+                }
+
+               using(var connection= _dapperDbConnection.CreateConnection())
+                {
+                    connection.Open();
+                    string Query =  @"SELECT COMPANY_ID FROM TYPE_MST WHERE MKEY = @MKEY AND TYPE_CODE = 'Project'";
+                    var result = await connection.QueryFirstOrDefaultAsync<int?>(Query, new { Mkey = projectid });
+                    if (result != null)
+                    {
+                        response.Status = "Success";
+                        response.Message = "Record Found";
+                        response.Data = result;
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = "No Record Found";
+                        response.Data = null;
+                    }
+                }
+                return response;
+
+            }catch(Exception ex)
+            {
+                var errorresponse = new Commonresponse
+                {
+                    Status = "Error",
+                    Message = ex.Message,
+                    Data = null
+                };
+                return errorresponse;
+            }
+        }
+
+        public async Task<IEnumerable<V_Building_Classification_New_NT>> GetBuildingDetail_ByProjectMkeyNTAsync(GetSubProjectInput_NT getSubProjectInput_NT)
+        {
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parmeters = new DynamicParameters();
+                    parmeters.Add("@PROJECT_MKEY", getSubProjectInput_NT.Project_Mkey);
+                    parmeters.Add("@Session_User_Id", getSubProjectInput_NT.Session_User_ID);
+                    parmeters.Add("@Business_Group_Id", getSubProjectInput_NT.Business_Group_ID);
+                    var ProjectDetails = (await db.QueryAsync<V_Building_Classification_TMS_SESSION_NT>("SP_GET_BuildingDetails_ByProjectMkey", parmeters, commandType: CommandType.StoredProcedure));
+                    //  return ProjectDetails;
+                    var successsResult = new List<V_Building_Classification_New_NT>
+                    {
+                        new V_Building_Classification_New_NT
+                        {
+                            Status = "Ok",
+                            Message = "Message",
+                            Data = ProjectDetails
+
+                        }
+                    };
+                    return successsResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResult = new List<V_Building_Classification_New_NT>
+                    {
+                        new V_Building_Classification_New_NT
+                        {
+                            Status = "Error",
+                            Message = ex.Message,
+                            Data=null
+
+                        }
+                    };
+                return errorResult;
+            }
+        }
+
+        public async Task<ResponseObject<List<EMP_Project_Building_Matrix_Model>>> GetProjectBuildingDetails_BYMkey(int? mkey, int? sessionUserId, int? businessGroupId)
+        {
+            var response = new ResponseObject<List<EMP_Project_Building_Matrix_Model>>();
+
+            try
+            {
+                using (IDbConnection db = _dapperDbConnection.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+
+                    parameters.Add("@Mkey", mkey);
+                    parameters.Add("@Session_userId", sessionUserId);
+                    parameters.Add("@BusinessGroupId", businessGroupId);
+
+                    // ✅ IMPORTANT: OUTPUT PARAM
+                    parameters.Add("@ResponseMessage",
+                        dbType: DbType.String,
+                        size: 500,
+                        direction: ParameterDirection.Output);
+
+                    var result = (await db.QueryAsync<EMP_Project_Building_Matrix_Model>("SP_GET_Project_Building_Company_Map", parameters, commandType: CommandType.StoredProcedure)).ToList();
+
+                    // ✅ GET OUTPUT VALUE
+                    var message = parameters.Get<string>("@ResponseMessage");
+
+                    if (message == "SUCCESS")
+                    {
+                        response.Status = "SUCCESS";
+                        response.Message = message;
+                        response.Data = result!;
+                    }
+                    else
+                    {
+                        response.Status = "Error";
+                        response.Message = message;
+                        response.Data = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Status = "Error";
+                response.Message = ex.Message;
+                response.Data = null;
+            }
+
+            return response;
+        }
+
+
+
 
         #endregion
     }

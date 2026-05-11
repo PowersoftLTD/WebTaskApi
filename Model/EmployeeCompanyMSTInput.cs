@@ -93,9 +93,23 @@ namespace TaskManagement.API.Model
         public List<Business_Group> businessGroup { get; set; }
 
         public List<RoleManagement> roleManagement { get; set; }
+        public List<projectDetails> projectItem { get; set; }
 
         public int? session_User_ID { get; set; }
         public int? BusinessGroupId { get; set; }
+    }
+
+    public class projectDetails
+    {
+        public int? ProjectId { get; set; }
+        public List<BuildingDetails> Buildings { get; set; }
+        public string? Delete_Flag { get; set; }
+    }
+
+    public class BuildingDetails
+    {
+        public int? BuildingId { get; set; }
+        public string? Delete_Flag { get; set; }
     }
 
     public class personalInformation
@@ -112,13 +126,15 @@ namespace TaskManagement.API.Model
         public string? UserName { get; set; }
         public string? Status { get; set; }
         public string? EFFECTIVE_START_DATE { get; set; }
+        //public string? ROLE_ID { get; set;}
+        public decimal? DESIGNATION_ID { get; set;}
+        public decimal? DepartmentId { get; set;}
 
     }
     public class Business_Group
     {
         public string BusinessGroup_Name { get; set;}
     }
-
     public class RoleManagement
     {
         public int? Role { get; set; }
@@ -129,15 +145,12 @@ namespace TaskManagement.API.Model
         public string? Remarks { get; set; }
         public string? Delete_flag { get; set; }
     }
-
     public class ResponseObject<T>
     {
         public string Status { get; set; }
         public string Message { get; set; }
         public T Data { get; set; }
     }
-
-
     public class Employee_MST_Details_Model 
     {
         // Primary Key
@@ -294,9 +307,8 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("jobRole")]
         public int? JobRole { get; set; }
         public int? businessGroupId { get; set; }
+        //public string? Primary_RoleId { get; set; }
     }
-
-
     public class  CommonInput_UserManagement_Model
     {
         [JsonPropertyName("Session_User_ID")]
@@ -307,8 +319,6 @@ namespace TaskManagement.API.Model
         //[JsonPropertyName("Current_Emp_Mkey")]
         //public int? CURRENT_EMP_MKEY { get; set; }
     }
-
-
     public class CommonInput_ViewUserManagement_Model
     {
         [JsonPropertyName("Session_User_ID")]
@@ -329,7 +339,6 @@ namespace TaskManagement.API.Model
         public List<RoleManagementModel> Data { get; set; }
         public int TotalCount { get; set; }
     }
-
     public class RoleManagementModel
     {
         [JsonPropertyName("mkey")]
@@ -380,7 +389,6 @@ namespace TaskManagement.API.Model
         [JsonPropertyName("createdByName")]
         public string? Created_By_Name { get; set; }
     }
-
     public class Response_UserManagementResult
     {
         public bool IsSuccess { get; set; }
@@ -388,9 +396,6 @@ namespace TaskManagement.API.Model
         public List<UserManagment_EmployeeModel> Data { get; set; }
         public int TotalCount { get; set; }
     }
-
-
-
     public class  UserManagment_EmployeeModel
     {
         // Primary Key
@@ -550,9 +555,21 @@ namespace TaskManagement.API.Model
         public int? PermissionCount { get; set; }
         [JsonPropertyName("createdByName")]
         public string? Created_By_Name { get; set; }
+        [JsonPropertyName("allCompanyId")]
+        public string? All_Company_Ids { get; set;}
+
+        [JsonPropertyName("allRoleId")]
+        public string? All_Role_Ids { get; set;}
+
+        [JsonPropertyName("allRoleName")]
+        public string? All_Role_Names { get; set; }
+
+        [JsonPropertyName("primaryRoleName")]
+        public string? Primary_Role_Name { get; set; }
+
+        [JsonPropertyName("primaryCompanyId")]
+        public string? Primary_Company_Id { get; set; }
     }
-
-
     public class Module_Hdr
     {
         [JsonPropertyName("mkey")]
